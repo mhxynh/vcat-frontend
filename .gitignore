@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production Build Output
+build/
+dist/
+
+# Testing Coverage
+coverage/
+
+# Environment Variables (Keep secrets local!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AWS Amplify (Generated files)
+amplify/
+src/aws-exports.js
+aws-configuration.json
+
+# IDE & OS Files
+.DS_Store
+.vscode/
