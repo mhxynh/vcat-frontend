@@ -1,70 +1,41 @@
-# Getting Started with Create React App
+# Frontend README
+This repository contains the user interface and client-side logic for the Vanguard Controls Automation Tool (V-CAT).
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Step-by-Step Local Start
+1. **Clone the repo:** `git clone https://github.com/mhxynh/vcat-frontend.git`
+2. **Install dependencies:** `npm install`
+3. **Configure Environment**: Create a file named `.env` in the root directory and add the following:
+    ```
+    REACT_APP_API_URL=http://127.0.0.1:3000
+    ```
+4. **Start the app**: `npm start`
+    - Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+    - If the backend (SAM) is already running on port 3000, you will be asked to use another port. Type **Y** to run the frontend on `3001`.
+
+## Connecting to the Backend
+To work with real data locally, the frontend needs to know where the backend API lives.
+- **The Address:** `http://127.0.0.1:3000` is the local "tunnel" created by AWS SAM.
+- **Why the .env?** By using `REACT_APP_API_URL`, we can point to our local machines during development and easily swap to the live AWS Lambda URL for production without changing any code.
+
+## Production
+To verify the app is ready for deployment:
+1. Run `npm run build`.
+2. If the build succeeds, the project is ready for AWS hosting. 
+3. To preview the production build locally: `npx serve -s build`.
+
+## How to Run a Full Test
+To test a PR that affects data flow, you must have both layers running:
+1. **Terminal 1 (Backend):** `sam local start-api` (keep this running)
+2. **Terminal 2 (Frontend):** `npm start` 
+3. **Verify:** Check the browser; if the UI says "Error fetching data," ensure Terminal 1 hasn't crashed.
+
+## PR Review Checklist
+Before approving a Frontend PR, please verify:
+- [ ] Console check: Open DevTools (F12) and ensure there are no red errors.
+- [ ] Responsiveness: Does the UI look correct on different screen sizes?
+- [ ] API Connection: Is the app successfully fetching/sending data to the local SAM API? (Check the Network tab).
 
 ## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+`npm start` - Runs the app in development mode. The page will reload if you make edits. You will see any lint errors in the console.\
+`npm test` - Launches the test runner in interactive watch mode. Run this before submitting a PR to ensure no components are broken.\
+`npm run build` - Builds the app for production to the build folder. It correctly bundles React in production mode for the best performance.
