@@ -17,17 +17,17 @@ To work with real data locally, the frontend needs to know where the backend API
 - **The Address:** `http://127.0.0.1:3000` is the local "tunnel" created by AWS SAM.
 - **Why the .env?** By using `REACT_APP_API_URL`, we can point to our local machines during development and easily swap to the live AWS Lambda URL for production without changing any code.
 
-## Production
-To verify the app is ready for deployment:
-1. Run `npm run build`.
-2. If the build succeeds, the project is ready for AWS hosting. 
-3. To preview the production build locally: `npx serve -s build`.
-
 ## How to Run a Full Test
 To test a PR that affects data flow, you must have both layers running:
 1. **Terminal 1 (Backend):** `sam local start-api` (keep this running)
 2. **Terminal 2 (Frontend):** `npm start` 
 3. **Verify:** Check the browser; if the UI says "Error fetching data," ensure Terminal 1 hasn't crashed.
+
+## Production
+To verify the app is ready for deployment:
+1. Run `npm run build`.
+2. If the build succeeds, the project is ready for AWS hosting. 
+3. To preview the production build locally: `npx serve -s build`.
 
 ## PR Review Checklist
 Before approving a Frontend PR, please verify:
