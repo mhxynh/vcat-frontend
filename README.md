@@ -1,14 +1,4 @@
-# V-CAT Frontend Setup
-1) cd into vcat-frontend
-2) npm install
-3) To run dev environment:
-    - npm run start
-    - Open [http://localhost:3000](http://localhost:3000) to view it in your browser
-4) To build prod env:
-    - npm run build
-5) To run prod env:
-    - npm install -g serve
-    - serve -s build
+# Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
