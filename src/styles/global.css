@@ -358,3 +358,66 @@ html, #root {
   cursor: not-allowed;
 }
 
+/* Navbar */
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar__brand {
+  font-weight: 700;
+}
+
+.navbar__links {
+  display: flex;
+  gap: 16px;
+}
+
+.navbar__link {
+  text-decoration: none;
+  color: #333;
+  font-weight: 600;
+  padding-bottom: 2px;
+}
+
+.navbar__link--active {
+  color: #8b0f17;
+  border-bottom: 2px solid #8b0f17;
+}
+
+.navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar__logo {
+  height: 22px;   
+  width: auto;
+  display: block;
+}
+
+.navbar__brand {
+  font-family: "Fremont", "Tenorite", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #8b0f17;
+  font-weight: 700;
+  font-size: 25px;
+}
+
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+}
+
+.navbar__divider {
+  width: 1px;
+  height: 24px;
+  background: #d9d9d9;
+  display: inline-block;
+}
