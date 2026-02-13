@@ -1,0 +1,21 @@
+/* PageHeader component */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.page-header__title {
+  font-size: 18px;
+  font-weight: inherit;
+}
+
+.page-header__actions {
+  display: flex;
+  gap: 10px;
+}

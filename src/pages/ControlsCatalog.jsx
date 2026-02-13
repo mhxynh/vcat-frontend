@@ -39,7 +39,7 @@ export default function Controls() {
   const [filter, setFilter] = useState("All"); // Defaulted to ALL, can change to ACTIVE if needed
   const [openId, setOpenId] = useState(SAMPLE_CONTROLS[0]?.id ?? null);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 8; // Set a control per page limit depending on what we think
+  const PAGE_SIZE = 10; // Set a control per page limit depending on what we think
   const [search, setSearch] = useState("");
 
 

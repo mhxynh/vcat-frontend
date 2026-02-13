@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/dashboard";
-import Controls from "./pages/controls";
+import Controls from "./pages/ControlsCatalog";
 
 export default function App() {
   return (

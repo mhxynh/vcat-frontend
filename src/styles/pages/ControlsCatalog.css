@@ -1,0 +1,150 @@
+/* Controls page */
+
+.controls-page {
+  max-width: 1120px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* Filter */
+.controls-filters {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.filter-search {
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  width: 260px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4094E6;
+}
+
+/* Accordion */
+.controls-accordion {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.acc-item {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.acc-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.acc-id {
+  color: #8b0f17;
+  font-weight: inherit;
+}
+
+.acc-header__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.no-results {
+  padding: 40px 0;
+  text-align: center;
+  font-weight: inherit;
+  color: #777;
+}
+
+/* Accordion body */
+.acc-body {
+  border-top: 1px solid #f0f0f0;
+  padding: 14px 16px 16px;
+  background: #fcfcfc;
+}
+
+.acc-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+
+.acc-card {
+  background: white;
+  border: 1px solid #eaeaea;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.acc-card__label {
+  font-size: 11px;
+  font-weight: inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.acc-card__text {
+  color: #222;
+  line-height: 1.4;
+}
+
+.acc-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acc-details__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #f3f3f3;
+  padding-bottom: 8px;
+}
+
+.acc-details__k {
+  color: #666;
+  font-size: 13px;
+}
+
+.acc-details__v {
+  color: #222;
+  font-weight: inherit;
+  font-size: 13px;
+}
+
+.acc-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.linklike {
+  border: 0;
+  background: transparent;
+  color: #8b0f17;
+  font-weight: inherit;
+  cursor: pointer;
+}
