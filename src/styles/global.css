@@ -1,40 +1,40 @@
 /* font setup */
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteRegular.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteRegular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteItalic.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteItalic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteBold.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteBoldItalic.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Fremont";
-  src: url("../assets/fonts/FremontBold.ttf") format("truetype");
+  font-family: 'Fremont';
+  src: url('../assets/fonts/FremontBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -42,22 +42,36 @@
 
 /* Global Font (Tenorite Regular defaulted) */
 body {
-  font-family: "Tenorite", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    'Tenorite',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
   font-weight: 700;
-  background: #f5f5f5;   
-  margin: 0;             
+  background: #f5f5f5;
+  margin: 0;
 }
 
-html, #root {
+html,
+#root {
   height: 100%;
-  font-family: "Tenorite", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    'Tenorite',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
   font-weight: 700;
 }
 
 * {
   font-family: inherit;
 }
-
 
 /* Controls Page Container */
 .controls-page {
@@ -87,11 +101,10 @@ html, #root {
   gap: 10px;
 }
 
-
 /* Buttons (Reusable, but add more specific colours) */
 .btn {
-  display: inline-flex;          
-  align-items: center;          
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -99,21 +112,21 @@ html, #root {
   font-weight: inherit;
   cursor: pointer;
   background: #f4f4f4;
-  line-height: 1;                
+  line-height: 1;
 }
 
 .btn--white {
-  background: #57BE5B;
+  background: #57be5b;
   color: white;
 }
 
 .btn--blue {
-  background: #4094E6;
+  background: #4094e6;
   color: white;
 }
 
 .btn--red {
-  background: #96151D;
+  background: #96151d;
   color: white;
 }
 
@@ -140,9 +153,8 @@ html, #root {
 
 .search-input:focus {
   outline: none;
-  border-color: #4094E6;
+  border-color: #4094e6;
 }
-
 
 /* Pills group (reusable in other areas) */
 .pill-group {
@@ -152,14 +164,13 @@ html, #root {
 }
 
 .pill {
-  border: 1px solid #e6e6e6;    
+  border: 1px solid #e6e6e6;
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
-  background: #ffffff;          
+  background: #ffffff;
   font-weight: inherit;
 }
-
 
 .pill--active {
   background: #8b0f17;
@@ -209,7 +220,6 @@ html, #root {
   font-weight: inherit;
   color: #777;
 }
-
 
 /* Badges for accordion */
 .badge {
@@ -313,13 +323,13 @@ html, #root {
 
 /* Chevron Arrows (needs work, maybe make it an image next time)*/
 .chev {
-  width: 18px;              
+  width: 18px;
   height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s ease;
-  font-size: 15px;          
+  font-size: 15px;
   line-height: 1;
   transform-origin: 50% 50%;
 }
@@ -333,7 +343,7 @@ html, #root {
   margin-top: 14px;
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
   gap: 14px;
 }
 
@@ -345,11 +355,11 @@ html, #root {
 }
 
 .pagination__arrow {
-  border: 0;              
+  border: 0;
   background: transparent;
   cursor: pointer;
-  font-size: 20px;        
-  padding: 4px 6px;       
+  font-size: 20px;
+  padding: 4px 6px;
   line-height: 1;
 }
 
@@ -396,13 +406,21 @@ html, #root {
 }
 
 .navbar__logo {
-  height: 22px;   
+  height: 22px;
   width: auto;
   display: block;
 }
 
 .navbar__brand {
-  font-family: "Fremont", "Tenorite", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    'Fremont',
+    'Tenorite',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
   color: #8b0f17;
   font-weight: 700;
   font-size: 25px;
@@ -412,7 +430,6 @@ html, #root {
   display: flex;
   align-items: center;
   gap: 12px;
-  
 }
 
 .navbar__divider {
