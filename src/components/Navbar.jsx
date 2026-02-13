@@ -1,5 +1,5 @@
-import { NavLink } from "react-router-dom";
-import vanguardLogo from "../assets/images/vanguard.png";
+import { NavLink } from 'react-router-dom';
+import vanguardLogo from '../assets/images/vanguard.png';
 
 export default function Navbar() {
   return (
@@ -16,18 +16,14 @@ export default function Navbar() {
         <div className="navbar__links">
           <NavLink
             to="/"
-            className={({ isActive }) =>
-              `navbar__link ${isActive ? "navbar__link--active" : ""}`
-            }
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
             Summary
           </NavLink>
 
           <NavLink
             to="/controls"
-            className={({ isActive }) =>
-              `navbar__link ${isActive ? "navbar__link--active" : ""}`
-            }
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
             Catalog
           </NavLink>

@@ -1,42 +1,40 @@
-import React, { useMemo, useState, useEffect } from "react";
-import PageHeader from "../components/PageHeader";
-
+import React, { useMemo, useState, useEffect } from 'react';
+import PageHeader from '../components/PageHeader';
 
 // SAMPLE CONTROLS, CHANGE THE SCHEMA AND STUFF WHEN DATABASE IS READY
 const SAMPLE_CONTROLS = [
   {
-    id: "VGCP-406710",
-    status: "Active",
-    testing: "In Testing",
+    id: 'VGCP-406710',
+    status: 'Active',
+    testing: 'In Testing',
     description:
-      "This is the only filled out control, the rest are empty besides the core status and testing.",
-    dateCreated: "12/01/2025",
-    lastTested: "12/31/2025",
-    owner: "John",
-    sme: "Joe",
-    escalationRequired: "No",
+      'This is the only filled out control, the rest are empty besides the core status and testing.',
+    dateCreated: '12/01/2025',
+    lastTested: '12/31/2025',
+    owner: 'John',
+    sme: 'Joe',
+    escalationRequired: 'No',
   },
-  { id: "VGCP-402120", status: "Active", testing: "Last Testing on 01/01/2025" },
-  { id: "VGCP-503322", status: "Active", testing: "Last Testing on 01/01/2025" },
-  { id: "VGCP-503456", status: "Active", testing: "Last Testing on 01/01/2025" },
-  { id: "VGCP-509696", status: "Retired", testing: "Last Testing on 01/01/2025" },
-  { id: "VGCP-506767", status: "Retired", testing: "Last Testing on 01/01/2025" },
-  { id: "VGCP-504425", status: "Retired", testing: "Last Testing on 01/01/2025" },
-  { id: "VGCP-600001", status: "Active", testing: "Last Testing on 02/01/2025" },
-  { id: "VGCP-600002", status: "Active", testing: "Last Testing on 02/03/2025" },
-  { id: "VGCP-600003", status: "Active", testing: "Last Testing on 02/05/2025" },
-  { id: "VGCP-600004", status: "Retired", testing: "Last Testing on 01/15/2025" },
-  { id: "VGCP-600005", status: "Active", testing: "Last Testing on 02/07/2025" },
-  { id: "VGCP-600006", status: "Active", testing: "Last Testing on 02/09/2025" },
-  { id: "VGCP-600007", status: "Retired", testing: "Last Testing on 01/22/2025" },
-  { id: "VGCP-600008", status: "Active", testing: "Last Testing on 02/10/2025" },
-  { id: "VGCP-600009", status: "Active", testing: "Last Testing on 02/11/2025" },
-  { id: "VGCP-600010", status: "Retired", testing: "Last Testing on 01/30/2025" },
-
+  { id: 'VGCP-402120', status: 'Active', testing: 'Last Testing on 01/01/2025' },
+  { id: 'VGCP-503322', status: 'Active', testing: 'Last Testing on 01/01/2025' },
+  { id: 'VGCP-503456', status: 'Active', testing: 'Last Testing on 01/01/2025' },
+  { id: 'VGCP-509696', status: 'Retired', testing: 'Last Testing on 01/01/2025' },
+  { id: 'VGCP-506767', status: 'Retired', testing: 'Last Testing on 01/01/2025' },
+  { id: 'VGCP-504425', status: 'Retired', testing: 'Last Testing on 01/01/2025' },
+  { id: 'VGCP-600001', status: 'Active', testing: 'Last Testing on 02/01/2025' },
+  { id: 'VGCP-600002', status: 'Active', testing: 'Last Testing on 02/03/2025' },
+  { id: 'VGCP-600003', status: 'Active', testing: 'Last Testing on 02/05/2025' },
+  { id: 'VGCP-600004', status: 'Retired', testing: 'Last Testing on 01/15/2025' },
+  { id: 'VGCP-600005', status: 'Active', testing: 'Last Testing on 02/07/2025' },
+  { id: 'VGCP-600006', status: 'Active', testing: 'Last Testing on 02/09/2025' },
+  { id: 'VGCP-600007', status: 'Retired', testing: 'Last Testing on 01/22/2025' },
+  { id: 'VGCP-600008', status: 'Active', testing: 'Last Testing on 02/10/2025' },
+  { id: 'VGCP-600009', status: 'Active', testing: 'Last Testing on 02/11/2025' },
+  { id: 'VGCP-600010', status: 'Retired', testing: 'Last Testing on 01/30/2025' },
 ];
 
 export default function Controls() {
-  const [filter, setFilter] = useState("All"); // Defaulted to ALL, can change to ACTIVE if needed
+  const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
   const [openId, setOpenId] = useState(SAMPLE_CONTROLS[0]?.id ?? null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10; // Set a control per page limit depending on what we think
@@ -46,19 +44,16 @@ export default function Controls() {
   const filtered = useMemo(() => {
     let result = SAMPLE_CONTROLS; // change this when we get backend data
 
-    if (filter !== "All") {
+    if (filter !== 'All') {
       result = result.filter((c) => c.status === filter);
     }
 
-    if (search.trim() !== "") {
-      result = result.filter((c) =>
-        c.id.toLowerCase().includes(search.toLowerCase())
-      );
+    if (search.trim() !== '') {
+      result = result.filter((c) => c.id.toLowerCase().includes(search.toLowerCase()));
     }
 
     return result;
   }, [filter, search]);
-
 
   const onToggle = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
@@ -77,9 +72,8 @@ export default function Controls() {
 
   useEffect(() => {
     setPage(1);
-    setOpenId(null); 
+    setOpenId(null);
   }, [filter, search]);
-
 
   return (
     <div className="controls-page">
@@ -103,22 +97,22 @@ export default function Controls() {
         <div className="pill-group">
           <button
             type="button"
-            className={`pill ${filter === "All" ? "pill--active" : ""}`}
-            onClick={() => setFilter("All")}
+            className={`pill ${filter === 'All' ? 'pill--active' : ''}`}
+            onClick={() => setFilter('All')}
           >
             All
           </button>
           <button
             type="button"
-            className={`pill ${filter === "Active" ? "pill--active" : ""}`}
-            onClick={() => setFilter("Active")}
+            className={`pill ${filter === 'Active' ? 'pill--active' : ''}`}
+            onClick={() => setFilter('Active')}
           >
             Active
           </button>
           <button
             type="button"
-            className={`pill ${filter === "Retired" ? "pill--active" : ""}`}
-            onClick={() => setFilter("Retired")}
+            className={`pill ${filter === 'Retired' ? 'pill--active' : ''}`}
+            onClick={() => setFilter('Retired')}
           >
             Retired
           </button>
@@ -138,7 +132,6 @@ export default function Controls() {
           New Control
         </button>
       </div>
-
 
       {/* Accordion */}
       <div className="controls-accordion">
@@ -163,7 +156,7 @@ export default function Controls() {
                   <div className="acc-header__right">
                     <span
                       className={`badge ${
-                        control.status === "Active" ? "badge--active" : "badge--retired"
+                        control.status === 'Active' ? 'badge--active' : 'badge--retired'
                       }`}
                     >
                       {control.status}
@@ -171,7 +164,7 @@ export default function Controls() {
 
                     <span className="badge badge--neutral">{control.testing}</span>
 
-                    <span className={`chev ${isOpen ? "chev--open" : ""}`}>⌄</span>
+                    <span className={`chev ${isOpen ? 'chev--open' : ''}`}>⌄</span>
                   </div>
                 </button>
 
@@ -181,7 +174,7 @@ export default function Controls() {
                       <div className="acc-card">
                         <div className="acc-card__label">Description</div>
                         <div className="acc-card__text">
-                          {control.description ?? "No description yet."}
+                          {control.description ?? 'No description yet.'}
                         </div>
                       </div>
 
@@ -191,24 +184,24 @@ export default function Controls() {
                         <div className="acc-details">
                           <div className="acc-details__row">
                             <div className="acc-details__k">Date Created</div>
-                            <div className="acc-details__v">{control.dateCreated ?? "-"}</div>
+                            <div className="acc-details__v">{control.dateCreated ?? '-'}</div>
                           </div>
                           <div className="acc-details__row">
                             <div className="acc-details__k">Last Tested</div>
-                            <div className="acc-details__v">{control.lastTested ?? "-"}</div>
+                            <div className="acc-details__v">{control.lastTested ?? '-'}</div>
                           </div>
                           <div className="acc-details__row">
                             <div className="acc-details__k">Control Owner</div>
-                            <div className="acc-details__v">{control.owner ?? "-"}</div>
+                            <div className="acc-details__v">{control.owner ?? '-'}</div>
                           </div>
                           <div className="acc-details__row">
                             <div className="acc-details__k">Control SME</div>
-                            <div className="acc-details__v">{control.sme ?? "-"}</div>
+                            <div className="acc-details__v">{control.sme ?? '-'}</div>
                           </div>
                           <div className="acc-details__row">
                             <div className="acc-details__k">Escalation Required</div>
                             <div className="acc-details__v">
-                              {control.escalationRequired ?? "-"}
+                              {control.escalationRequired ?? '-'}
                             </div>
                           </div>
                         </div>
