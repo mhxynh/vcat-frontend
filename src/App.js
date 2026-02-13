@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import NavBar from './components/NavBar';
+import KanbanBoard from './pages/kanban';
 
 const Home = () => <h2>Project Dashboard</h2>;
 const Summary = () => <h2>Summary</h2>;
@@ -16,9 +17,10 @@ function App() {
         <main style={{ padding: '20px' }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/summary" element={<Summary/>} />
-            <Route path="/catalog" element={<Catalog/>} />
-            <Route path="/controls" element={<Controls/>} />
+            <Route path="/summary" element={<Summary />} />
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/controls" element={<Controls />} />
+            <Route path="/kanban" element={<KanbanBoard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
