@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
+import CreateControlModal from '../components/CreateControlModal';
 
 // SAMPLE CONTROLS, CHANGE THE SCHEMA AND STUFF WHEN DATABASE IS READY
 const SAMPLE_CONTROLS = [
@@ -38,7 +39,7 @@ export default function Controls() {
   const [openId, setOpenId] = useState(SAMPLE_CONTROLS[0]?.id ?? null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10; // Set a control per page limit depending on what we think
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(''); //When I try to load the website, the "" in useState("") is compiling with an error. It is telling me to replace the "" with '' (single quotes).  - Justin
 
 
   const filtered = useMemo(() => {
@@ -60,6 +61,8 @@ export default function Controls() {
   };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const pagedControls = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -128,7 +131,7 @@ export default function Controls() {
           />
         </div>
 
-        <button className="btn btn--red" type="button">
+        <button className="btn btn--red" type="button" onClick={() => setIsCreateModalOpen(true)}>
           New Control
         </button>
       </div>
@@ -246,6 +249,11 @@ export default function Controls() {
             →
           </button>
         </div>
+        {/* Create Control Modal */}
+        <CreateControlModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          />
       </div>
     </div>
   );
