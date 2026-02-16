@@ -25,7 +25,7 @@ export default function Navbar() {
             to="/controls"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
-            Controls
+            Catalogs
           </NavLink>
 
           <NavLink
