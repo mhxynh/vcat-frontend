@@ -39,8 +39,7 @@ export default function Controls() {
   const [openId, setOpenId] = useState(SAMPLE_CONTROLS[0]?.id ?? null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10; // Set a control per page limit depending on what we think
-  const [search, setSearch] = useState("");
-
+  const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
     let result = SAMPLE_CONTROLS; // change this when we get backend data
@@ -253,7 +252,7 @@ export default function Controls() {
         <CreateControlModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          />
+        />
       </div>
     </div>
   );

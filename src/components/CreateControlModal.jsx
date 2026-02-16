@@ -34,12 +34,7 @@ export default function CreateControlModal({ isOpen, onClose }) {
             Create New Control
           </h2>
 
-          <button
-            type="button"
-            className="modal-x"
-            aria-label="Close"
-            onClick={onClose}
-          >
+          <button type="button" className="modal-x" aria-label="Close" onClick={onClose}>
             ×
           </button>
         </div>
@@ -77,11 +72,7 @@ export default function CreateControlModal({ isOpen, onClose }) {
 
             <div className="form-field form-field--full">
               <label className="form-label">Escalation Required?</label>
-              <div
-                className="radio-row"
-                role="radiogroup"
-                aria-label="Escalation Required"
-              >
+              <div className="radio-row" role="radiogroup" aria-label="Escalation Required">
                 <label className="radio-item">
                   <input type="radio" name="escalation" />
                   <span>Yes</span>
