@@ -1,24 +1,22 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import NavBar from './components/NavBar';
+import Navbar from './components/Navbar';
+import Dashboard from './pages/dashboard';
+import Controls from './pages/ControlsCatalog';
+import KanbanBoard from './pages/kanban';
 
-const Home = () => <h2>Project Dashboard</h2>;
-const Summary = () => <h2>Summary</h2>;
-const Catalog = () => <h2>Catalog</h2>;
-const Controls = () => <h2>Controls</h2>;
 const NotFound = () => <h2>404: Page Not Found</h2>;
 
-function App() {
+export default function App() {
   return (
     <Router>
       <div className="App">
-        <NavBar />
+        <Navbar />
         <main style={{ padding: '20px' }}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/summary" element={<Summary/>} />
-            <Route path="/catalog" element={<Catalog/>} />
-            <Route path="/controls" element={<Controls/>} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/controls" element={<Controls />} />
+            <Route path="/kanban" element={<KanbanBoard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
@@ -26,5 +24,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;

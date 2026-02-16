@@ -1,0 +1,7 @@
+@import './fonts.css';
+@import './base.css';
+
+@import './components/Navbar.css';
+@import './components/PageHeader.css';
+
+@import './pages/ControlsCatalog.css';
