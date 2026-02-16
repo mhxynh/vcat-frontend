@@ -1,40 +1,40 @@
 /* font setup */
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteRegular.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteRegular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteItalic.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteItalic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteBold.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Tenorite";
-  src: url("../assets/fonts/TenoriteBoldItalic.ttf") format("truetype");
+  font-family: 'Tenorite';
+  src: url('../assets/fonts/TenoriteBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Fremont";
-  src: url("../assets/fonts/FremontBold.ttf") format("truetype");
+  font-family: 'Fremont';
+  src: url('../assets/fonts/FremontBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
