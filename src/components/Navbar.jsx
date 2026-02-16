@@ -22,13 +22,6 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
-            to="/ControlsCatalog"
-            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
-          >
-            Catalog
-          </NavLink>
-
-          <NavLink
             to="/controls"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >

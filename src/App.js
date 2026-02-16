@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/dashboard';
-import Catalog from './pages/catalog';
 import Controls from './pages/ControlsCatalog';
 import KanbanBoard from './pages/kanban';
 
@@ -16,7 +15,6 @@ export default function App() {
         <main style={{ padding: '20px' }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/catalog" element={<Catalog />} />
             <Route path="/controls" element={<Controls />} />
             <Route path="/kanban" element={<KanbanBoard />} />
             <Route path="*" element={<NotFound />} />
