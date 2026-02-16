@@ -18,7 +18,7 @@ export default function Navbar() {
             to="/"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
-            Summary
+            Dashboard
           </NavLink>
 
           <NavLink
@@ -26,6 +26,13 @@ export default function Navbar() {
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
             Catalog
+          </NavLink>
+
+          <NavLink
+            to="/kanban"
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+          >
+            Kanban
           </NavLink>
         </div>
 
