@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import '../styles/pages/kanban.css';
+import PageHeader from '../components/PageHeader';
+import '../styles/pages/Kanban.css';
 
 const KanbanBoard = () => {
   const columns = [
@@ -55,22 +56,6 @@ const KanbanBoard = () => {
 
   return (
     <div className="kanban-container">
-      <div className="kanban-header">
-        <h2 style={{ margin: 0 }}>Controls Tracker</h2>
-        <div className="kanban-actions">
-          <button className="btn btn--white kanban-export-btn" onClick={exportData}>
-            Export
-          </button>
-          <button className="btn btn--blue kanban-refresh-btn" onClick={refreshBoard}>
-            Refresh
-          </button>
-        </div>
-      </div>
-
-      <div className="kanban-tabs">
-        <button className="kanban-tab kanban-tab-active">Kanban</button>
-      </div>
-
       <div className="kanban-board">
         {columns.map((column) => {
           const columnCards = cards.filter((card) => card.status === column.key);
