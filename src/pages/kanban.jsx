@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../styles/pages/kanban.css';
+import '../styles/pages/Kanban.css';
 
 const KanbanBoard = () => {
   const columns = [
