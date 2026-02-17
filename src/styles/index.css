@@ -3,5 +3,6 @@
 
 @import './components/Navbar.css';
 @import './components/PageHeader.css';
+@import './components/CreateControlModal.css';
 
 @import './pages/ControlsCatalog.css';

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
+import CreateControlModal from '../components/CreateControlModal';
 
 // SAMPLE CONTROLS, CHANGE THE SCHEMA AND STUFF WHEN DATABASE IS READY
 const SAMPLE_CONTROLS = [
@@ -59,6 +60,8 @@ export default function Controls() {
   };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const pagedControls = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -127,7 +130,7 @@ export default function Controls() {
           />
         </div>
 
-        <button className="btn btn--red" type="button">
+        <button className="btn btn--red" type="button" onClick={() => setIsCreateModalOpen(true)}>
           New Control
         </button>
       </div>
@@ -245,6 +248,11 @@ export default function Controls() {
             →
           </button>
         </div>
+        {/* Create Control Modal */}
+        <CreateControlModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+        />
       </div>
     </div>
   );
