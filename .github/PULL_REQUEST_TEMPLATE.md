@@ -37,7 +37,7 @@ Please attach a screenshot or GIF of the UI change(s).
 
 [ ] **Lint**: `npm run lint` (ESLint) passes with no new errors.
 
-[ ] **Local Connection**: I have verified this works with the backend running on `localhost:3000`.
+[ ] **Local Connection**: I have verified this works with the backend running on `localhost:3001`.
 
 [ ] **Console Check**: Zero red errors or leftover `console.log` statements.
 
