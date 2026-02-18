@@ -30,9 +30,11 @@ const EVENTS_BY_DAY = {
 const CalendarView = () => {
   const [selectedDay, setSelectedDay] = useState(7);
   const [activeTab, setActiveTab] = useState('Calendar');
+  const [currentMonth, setCurrentMonth] = useState(0);
+  const [currentYear, setCurrentYear] = useState(2026);
 
-  const monthDate = new Date(2026, 0, 1);
-  const daysInMonth = new Date(2026, 1, 0).getDate();
+  const monthDate = new Date(currentYear, currentMonth, 1);
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDay = monthDate.getDay();
   const totalCells = 42;
 
@@ -51,8 +53,37 @@ const CalendarView = () => {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
-    }).format(new Date(2026, 0, selectedDay));
-  }, [selectedDay]);
+      year: 'numeric',
+    }).format(new Date(currentYear, currentMonth, selectedDay));
+  }, [currentMonth, currentYear, selectedDay]);
+
+  const monthLabel = useMemo(() => {
+    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
+      new Date(currentYear, currentMonth, 1)
+    );
+  }, [currentMonth, currentYear]);
+
+  const handlePrevMonth = () => {
+    setSelectedDay(null);
+    setCurrentMonth((prevMonth) => {
+      if (prevMonth === 0) {
+        setCurrentYear((prevYear) => prevYear - 1);
+        return 11;
+      }
+      return prevMonth - 1;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDay(null);
+    setCurrentMonth((prevMonth) => {
+      if (prevMonth === 11) {
+        setCurrentYear((prevYear) => prevYear + 1);
+        return 0;
+      }
+      return prevMonth + 1;
+    });
+  };
 
   return (
     <div className="calendar-container">
@@ -86,11 +117,21 @@ const CalendarView = () => {
       <div className="calendar-shell">
         <div className="calendar-panel">
           <div className="calendar-month-bar">
-            <button className="calendar-nav" type="button" aria-label="Previous month">
+            <button
+              className="calendar-nav"
+              type="button"
+              aria-label="Previous month"
+              onClick={handlePrevMonth}
+            >
               {'<'}
             </button>
-            <div className="calendar-month">January 2026</div>
-            <button className="calendar-nav" type="button" aria-label="Next month">
+            <div className="calendar-month">{monthLabel}</div>
+            <button
+              className="calendar-nav"
+              type="button"
+              aria-label="Next month"
+              onClick={handleNextMonth}
+            >
               {'>'}
             </button>
           </div>
