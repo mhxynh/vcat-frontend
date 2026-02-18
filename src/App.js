@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/dashboard';
 import Controls from './pages/ControlsCatalog';
 import KanbanBoard from './pages/Kanban';
+import CalendarView from './pages/Calendar';
 
 const NotFound = () => <h2>404: Page Not Found</h2>;
 
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/controls" element={<Controls />} />
             <Route path="/kanban" element={<KanbanBoard />} />
+            <Route path="/calendar" element={<CalendarView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
