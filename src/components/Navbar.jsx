@@ -32,7 +32,7 @@ export default function Navbar() {
             to="/kanban"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
-            Kanban
+            Controls
           </NavLink>
         </div>
 
