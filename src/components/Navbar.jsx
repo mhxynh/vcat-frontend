@@ -34,6 +34,13 @@ export default function Navbar() {
           >
             Kanban
           </NavLink>
+
+          <NavLink
+            to="/calendar"
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+          >
+            Calendar
+          </NavLink>
         </div>
 
         <span className="navbar__divider" aria-hidden="true" />
