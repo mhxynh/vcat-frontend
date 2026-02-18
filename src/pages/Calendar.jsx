@@ -1,105 +1,191 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import '../styles/pages/calendar.css';
 
+const STATUS_LABELS = {
+  notStarted: 'Not Started',
+  inProgress: 'In Progress',
+  testing: 'Testing',
+  addressing: 'Addressing',
+  completed: 'Completed',
+};
+
+const EVENTS_BY_DAY = {
+  3: [
+    { id: 'VG-1893', title: 'User access review completed', assignee: 'AN', status: 'completed' },
+  ],
+  7: [
+    { id: 'VG-1893', title: 'User access review completed', assignee: 'AN', status: 'completed' },
+  ],
+  14: [
+    { id: 'VG-7721', title: 'Privileged access testing', assignee: 'MH', status: 'testing' },
+    { id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'addressing' },
+  ],
+  21: [
+    { id: 'VG-7721', title: 'Database encryption audit', assignee: 'MH', status: 'inProgress' },
+    { id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'notStarted' },
+  ],
+};
+
 const CalendarView = () => {
-  const columns = [
-    { key: 'not_started', title: 'Not Started' },
-    { key: 'in_progress', title: 'In Progress' },
-    { key: 'in_review', title: 'In Review' },
-    { key: 'completed', title: 'Completed' },
-  ];
+  const [selectedDay, setSelectedDay] = useState(7);
 
-  /* placeholder */
-  const [cards, setCards] = useState([
-    {
-      id: 'VGCP-XXXX',
-      desc: 'Blah blah blah',
-      assignee: 'MH',
-      due: 'Jan 15',
-      status: 'not_started',
-      dot: '#ef4444',
-    },
-    {
-      id: 'VGCP-XXXX',
-      desc: 'MOre blah blahb lah',
-      assignee: 'MN',
-      due: 'Jan 18',
-      status: 'in_progress',
-      dot: '#ef4444',
-    },
-    {
-      id: 'VG-XXXX',
-      desc: 'Ye',
-      assignee: 'AN',
-      due: 'Jan 12',
-      status: 'in_review',
-      dot: '#f59e0b',
-    },
-    {
-      id: 'VG-XXXX',
-      desc: 'Amongus',
-      assignee: 'MH',
-      due: 'Jan 10',
-      status: 'completed',
-      dot: '#22c55e',
-    },
-  ]);
+  const monthDate = new Date(2026, 0, 1);
+  const daysInMonth = new Date(2026, 1, 0).getDate();
+  const firstDay = monthDate.getDay();
+  const totalCells = 42;
 
-  const refreshCalendar = () => {
-    console.log('Refreshing...');
-  };
+  const dayCells = useMemo(() => {
+    return Array.from({ length: totalCells }, (_, index) => {
+      const dayNumber = index - firstDay + 1;
+      return dayNumber > 0 && dayNumber <= daysInMonth ? dayNumber : null;
+    });
+  }, [daysInMonth, firstDay]);
 
-  const exportData = () => {
-    console.log('Exporting...');
-  };
+  const selectedEvents = selectedDay ? (EVENTS_BY_DAY[selectedDay] ?? []) : [];
+
+  const selectedDateLabel = useMemo(() => {
+    if (!selectedDay) return '';
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    }).format(new Date(2026, 0, selectedDay));
+  }, [selectedDay]);
 
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h2 style={{ margin: 0 }}>Controls Calendar</h2>
+        <h2 className="calendar-title">Controls Tracker</h2>
         <div className="calendar-actions">
-          <button className="btn btn--white calendar-export-btn" onClick={exportData}>
+          <button className="btn btn--white calendar-export-btn" type="button">
             Export
           </button>
-          <button className="btn btn--blue calendar-refresh-btn" onClick={refreshCalendar}>
+          <button className="btn btn--blue calendar-refresh-btn" type="button">
             Refresh
           </button>
         </div>
       </div>
 
       <div className="calendar-tabs">
-        <button className="calendar-tab calendar-tab-active">Calendar</button>
+        <button className="calendar-tab" type="button">
+          Controls
+        </button>
+        <button className="calendar-tab" type="button">
+          Requests
+        </button>
+        <button className="calendar-tab" type="button">
+          Kanban
+        </button>
+        <button className="calendar-tab calendar-tab-active" type="button">
+          Calendar
+        </button>
       </div>
 
-      <div className="calendar-board">
-        {columns.map((column) => {
-          const columnCards = cards.filter((card) => card.status === column.key);
+      <div className="calendar-shell">
+        <div className="calendar-panel">
+          <div className="calendar-month-bar">
+            <button className="calendar-nav" type="button" aria-label="Previous month">
+              {'<'}
+            </button>
+            <div className="calendar-month">January 2026</div>
+            <button className="calendar-nav" type="button" aria-label="Next month">
+              {'>'}
+            </button>
+          </div>
 
-          return (
-            <div key={column.key} className="calendar-column">
-              <div className="calendar-column-header">
-                <span>{column.title}</span>
-                <span className="calendar-count">{columnCards.length}</span>
+          <div className="calendar-weekdays">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label) => (
+              <div key={label} className="calendar-weekday">
+                {label}
               </div>
+            ))}
+          </div>
 
-              {columnCards.map((card) => (
-                <div key={card.id} className="calendar-card acc-card">
-                  <div className="calendar-card-top">
-                    <span className="calendar-code">{card.id}</span>
-                    <span className="calendar-dot" style={{ backgroundColor: card.dot }} />
+          <div className="calendar-grid">
+            {dayCells.map((dayNumber, index) => {
+              if (!dayNumber) {
+                return <div key={`empty-${index}`} className="calendar-day calendar-day--empty" />;
+              }
+
+              const events = EVENTS_BY_DAY[dayNumber] ?? [];
+              const isSelected = dayNumber === selectedDay;
+
+              return (
+                <button
+                  key={dayNumber}
+                  type="button"
+                  className={`calendar-day ${isSelected ? 'calendar-day--selected' : ''}`}
+                  onClick={() => setSelectedDay(dayNumber)}
+                >
+                  <span className="calendar-day__number">{dayNumber}</span>
+                  {events.length > 0 && (
+                    <span className="calendar-day__count">{events.length}</span>
+                  )}
+                  <div className="calendar-day__bars">
+                    {events.slice(0, 3).map((event, idx) => (
+                      <span
+                        key={`${event.id}-${idx}`}
+                        className={`calendar-day__bar status-${event.status}`}
+                      />
+                    ))}
                   </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                  <p className="calendar-desc">{card.desc}</p>
+        <div className="calendar-detail">
+          <div className="calendar-status-legend">
+            <span className="legend-label">Status:</span>
+            {Object.entries(STATUS_LABELS).map(([status, label]) => (
+              <span key={status} className="legend-item">
+                <span className={`legend-dot status-${status}`} />
+                {label}
+              </span>
+            ))}
+          </div>
 
-                  <div className="calendar-card-bottom">
-                    <div className="calendar-avatar">{card.assignee}</div>
-                    <div className="calendar-due">📅 {card.due}</div>
-                  </div>
+          <div className="calendar-detail-card">
+            {selectedDay ? (
+              <>
+                <div className="detail-header">
+                  <div className="detail-date">{selectedDateLabel}</div>
+                  <div className="detail-sub">{selectedEvents.length} control tests due</div>
                 </div>
-              ))}
-            </div>
-          );
-        })}
+
+                {selectedEvents.length === 0 ? (
+                  <div className="detail-empty">No control tests due.</div>
+                ) : (
+                  <div className="detail-list">
+                    {selectedEvents.map((event) => (
+                      <div key={event.id} className="detail-item">
+                        <div className={`detail-bar status-${event.status}`} />
+                        <div className="detail-body">
+                          <div className="detail-title">{event.id}</div>
+                          <div className="detail-desc">{event.title}</div>
+                          <div className="detail-meta">
+                            <span className="detail-assignee">{event.assignee}</span>
+                            <span className={`detail-status status-${event.status}`}>
+                              {STATUS_LABELS[event.status]}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="detail-empty-state">
+                <div className="detail-empty-title">Select a Date</div>
+                <div className="detail-empty-sub">
+                  Click on any date to view scheduled control tests.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
