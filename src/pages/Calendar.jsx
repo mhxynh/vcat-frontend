@@ -29,6 +29,7 @@ const EVENTS_BY_DAY = {
 
 const CalendarView = () => {
   const [selectedDay, setSelectedDay] = useState(7);
+  const [activeTab, setActiveTab] = useState('Calendar');
 
   const monthDate = new Date(2026, 0, 1);
   const daysInMonth = new Date(2026, 1, 0).getDate();
@@ -69,19 +70,17 @@ const CalendarView = () => {
         }
       />
 
-      <div className="calendar-tabs">
-        <button className="calendar-tab" type="button">
-          Controls
-        </button>
-        <button className="calendar-tab" type="button">
-          Requests
-        </button>
-        <button className="calendar-tab" type="button">
-          Kanban
-        </button>
-        <button className="calendar-tab calendar-tab-active" type="button">
-          Calendar
-        </button>
+      <div className="calendar-tabs pill-group">
+        {['Controls', 'Requests', 'Kanban', 'Calendar'].map((label) => (
+          <button
+            key={label}
+            className={`pill ${activeTab === label ? 'pill--active' : ''}`}
+            type="button"
+            onClick={() => setActiveTab(label)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="calendar-shell">
