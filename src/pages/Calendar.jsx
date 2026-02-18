@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import PageHeader from '../components/PageHeader';
 import '../styles/pages/calendar.css';
 
 const STATUS_LABELS = {
@@ -54,17 +55,19 @@ const CalendarView = () => {
 
   return (
     <div className="calendar-container">
-      <div className="calendar-header">
-        <h2 className="calendar-title">Controls Tracker</h2>
-        <div className="calendar-actions">
-          <button className="btn btn--white calendar-export-btn" type="button">
-            Export
-          </button>
-          <button className="btn btn--blue calendar-refresh-btn" type="button">
-            Refresh
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Controls Calendar"
+        actions={
+          <>
+            <button className="btn btn--white calendar-export-btn" type="button">
+              Export
+            </button>
+            <button className="btn btn--blue calendar-refresh-btn" type="button">
+              Refresh
+            </button>
+          </>
+        }
+      />
 
       <div className="calendar-tabs">
         <button className="calendar-tab" type="button">
