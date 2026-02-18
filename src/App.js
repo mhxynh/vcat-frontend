@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Dashboard from './pages/dashboard';
+import Dashboard from './pages/Dashboard';
 import Controls from './pages/ControlsCatalog';
-import KanbanBoard from './pages/kanban';
+import KanbanBoard from './pages/Kanban';
 
 const NotFound = () => <h2>404: Page Not Found</h2>;
 
