@@ -28,7 +28,7 @@ export function mapControlRowToUi(control) {
     description: control.description ?? null,
     dateCreated: control.date_created ?? null,
     lastTested: lastTested,
-    owner: control.control_owner ?? null,
+    owner: control.control_owner,
     sme: control.control_sme ?? null,
     escalationRequired: control.escalation ? 'Yes' : 'No',
   };
