@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:3001'; //change this when we stop doing local
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
 
 export async function fetchControls() {
   const resp = await fetch(`${API_BASE}/controls`, {
