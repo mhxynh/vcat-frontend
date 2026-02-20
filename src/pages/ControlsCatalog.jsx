@@ -1,67 +1,73 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import CreateControlModal from '../components/CreateControlModal';
-
-// SAMPLE CONTROLS, CHANGE THE SCHEMA AND STUFF WHEN DATABASE IS READY
-const SAMPLE_CONTROLS = [
-  {
-    id: 'VGCP-406710',
-    status: 'Active',
-    testing: 'In Testing',
-    description:
-      'This is the only filled out control, the rest are empty besides the core status and testing.',
-    dateCreated: '12/01/2025',
-    lastTested: '12/31/2025',
-    owner: 'John',
-    sme: 'Joe',
-    escalationRequired: 'No',
-  },
-  { id: 'VGCP-402120', status: 'Active', testing: 'Last Testing on 01/01/2025' },
-  { id: 'VGCP-503322', status: 'Active', testing: 'Last Testing on 01/01/2025' },
-  { id: 'VGCP-503456', status: 'Active', testing: 'Last Testing on 01/01/2025' },
-  { id: 'VGCP-509696', status: 'Retired', testing: 'Last Testing on 01/01/2025' },
-  { id: 'VGCP-506767', status: 'Retired', testing: 'Last Testing on 01/01/2025' },
-  { id: 'VGCP-504425', status: 'Retired', testing: 'Last Testing on 01/01/2025' },
-  { id: 'VGCP-600001', status: 'Active', testing: 'Last Testing on 02/01/2025' },
-  { id: 'VGCP-600002', status: 'Active', testing: 'Last Testing on 02/03/2025' },
-  { id: 'VGCP-600003', status: 'Active', testing: 'Last Testing on 02/05/2025' },
-  { id: 'VGCP-600004', status: 'Retired', testing: 'Last Testing on 01/15/2025' },
-  { id: 'VGCP-600005', status: 'Active', testing: 'Last Testing on 02/07/2025' },
-  { id: 'VGCP-600006', status: 'Active', testing: 'Last Testing on 02/09/2025' },
-  { id: 'VGCP-600007', status: 'Retired', testing: 'Last Testing on 01/22/2025' },
-  { id: 'VGCP-600008', status: 'Active', testing: 'Last Testing on 02/10/2025' },
-  { id: 'VGCP-600009', status: 'Active', testing: 'Last Testing on 02/11/2025' },
-  { id: 'VGCP-600010', status: 'Retired', testing: 'Last Testing on 01/30/2025' },
-];
+import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 
 export default function Controls() {
   const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
-  const [openId, setOpenId] = useState(SAMPLE_CONTROLS[0]?.id ?? null);
+  const [openId, setOpenId] = useState(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10; // Set a control per page limit depending on what we think
   const [search, setSearch] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const [controls, setControls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const rows = await fetchControls();
+        const uiControls = rows.map(mapControlRowToUi);
+
+        if (!cancelled) {
+          setControls(uiControls);
+          setOpenId(uiControls[0]?.id ?? null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e?.message || 'Failed to load controls');
+          setControls([]);
+          setOpenId(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
-    let result = SAMPLE_CONTROLS; // change this when we get backend data
+    let result = controls;
 
     if (filter !== 'All') {
       result = result.filter((c) => c.status === filter);
     }
 
     if (search.trim() !== '') {
-      result = result.filter((c) => c.id.toLowerCase().includes(search.toLowerCase()));
+      const q = search.toLowerCase();
+      result = result.filter((c) => c.id.toLowerCase().includes(q));
     }
 
     return result;
-  }, [filter, search]);
+  }, [controls, filter, search]);
 
   const onToggle = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
   };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const pagedControls = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -135,125 +141,135 @@ export default function Controls() {
         </button>
       </div>
 
-      {/* Accordion */}
-      <div className="controls-accordion">
-        {pagedControls.length === 0 ? (
-          <div className="no-results">No controls found.</div>
-        ) : (
-          pagedControls.map((control) => {
-            const isOpen = control.id === openId;
+      {/* loading and error prompts */}
+      {loading ? (
+        <div className="no-results">Loading controls...</div>
+      ) : error ? (
+        <div className="no-results">Error: {error}</div>
+      ) : (
+        <>
+          {/* Accordion */}
+          <div className="controls-accordion">
+            {pagedControls.length === 0 ? (
+              <div className="no-results">No controls found.</div>
+            ) : (
+              pagedControls.map((control) => {
+                const isOpen = control.id === openId;
 
-            return (
-              <div key={control.id} className="acc-item">
-                <button
-                  type="button"
-                  className="acc-header"
-                  onClick={() => onToggle(control.id)}
-                  aria-expanded={isOpen}
-                >
-                  <div className="acc-header__left">
-                    <span className="acc-id">{control.id}</span>
-                  </div>
-
-                  <div className="acc-header__right">
-                    <span
-                      className={`badge ${
-                        control.status === 'Active' ? 'badge--active' : 'badge--retired'
-                      }`}
+                return (
+                  <div key={control.id} className="acc-item">
+                    <button
+                      type="button"
+                      className="acc-header"
+                      onClick={() => onToggle(control.id)}
+                      aria-expanded={isOpen}
                     >
-                      {control.status}
-                    </span>
-
-                    <span className="badge badge--neutral">{control.testing}</span>
-
-                    <span className={`chev ${isOpen ? 'chev--open' : ''}`}>⌄</span>
-                  </div>
-                </button>
-
-                {isOpen && (
-                  <div className="acc-body">
-                    <div className="acc-grid">
-                      <div className="acc-card">
-                        <div className="acc-card__label">Description</div>
-                        <div className="acc-card__text">
-                          {control.description ?? 'No description yet.'}
-                        </div>
+                      <div className="acc-header__left">
+                        <span className="acc-id">{control.id}</span>
                       </div>
 
-                      <div className="acc-card">
-                        <div className="acc-card__label">Control Details</div>
+                      <div className="acc-header__right">
+                        <span
+                          className={`badge ${
+                            control.status === 'Active' ? 'badge--active' : 'badge--retired'
+                          }`}
+                        >
+                          {control.status}
+                        </span>
 
-                        <div className="acc-details">
-                          <div className="acc-details__row">
-                            <div className="acc-details__k">Date Created</div>
-                            <div className="acc-details__v">{control.dateCreated ?? '-'}</div>
+                        <span className="badge badge--neutral">{control.testing}</span>
+
+                        <span className={`chev ${isOpen ? 'chev--open' : ''}`}>⌄</span>
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="acc-body">
+                        <div className="acc-grid">
+                          <div className="acc-card">
+                            <div className="acc-card__label">Description</div>
+                            <div className="acc-card__text">
+                              {control.description ?? 'No description yet.'}
+                            </div>
                           </div>
-                          <div className="acc-details__row">
-                            <div className="acc-details__k">Last Tested</div>
-                            <div className="acc-details__v">{control.lastTested ?? '-'}</div>
-                          </div>
-                          <div className="acc-details__row">
-                            <div className="acc-details__k">Control Owner</div>
-                            <div className="acc-details__v">{control.owner ?? '-'}</div>
-                          </div>
-                          <div className="acc-details__row">
-                            <div className="acc-details__k">Control SME</div>
-                            <div className="acc-details__v">{control.sme ?? '-'}</div>
-                          </div>
-                          <div className="acc-details__row">
-                            <div className="acc-details__k">Escalation Required</div>
-                            <div className="acc-details__v">
-                              {control.escalationRequired ?? '-'}
+
+                          <div className="acc-card">
+                            <div className="acc-card__label">Control Details</div>
+
+                            <div className="acc-details">
+                              <div className="acc-details__row">
+                                <div className="acc-details__k">Date Created</div>
+                                <div className="acc-details__v">{control.dateCreated ?? '-'}</div>
+                              </div>
+                              <div className="acc-details__row">
+                                <div className="acc-details__k">Last Tested</div>
+                                <div className="acc-details__v">{control.lastTested ?? '-'}</div>
+                              </div>
+                              <div className="acc-details__row">
+                                <div className="acc-details__k">Control Owner</div>
+                                <div className="acc-details__v">{control.owner ?? '-'}</div>
+                              </div>
+                              <div className="acc-details__row">
+                                <div className="acc-details__k">Control SME</div>
+                                <div className="acc-details__v">{control.sme ?? '-'}</div>
+                              </div>
+                              <div className="acc-details__row">
+                                <div className="acc-details__k">Escalation Required</div>
+                                <div className="acc-details__v">
+                                  {control.escalationRequired ?? '-'}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="acc-footer">
+                              <button type="button" className="linklike">
+                                View More Details ↗
+                              </button>
                             </div>
                           </div>
                         </div>
-
-                        <div className="acc-footer">
-                          <button type="button" className="linklike">
-                            View More Details ↗
-                          </button>
-                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                );
+              })
+            )}
+
+            {/* Pagination */}
+            <div className="pagination">
+              <button
+                className="pagination__arrow"
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                aria-label="Previous page"
+              >
+                ←
+              </button>
+
+              <div className="pagination__info">
+                Page {page} of {totalPages}
               </div>
-            );
-          })
-        )}
 
-        {/* Pagination */}
-        <div className="pagination">
-          <button
-            className="pagination__arrow"
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            aria-label="Previous page"
-          >
-            ←
-          </button>
+              <button
+                className="pagination__arrow"
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                aria-label="Next page"
+              >
+                →
+              </button>
+            </div>
 
-          <div className="pagination__info">
-            Page {page} of {totalPages}
+            {/* Create Control Modal */}
+            <CreateControlModal
+              isOpen={isCreateModalOpen}
+              onClose={() => setIsCreateModalOpen(false)}
+            />
           </div>
-
-          <button
-            className="pagination__arrow"
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            aria-label="Next page"
-          >
-            →
-          </button>
-        </div>
-        {/* Create Control Modal */}
-        <CreateControlModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-        />
-      </div>
+        </>
+      )}
     </div>
   );
 }
