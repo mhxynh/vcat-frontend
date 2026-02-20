@@ -305,23 +305,23 @@
 }
 
 .status-notStarted {
-  background-color: #DD5D64;
+  background-color: #dd5d64;
 }
 
 .status-inProgress {
-  background-color: #FBE9EA;
+  background-color: #fbe9ea;
 }
 
 .status-testing {
-  background-color: #E99398;
+  background-color: #e99398;
 }
 
 .status-addressing {
-  background-color: #F4C9CB;
+  background-color: #f4c9cb;
 }
 
 .status-completed {
-  background-color: #8FD392;
+  background-color: #8fd392;
 }
 
 @media (max-width: 1200px) {
