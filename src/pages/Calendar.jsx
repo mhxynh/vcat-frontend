@@ -12,7 +12,7 @@ const STATUS_LABELS = {
 
 const EVENTS_BY_DAY = {
   3: {
-    badge: 3,
+    badge: 1,
     bars: ['notStarted'],
     items: [
       { id: 'VG-1023', title: 'Access control walkthrough', assignee: 'MH', status: 'notStarted' },
@@ -24,26 +24,26 @@ const EVENTS_BY_DAY = {
     items: [{ id: 'VG-2208', title: 'Evidence collection', assignee: 'AN', status: 'testing' }],
   },
   7: {
-    badge: 3,
+    badge: 1,
     bars: ['completed'],
     items: [
       { id: 'VG-3150', title: 'Identity governance check', assignee: 'MH', status: 'completed' },
     ],
   },
   8: {
-    badge: 3,
+    badge: 1,
     bars: ['addressing'],
     items: [
       { id: 'VG-4119', title: 'Remediation validation', assignee: 'AN', status: 'addressing' },
     ],
   },
   10: {
-    badge: 3,
+    badge: 1,
     bars: ['testing'],
     items: [{ id: 'VG-2877', title: 'Quarterly sample review', assignee: 'MH', status: 'testing' }],
   },
   14: {
-    badge: 3,
+    badge: 2,
     bars: ['notStarted', 'notStarted'],
     items: [
       { id: 'VG-1180', title: 'Risk acceptance update', assignee: 'MH', status: 'notStarted' },
@@ -51,7 +51,7 @@ const EVENTS_BY_DAY = {
     ],
   },
   17: {
-    badge: 3,
+    badge: 1,
     bars: ['addressing'],
     items: [
       { id: 'VG-5522', title: 'Issue tracking review', assignee: 'AN', status: 'addressing' },
@@ -65,19 +65,19 @@ const EVENTS_BY_DAY = {
     ],
   },
   21: {
-    badge: 3,
+    badge: 1,
     bars: ['notStarted'],
     items: [{ id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'notStarted' }],
   },
   23: {
-    badge: 3,
+    badge: 1,
     bars: ['addressing'],
     items: [
       { id: 'VG-6502', title: 'Audit trail gap closure', assignee: 'MH', status: 'addressing' },
     ],
   },
   28: {
-    badge: 3,
+    badge: 1,
     bars: ['addressing'],
     items: [
       { id: 'VG-9014', title: 'Post-test findings review', assignee: 'AN', status: 'addressing' },
