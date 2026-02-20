@@ -86,11 +86,14 @@ const EVENTS_BY_DAY = {
 };
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const TODAY = new Date();
 
 const CalendarView = () => {
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(() => TODAY.getDate());
   const [activeTab, setActiveTab] = useState('Calendar');
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+  const [currentDate, setCurrentDate] = useState(
+    () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
+  );
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
