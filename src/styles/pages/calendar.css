@@ -99,7 +99,18 @@
 }
 
 .calendar-day-cell--selected {
+  background: rgba(150, 21, 29, 0.08);
   border-color: #8b0f17;
+}
+
+.calendar-day-cell--selected .calendar-day-number {
+  color: #343434;
+  font-weight: 600;
+}
+
+.calendar-day-cell--selected .calendar-day-badge {
+  background: #96151d;
+  color: #ffffff;
 }
 
 .calendar-day-number {
