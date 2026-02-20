@@ -314,3 +314,13 @@
 .status-completed {
   background-color: #8bca8e;
 }
+
+@media (max-width: 1200px) {
+  .calendar-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-detail {
+    min-width: 0;
+  }
+}
