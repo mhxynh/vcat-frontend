@@ -263,15 +263,6 @@
   padding: 3px 8px;
 }
 
-.detail-status.status-notStarted,
-.detail-status.status-inProgress,
-.detail-status.status-testing,
-.detail-status.status-addressing,
-.detail-status.status-completed {
-  background: #efefef;
-  color: #8a8a8a;
-}
-
 .detail-empty,
 .detail-empty-state {
   min-height: 100%;

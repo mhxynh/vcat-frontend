@@ -193,7 +193,7 @@ const CalendarView = () => {
                 <button
                   key={`${day ?? 'empty'}-${index}`}
                   type="button"
-                  className={`calendar-day-cell ${day ? 'calendar-day-cell--active' : 'calendar-day-cell--blank'} ${isSelected ? 'calendar-day-cell--selected' : ''}`}
+                  className={`calendar-day-cell ${day ? '' : 'calendar-day-cell--blank'} ${isSelected ? 'calendar-day-cell--selected' : ''}`}
                   onClick={() => day && setSelectedDay(day)}
                   disabled={!day}
                 >
@@ -252,9 +252,7 @@ const CalendarView = () => {
                           <div className="detail-desc">{event.title}</div>
                           <div className="detail-meta">
                             <span className="detail-assignee">{event.assignee}</span>
-                            <span className={`detail-status status-${event.status}`}>
-                              {STATUS_LABELS[event.status]}
-                            </span>
+                            <span className="detail-status">{STATUS_LABELS[event.status]}</span>
                           </div>
                         </div>
                       </div>
