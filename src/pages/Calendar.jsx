@@ -11,41 +11,91 @@ const STATUS_LABELS = {
 };
 
 const EVENTS_BY_DAY = {
-  3: [
-    { id: 'VG-1893', title: 'User access review completed', assignee: 'AN', status: 'completed' },
-  ],
-  7: [
-    { id: 'VG-1893', title: 'User access review completed', assignee: 'AN', status: 'completed' },
-  ],
-  14: [
-    { id: 'VG-7721', title: 'Privileged access testing', assignee: 'MH', status: 'testing' },
-    { id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'addressing' },
-  ],
-  21: [
-    { id: 'VG-7721', title: 'Database encryption audit', assignee: 'MH', status: 'inProgress' },
-    { id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'notStarted' },
-  ],
+  3: {
+    badge: 3,
+    bars: ['notStarted'],
+    items: [
+      { id: 'VG-1023', title: 'Access control walkthrough', assignee: 'MH', status: 'notStarted' },
+    ],
+  },
+  5: {
+    badge: 1,
+    bars: ['testing'],
+    items: [{ id: 'VG-2208', title: 'Evidence collection', assignee: 'AN', status: 'testing' }],
+  },
+  7: {
+    badge: 3,
+    bars: ['testing'],
+    items: [
+      { id: 'VG-3150', title: 'Identity governance check', assignee: 'MH', status: 'testing' },
+    ],
+  },
+  8: {
+    badge: 3,
+    bars: ['addressing'],
+    items: [
+      { id: 'VG-4119', title: 'Remediation validation', assignee: 'AN', status: 'addressing' },
+    ],
+  },
+  10: {
+    badge: 3,
+    bars: ['testing'],
+    items: [{ id: 'VG-2877', title: 'Quarterly sample review', assignee: 'MH', status: 'testing' }],
+  },
+  14: {
+    badge: 3,
+    bars: ['notStarted', 'notStarted'],
+    items: [
+      { id: 'VG-1180', title: 'Risk acceptance update', assignee: 'MH', status: 'notStarted' },
+      { id: 'VG-1189', title: 'Control owner signoff', assignee: 'AN', status: 'notStarted' },
+    ],
+  },
+  17: {
+    badge: 3,
+    bars: ['addressing'],
+    items: [
+      { id: 'VG-5522', title: 'Issue tracking review', assignee: 'AN', status: 'addressing' },
+    ],
+  },
+  18: {
+    badge: 1,
+    bars: ['addressing'],
+    items: [
+      { id: 'VG-7310', title: 'Testing checklist update', assignee: 'MH', status: 'addressing' },
+    ],
+  },
+  21: {
+    badge: 3,
+    bars: ['notStarted'],
+    items: [{ id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'notStarted' }],
+  },
+  23: {
+    badge: 3,
+    bars: ['addressing'],
+    items: [
+      { id: 'VG-6502', title: 'Audit trail gap closure', assignee: 'MH', status: 'addressing' },
+    ],
+  },
+  28: {
+    badge: 3,
+    bars: ['addressing'],
+    items: [
+      { id: 'VG-9014', title: 'Post-test findings review', assignee: 'AN', status: 'addressing' },
+    ],
+  },
 };
 
+const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 const CalendarView = () => {
-  const [selectedDay, setSelectedDay] = useState(7);
+  const [selectedDay, setSelectedDay] = useState(null);
   const [activeTab, setActiveTab] = useState('Calendar');
-  const [currentMonth, setCurrentMonth] = useState(0);
-  const [currentYear, setCurrentYear] = useState(2026);
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
 
-  const monthDate = new Date(currentYear, currentMonth, 1);
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDay = monthDate.getDay();
-  const totalCells = 42;
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
 
-  const dayCells = useMemo(() => {
-    return Array.from({ length: totalCells }, (_, index) => {
-      const dayNumber = index - firstDay + 1;
-      return dayNumber > 0 && dayNumber <= daysInMonth ? dayNumber : null;
-    });
-  }, [daysInMonth, firstDay]);
-
-  const selectedEvents = selectedDay ? (EVENTS_BY_DAY[selectedDay] ?? []) : [];
+  const selectedEvents = selectedDay ? (EVENTS_BY_DAY[selectedDay]?.items ?? []) : [];
 
   const selectedDateLabel = useMemo(() => {
     if (!selectedDay) return '';
@@ -58,44 +108,41 @@ const CalendarView = () => {
   }, [currentMonth, currentYear, selectedDay]);
 
   const monthLabel = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
-      new Date(currentYear, currentMonth, 1)
-    );
+    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate);
+  }, [currentDate]);
+
+  const dayCells = useMemo(() => {
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstWeekDay = new Date(currentYear, currentMonth, 1).getDay();
+    const totalCells = Math.ceil((firstWeekDay + daysInMonth) / 7) * 7;
+
+    return Array.from({ length: totalCells }, (_, index) => {
+      const day = index - firstWeekDay + 1;
+      if (day < 1 || day > daysInMonth) {
+        return null;
+      }
+      return day;
+    });
   }, [currentMonth, currentYear]);
 
-  const handlePrevMonth = () => {
+  const goToMonth = (offset) => {
+    setCurrentDate(
+      (previousDate) => new Date(previousDate.getFullYear(), previousDate.getMonth() + offset, 1)
+    );
     setSelectedDay(null);
-    setCurrentMonth((prevMonth) => {
-      if (prevMonth === 0) {
-        setCurrentYear((prevYear) => prevYear - 1);
-        return 11;
-      }
-      return prevMonth - 1;
-    });
-  };
-
-  const handleNextMonth = () => {
-    setSelectedDay(null);
-    setCurrentMonth((prevMonth) => {
-      if (prevMonth === 11) {
-        setCurrentYear((prevYear) => prevYear + 1);
-        return 0;
-      }
-      return prevMonth + 1;
-    });
   };
 
   return (
     <div className="calendar-container">
       <PageHeader
-        title="Controls Calendar"
+        title="Controls Tracker"
         actions={
           <>
             <button className="btn btn--white calendar-export-btn" type="button">
-              Export
+              ⤴ Export
             </button>
             <button className="btn btn--blue calendar-refresh-btn" type="button">
-              Refresh
+              ↻ Refresh
             </button>
           </>
         }
@@ -115,63 +162,56 @@ const CalendarView = () => {
       </div>
 
       <div className="calendar-shell">
-        <div className="calendar-panel">
-          <div className="calendar-month-bar">
-            <button
-              className="calendar-nav"
-              type="button"
-              aria-label="Previous month"
-              onClick={handlePrevMonth}
-            >
-              {'<'}
+        <div className="calendar-left-panel">
+          <div className="calendar-month-row">
+            <button className="calendar-nav-btn" type="button" onClick={() => goToMonth(-1)}>
+              ‹
             </button>
-            <div className="calendar-month">{monthLabel}</div>
-            <button
-              className="calendar-nav"
-              type="button"
-              aria-label="Next month"
-              onClick={handleNextMonth}
-            >
-              {'>'}
+            <h3 className="calendar-month-title">{monthLabel}</h3>
+            <button className="calendar-nav-btn" type="button" onClick={() => goToMonth(1)}>
+              ›
             </button>
           </div>
 
-          <div className="calendar-weekdays">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label) => (
-              <div key={label} className="calendar-weekday">
-                {label}
+          <div className="calendar-weekday-row">
+            {WEEK_DAYS.map((dayLabel) => (
+              <div key={dayLabel} className="calendar-weekday-cell">
+                {dayLabel}
               </div>
             ))}
           </div>
 
           <div className="calendar-grid">
-            {dayCells.map((dayNumber, index) => {
-              if (!dayNumber) {
-                return <div key={`empty-${index}`} className="calendar-day calendar-day--empty" />;
-              }
-
-              const events = EVENTS_BY_DAY[dayNumber] ?? [];
-              const isSelected = dayNumber === selectedDay;
+            {dayCells.map((day, index) => {
+              const dayData = day ? EVENTS_BY_DAY[day] : null;
+              const isSelected = day && selectedDay === day;
 
               return (
                 <button
-                  key={dayNumber}
+                  key={`${day ?? 'empty'}-${index}`}
                   type="button"
-                  className={`calendar-day ${isSelected ? 'calendar-day--selected' : ''}`}
-                  onClick={() => setSelectedDay(dayNumber)}
+                  className={`calendar-day-cell ${day ? 'calendar-day-cell--active' : 'calendar-day-cell--blank'} ${isSelected ? 'calendar-day-cell--selected' : ''}`}
+                  onClick={() => day && setSelectedDay(day)}
+                  disabled={!day}
                 >
-                  <span className="calendar-day__number">{dayNumber}</span>
-                  {events.length > 0 && (
-                    <span className="calendar-day__count">{events.length}</span>
+                  {day && (
+                    <>
+                      <span className="calendar-day-number">{day}</span>
+
+                      {dayData?.badge ? (
+                        <span className="calendar-day-badge">{dayData.badge}</span>
+                      ) : null}
+
+                      <div className="calendar-day-bars">
+                        {(dayData?.bars ?? []).map((status, statusIndex) => (
+                          <span
+                            key={`${day}-${status}-${statusIndex}`}
+                            className={`calendar-day-bar status-${status}`}
+                          />
+                        ))}
+                      </div>
+                    </>
                   )}
-                  <div className="calendar-day__bars">
-                    {events.slice(0, 3).map((event, idx) => (
-                      <span
-                        key={`${event.id}-${idx}`}
-                        className={`calendar-day__bar status-${event.status}`}
-                      />
-                    ))}
-                  </div>
                 </button>
               );
             })}
@@ -194,7 +234,7 @@ const CalendarView = () => {
               <>
                 <div className="detail-header">
                   <div className="detail-date">{selectedDateLabel}</div>
-                  <div className="detail-sub">{selectedEvents.length} control tests due</div>
+                  <div className="detail-sub">{selectedEvents.length} scheduled control tests</div>
                 </div>
 
                 {selectedEvents.length === 0 ? (
@@ -221,9 +261,10 @@ const CalendarView = () => {
               </>
             ) : (
               <div className="detail-empty-state">
+                <div className="detail-empty-icon">🗓</div>
                 <div className="detail-empty-title">Select a Date</div>
                 <div className="detail-empty-sub">
-                  Click on any date to view scheduled control tests.
+                  Click on any date to view scheduled control tests
                 </div>
               </div>
             )}
