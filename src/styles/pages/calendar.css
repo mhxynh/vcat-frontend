@@ -257,10 +257,19 @@
 
 .detail-status {
   font-size: 10px;
-  color: #6f6f6f;
-  background: #f2f2f2;
+  color: #8a8a8a;
+  background: #efefef;
   border-radius: 999px;
   padding: 3px 8px;
+}
+
+.detail-status.status-notStarted,
+.detail-status.status-inProgress,
+.detail-status.status-testing,
+.detail-status.status-addressing,
+.detail-status.status-completed {
+  background: #efefef;
+  color: #8a8a8a;
 }
 
 .detail-empty,
@@ -296,23 +305,23 @@
 }
 
 .status-notStarted {
-  background-color: #e5646c;
+  background-color: #DD5D64;
 }
 
 .status-inProgress {
-  background-color: #f5c8cf;
+  background-color: #FBE9EA;
 }
 
 .status-testing {
-  background-color: #f19cad;
+  background-color: #E99398;
 }
 
 .status-addressing {
-  background-color: #f5dbe0;
+  background-color: #F4C9CB;
 }
 
 .status-completed {
-  background-color: #8bca8e;
+  background-color: #8FD392;
 }
 
 @media (max-width: 1200px) {

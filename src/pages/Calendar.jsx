@@ -25,9 +25,9 @@ const EVENTS_BY_DAY = {
   },
   7: {
     badge: 3,
-    bars: ['testing'],
+    bars: ['completed'],
     items: [
-      { id: 'VG-3150', title: 'Identity governance check', assignee: 'MH', status: 'testing' },
+      { id: 'VG-3150', title: 'Identity governance check', assignee: 'MH', status: 'completed' },
     ],
   },
   8: {
