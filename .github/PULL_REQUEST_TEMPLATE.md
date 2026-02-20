@@ -12,11 +12,9 @@ _Describe the changes briefly. What specific component or route did you work on?
 
 _By checking these boxes, you confirm this PR is not "bloated":_
 
-[ ] **Single Purpose**: This PR addresses only the ticket listed above.
-
-[ ] **No Hidden Refactors**: I have NOT refactored or reformatted code in files unrelated to this ticket.
-
-[ ] **Clean Diffs**: I have checked the "Files Changed" tab and confirmed there are no accidental changes (e.g., deleted comments, unintended spacing).
+- [ ] **Single Purpose**: This PR addresses only the ticket listed above.
+- [ ] **No Hidden Refactors**: I have NOT refactored or reformatted code in files unrelated to this ticket.
+- [ ] **Clean Diffs**: I have checked the "Files Changed" tab and confirmed there are no accidental changes (e.g., deleted comments, unintended spacing).
 
 ## Test Walkthrough (Required)
 
@@ -33,13 +31,10 @@ Please attach a screenshot or GIF of the UI change(s).
 
 ## Quality Standards
 
-[ ] **Prettier**: I ran `npm run format`.
-
-[ ] **Lint**: `npm run lint` (ESLint) passes with no new errors.
-
-[ ] **Local Connection**: I have verified this works with the backend running on `localhost:3000`.
-
-[ ] **Console Check**: Zero red errors or leftover `console.log` statements.
+- [ ] **Prettier**: I ran `npm run format`.
+- [ ] **Lint**: `npm run lint` (ESLint) passes with no new errors.
+- [ ] **Local Connection**: I have verified this works with the backend running on `localhost:3001`.
+- [ ] **Console Check**: Zero red errors or leftover `console.log` statements.
 
 ## Reviewer’s "Quick Reject" Criteria
 
