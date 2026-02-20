@@ -89,7 +89,7 @@ const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
 
 const CalendarView = () => {
-  const [selectedDay, setSelectedDay] = useState(() => TODAY.getDate());
+  const [selectedDay, setSelectedDay] = useState(null);
   const [activeTab, setActiveTab] = useState('Calendar');
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
@@ -167,11 +167,21 @@ const CalendarView = () => {
       <div className="calendar-shell">
         <div className="calendar-left-panel">
           <div className="calendar-month-row">
-            <button className="calendar-nav-btn" type="button" onClick={() => goToMonth(-1)}>
+            <button
+              className="calendar-nav-btn"
+              type="button"
+              aria-label="Previous month"
+              onClick={() => goToMonth(-1)}
+            >
               ‹
             </button>
             <h3 className="calendar-month-title">{monthLabel}</h3>
-            <button className="calendar-nav-btn" type="button" onClick={() => goToMonth(1)}>
+            <button
+              className="calendar-nav-btn"
+              type="button"
+              aria-label="Next month"
+              onClick={() => goToMonth(1)}
+            >
               ›
             </button>
           </div>
