@@ -132,26 +132,9 @@ export default function Requests() {
           </div>
         </div>
 
-        <div className="toolbar">
-          <div className="search-wrap">
-            <span className="search-icon">🔍</span>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search requests..."
-              className="search"
-            />
-          </div>
-
-          <div className="toolbar-right">
             <button className="btn btn--add" onClick={() => alert('Add Request alert')}>
               + Add Request
             </button>
-            <button className="btn btn--filter" onClick={() => alert('Filter alert')}>
-              Filter
-            </button>
-          </div>
-        </div>
 
         <div className="requests-list">
           {filteredRequests.map((req) => {
