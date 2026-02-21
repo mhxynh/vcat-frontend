@@ -132,9 +132,9 @@ export default function Requests() {
           </div>
         </div>
 
-            <button className="btn btn--add" onClick={() => alert('Add Request alert')}>
-              + Add Request
-            </button>
+        <button className="btn btn--add" onClick={() => alert('Add Request alert')}>
+          + Add Request
+        </button>
 
         <div className="requests-list">
           {filteredRequests.map((req) => {
