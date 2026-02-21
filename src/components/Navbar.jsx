@@ -29,6 +29,13 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
+            to="/requests"
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+          >
+            Request
+          </NavLink>
+
+          <NavLink
             to="/kanban"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
