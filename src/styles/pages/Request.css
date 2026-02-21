@@ -34,16 +34,6 @@
   cursor: pointer;
   border: 1px solid transparent;
 }
-.btn--green {
-  background: #fff;
-  color: #22c55e;
-  border-color: #22c55e;
-}
-.btn--blue {
-  background: #3b82f6;
-  color: #fff;
-  border-color: #3b82f6;
-}
 
 .tabs {
   display: flex;

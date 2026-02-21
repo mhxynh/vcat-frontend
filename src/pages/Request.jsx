@@ -110,7 +110,7 @@ export default function Requests() {
           <div className="header-top">
             <h2 className="page-title">Controls Tracker</h2>
             <div className="actions">
-              <button className="btn btn--green" onClick={() => alert('Export alert')}>
+              <button className="btn btn--white" onClick={() => alert('Export alert')}>
                 Export
               </button>
               <button className="btn btn--blue" onClick={() => alert('Refresh alert')}>
