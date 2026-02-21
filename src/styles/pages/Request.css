@@ -35,8 +35,8 @@
   border: 1px solid transparent;
 }
 .btn--green {
-  background: #22c55e;
-  color: #fff;
+  background: #fff;
+  color: #22c55e;
   border-color: #22c55e;
 }
 .btn--blue {
