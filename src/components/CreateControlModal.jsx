@@ -99,7 +99,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
           </button>
         </div>
 
-        <div className="modal-body">
+        <form className="modal-body" onSubmit={handleCreate}>
           {error && <div className="modal-error">{error}</div>}
 
           <div className="modal-grid">
@@ -193,7 +193,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
               </div>
             </div>
           </div>
-        </div>
+        </form>
 
         <div className="modal-footer">
           <button type="button" className="btn btn--white" onClick={onClose} disabled={submitting}>
