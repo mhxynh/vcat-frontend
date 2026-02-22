@@ -16,6 +16,19 @@ export default function Controls() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedControl, setSelectedControl] = useState(null);
+
+  const openDetails = (control) => {
+    setSelectedControl(control);
+    setIsDetailsModalOpen(true);
+  };
+
+  const closeDetails = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedControl(null);
+  };
+
   async function loadControls({ setFirstOpen = false } = {}) {
     setLoading(true);
     setError('');
