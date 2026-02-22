@@ -55,12 +55,12 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
       await createControl({
         vgcpid: vgcpid.trim(),
         description: description.trim(),
+        escalation,
+        // eslint-disable camelcase
         control_owner: controlOwner.trim(),
         control_sme: controlSme.trim(),
-        escalation,
-
-        // BE should default is_active=true; this FE field sets it to active.
         is_active: isActive,
+        // eslint-enable camelcase
       });
 
       if (onCreated) await onCreated();
