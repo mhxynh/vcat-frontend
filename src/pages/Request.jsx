@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import '../../styles/pages/Request.css';
+import '../styles/pages/Request.css';
 
 export default function Requests() {
   const [activeTab, setActiveTab] = useState('Requests');

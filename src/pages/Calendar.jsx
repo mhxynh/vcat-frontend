@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import PageHeader from '../../components/PageHeader';
-import '../../styles/pages/Calendar.css';
+import PageHeader from '../components/PageHeader';
+import '../styles/pages/Calendar.css';
 
 const STATUS_LABELS = {
   notStarted: 'Not Started',
