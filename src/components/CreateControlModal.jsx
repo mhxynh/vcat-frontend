@@ -7,9 +7,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [controlOwner, setControlOwner] = useState('');
   const [controlSme, setControlSme] = useState('');
   const [escalation, setEscalation] = useState(false);
-
-  // initialStatus is not in the backend for vcat-backend/src/controls/main.py, so it is currently just UI only.
-  const [initialStatus, setInitialStatus] = useState('');
+  const [initialStatus, setInitialStatus] = useState('active');
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +20,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setControlOwner('');
     setControlSme('');
     setEscalation(false);
-    setInitialStatus('');
+
+    // FE default: Active
+    setInitialStatus('active');
+
     setError('');
     setSubmitting(false);
   }, [isOpen]);
@@ -47,15 +48,19 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
       return;
     }
 
-    //the camelcase bug cant really be fixed since the backend is expecting control_owner and control_sme.
     setSubmitting(true);
     try {
+      const isActive = initialStatus === 'active';
+
       await createControl({
         vgcpid: vgcpid.trim(),
         description: description.trim(),
         control_owner: controlOwner.trim(),
         control_sme: controlSme.trim(),
         escalation,
+
+        // BE should default is_active=true; this FE field sets it to active.
+        is_active: isActive,
       });
 
       if (onCreated) await onCreated();
@@ -113,11 +118,14 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
             <div className="form-field">
               <label className="form-label">Initial Status</label>
-              <input
+              <select
                 className="form-input"
                 value={initialStatus}
                 onChange={(e) => setInitialStatus(e.target.value)}
-              />
+              >
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+              </select>
             </div>
 
             <div className="form-field form-field--full">
@@ -160,9 +168,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="form-field form-field--full">
-              <label className="form-label">
-                Escalation Required? <span aria-hidden="true">*</span>
-              </label>
+              <label className="form-label">Escalation Required?</label>
 
               <div className="radio-row" role="radiogroup" aria-label="Escalation Required">
                 <label className="radio-item">
@@ -171,7 +177,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                     name="escalation"
                     checked={escalation === true}
                     onChange={() => setEscalation(true)}
-                    required
                   />
                   <span>Yes</span>
                 </label>
@@ -182,7 +187,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                     name="escalation"
                     checked={escalation === false}
                     onChange={() => setEscalation(false)}
-                    required
                   />
                   <span>No</span>
                 </label>
