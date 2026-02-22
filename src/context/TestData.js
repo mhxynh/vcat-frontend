@@ -1,11 +1,11 @@
 export const controlsData = [
   {
     id: 1,
-    control: 'Access Control Review',
+    control: 'VGCP-100001',
     tester: 'John Smith',
     testType: 'DAT & OET',
     status: 'OET In Progress',
-    statusType: 'primary', // maps to blue
+    statusType: 'primary',
     step: 'Addressing Comments',
     dateUpdated: 'Jan 14, 2026',
     dueDate: 'Jan 28, 2026',
@@ -13,11 +13,11 @@ export const controlsData = [
   },
   {
     id: 2,
-    control: 'Password Policy Validation',
+    control: 'VGCP-100002',
     tester: 'Sarah Johnson',
     testType: 'DAT & OET',
     status: 'Completed',
-    statusType: 'success', // maps to green
+    statusType: 'success',
     step: 'Complete',
     dateUpdated: 'Jan 13, 2026',
     dueDate: 'Jan 15, 2026',
@@ -25,11 +25,11 @@ export const controlsData = [
   },
   {
     id: 3,
-    control: 'Encryption Standards Check',
+    control: 'VGCP-100003',
     tester: 'Michael Chen',
     testType: 'DAT Only',
     status: 'Not Started',
-    statusType: 'default', // maps to gray
+    statusType: 'default',
     step: 'Not Started',
     dateUpdated: 'Jan 9, 2026',
     dueDate: 'Jan 22, 2026',
@@ -37,11 +37,11 @@ export const controlsData = [
   },
   {
     id: 4,
-    control: 'Backup & Recovery Testing',
+    control: 'VGCP-100004',
     tester: 'David Wilson',
     testType: 'DAT & OET',
     status: 'In Review',
-    statusType: 'warning', // maps to yellow
+    statusType: 'warning',
     step: 'Complete',
     dateUpdated: 'Jan 12, 2026',
     dueDate: 'Jan 12, 2026',
@@ -49,11 +49,11 @@ export const controlsData = [
   },
   {
     id: 5,
-    control: 'Incident Response Plan',
+    control: 'VGCP-100005',
     tester: 'Lisa Anderson',
     testType: 'DAT Only',
     status: 'Blocked',
-    statusType: 'danger', // maps to red
+    statusType: 'danger',
     step: 'Testing Blocked',
     dateUpdated: 'Jan 16, 2026',
     dueDate: 'Jan 21, 2026',

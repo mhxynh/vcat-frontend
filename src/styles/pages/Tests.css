@@ -1,6 +1,3 @@
-/* =========================================
-   1. Global Variables & Base Resets
-   ========================================= */
 :root {
   /* Brand Colors */
   --color-brand-red: #8a1a23;
@@ -41,9 +38,7 @@ body {
   margin: 0;
 }
 
-/* =========================================
-   2. Main Layout (The Tracker)
-   ========================================= */
+/* Controls Tracker Layout */
 .tracker {
   padding: 24px 32px;
   max-width: 1400px;
@@ -73,9 +68,7 @@ body {
   gap: 12px;
 }
 
-/* =========================================
-   3. Buttons
-   ========================================= */
+/* Buttons */
 .btn {
   padding: 8px 16px;
   border-radius: var(--radius-md);
@@ -104,14 +97,21 @@ body {
   background-color: var(--color-brand-red);
 }
 
-/* =========================================
-   4. Navigation & Tabs
-   ========================================= */
+/* Navigation & Tabs */
 .tracker__navigation {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.tabs__navigation {
+  display: flex;
+  width: 1743px;
+  height: 38px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 .tracker__tabs {
@@ -137,9 +137,7 @@ body {
   color: #ffffff;
 }
 
-/* =========================================
-   5. Table
-   ========================================= */
+/* Table */
 .tracker__table-container {
   background-color: var(--color-surface);
   border: 1px solid var(--border-subtle);
@@ -174,9 +172,7 @@ body {
   color: var(--color-text-main);
 }
 
-/* =========================================
-   6. Badges (Status Indicators)
-   ========================================= */
+/* Status Badges */
 .badge {
   padding: 4px 12px;
   border-radius: var(--radius-pill);
