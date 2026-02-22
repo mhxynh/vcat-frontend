@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import CreateControlModal from '../components/CreateControlModal';
 import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
+import DetailsControlModal from '../components/DetailsControlModal';
 
 export default function Controls() {
   const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
@@ -134,7 +135,7 @@ export default function Controls() {
         </button>
       </div>
 
-      {/* loading and error prompts */}
+      {/* Loading / Error */}
       {loading ? (
         <div className="no-results">Loading controls...</div>
       ) : error ? (
@@ -215,7 +216,11 @@ export default function Controls() {
                             </div>
 
                             <div className="acc-footer">
-                              <button type="button" className="linklike">
+                              <button
+                                type="button"
+                                className="linklike"
+                                onClick={() => openDetails(control)}
+                              >
                                 View More Details ↗
                               </button>
                             </div>
@@ -257,6 +262,12 @@ export default function Controls() {
           </div>
         </>
       )}
+      {/* Details Control Modal*/}
+      <DetailsControlModal
+        isOpen={isDetailsModalOpen}
+        onClose={closeDetails}
+        control={selectedControl}
+      />
 
       {/* Create Control Modal */}
       <CreateControlModal
