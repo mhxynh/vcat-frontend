@@ -189,7 +189,7 @@ export default function DetailsControlModal({ isOpen, onClose, control }) {
 
             <div className="dcm-footer-right">
               <button className="dcm-btn dcm-btn--outline" type="button">
-                Retire Control
+                Delete Control
               </button>
               <button className="dcm-btn dcm-btn--primary" type="button">
                 Edit Control
