@@ -29,10 +29,24 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
-            to="/tests"
+            to="/requests"
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+          >
+            Request
+          </NavLink>
+
+          <NavLink
+            to="/kanban"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
             Controls
+          </NavLink>
+
+          <NavLink
+            to="/calendar"
+            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+          >
+            Calendar
           </NavLink>
         </div>
 
