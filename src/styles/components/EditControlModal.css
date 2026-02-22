@@ -1,0 +1,141 @@
+/*Overlay */
+.ecm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.ecm-modal {
+  width: 100%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.ecm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #eee;
+}
+
+.ecm-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.ecm-close {
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+
+/*Body */
+.ecm-body {
+  padding: 22px;
+}
+
+.ecm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.ecm-grid > * {
+  min-width: 0;
+}
+
+.ecm-field--full {
+  grid-column: 1 / -1;
+}
+
+/*Form controls*/
+.ecm-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.ecm-input,
+.ecm-textarea,
+.ecm-select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+.ecm-input:focus,
+.ecm-textarea:focus,
+.ecm-select:focus {
+  border-color: #bbb;
+}
+
+/* Description*/
+.ecm-textarea {
+  resize: none;
+  height: 140px;          
+  overflow: auto;         
+  line-height: 1.35;
+}
+
+.ecm-input:disabled,
+.ecm-select:disabled {
+  background: #f7f7f7;
+  color: #777;
+  cursor: not-allowed;
+}
+
+/*Radio row */
+.ecm-radio-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.ecm-radio-item {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+
+/*Error */
+.ecm-error {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 0, 0, 0.25);
+  background: rgba(180, 0, 0, 0.06);
+  color: #7a0000;
+  font-size: 14px;
+}
+
+/*Footer*/
+.ecm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px;
+  border-top: 1px solid #eee;
+}

@@ -290,6 +290,7 @@ export default function Controls() {
               isOpen={isDetailsModalOpen}
               onClose={closeDetails}
               control={selectedControl}
+              //Need to add onUpdate={loadControls} after 179 gets pushed to update the list after editing a control in the details modal
             />
           </div>
         </>
