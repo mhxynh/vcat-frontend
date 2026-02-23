@@ -233,15 +233,14 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
               <div className="dcm-footer-right">
                 <button
-                className="dcm-btn dcm-btn--outline"
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting || !id}
-                title={!id ? 'No control selected' : 'Delete this control'}
-              >
+                  className="dcm-btn dcm-btn--outline"
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting || !id}
+                  title={!id ? 'No control selected' : 'Delete this control'}
+                >
                   {deleting ? 'Deleting…' : 'Delete Control'}
                 </button>
-
 
                 <button
                   className="dcm-btn dcm-btn--primary"
@@ -254,7 +253,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </div>
             </div>
 
-          {deleteError ? <div className="dcm-delete-error">Error: {deleteError}</div> : null}
+            {deleteError ? <div className="dcm-delete-error">Error: {deleteError}</div> : null}
           </section>
         </div>
       </div>
