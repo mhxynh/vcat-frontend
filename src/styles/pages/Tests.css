@@ -1,0 +1,218 @@
+:root {
+  /* Brand Colors */
+  --color-brand-red: #8a1a23;
+  --color-brand-red-hover: #73151d;
+
+  /* Action Colors */
+  --color-export-green: #5cb85c;
+  --color-refresh-blue: #4a90e2;
+
+  /* Badge Colors */
+  --bg-not-started: #f5f5f5;
+  --text-not-started: #616161;
+  --bg-in-progress: #e6f0fa;
+  --text-in-progress: #1967d2;
+  --bg-in-review: #fff9c4;
+  --text-in-review: #f57f17;
+  --bg-blocked: #ffebee;
+  --text-blocked: #c62828;
+  --bg-completed: #e8f5e9;
+  --text-completed: #2e7d32;
+
+  /* Neutrals & Borders */
+  --color-bg-app: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-text-main: #333333;
+  --color-text-muted: #666666;
+  --border-subtle: #e0e0e0;
+
+  /* Spacing */
+  --radius-md: 10px;
+  --radius-pill: 10px;
+}
+
+body {
+  background-color: var(--color-bg-app);
+  color: var(--color-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+}
+
+/* Controls Tracker Layout */
+.tracker {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tracker__header {
+  background-color: var(--color-surface);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tracker__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.tracker__actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.btn {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 21.33px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 16px;
+  border-radius: var(--radius-md);
+  gap: 8px;
+  color: #fff;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn--export {
+  background-color: var(--color-export-green);
+}
+.btn--refresh {
+  background-color: var(--color-refresh-blue);
+}
+.btn--new {
+  background-color: var(--color-brand-red);
+}
+
+/* Tabs */
+
+.sub-page-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 38px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-tab {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  width: 90px;
+  height: 38px;
+  padding: 8px 16px;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.sub-tab--active {
+  background: var(--color-brand-red);
+  color: white;
+}
+
+/* Table */
+.tracker__table-container {
+  background-color: var(--color-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table__header-cell {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-main);
+  border-bottom: 2px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.table__cell {
+  padding: 16px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table__cell--fw-bold {
+  font-weight: 500;
+  color: var(--color-text-main);
+}
+
+.table__cell--vgcpid {
+  color: var(--color-brand-red, #9b1c22);
+  font-weight: 600;
+}
+
+.table__cell--due-date {
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-overdue {
+  flex-shrink: 0;
+}
+
+/* Status Badges */
+.badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge--not-started {
+  background-color: var(--bg-not-started);
+  color: var(--text-not-started);
+}
+.badge--in-progress {
+  background-color: var(--bg-in-progress);
+  color: var(--text-in-progress);
+}
+
+.badge--in-review {
+  background-color: var(--bg-in-review);
+  color: var(--text-in-review);
+}
+
+.badge--blocked {
+  background-color: var(--bg-blocked);
+  color: var(--text-blocked);
+}
+
+.badge--completed {
+  background-color: var(--bg-completed);
+  color: var(--text-completed);
+}

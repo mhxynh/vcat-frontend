@@ -57,3 +57,26 @@ export function mapControlRowToUi(control) {
     escalationRequired: control.escalation ? 'Yes' : 'No',
   };
 }
+
+export async function createControl(payload) {
+  const resp = await fetch(`${API_BASE}/controls`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+
+  if (!resp.ok) {
+    const msg =
+      data?.error ||
+      (Array.isArray(data?.missing) ? `Missing: ${data.missing.join(', ')}` : null) ||
+      `Failed to create control (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  return data;
+}
