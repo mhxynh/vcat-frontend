@@ -29,37 +29,28 @@ export default function Controls() {
     setSelectedControl(null);
   };
 
-  useEffect(() => {
-    let cancelled = false;
+  async function loadControls({ setFirstOpen = false } = {}) {
+    setLoading(true);
+    setError('');
 
-    async function load() {
-      try {
-        setLoading(true);
-        setError('');
+    try {
+      const rows = await fetchControls();
+      const uiControls = rows.map(mapControlRowToUi);
 
-        const rows = await fetchControls();
-        const uiControls = rows.map(mapControlRowToUi);
-
-        if (!cancelled) {
-          setControls(uiControls);
-          setOpenId(uiControls[0]?.id ?? null);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e?.message || 'Failed to load controls');
-          setControls([]);
-          setOpenId(null);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      setControls(uiControls);
+      if (setFirstOpen) setOpenId(uiControls[0]?.id ?? null);
+    } catch (e) {
+      setError(e?.message || 'Failed to load controls');
+      setControls([]);
+      if (setFirstOpen) setOpenId(null);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    load();
-
-    return () => {
-      cancelled = true;
-    };
+  //I changed moved the loading controls function outside of UseEffect as its own function (loadControls). This way new controls will be loaded after creation without needing to refresh the page.
+  useEffect(() => {
+    loadControls({ setFirstOpen: true });
   }, []);
 
   const filtered = useMemo(() => {
@@ -107,7 +98,9 @@ export default function Controls() {
             <button className="btn btn--white" type="button">
               Export
             </button>
-            <button className="btn btn--blue" type="button">
+            <button className="btn btn--blue" type="button" onClick={() => loadControls()}>
+              {' '}
+              {/*Added functionality to the refresh button*/}
               Refresh
             </button>
           </>
@@ -279,21 +272,24 @@ export default function Controls() {
                 →
               </button>
             </div>
-
-            {/* Create Control Modal */}
-            <CreateControlModal
-              isOpen={isCreateModalOpen}
-              onClose={() => setIsCreateModalOpen(false)}
-            />
-
-            <DetailsControlModal
-              isOpen={isDetailsModalOpen}
-              onClose={closeDetails}
-              control={selectedControl}
-            />
           </div>
         </>
       )}
+      {/* Details Control Modal*/}
+      <DetailsControlModal
+        isOpen={isDetailsModalOpen}
+        onClose={closeDetails}
+        control={selectedControl}
+      />
+
+      {/* Create Control Modal */}
+      <CreateControlModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={async () => {
+          await loadControls();
+        }}
+      />
     </div>
   );
 }
