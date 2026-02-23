@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import PageHeader from '../components/PageHeader';
-import Tests from './Tests';
-import Requests from './Request';
-import Kanban from './Kanban';
-import Calendar from './Calendar';
-import '../styles/pages/Tests.css';
+import Tests from './views/Tests';
+import Requests from './views/Request';
+import Kanban from './views/Kanban';
+import Calendar from './views/Calendar';
+import '../styles/pages/views/Tests.css';
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
@@ -53,9 +53,16 @@ export default function ControlsTracker() {
             </button>
           ))}
         </div>
-        <button className="btn btn--new" type="button">
-          + Add Control Test
-        </button>
+        {activeTab === 'Controls' && (
+          <button className="btn btn--new" type="button">
+            + Add Control Test
+          </button>
+        )}
+        {activeTab === 'Requests' && (
+          <button className="btn btn--new" type="button">
+            + Add Request
+          </button>
+        )}
       </div>
 
       <div className="tracker__content">{renderActiveView()}</div>
