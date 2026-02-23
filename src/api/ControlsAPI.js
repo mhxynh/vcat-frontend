@@ -1,5 +1,29 @@
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
 
+export async function deleteControl(vgcpid, { hard = false } = {}) {
+  const url = new URL(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`);
+  if (hard) url.searchParams.set('hard', 'true');
+
+  const resp = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Delete failed (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+  try {
+    return await resp.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchControls() {
   const resp = await fetch(`${API_BASE}/controls`, {
     method: 'GET',

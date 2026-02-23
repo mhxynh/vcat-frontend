@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
+import { deleteControl } from '../api/ControlsAPI';
 
-export default function DetailsControlModal({ isOpen, onClose, control }) {
+export default function DetailsControlModal({ isOpen, onClose, control, onDeleted }) {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -12,6 +13,15 @@ export default function DetailsControlModal({ isOpen, onClose, control }) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
+
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setDeleting(false);
+    setDeleteError('');
+  }, [isOpen, control]);
 
   if (!isOpen) return null;
 
@@ -33,6 +43,29 @@ export default function DetailsControlModal({ isOpen, onClose, control }) {
     [];
 
   const stop = (e) => e.stopPropagation();
+
+  async function handleDelete() {
+    if (!id) return;
+
+    const ok = window.confirm(
+      `Permanently delete control ${id}?\n\nThis will hard-delete it from the database.`
+    );
+    if (!ok) return;
+
+    try {
+      setDeleting(true);
+      setDeleteError('');
+
+      await deleteControl(id, { hard: true });
+
+      onDeleted?.(id);
+      onClose?.();
+    } catch (e) {
+      setDeleteError(e?.message || 'Failed to delete control');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="dcm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
@@ -188,14 +221,23 @@ export default function DetailsControlModal({ isOpen, onClose, control }) {
             </button>
 
             <div className="dcm-footer-right">
-              <button className="dcm-btn dcm-btn--outline" type="button">
-                Delete Control
+              <button
+                className="dcm-btn dcm-btn--outline"
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting || !id}
+                title={!id ? 'No control selected' : 'Delete this control'}
+              >
+                {deleting ? 'Deleting…' : 'Delete Control'}
               </button>
+
               <button className="dcm-btn dcm-btn--primary" type="button">
                 Edit Control
               </button>
             </div>
           </div>
+
+          {deleteError ? <div className="dcm-delete-error">Error: {deleteError}</div> : null}
         </section>
       </div>
     </div>
