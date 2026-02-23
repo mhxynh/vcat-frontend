@@ -29,10 +29,10 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
-            to="/tests"
+            to="/tracker"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
-            Controls
+            Tracker
           </NavLink>
         </div>
 
