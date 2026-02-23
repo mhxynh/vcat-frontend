@@ -80,3 +80,39 @@ export async function createControl(payload) {
 
   return data;
 }
+
+export async function updateControl(vgcpid, updates) {
+  const resp = await fetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(updates),
+  });
+
+  const data = await resp.json().catch(() => null);
+
+  if (!resp.ok) {
+    const msg = data?.error || data?.message || `Failed to update control (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  return data;
+}
+
+export async function retireControl(vgcpid) {
+  const resp = await fetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+
+  const data = await resp.json().catch(() => null);
+
+  if (!resp.ok) {
+    const msg = data?.error || data?.message || `Failed to retire control (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  return data;
+}
