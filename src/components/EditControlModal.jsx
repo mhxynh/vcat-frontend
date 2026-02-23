@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { updateControl } from '../api/ControlsAPI';
+import { updateControl, retireControl } from '../api/ControlsAPI';
 import '../styles/components/EditControlModal.css';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
@@ -63,7 +63,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     }
 
     // Backend does not support changing vgcpid via PUT right now.
-    // We allow editing in the UI, but if it changed, we warn and save the rest only.
     const vgcpidChanged = vgcpid.trim() !== originalVgcpid.trim();
     if (vgcpidChanged) {
       setError(
@@ -73,22 +72,24 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
     setSubmitting(true);
     try {
-      const payload = {
-        description: description.trim(),
-        control_owner: controlOwner.trim(),
-        control_sme: controlSme.trim(),
-        escalation,
-      };
+      // If user selected Retired, do soft delete (sets is_active=false)
+      if (status === 'Retired') {
+        await retireControl(originalVgcpid);
+      } else {
+        // Normal updates via PUT
+        const payload = {
+          description: description.trim(),
+          control_owner: controlOwner.trim(),
+          control_sme: controlSme.trim(),
+          escalation,
+        };
 
-      if (lastTested && lastTested !== '-') {
-        payload.last_tested = lastTested;
+        if (lastTested && lastTested !== '-') {
+          payload.last_tested = lastTested;
+        }
+
+        await updateControl(originalVgcpid, payload);
       }
-
-      // Backend currently does NOT accept status/is_active updates in PUT.
-      // When backend supports it, map Draft/Active -> is_active boolean here.
-      // payload.is_active = status === 'Active';
-
-      await updateControl(originalVgcpid, payload);
 
       if (onUpdated) await onUpdated();
       onClose?.();
