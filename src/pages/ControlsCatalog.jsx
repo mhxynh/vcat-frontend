@@ -48,6 +48,12 @@ export default function Controls() {
     }
   }
 
+  async function refreshControls() {
+    const rows = await fetchControls();
+    const uiControls = rows.map(mapControlRowToUi);
+    setControls(uiControls);
+  }
+
   //I changed moved the loading controls function outside of UseEffect as its own function (loadControls). This way new controls will be loaded after creation without needing to refresh the page.
   useEffect(() => {
     loadControls({ setFirstOpen: true });
@@ -280,8 +286,7 @@ export default function Controls() {
         isOpen={isDetailsModalOpen}
         onClose={closeDetails}
         control={selectedControl}
-        onUpdated={async () => {await loadControls({ setFirstOpen: False});
-      }}
+        onUpdated={refreshControls}
       />
 
       {/* Create Control Modal */}

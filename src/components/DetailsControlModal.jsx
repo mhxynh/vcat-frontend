@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import EditControlModal from './EditControlModal';
 
-export default function DetailsControlModal({ isOpen, onClose, control }) {
+export default function DetailsControlModal({ isOpen, onClose, control, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const openEdit = () => setIsEditOpen(true);
@@ -223,7 +223,7 @@ export default function DetailsControlModal({ isOpen, onClose, control }) {
         onClose={closeEdit}
         control={control}
         onUpdated={async () => {
-          if (onUpdated) await onUpdated();
+          await onUpdated?.();
           closeEdit();
           onClose?.();
         }}

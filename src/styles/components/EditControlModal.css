@@ -94,8 +94,8 @@
 /* Description*/
 .ecm-textarea {
   resize: none;
-  height: 140px;          
-  overflow: auto;         
+  height: 140px;
+  overflow: auto;
   line-height: 1.35;
 }
 

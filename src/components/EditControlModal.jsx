@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { updateControl } from '../api/ControlsAPI';
-import '../styles/EditControlModal.css';
+import '../styles/components/EditControlModal.css';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
-  const vgcpid = control?.id ?? '';
+  const originalVgcpid = control?.id ?? '';
 
   const initial = useMemo(() => {
     return {
+      vgcpid: control?.id ?? '',
       description: control?.description ?? '',
       controlOwner: control?.owner ?? '',
       controlSme: control?.sme ?? '',
@@ -16,6 +17,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     };
   }, [control]);
 
+  const [vgcpid, setVgcpid] = useState('');
   const [description, setDescription] = useState('');
   const [controlOwner, setControlOwner] = useState('');
   const [controlSme, setControlSme] = useState('');
@@ -29,6 +31,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   useEffect(() => {
     if (!isOpen) return;
 
+    setVgcpid(initial.vgcpid);
     setDescription(initial.description);
     setControlOwner(initial.controlOwner);
     setControlSme(initial.controlSme);
@@ -55,8 +58,17 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     setError('');
 
     if (!vgcpid.trim() || !description.trim() || !controlOwner.trim() || !controlSme.trim()) {
-      setError('Please fill in Description, Control Owner, and Control SME.');
+      setError('Please fill in Control ID, Description, Control Owner, and Control SME.');
       return;
+    }
+
+    // Backend does not support changing vgcpid via PUT right now.
+    // We allow editing in the UI, but if it changed, we warn and save the rest only.
+    const vgcpidChanged = vgcpid.trim() !== originalVgcpid.trim();
+    if (vgcpidChanged) {
+      setError(
+        'Control ID changes are not supported yet (backend uses the original ID). Saving other edits only.'
+      );
     }
 
     setSubmitting(true);
@@ -72,7 +84,11 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
         payload.last_tested = lastTested;
       }
 
-      await updateControl(vgcpid, payload);
+      // Backend currently does NOT accept status/is_active updates in PUT.
+      // When backend supports it, map Draft/Active -> is_active boolean here.
+      // payload.is_active = status === 'Active';
+
+      await updateControl(originalVgcpid, payload);
 
       if (onUpdated) await onUpdated();
       onClose?.();
@@ -102,7 +118,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       >
         <div className="ecm-header">
           <h2 className="ecm-title" id="edit-control-title">
-            Edit Control: {vgcpid}
+            Edit Control: {originalVgcpid}
           </h2>
 
           <button type="button" className="ecm-close" aria-label="Close" onClick={onClose}>
@@ -115,19 +131,21 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
           <div className="ecm-grid">
             <div className="ecm-field">
-              <label className="ecm-label">Control ID</label>
-              <input className="ecm-input" value={vgcpid} disabled />
+              <label className="ecm-label">Control ID *</label>
+              <input
+                className="ecm-input"
+                value={vgcpid}
+                onChange={(e) => setVgcpid(e.target.value)}
+                placeholder="e.g. VGCP-123456"
+              />
             </div>
 
             <div className="ecm-field">
               <label className="ecm-label">Status</label>
-              {/* Backend PUT does not update is_active yet, keep disabled for now */}
               <select
                 className="ecm-select"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                disabled
-                aria-disabled="true"
               >
                 <option value="Draft">Draft</option>
                 <option value="Active">Active</option>
