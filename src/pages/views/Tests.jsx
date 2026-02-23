@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { controlsData } from '../context/TestData';
-import '../styles/pages/Tests.css';
+import { controlsData } from '../../context/TestData';
+import '../../styles/pages/views/Tests.css';
 
 export default function Tests() {
   const [selectedRows, setSelectedRows] = useState([]);
