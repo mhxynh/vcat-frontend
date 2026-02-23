@@ -290,6 +290,9 @@ export default function Controls() {
               isOpen={isDetailsModalOpen}
               onClose={closeDetails}
               control={selectedControl}
+              onDeleted={() => {
+                window.location.reload();
+              }}
             />
           </div>
         </>
