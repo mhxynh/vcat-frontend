@@ -276,7 +276,7 @@ export default function Controls() {
         </>
       )}
 
-       {/* Details Control Modal*/}
+      {/* Details Control Modal*/}
       <DetailsControlModal
         isOpen={isDetailsModalOpen}
         onClose={closeDetails}
