@@ -2,10 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
-import Controls from './pages/ControlsCatalog';
-import Requests from './pages/Request';
-import KanbanBoard from './pages/Kanban';
-import CalendarView from './pages/Calendar';
+import Catalog from './pages/ControlsCatalog';
+import Tracker from './pages/ControlsTracker';
 
 const NotFound = () => <h2>404: Page Not Found</h2>;
 
@@ -17,10 +15,8 @@ export default function App() {
         <main style={{ padding: '20px' }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/controls" element={<Controls />} />
-            <Route path="/kanban" element={<KanbanBoard />} />
-            <Route path="/requests" element={<Requests />} />
-            <Route path="/calendar" element={<CalendarView />} />
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/tracker" element={<Tracker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

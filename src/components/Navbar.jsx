@@ -22,31 +22,17 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
-            to="/controls"
+            to="/catalog"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
             Catalog
           </NavLink>
 
           <NavLink
-            to="/requests"
+            to="/tracker"
             className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
           >
-            Request
-          </NavLink>
-
-          <NavLink
-            to="/kanban"
-            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
-          >
-            Kanban
-          </NavLink>
-
-          <NavLink
-            to="/calendar"
-            className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
-          >
-            Calendar
+            Tracker
           </NavLink>
         </div>
 

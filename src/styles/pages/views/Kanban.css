@@ -1,17 +1,4 @@
 /* Kanban page styles */
-.kanban-container {
-  padding: 20px;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial;
-  background-color: #f4f6f8;
-  min-height: 100vh;
-}
-
 .kanban-header {
   display: flex;
   justify-content: space-between;
