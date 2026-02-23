@@ -281,12 +281,16 @@ export default function Controls() {
           </div>
         </>
       )}
+
       {/* Details Control Modal*/}
       <DetailsControlModal
         isOpen={isDetailsModalOpen}
         onClose={closeDetails}
         control={selectedControl}
         onUpdated={refreshControls}
+        onDeleted={() => {
+          window.location.reload();
+        }}
       />
 
       {/* Create Control Modal */}
