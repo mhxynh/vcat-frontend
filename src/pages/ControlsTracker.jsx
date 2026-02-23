@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import PageHeader from '../components/PageHeader';
-import Tests from './views/Tests';
-import Requests from './views/Request';
-import Kanban from './views/Kanban';
-import Calendar from './views/Calendar';
+import Tests from './Tests';
+import Requests from './Request';
+import Kanban from './Kanban';
+import Calendar from './Calendar';
 import '../styles/pages/Tests.css';
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
-  // Helper function to conditionally render the correct view
   const renderActiveView = () => {
     switch (activeTab) {
       case 'Controls':
@@ -42,18 +41,21 @@ export default function ControlsTracker() {
         }
       />
 
-      <div className="tabs-navigation">
-        <div className="pill-group">
+      <div className="sub-page-tabs">
+        <div className="tabs">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pill ${activeTab === tab ? 'pill--active' : ''}`}
+              className={`sub-tab ${activeTab === tab ? 'sub-tab--active' : ''}`}
             >
               {tab}
             </button>
           ))}
         </div>
+        <button className="btn btn--new" type="button">
+          + Add Control Test
+        </button>
       </div>
 
       <div className="tracker__content">{renderActiveView()}</div>
