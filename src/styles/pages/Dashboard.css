@@ -33,34 +33,47 @@
   padding: 12px;
   display: flex;
   gap: 10px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .dashboard-summary-card__icon {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dashboard-summary-card__icon svg {
+  width: 17px;
+  height: 17px;
 }
 
 .dashboard-summary-card__icon--teal {
-  background: #46c6b2;
+  background: #e7f8f5;
+  color: #46c6b2;
 }
 
 .dashboard-summary-card__icon--red {
-  background: #ea6c73;
+  background: #fdecef;
+  color: #ea6c73;
 }
 
 .dashboard-summary-card__icon--amber {
-  background: #f3cd66;
+  background: #fff6de;
+  color: #dbb247;
 }
 
 .dashboard-summary-card__icon--green {
-  background: #91d89c;
+  background: #eaf8ed;
+  color: #69bb76;
 }
 
 .dashboard-summary-card__icon--blue {
-  background: #76b6f2;
+  background: #eaf3fe;
+  color: #63a6e8;
 }
 
 .dashboard-summary-card__label {

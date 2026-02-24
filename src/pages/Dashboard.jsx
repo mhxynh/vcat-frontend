@@ -2,11 +2,11 @@ import React from 'react';
 import PageHeader from '../components/PageHeader';
 
 const summaryCards = [
-  { label: 'Total Controls', value: 54, delta: '-', tone: 'teal' },
-  { label: 'Not Started', value: 23, delta: '-', tone: 'red' },
-  { label: 'Open Requests', value: 16, delta: '↑ 3', tone: 'amber' },
-  { label: 'Completion', value: 11, delta: '', tone: 'green' },
-  { label: 'Blocked Controls', value: 67, delta: '↓ 4', tone: 'blue' },
+  { label: 'Total Controls', value: 54, delta: '-', tone: 'teal', icon: 'clipboard' },
+  { label: 'Not Started', value: 23, delta: '-', tone: 'red', icon: 'flag' },
+  { label: 'Open Requests', value: 16, delta: '↑ 3', tone: 'amber', icon: 'cube' },
+  { label: 'Completion', value: 11, delta: '', tone: 'green', icon: 'medal' },
+  { label: 'Blocked Controls', value: 67, delta: '↓ 4', tone: 'blue', icon: 'clock' },
 ];
 
 const oetDistribution = [
@@ -31,6 +31,60 @@ const teamCapacity = [
   { initials: 'MH', name: 'Monique Huynh', progress: 62, color: '#a6131f' },
   { initials: 'AN', name: 'Andrew Nguyen', progress: 31, color: '#139a47' },
 ];
+
+function SummaryIcon({ kind }) {
+  const common = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: '1.8',
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  };
+
+  if (kind === 'clipboard') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="7" y="5" width="10" height="15" rx="2" {...common} />
+        <path d="M9 5.5h6M10 3.5h4" {...common} />
+      </svg>
+    );
+  }
+
+  if (kind === 'flag') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 20V4" {...common} />
+        <path d="M7 5h9l-2 3 2 3H7" {...common} />
+      </svg>
+    );
+  }
+
+  if (kind === 'cube') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" {...common} />
+        <path d="M12 12l8-4.5M12 12L4 7.5M12 12v9" {...common} />
+      </svg>
+    );
+  }
+
+  if (kind === 'medal') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 4h6l-1.5 5h-3z" {...common} />
+        <circle cx="12" cy="15" r="4.5" {...common} />
+        <path d="M10.7 15.2l1-1.1 1.6 1.7 2.2-2.5" {...common} />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" {...common} />
+      <path d="M12 8v4l2.5 1.5" {...common} />
+    </svg>
+  );
+}
 
 function DonutChart({ title, total, series }) {
   const totalValue = series.reduce((sum, item) => sum + item.value, 0);
@@ -95,7 +149,9 @@ export default function Dashboard() {
           <article key={card.label} className="dashboard-summary-card">
             <div
               className={`dashboard-summary-card__icon dashboard-summary-card__icon--${card.tone}`}
-            />
+            >
+              <SummaryIcon kind={card.icon} />
+            </div>
             <div>
               <div className="dashboard-summary-card__label">{card.label}</div>
               <div className="dashboard-summary-card__value-row">
