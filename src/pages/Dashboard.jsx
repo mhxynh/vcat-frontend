@@ -151,37 +151,61 @@ function DonutChart({ title, total, series }) {
 
 export default function Dashboard() {
   const today = useMemo(() => new Date(), []);
+  const [centerProgressDate, setCenterProgressDate] = useState(
+    () => new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  );
+  const [slideDirection, setSlideDirection] = useState(0);
+  const [isSliding, setIsSliding] = useState(false);
+  const [disableSlideTransition, setDisableSlideTransition] = useState(false);
 
   const progressCalendarDays = useMemo(() => {
-    return [-2, -1, 0, 1, 2].map((offset) => {
-      const date = addDays(today, offset);
+    return [-3, -2, -1, 0, 1, 2, 3].map((offset) => {
+      const date = addDays(centerProgressDate, offset);
       return {
         key: dateKey(date),
         date,
         day: date.getDate(),
         weekday: WEEKDAY_LABELS[date.getDay()],
         hasAlert: offset > 0,
+        offset,
       };
     });
-  }, [today]);
+  }, [centerProgressDate]);
 
-  const [selectedProgressDay, setSelectedProgressDay] = useState(() => dateKey(today));
+  const slideTransformPercent = slideDirection === 1 ? -40 : slideDirection === -1 ? 0 : -20;
+
+  const triggerDaySlide = (direction) => {
+    if (isSliding) return;
+    setDisableSlideTransition(false);
+    setSlideDirection(direction);
+    setIsSliding(true);
+  };
+
+  const onDayTrackTransitionEnd = (event) => {
+    if (!isSliding || event.propertyName !== 'transform') return;
+
+    setCenterProgressDate((previousDate) => addDays(previousDate, slideDirection));
+    setDisableSlideTransition(true);
+    setSlideDirection(0);
+    setIsSliding(false);
+
+    requestAnimationFrame(() => {
+      setDisableSlideTransition(false);
+    });
+  };
 
   const monthLabel = useMemo(() => {
-    const selected = progressCalendarDays.find((day) => day.key === selectedProgressDay);
-    const selectedDate = selected?.date ?? today;
     return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
-      selectedDate
+      centerProgressDate
     );
-  }, [progressCalendarDays, selectedProgressDay, today]);
+  }, [centerProgressDate]);
 
   const progressItems = useMemo(() => {
-    const selected = progressCalendarDays.find((day) => day.key === selectedProgressDay);
-    const shift = selected ? selected.date.getDate() % BASE_PROGRESS_ITEMS.length : 0;
+    const shift = centerProgressDate.getDate() % BASE_PROGRESS_ITEMS.length;
     return BASE_PROGRESS_ITEMS.map((_, index) => {
       return BASE_PROGRESS_ITEMS[(index + shift) % BASE_PROGRESS_ITEMS.length];
     }).slice(0, 5);
-  }, [progressCalendarDays, selectedProgressDay]);
+  }, [centerProgressDate]);
 
   return (
     <div className="dashboard-page">
@@ -239,23 +263,36 @@ export default function Dashboard() {
             </div>
             <div className="dashboard-calendar">
               <div className="dashboard-calendar__month">{monthLabel}</div>
-              <div className="dashboard-calendar__strip">
-                {progressCalendarDays.map((item) => {
-                  const isSelected = selectedProgressDay === item.key;
+              <div className="dashboard-calendar__viewport">
+                <div
+                  className="dashboard-calendar__strip-track"
+                  style={{
+                    transform: `translateX(${slideTransformPercent}%)`,
+                    transition: disableSlideTransition ? 'none' : 'transform 260ms ease',
+                  }}
+                  onTransitionEnd={onDayTrackTransitionEnd}
+                >
+                  {progressCalendarDays.map((item) => {
+                    const isSelected = item.offset === 0;
 
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''}`}
-                      onClick={() => setSelectedProgressDay(item.key)}
-                    >
-                      <span className="dashboard-calendar__weekday">{item.weekday}</span>
-                      <span className="dashboard-calendar__date">{item.day}</span>
-                      {item.hasAlert ? <span className="dashboard-calendar__dot" /> : null}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''}`}
+                        onClick={() => {
+                          if (item.offset > 0) triggerDaySlide(1);
+                          if (item.offset < 0) triggerDaySlide(-1);
+                        }}
+                        disabled={isSliding || item.offset === 0}
+                      >
+                        <span className="dashboard-calendar__weekday">{item.weekday}</span>
+                        <span className="dashboard-calendar__date">{item.day}</span>
+                        {item.hasAlert ? <span className="dashboard-calendar__dot" /> : null}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
