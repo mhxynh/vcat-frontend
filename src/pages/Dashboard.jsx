@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 
 const summaryCards = [
@@ -25,7 +25,21 @@ const datDistribution = [
   { label: 'In Progress', value: 5, color: '#f3dfe2' },
 ];
 
-const testProgressItems = ['VG-4067', 'VG-4021', 'VG-5033', 'VG-5034', 'VG-6969'];
+const progressCalendarDays = [
+  { weekday: 'Monday', day: 12, hasAlert: false },
+  { weekday: 'Tuesday', day: 13, hasAlert: false },
+  { weekday: 'Wedneday', day: 14, hasAlert: false },
+  { weekday: 'Thursday', day: 15, hasAlert: true },
+  { weekday: 'Friday', day: 16, hasAlert: true },
+];
+
+const progressItemsByDay = {
+  12: ['VG-4012', 'VG-4021', 'VG-5033', 'VG-5034', 'VG-6969'],
+  13: ['VG-4033', 'VG-4067', 'VG-5033', 'VG-5034', 'VG-6969'],
+  14: ['VG-4067', 'VG-4021', 'VG-5033', 'VG-5034', 'VG-6969'],
+  15: ['VG-4021', 'VG-5033', 'VG-5034', 'VG-6969', 'VG-7012'],
+  16: ['VG-5033', 'VG-5034', 'VG-6969', 'VG-7012', 'VG-7110'],
+};
 
 const teamCapacity = [
   { initials: 'MH', name: 'Monique Huynh', progress: 62, color: '#a6131f' },
@@ -123,6 +137,12 @@ function DonutChart({ title, total, series }) {
 }
 
 export default function Dashboard() {
+  const [selectedProgressDay, setSelectedProgressDay] = useState(14);
+
+  const progressItems = useMemo(() => {
+    return progressItemsByDay[selectedProgressDay] ?? progressItemsByDay[14];
+  }, [selectedProgressDay]);
+
   return (
     <div className="dashboard-page">
       <PageHeader
@@ -173,27 +193,38 @@ export default function Dashboard() {
 
         <div className="dashboard-main-grid__right">
           <article className="dashboard-panel">
-            <div className="dashboard-panel__title">Test Progress</div>
+            <div className="dashboard-panel__title-row">
+              <div className="dashboard-panel__title">Test Progress</div>
+              <span className="dashboard-progress-avatar">M</span>
+            </div>
             <div className="dashboard-calendar">
               <div className="dashboard-calendar__month">January 2026</div>
-              <div className="dashboard-calendar__days">
-                Monday Tuesday Wednesday Thursday Friday
-              </div>
-              <div className="dashboard-calendar__dates">
-                <span>12</span>
-                <span>13</span>
-                <span className="dashboard-calendar__active">14</span>
-                <span>15</span>
-                <span>16</span>
+              <div className="dashboard-calendar__strip">
+                {progressCalendarDays.map((item) => {
+                  const isSelected = selectedProgressDay === item.day;
+
+                  return (
+                    <button
+                      key={item.day}
+                      type="button"
+                      className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''}`}
+                      onClick={() => setSelectedProgressDay(item.day)}
+                    >
+                      <span className="dashboard-calendar__weekday">{item.weekday}</span>
+                      <span className="dashboard-calendar__date">{item.day}</span>
+                      {item.hasAlert ? <span className="dashboard-calendar__dot" /> : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="dashboard-progress-list">
-              {testProgressItems.map((itemCode) => (
+              {progressItems.map((itemCode) => (
                 <div key={itemCode} className="dashboard-progress-item">
                   <span className="dashboard-progress-item__code">{itemCode}</span>
                   <span className="dashboard-progress-item__text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod...
                   </span>
                 </div>
               ))}
