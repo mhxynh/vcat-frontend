@@ -9,20 +9,28 @@ const summaryCards = [
   { label: 'Blocked Controls', value: 67, delta: '↓ 4', tone: 'blue', icon: 'clock' },
 ];
 
+const STATUS_DISTRIBUTION_COLORS = {
+  notStarted: '#616161',
+  testingCompleted: '#f57f17',
+  completed: '#2e7d32',
+  addressingComments: '#c62828',
+  inProgress: '#1967d2',
+};
+
 const oetDistribution = [
-  { label: 'Not Started', value: 23, color: '#d8212f' },
-  { label: 'Testing Completed', value: 18, color: '#dc5b66' },
-  { label: 'Completed', value: 9, color: '#e48c95' },
-  { label: 'Addressing Comments', value: 6, color: '#efbec3' },
-  { label: 'In Progress', value: 4, color: '#f3dfe2' },
+  { label: 'Not Started', value: 23, color: STATUS_DISTRIBUTION_COLORS.notStarted },
+  { label: 'Testing Completed', value: 18, color: STATUS_DISTRIBUTION_COLORS.testingCompleted },
+  { label: 'Completed', value: 9, color: STATUS_DISTRIBUTION_COLORS.completed },
+  { label: 'Addressing Comments', value: 6, color: STATUS_DISTRIBUTION_COLORS.addressingComments },
+  { label: 'In Progress', value: 4, color: STATUS_DISTRIBUTION_COLORS.inProgress },
 ];
 
 const datDistribution = [
-  { label: 'Not Started', value: 21, color: '#d8212f' },
-  { label: 'Testing Completed', value: 16, color: '#dc5b66' },
-  { label: 'Completed', value: 11, color: '#e48c95' },
-  { label: 'Addressing Comments', value: 7, color: '#efbec3' },
-  { label: 'In Progress', value: 5, color: '#f3dfe2' },
+  { label: 'Not Started', value: 21, color: STATUS_DISTRIBUTION_COLORS.notStarted },
+  { label: 'Testing Completed', value: 16, color: STATUS_DISTRIBUTION_COLORS.testingCompleted },
+  { label: 'Completed', value: 11, color: STATUS_DISTRIBUTION_COLORS.completed },
+  { label: 'Addressing Comments', value: 7, color: STATUS_DISTRIBUTION_COLORS.addressingComments },
+  { label: 'In Progress', value: 5, color: STATUS_DISTRIBUTION_COLORS.inProgress },
 ];
 
 const WEEKDAY_LABELS = [
