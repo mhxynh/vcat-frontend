@@ -257,10 +257,7 @@ export default function Dashboard() {
 
         <div className="dashboard-main-grid__right">
           <article className="dashboard-panel">
-            <div className="dashboard-panel__title-row">
-              <div className="dashboard-panel__title">Test Progress</div>
-              <span className="dashboard-progress-avatar">M</span>
-            </div>
+            <div className="dashboard-panel__title">Test Progress</div>
             <div className="dashboard-calendar">
               <div className="dashboard-calendar__month">{monthLabel}</div>
               <div className="dashboard-calendar__viewport">
