@@ -1,7 +1,175 @@
+import React from 'react';
+import PageHeader from '../components/PageHeader';
+
+const summaryCards = [
+  { label: 'Total Controls', value: 54, delta: '-', tone: 'teal' },
+  { label: 'Not Started', value: 23, delta: '-', tone: 'red' },
+  { label: 'Open Requests', value: 16, delta: '↑ 3', tone: 'amber' },
+  { label: 'Completion', value: 11, delta: '', tone: 'green' },
+  { label: 'Blocked Controls', value: 67, delta: '↓ 4', tone: 'blue' },
+];
+
+const oetDistribution = [
+  { label: 'Not Started', value: 23, color: '#d8212f' },
+  { label: 'Testing Completed', value: 18, color: '#dc5b66' },
+  { label: 'Completed', value: 9, color: '#e48c95' },
+  { label: 'Addressing Comments', value: 6, color: '#efbec3' },
+  { label: 'In Progress', value: 4, color: '#f3dfe2' },
+];
+
+const datDistribution = [
+  { label: 'Not Started', value: 21, color: '#d8212f' },
+  { label: 'Testing Completed', value: 16, color: '#dc5b66' },
+  { label: 'Completed', value: 11, color: '#e48c95' },
+  { label: 'Addressing Comments', value: 7, color: '#efbec3' },
+  { label: 'In Progress', value: 5, color: '#f3dfe2' },
+];
+
+const testProgressItems = ['VG-4067', 'VG-4021', 'VG-5033', 'VG-5034', 'VG-6969'];
+
+const teamCapacity = [
+  { initials: 'MH', name: 'Monique Huynh', progress: 62, color: '#a6131f' },
+  { initials: 'AN', name: 'Andrew Nguyen', progress: 31, color: '#139a47' },
+];
+
+function DonutChart({ title, total, series }) {
+  const totalValue = series.reduce((sum, item) => sum + item.value, 0);
+  let runningPercent = 0;
+  const gradientStops = series
+    .map((item) => {
+      const slicePercent = (item.value / totalValue) * 100;
+      const fromPercent = runningPercent;
+      runningPercent += slicePercent;
+      return `${item.color} ${fromPercent}% ${runningPercent}%`;
+    })
+    .join(', ');
+
+  return (
+    <div className="dashboard-panel">
+      <div className="dashboard-panel__title">{title}</div>
+      <div className="dashboard-donut-row">
+        <div className="dashboard-donut" style={{ background: `conic-gradient(${gradientStops})` }}>
+          <div className="dashboard-donut__center">
+            <div className="dashboard-donut__count">{total}</div>
+            <div className="dashboard-donut__label">Controls</div>
+          </div>
+        </div>
+
+        <div className="dashboard-legend">
+          {series.map((item) => (
+            <div key={item.label} className="dashboard-legend__item">
+              <span className="dashboard-legend__swatch" style={{ backgroundColor: item.color }} />
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   return (
-    <div className="page-container">
-      <h2>Dashboard</h2>
+    <div className="dashboard-page">
+      <PageHeader
+        title={
+          <div className="dashboard-header-title">
+            <span>Overview Dashboard</span>
+            <span className="dashboard-last-updated">Last Updated 06:07:67 PM</span>
+          </div>
+        }
+        actions={
+          <>
+            <button className="btn btn--white" type="button">
+              Export
+            </button>
+            <button className="btn btn--blue" type="button">
+              Refresh
+            </button>
+          </>
+        }
+      />
+
+      <section className="dashboard-summary-grid" aria-label="Dashboard summary cards">
+        {summaryCards.map((card) => (
+          <article key={card.label} className="dashboard-summary-card">
+            <div
+              className={`dashboard-summary-card__icon dashboard-summary-card__icon--${card.tone}`}
+            />
+            <div>
+              <div className="dashboard-summary-card__label">{card.label}</div>
+              <div className="dashboard-summary-card__value-row">
+                <span className="dashboard-summary-card__value">{card.value}</span>
+                {card.delta ? (
+                  <span className="dashboard-summary-card__delta">{card.delta}</span>
+                ) : null}
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="dashboard-main-grid">
+        <div className="dashboard-main-grid__left">
+          <DonutChart title="OET Distribution" total={23} series={oetDistribution} />
+          <DonutChart title="DAT Distribution" total={21} series={datDistribution} />
+        </div>
+
+        <div className="dashboard-main-grid__right">
+          <article className="dashboard-panel">
+            <div className="dashboard-panel__title">Test Progress</div>
+            <div className="dashboard-calendar">
+              <div className="dashboard-calendar__month">January 2026</div>
+              <div className="dashboard-calendar__days">
+                Monday Tuesday Wednesday Thursday Friday
+              </div>
+              <div className="dashboard-calendar__dates">
+                <span>12</span>
+                <span>13</span>
+                <span className="dashboard-calendar__active">14</span>
+                <span>15</span>
+                <span>16</span>
+              </div>
+            </div>
+
+            <div className="dashboard-progress-list">
+              {testProgressItems.map((itemCode) => (
+                <div key={itemCode} className="dashboard-progress-item">
+                  <span className="dashboard-progress-item__code">{itemCode}</span>
+                  <span className="dashboard-progress-item__text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  </span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="dashboard-panel">
+            <div className="dashboard-panel__title">Team Capacity</div>
+            <div className="dashboard-capacity-list">
+              {teamCapacity.map((member) => (
+                <div key={member.name} className="dashboard-capacity-item">
+                  <span
+                    className="dashboard-capacity-item__avatar"
+                    style={{ backgroundColor: member.color }}
+                  >
+                    {member.initials}
+                  </span>
+                  <div className="dashboard-capacity-item__content">
+                    <div className="dashboard-capacity-item__name">{member.name}</div>
+                    <div className="dashboard-capacity-item__bar-track">
+                      <span
+                        className="dashboard-capacity-item__bar-fill"
+                        style={{ width: `${member.progress}%`, backgroundColor: member.color }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
     </div>
   );
 }
