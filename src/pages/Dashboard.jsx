@@ -1,12 +1,21 @@
 import React, { useMemo, useState } from 'react';
 import PageHeader from '../components/PageHeader';
+import { controlsData } from '../context/TestData';
 
-const summaryCards = [
-  { label: 'Total Controls', value: 54, delta: '-', tone: 'teal', icon: 'clipboard' },
-  { label: 'Not Started', value: 23, delta: '-', tone: 'red', icon: 'flag' },
-  { label: 'Open Requests', value: 16, delta: '↑ 3', tone: 'amber', icon: 'cube' },
-  { label: 'Completion', value: 11, delta: '', tone: 'green', icon: 'medal' },
-  { label: 'Blocked Controls', value: 67, delta: '↓ 4', tone: 'blue', icon: 'clock' },
+const SUMMARY_CARD_META = [
+  { key: 'totalControls', label: 'Total Controls', tone: 'teal', icon: 'clipboard' },
+  { key: 'notStarted', label: 'Not Started', tone: 'red', icon: 'flag' },
+  { key: 'openRequests', label: 'Open Requests', tone: 'amber', icon: 'cube' },
+  { key: 'completion', label: 'Completion', tone: 'green', icon: 'medal' },
+  { key: 'blockedControls', label: 'Blocked Controls', tone: 'blue', icon: 'clock' },
+];
+
+const DISTRIBUTION_STATUS_META = [
+  { key: 'notStarted', label: 'Not Started' },
+  { key: 'testingCompleted', label: 'Testing Completed' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'addressingComments', label: 'Addressing Comments' },
+  { key: 'inProgress', label: 'In Progress' },
 ];
 
 const STATUS_DISTRIBUTION_COLORS = {
@@ -17,22 +26,6 @@ const STATUS_DISTRIBUTION_COLORS = {
   inProgress: '#1967d2',
 };
 
-const oetDistribution = [
-  { label: 'Not Started', value: 23, color: STATUS_DISTRIBUTION_COLORS.notStarted },
-  { label: 'Testing Completed', value: 18, color: STATUS_DISTRIBUTION_COLORS.testingCompleted },
-  { label: 'Completed', value: 9, color: STATUS_DISTRIBUTION_COLORS.completed },
-  { label: 'Addressing Comments', value: 6, color: STATUS_DISTRIBUTION_COLORS.addressingComments },
-  { label: 'In Progress', value: 4, color: STATUS_DISTRIBUTION_COLORS.inProgress },
-];
-
-const datDistribution = [
-  { label: 'Not Started', value: 21, color: STATUS_DISTRIBUTION_COLORS.notStarted },
-  { label: 'Testing Completed', value: 16, color: STATUS_DISTRIBUTION_COLORS.testingCompleted },
-  { label: 'Completed', value: 11, color: STATUS_DISTRIBUTION_COLORS.completed },
-  { label: 'Addressing Comments', value: 7, color: STATUS_DISTRIBUTION_COLORS.addressingComments },
-  { label: 'In Progress', value: 5, color: STATUS_DISTRIBUTION_COLORS.inProgress },
-];
-
 const WEEKDAY_LABELS = [
   'Sunday',
   'Monday',
@@ -42,15 +35,63 @@ const WEEKDAY_LABELS = [
   'Friday',
   'Saturday',
 ];
-const BASE_PROGRESS_ITEMS = [
-  'VG-4067',
-  'VG-4021',
-  'VG-5033',
-  'VG-5034',
-  'VG-6969',
-  'VG-7012',
-  'VG-7110',
-];
+const TEAM_CAPACITY_COLORS = ['#a6131f', '#139a47', '#1d4ed8', '#ea580c', '#7c3aed'];
+
+function toInitials(name) {
+  return (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0]?.toUpperCase())
+    .join('');
+}
+
+function statusBucketFromControl(control) {
+  const step = (control.step || '').toLowerCase();
+  const statusType = (control.statusType || '').toLowerCase();
+
+  if (step.includes('addressing comments')) return 'addressingComments';
+  if (statusType === 'completed' || step === 'complete') return 'completed';
+  if (statusType === 'not-started' || step === 'not started') return 'notStarted';
+  if (statusType === 'in-review') return 'testingCompleted';
+  if (statusType === 'in-progress' || statusType === 'blocked') return 'inProgress';
+
+  return 'inProgress';
+}
+
+function supportsTestType(control, type) {
+  return (control.testType || '').toUpperCase().includes(type);
+}
+
+function buildDistributionForType(controls, type) {
+  const counts = {
+    notStarted: 0,
+    testingCompleted: 0,
+    completed: 0,
+    addressingComments: 0,
+    inProgress: 0,
+  };
+
+  controls
+    .filter((control) => supportsTestType(control, type))
+    .forEach((control) => {
+      const bucket = statusBucketFromControl(control);
+      counts[bucket] += 1;
+    });
+
+  return DISTRIBUTION_STATUS_META.map((statusMeta) => ({
+    label: statusMeta.label,
+    value: counts[statusMeta.key],
+    color: STATUS_DISTRIBUTION_COLORS[statusMeta.key],
+  }));
+}
+
+function rotateTake(items, shift, count) {
+  if (!items.length) return [];
+  return Array.from({ length: count }, (_, index) => {
+    return items[(index + shift) % items.length];
+  });
+}
 
 function addDays(date, days) {
   const value = new Date(date);
@@ -61,11 +102,6 @@ function addDays(date, days) {
 function dateKey(date) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
-
-const teamCapacity = [
-  { initials: 'MH', name: 'Monique Huynh', progress: 62, color: '#a6131f' },
-  { initials: 'AN', name: 'Andrew Nguyen', progress: 31, color: '#139a47' },
-];
 
 function SummaryIcon({ kind }) {
   const common = {
@@ -158,6 +194,7 @@ function DonutChart({ title, total, series }) {
 }
 
 export default function Dashboard() {
+  const controls = controlsData;
   const today = useMemo(() => new Date(), []);
   const [centerProgressDate, setCenterProgressDate] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -208,12 +245,78 @@ export default function Dashboard() {
     );
   }, [centerProgressDate]);
 
+  const summaryCards = useMemo(() => {
+    const totalControls = controls.length;
+    const notStarted = controls.filter((control) => control.statusType === 'not-started').length;
+    const openRequests = controls.filter((control) => control.statusType !== 'completed').length;
+    const completion = controls.filter((control) => control.statusType === 'completed').length;
+    const blockedControls = controls.filter((control) => control.statusType === 'blocked').length;
+
+    const valuesByKey = {
+      totalControls,
+      notStarted,
+      openRequests,
+      completion,
+      blockedControls,
+    };
+
+    return SUMMARY_CARD_META.map((cardMeta) => ({
+      ...cardMeta,
+      value: valuesByKey[cardMeta.key] ?? 0,
+      delta: '',
+    }));
+  }, [controls]);
+
+  const oetDistribution = useMemo(() => buildDistributionForType(controls, 'OET'), [controls]);
+  const datDistribution = useMemo(() => buildDistributionForType(controls, 'DAT'), [controls]);
+
+  const oetTotal = useMemo(
+    () => oetDistribution.reduce((sum, item) => sum + item.value, 0),
+    [oetDistribution]
+  );
+  const datTotal = useMemo(
+    () => datDistribution.reduce((sum, item) => sum + item.value, 0),
+    [datDistribution]
+  );
+
+  const baseProgressItems = useMemo(() => {
+    return controls.map((control) => control.vgcpid).filter(Boolean);
+  }, [controls]);
+
+  const controlsById = useMemo(() => {
+    return new Map(controls.map((control) => [control.vgcpid, control]));
+  }, [controls]);
+
   const progressItems = useMemo(() => {
-    const shift = centerProgressDate.getDate() % BASE_PROGRESS_ITEMS.length;
-    return BASE_PROGRESS_ITEMS.map((_, index) => {
-      return BASE_PROGRESS_ITEMS[(index + shift) % BASE_PROGRESS_ITEMS.length];
-    }).slice(0, 5);
-  }, [centerProgressDate]);
+    const shift = centerProgressDate.getDate() % Math.max(baseProgressItems.length, 1);
+    return rotateTake(baseProgressItems, shift, 5).map((controlId) => {
+      const control = controlsById.get(controlId);
+      return {
+        id: controlId,
+        description: `${control?.tester ?? 'Unassigned'} • ${control?.step ?? 'Pending update'}`,
+      };
+    });
+  }, [baseProgressItems, centerProgressDate, controlsById]);
+
+  const teamCapacity = useMemo(() => {
+    const byTester = controls.reduce((accumulator, control) => {
+      const testerName = control.tester || 'Unassigned';
+      const current = accumulator.get(testerName) || { assigned: 0, completed: 0 };
+      current.assigned += 1;
+      if (control.statusType === 'completed') {
+        current.completed += 1;
+      }
+      accumulator.set(testerName, current);
+      return accumulator;
+    }, new Map());
+
+    return Array.from(byTester.entries()).map(([name, counts], index) => ({
+      initials: toInitials(name),
+      name,
+      progress: counts.assigned ? Math.round((counts.completed / counts.assigned) * 100) : 0,
+      color: TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length],
+    }));
+  }, [controls]);
 
   return (
     <div className="dashboard-page">
@@ -259,8 +362,8 @@ export default function Dashboard() {
 
       <section className="dashboard-main-grid">
         <div className="dashboard-main-grid__left">
-          <DonutChart title="OET Distribution" total={23} series={oetDistribution} />
-          <DonutChart title="DAT Distribution" total={21} series={datDistribution} />
+          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistribution} />
+          <DonutChart title="DAT Distribution" total={datTotal} series={datDistribution} />
         </div>
 
         <div className="dashboard-main-grid__right">
@@ -302,12 +405,10 @@ export default function Dashboard() {
             </div>
 
             <div className="dashboard-progress-list">
-              {progressItems.map((itemCode) => (
-                <div key={itemCode} className="dashboard-progress-item">
-                  <span className="dashboard-progress-item__code">{itemCode}</span>
-                  <span className="dashboard-progress-item__text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod...
-                  </span>
+              {progressItems.map((item) => (
+                <div key={item.id} className="dashboard-progress-item">
+                  <span className="dashboard-progress-item__code">{item.id}</span>
+                  <span className="dashboard-progress-item__text">{item.description}</span>
                 </div>
               ))}
             </div>
