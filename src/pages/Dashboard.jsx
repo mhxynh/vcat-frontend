@@ -25,21 +25,34 @@ const datDistribution = [
   { label: 'In Progress', value: 5, color: '#f3dfe2' },
 ];
 
-const progressCalendarDays = [
-  { weekday: 'Monday', day: 12, hasAlert: false },
-  { weekday: 'Tuesday', day: 13, hasAlert: false },
-  { weekday: 'Wedneday', day: 14, hasAlert: false },
-  { weekday: 'Thursday', day: 15, hasAlert: true },
-  { weekday: 'Friday', day: 16, hasAlert: true },
+const WEEKDAY_LABELS = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+const BASE_PROGRESS_ITEMS = [
+  'VG-4067',
+  'VG-4021',
+  'VG-5033',
+  'VG-5034',
+  'VG-6969',
+  'VG-7012',
+  'VG-7110',
 ];
 
-const progressItemsByDay = {
-  12: ['VG-4012', 'VG-4021', 'VG-5033', 'VG-5034', 'VG-6969'],
-  13: ['VG-4033', 'VG-4067', 'VG-5033', 'VG-5034', 'VG-6969'],
-  14: ['VG-4067', 'VG-4021', 'VG-5033', 'VG-5034', 'VG-6969'],
-  15: ['VG-4021', 'VG-5033', 'VG-5034', 'VG-6969', 'VG-7012'],
-  16: ['VG-5033', 'VG-5034', 'VG-6969', 'VG-7012', 'VG-7110'],
-};
+function addDays(date, days) {
+  const value = new Date(date);
+  value.setDate(value.getDate() + days);
+  return value;
+}
+
+function dateKey(date) {
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
 
 const teamCapacity = [
   { initials: 'MH', name: 'Monique Huynh', progress: 62, color: '#a6131f' },
@@ -137,11 +150,38 @@ function DonutChart({ title, total, series }) {
 }
 
 export default function Dashboard() {
-  const [selectedProgressDay, setSelectedProgressDay] = useState(14);
+  const today = useMemo(() => new Date(), []);
+
+  const progressCalendarDays = useMemo(() => {
+    return [-2, -1, 0, 1, 2].map((offset) => {
+      const date = addDays(today, offset);
+      return {
+        key: dateKey(date),
+        date,
+        day: date.getDate(),
+        weekday: WEEKDAY_LABELS[date.getDay()],
+        hasAlert: offset > 0,
+      };
+    });
+  }, [today]);
+
+  const [selectedProgressDay, setSelectedProgressDay] = useState(() => dateKey(today));
+
+  const monthLabel = useMemo(() => {
+    const selected = progressCalendarDays.find((day) => day.key === selectedProgressDay);
+    const selectedDate = selected?.date ?? today;
+    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
+      selectedDate
+    );
+  }, [progressCalendarDays, selectedProgressDay, today]);
 
   const progressItems = useMemo(() => {
-    return progressItemsByDay[selectedProgressDay] ?? progressItemsByDay[14];
-  }, [selectedProgressDay]);
+    const selected = progressCalendarDays.find((day) => day.key === selectedProgressDay);
+    const shift = selected ? selected.date.getDate() % BASE_PROGRESS_ITEMS.length : 0;
+    return BASE_PROGRESS_ITEMS.map((_, index) => {
+      return BASE_PROGRESS_ITEMS[(index + shift) % BASE_PROGRESS_ITEMS.length];
+    }).slice(0, 5);
+  }, [progressCalendarDays, selectedProgressDay]);
 
   return (
     <div className="dashboard-page">
@@ -198,17 +238,17 @@ export default function Dashboard() {
               <span className="dashboard-progress-avatar">M</span>
             </div>
             <div className="dashboard-calendar">
-              <div className="dashboard-calendar__month">January 2026</div>
+              <div className="dashboard-calendar__month">{monthLabel}</div>
               <div className="dashboard-calendar__strip">
                 {progressCalendarDays.map((item) => {
-                  const isSelected = selectedProgressDay === item.day;
+                  const isSelected = selectedProgressDay === item.key;
 
                   return (
                     <button
-                      key={item.day}
+                      key={item.key}
                       type="button"
                       className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''}`}
-                      onClick={() => setSelectedProgressDay(item.day)}
+                      onClick={() => setSelectedProgressDay(item.key)}
                     >
                       <span className="dashboard-calendar__weekday">{item.weekday}</span>
                       <span className="dashboard-calendar__date">{item.day}</span>
