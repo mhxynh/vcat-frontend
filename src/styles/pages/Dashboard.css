@@ -223,9 +223,9 @@
 .dashboard-calendar__month {
   text-align: center;
   color: #666666;
-  font-size: clamp(22px, 1.9vw, 36px);
+  font-size: clamp(16px, 1.1vw, 20px);
   line-height: 1.05;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .dashboard-calendar__viewport {
@@ -256,13 +256,13 @@
 
 .dashboard-calendar__weekday {
   color: #a8a8a8;
-  font-size: clamp(10px, 0.72vw, 13px);
+  font-size: clamp(10px, 0.62vw, 12px);
   line-height: 1;
 }
 
 .dashboard-calendar__date {
   color: #b3b3b3;
-  font-size: clamp(18px, 1.4vw, 30px);
+  font-size: clamp(16px, 1.05vw, 21px);
   line-height: 1;
 }
 
@@ -271,8 +271,8 @@
 }
 
 .dashboard-calendar__day--active .dashboard-calendar__date {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -302,18 +302,22 @@
   display: flex;
   gap: 20px;
   align-items: baseline;
+  white-space: nowrap;
 }
 
 .dashboard-progress-item__code {
   color: #b01922;
-  font-size: clamp(16px, 1.2vw, 24px);
+  font-size: clamp(13px, 0.78vw, 15px);
   line-height: 1;
+  flex: 0 0 auto;
 }
 
 .dashboard-progress-item__text {
   color: #777;
-  font-size: clamp(12px, 0.9vw, 15px);
+  font-size: clamp(10px, 0.62vw, 12px);
   line-height: 1;
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
