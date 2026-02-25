@@ -47,8 +47,8 @@
 }
 
 .dashboard-summary-card__icon svg {
-  width: 21px;
-  height: 21px;
+  width: 30px;
+  height: 30px;
 }
 
 .dashboard-summary-card__icon--teal {
@@ -204,6 +204,9 @@
 }
 
 .dashboard-calendar__viewport {
+  --weekday-size: clamp(10px, 0.62vw, 12px);
+  --date-size: clamp(16px, 1.05vw, 21px);
+  --bubble-size: clamp(24px, 1.5vw, 28px);
   border: 1px solid #dddddd;
   border-radius: 9px;
   padding: 8px 0;
@@ -216,12 +219,13 @@
   content: '';
   position: absolute;
   left: 50%;
-  top: 19px;
-  width: 28px;
-  height: 28px;
+  font-size: var(--date-size);
+  top: calc(8px + var(--weekday-size) + 6px + 0.5em);
+  width: var(--bubble-size);
+  height: var(--bubble-size);
   border-radius: 50%;
   background: #9f141e;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -248,14 +252,14 @@
 
 .dashboard-calendar__weekday {
   color: #a8a8a8;
-  font-size: clamp(10px, 0.62vw, 12px);
+  font-size: var(--weekday-size);
   line-height: 1;
   font-weight: 600;
 }
 
 .dashboard-calendar__date {
   color: #b3b3b3;
-  font-size: clamp(16px, 1.05vw, 21px);
+  font-size: var(--date-size);
   line-height: 1;
 }
 
