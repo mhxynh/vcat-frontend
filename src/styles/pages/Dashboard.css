@@ -277,7 +277,9 @@
   font-weight: 700;
 }
 
-.dashboard-calendar__viewport--sliding .dashboard-calendar__day--active .dashboard-calendar__weekday {
+.dashboard-calendar__viewport--sliding
+  .dashboard-calendar__day--active
+  .dashboard-calendar__weekday {
   color: #a8a8a8;
   font-weight: 600;
 }
@@ -287,7 +289,9 @@
   font-weight: 600;
 }
 
-.dashboard-calendar__viewport--sliding .dashboard-calendar__day--incoming .dashboard-calendar__date {
+.dashboard-calendar__viewport--sliding
+  .dashboard-calendar__day--incoming
+  .dashboard-calendar__date {
   color: #fff;
   font-weight: 700;
 }
