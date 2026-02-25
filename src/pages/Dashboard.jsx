@@ -371,7 +371,9 @@ export default function Dashboard() {
             <div className="dashboard-panel__title">Test Progress</div>
             <div className="dashboard-calendar">
               <div className="dashboard-calendar__month">{monthLabel}</div>
-              <div className="dashboard-calendar__viewport">
+              <div
+                className={`dashboard-calendar__viewport ${isSliding ? 'dashboard-calendar__viewport--sliding' : ''}`}
+              >
                 <div
                   className="dashboard-calendar__strip-track"
                   style={{
@@ -382,12 +384,13 @@ export default function Dashboard() {
                 >
                   {progressCalendarDays.map((item) => {
                     const isSelected = item.offset === 0;
+                    const isIncoming = isSliding && item.offset === slideDirection;
 
                     return (
                       <button
                         key={item.key}
                         type="button"
-                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''}`}
+                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''} ${isIncoming ? 'dashboard-calendar__day--incoming' : ''}`}
                         onClick={() => {
                           if (item.offset > 0) triggerDaySlide(1);
                           if (item.offset < 0) triggerDaySlide(-1);
