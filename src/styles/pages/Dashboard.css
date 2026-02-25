@@ -233,6 +233,7 @@
   color: #a8a8a8;
   font-size: clamp(10px, 0.62vw, 12px);
   line-height: 1;
+  font-weight: 600;
 }
 
 .dashboard-calendar__date {
@@ -243,6 +244,7 @@
 
 .dashboard-calendar__day--active .dashboard-calendar__weekday {
   color: #252525;
+  font-weight: 800;
 }
 
 .dashboard-calendar__day--active .dashboard-calendar__date {
