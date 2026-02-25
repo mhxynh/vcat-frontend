@@ -103,6 +103,15 @@ function dateKey(date) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
 
+function formatLastUpdated(date) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 function SummaryIcon({ kind }) {
   const common = {
     fill: 'none',
@@ -196,6 +205,7 @@ function DonutChart({ title, total, series }) {
 export default function Dashboard() {
   const controls = controlsData;
   const today = useMemo(() => new Date(), []);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), today.getDate())
   );
@@ -244,6 +254,14 @@ export default function Dashboard() {
       centerProgressDate
     );
   }, [centerProgressDate]);
+
+  const lastUpdatedLabel = useMemo(() => {
+    return formatLastUpdated(lastUpdatedAt);
+  }, [lastUpdatedAt]);
+
+  const refreshDashboard = () => {
+    setLastUpdatedAt(new Date());
+  };
 
   const summaryCards = useMemo(() => {
     const totalControls = controls.length;
@@ -324,7 +342,7 @@ export default function Dashboard() {
         title={
           <div className="dashboard-header-title">
             <span>Overview Dashboard</span>
-            <span className="dashboard-last-updated">Last Updated 06:07:67 PM</span>
+            <span className="dashboard-last-updated">Last Updated {lastUpdatedLabel}</span>
           </div>
         }
         actions={
@@ -332,7 +350,7 @@ export default function Dashboard() {
             <button className="btn btn--white" type="button">
               Export
             </button>
-            <button className="btn btn--blue" type="button">
+            <button className="btn btn--blue" type="button" onClick={refreshDashboard}>
               Refresh
             </button>
           </>
