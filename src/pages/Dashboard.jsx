@@ -46,18 +46,31 @@ function toInitials(name) {
     .join('');
 }
 
+const STATUS_BUCKET_RULES = [
+  {
+    check: (step) => step.includes('addressing comments'),
+    value: 'addressingComments',
+  },
+  { check: (_, statusType) => statusType === 'completed', value: 'completed' },
+  { check: (step) => step === 'complete', value: 'completed' },
+  { check: (_, statusType) => statusType === 'not-started', value: 'notStarted' },
+  { check: (step) => step === 'not started', value: 'notStarted' },
+  { check: (_, statusType) => statusType === 'in-review', value: 'testingCompleted' },
+  {
+    check: (_, statusType) => statusType === 'in-progress' || statusType === 'blocked',
+    value: 'inProgress',
+  },
+];
+
 function statusBucketFromControl(control) {
   const step = (control.step || '').toLowerCase();
   const statusType = (control.statusType || '').toLowerCase();
 
-  if (step.includes('addressing comments')) return 'addressingComments';
-  if (statusType === 'completed' || step === 'complete') return 'completed';
-  if (statusType === 'not-started' || step === 'not started') return 'notStarted';
-  if (statusType === 'in-review') return 'testingCompleted';
-  if (statusType === 'in-progress' || statusType === 'blocked') return 'inProgress';
-
-  return 'inProgress';
+  const rule = STATUS_BUCKET_RULES.find((r) => r.check(step, statusType));
+  return rule ? rule.value : 'inProgress';
 }
+
+const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];
 
 function supportsTestType(control, type) {
   return (control.testType || '').toUpperCase().includes(type);
@@ -268,18 +281,12 @@ export default function Dashboard() {
   };
 
   const summaryCards = useMemo(() => {
-    const totalControls = controls.length;
-    const notStarted = controls.filter((control) => control.statusType === 'not-started').length;
-    const openRequests = controls.filter((control) => control.statusType !== 'completed').length;
-    const completion = controls.filter((control) => control.statusType === 'completed').length;
-    const blockedControls = controls.filter((control) => control.statusType === 'blocked').length;
-
     const valuesByKey = {
-      totalControls,
-      notStarted,
-      openRequests,
-      completion,
-      blockedControls,
+      totalControls: controls.length,
+      notStarted: controls.filter((c) => c.statusType === 'not-started').length,
+      openRequests: controls.filter((c) => c.statusType !== 'completed').length,
+      completion: controls.filter((c) => c.statusType === 'completed').length,
+      blockedControls: controls.filter((c) => c.statusType === 'blocked').length,
     };
 
     return SUMMARY_CARD_META.map((cardMeta) => ({
@@ -314,7 +321,7 @@ export default function Dashboard() {
       .sort((left, right) => (left.vgcpid || '').localeCompare(right.vgcpid || ''))
       .map((control) => ({
         id: control.vgcpid,
-        description: `${control.tester ?? 'Unassigned'} • ${control.step ?? 'Pending update'}`,
+        description: `${control.tester || 'Unassigned'} • ${control.step || 'Pending update'}`,
       }));
   }, [centerProgressDate, updatesByDateKey]);
 
@@ -330,14 +337,17 @@ export default function Dashboard() {
       return accumulator;
     }, new Map());
 
-    return Array.from(byTester.entries()).map(([name, counts], index) => ({
-      initials: toInitials(name),
-      name,
-      assignedTests: counts.assigned,
-      completedTests: counts.completed,
-      progress: counts.assigned ? Math.round((counts.completed / counts.assigned) * 100) : 0,
-      color: TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length],
-    }));
+    return Array.from(byTester.entries()).map(([name, counts], index) => {
+      const progress = counts.assigned ? Math.round((counts.completed / counts.assigned) * 100) : 0;
+      return {
+        initials: toInitials(name),
+        name,
+        assignedTests: counts.assigned,
+        completedTests: counts.completed,
+        progress,
+        color: getTeamColor(index),
+      };
+    });
   }, [controls]);
 
   return (
