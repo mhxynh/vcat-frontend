@@ -12,10 +12,10 @@ const SUMMARY_CARD_META = [
 
 const DISTRIBUTION_STATUS_META = [
   { key: 'notStarted', label: 'Not Started' },
+  { key: 'inProgress', label: 'In Progress' },
+  { key: 'addressingComments', label: 'Addressing Comments' },
   { key: 'testingCompleted', label: 'Testing Completed' },
   { key: 'completed', label: 'Completed' },
-  { key: 'addressingComments', label: 'Addressing Comments' },
-  { key: 'inProgress', label: 'In Progress' },
 ];
 
 const STATUS_DISTRIBUTION_COLORS = {
@@ -234,7 +234,6 @@ export default function Dashboard() {
         date,
         day: date.getDate(),
         weekday: WEEKDAY_LABELS[date.getDay()],
-        hasAlert: offset > 0 && (updatesByDateKey.get(key)?.length ?? 0) > 0,
         offset,
       };
     });
@@ -430,7 +429,6 @@ export default function Dashboard() {
                       >
                         <span className="dashboard-calendar__weekday">{item.weekday}</span>
                         <span className="dashboard-calendar__date">{item.day}</span>
-                        {item.hasAlert ? <span className="dashboard-calendar__dot" /> : null}
                       </button>
                     );
                   })}
