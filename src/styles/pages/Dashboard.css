@@ -288,16 +288,6 @@
   font-weight: 700;
 }
 
-.dashboard-calendar__dot {
-  position: absolute;
-  right: 8px;
-  top: 24px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #f0152e;
-}
-
 .dashboard-progress-list {
   margin-top: 16px;
   display: flex;
