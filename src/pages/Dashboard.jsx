@@ -12,10 +12,10 @@ const SUMMARY_CARD_META = [
 
 const DISTRIBUTION_STATUS_META = [
   { key: 'notStarted', label: 'Not Started' },
-  { key: 'inProgress', label: 'In Progress' },
-  { key: 'addressingComments', label: 'Addressing Comments' },
   { key: 'testingCompleted', label: 'Testing Completed' },
   { key: 'completed', label: 'Completed' },
+  { key: 'addressingComments', label: 'Addressing Comment' },
+  { key: 'inProgress', label: 'In Progress' },
 ];
 
 const STATUS_DISTRIBUTION_COLORS = {
