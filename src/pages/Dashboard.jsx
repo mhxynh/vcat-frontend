@@ -19,11 +19,11 @@ const DISTRIBUTION_STATUS_META = [
 ];
 
 const STATUS_DISTRIBUTION_COLORS = {
-  notStarted: '#616161',
-  testingCompleted: '#f57f17',
-  completed: '#2e7d32',
-  addressingComments: '#c62828',
-  inProgress: '#1967d2',
+  notStarted: '#D22730',
+  testingCompleted: '#DD5D64',
+  completed: '#E99398',
+  addressingComments: '#F4C9CB',
+  inProgress: '#FBE9EA',
 };
 
 const WEEKDAY_LABELS = [
@@ -122,18 +122,22 @@ function SummaryIcon({ kind }) {
 
   if (kind === 'clipboard') {
     return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="7" y="5" width="10" height="15" rx="2" {...common} />
-        <path d="M9 5.5h6M10 3.5h4" {...common} />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M19 3h-2c0-.55-.45-1-1-1H8c-.55 0-1 .45-1 1H5c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 17H5V5h2v2h10V5h2z"
+          {...common}
+        />
       </svg>
     );
   }
 
   if (kind === 'flag') {
     return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 20V4" {...common} />
-        <path d="M7 5h9l-2 3 2 3H7" {...common} />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M5 15.64c2-.87 4.28-.76 6.18.33 1.37.78 2.89 1.18 4.42 1.18 1.12 0 2.24-.21 3.32-.64l1.45-.58A1 1 0 0 0 21 15V4a1 1 0 0 0-1.37-.93l-1.45.58c-1.97.79-4.16.63-6-.42A8.9 8.9 0 0 0 3.77 3l-.21.1a1 1 0 0 0-.55.89v18h2v-6.36ZM5 4.63c2-.87 4.28-.75 6.18.34 2.37 1.36 5.19 1.55 7.74.54l.08-.03v8.85l-.82.33a6.85 6.85 0 0 1-6-.42 8.95 8.95 0 0 0-4.42-1.18c-.93 0-1.86.15-2.75.44V4.63Z"
+          fill="#dc2626"
+        />
       </svg>
     );
   }
@@ -149,10 +153,11 @@ function SummaryIcon({ kind }) {
 
   if (kind === 'medal') {
     return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M9 4h6l-1.5 5h-3z" {...common} />
-        <circle cx="12" cy="15" r="4.5" {...common} />
-        <path d="M10.7 15.2l1-1.1 1.6 1.7 2.2-2.5" {...common} />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="m12,2c-4.41,0-8,3.59-8,8,0,2.52,1.17,4.77,3,6.24v4.77c0,.35.18.67.47.85.29.18.66.2.97.04l3.55-1.78,3.55,1.78c.14.07.29.11.45.11.18,0,.37-.05.53-.15.29-.18.47-.5.47-.85v-4.76c1.83-1.47,3-3.72,3-6.24,0-4.41-3.59-8-8-8Zm0,14c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6Z"
+          {...common}
+        />
       </svg>
     );
   }
