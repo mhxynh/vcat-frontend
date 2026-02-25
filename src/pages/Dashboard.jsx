@@ -86,13 +86,6 @@ function buildDistributionForType(controls, type) {
   }));
 }
 
-function rotateTake(items, shift, count) {
-  if (!items.length) return [];
-  return Array.from({ length: count }, (_, index) => {
-    return items[(index + shift) % items.length];
-  });
-}
-
 function addDays(date, days) {
   const value = new Date(date);
   value.setDate(value.getDate() + days);
@@ -101,6 +94,12 @@ function addDays(date, days) {
 
 function dateKey(date) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
+
+function parseDateUpdatedLabel(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 }
 
 function formatLastUpdated(date) {
@@ -213,19 +212,33 @@ export default function Dashboard() {
   const [isSliding, setIsSliding] = useState(false);
   const [disableSlideTransition, setDisableSlideTransition] = useState(false);
 
+  const updatesByDateKey = useMemo(() => {
+    return controls.reduce((accumulator, control) => {
+      const parsedDate = parseDateUpdatedLabel(control.dateUpdated);
+      if (!parsedDate) return accumulator;
+
+      const key = dateKey(parsedDate);
+      const current = accumulator.get(key) || [];
+      current.push(control);
+      accumulator.set(key, current);
+      return accumulator;
+    }, new Map());
+  }, [controls]);
+
   const progressCalendarDays = useMemo(() => {
     return [-3, -2, -1, 0, 1, 2, 3].map((offset) => {
       const date = addDays(centerProgressDate, offset);
+      const key = dateKey(date);
       return {
-        key: dateKey(date),
+        key,
         date,
         day: date.getDate(),
         weekday: WEEKDAY_LABELS[date.getDay()],
-        hasAlert: offset > 0,
+        hasAlert: offset > 0 && (updatesByDateKey.get(key)?.length ?? 0) > 0,
         offset,
       };
     });
-  }, [centerProgressDate]);
+  }, [centerProgressDate, updatesByDateKey]);
 
   const slideTransformPercent = slideDirection === 1 ? -40 : slideDirection === -1 ? 0 : -20;
 
@@ -297,24 +310,22 @@ export default function Dashboard() {
     [datDistribution]
   );
 
-  const baseProgressItems = useMemo(() => {
-    return controls.map((control) => control.vgcpid).filter(Boolean);
-  }, [controls]);
-
-  const controlsById = useMemo(() => {
-    return new Map(controls.map((control) => [control.vgcpid, control]));
-  }, [controls]);
-
   const progressItems = useMemo(() => {
-    const shift = centerProgressDate.getDate() % Math.max(baseProgressItems.length, 1);
-    return rotateTake(baseProgressItems, shift, 5).map((controlId) => {
-      const control = controlsById.get(controlId);
-      return {
-        id: controlId,
-        description: `${control?.tester ?? 'Unassigned'} • ${control?.step ?? 'Pending update'}`,
-      };
-    });
-  }, [baseProgressItems, centerProgressDate, controlsById]);
+    const selectedDateKey = dateKey(centerProgressDate);
+    const updatesForDay = updatesByDateKey.get(selectedDateKey) ?? [];
+
+    if (!updatesForDay.length) {
+      return [{ id: '—', description: 'No VGCP updates for this date.' }];
+    }
+
+    return updatesForDay
+      .slice()
+      .sort((left, right) => (left.vgcpid || '').localeCompare(right.vgcpid || ''))
+      .map((control) => ({
+        id: control.vgcpid,
+        description: `${control.tester ?? 'Unassigned'} • ${control.step ?? 'Pending update'}`,
+      }));
+  }, [centerProgressDate, updatesByDateKey]);
 
   const teamCapacity = useMemo(() => {
     const byTester = controls.reduce((accumulator, control) => {
@@ -427,7 +438,7 @@ export default function Dashboard() {
 
             <div className="dashboard-progress-list">
               {progressItems.map((item) => (
-                <div key={item.id} className="dashboard-progress-item">
+                <div key={`${item.id}-${item.description}`} className="dashboard-progress-item">
                   <span className="dashboard-progress-item__code">{item.id}</span>
                   <span className="dashboard-progress-item__text">{item.description}</span>
                 </div>
