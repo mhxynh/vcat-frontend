@@ -342,6 +342,8 @@ export default function Dashboard() {
     return Array.from(byTester.entries()).map(([name, counts], index) => ({
       initials: toInitials(name),
       name,
+      assignedTests: counts.assigned,
+      completedTests: counts.completed,
       progress: counts.assigned ? Math.round((counts.completed / counts.assigned) * 100) : 0,
       color: TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length],
     }));
@@ -450,7 +452,11 @@ export default function Dashboard() {
             <div className="dashboard-panel__title">Team Capacity</div>
             <div className="dashboard-capacity-list">
               {teamCapacity.map((member) => (
-                <div key={member.name} className="dashboard-capacity-item">
+                <div
+                  key={member.name}
+                  className="dashboard-capacity-item"
+                  title={`${member.name} | Assigned tests: ${member.assignedTests} | Completed tests: ${member.completedTests}`}
+                >
                   <span
                     className="dashboard-capacity-item__avatar"
                     style={{ backgroundColor: member.color }}
