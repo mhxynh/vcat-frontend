@@ -220,7 +220,7 @@
   position: absolute;
   left: 50%;
   font-size: var(--date-size);
-  top: calc(8px + var(--weekday-size) + 6px + 0.5em);
+  top: calc(8px + var(--weekday-size) + 4px + 0.5em);
   width: var(--bubble-size);
   height: var(--bubble-size);
   border-radius: 50%;
@@ -241,11 +241,11 @@
 .dashboard-calendar__day {
   border: 0;
   background: transparent;
-  padding: 0 8px;
+  padding: 0 5px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
   position: relative;
 }
