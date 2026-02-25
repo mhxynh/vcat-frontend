@@ -64,13 +64,7 @@ function supportsTestType(control, type) {
 }
 
 function buildDistributionForType(controls, type) {
-  const counts = {
-    notStarted: 0,
-    testingCompleted: 0,
-    completed: 0,
-    addressingComments: 0,
-    inProgress: 0,
-  };
+  const counts = Object.fromEntries(DISTRIBUTION_STATUS_META.map((meta) => [meta.key, 0]));
 
   controls
     .filter((control) => supportsTestType(control, type))
@@ -111,6 +105,45 @@ function formatLastUpdated(date) {
   }).format(date);
 }
 
+const ICON_COMPONENTS = {
+  clipboard: (common) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M19 3h-2c0-.55-.45-1-1-1H8c-.55 0-1 .45-1 1H5c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 17H5V5h2v2h10V5h2z"
+        {...common}
+      />
+    </svg>
+  ),
+  flag: (common) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M5 15.64c2-.87 4.28-.76 6.18.33 1.37.78 2.89 1.18 4.42 1.18 1.12 0 2.24-.21 3.32-.64l1.45-.58A1 1 0 0 0 21 15V4a1 1 0 0 0-1.37-.93l-1.45.58c-1.97.79-4.16.63-6-.42A8.9 8.9 0 0 0 3.77 3l-.21.1a1 1 0 0 0-.55.89v18h2v-6.36ZM5 4.63c2-.87 4.28-.75 6.18.34 2.37 1.36 5.19 1.55 7.74.54l.08-.03v8.85l-.82.33a6.85 6.85 0 0 1-6-.42 8.95 8.95 0 0 0-4.42-1.18c-.93 0-1.86.15-2.75.44V4.63Z"
+        fill="#dc2626"
+      />
+    </svg>
+  ),
+  cube: (common) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" {...common} />
+      <path d="M12 12l8-4.5M12 12L4 7.5M12 12v9" {...common} />
+    </svg>
+  ),
+  medal: (common) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="m12,2c-4.41,0-8,3.59-8,8,0,2.52,1.17,4.77,3,6.24v4.77c0,.35.18.67.47.85.29.18.66.2.97.04l3.55-1.78,3.55,1.78c.14.07.29.11.45.11.18,0,.37-.05.53-.15.29-.18.47-.5.47-.85v-4.76c1.83-1.47,3-3.72,3-6.24,0-4.41-3.59-8-8-8Zm0,14c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6Z"
+        {...common}
+      />
+    </svg>
+  ),
+  clock: (common) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" {...common} />
+      <path d="M12 8v4l2.5 1.5" {...common} />
+    </svg>
+  ),
+};
+
 function SummaryIcon({ kind }) {
   const common = {
     fill: 'none',
@@ -120,54 +153,8 @@ function SummaryIcon({ kind }) {
     strokeLinejoin: 'round',
   };
 
-  if (kind === 'clipboard') {
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M19 3h-2c0-.55-.45-1-1-1H8c-.55 0-1 .45-1 1H5c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 17H5V5h2v2h10V5h2z"
-          {...common}
-        />
-      </svg>
-    );
-  }
-
-  if (kind === 'flag') {
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M5 15.64c2-.87 4.28-.76 6.18.33 1.37.78 2.89 1.18 4.42 1.18 1.12 0 2.24-.21 3.32-.64l1.45-.58A1 1 0 0 0 21 15V4a1 1 0 0 0-1.37-.93l-1.45.58c-1.97.79-4.16.63-6-.42A8.9 8.9 0 0 0 3.77 3l-.21.1a1 1 0 0 0-.55.89v18h2v-6.36ZM5 4.63c2-.87 4.28-.75 6.18.34 2.37 1.36 5.19 1.55 7.74.54l.08-.03v8.85l-.82.33a6.85 6.85 0 0 1-6-.42 8.95 8.95 0 0 0-4.42-1.18c-.93 0-1.86.15-2.75.44V4.63Z"
-          fill="#dc2626"
-        />
-      </svg>
-    );
-  }
-
-  if (kind === 'cube') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" {...common} />
-        <path d="M12 12l8-4.5M12 12L4 7.5M12 12v9" {...common} />
-      </svg>
-    );
-  }
-
-  if (kind === 'medal') {
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="m12,2c-4.41,0-8,3.59-8,8,0,2.52,1.17,4.77,3,6.24v4.77c0,.35.18.67.47.85.29.18.66.2.97.04l3.55-1.78,3.55,1.78c.14.07.29.11.45.11.18,0,.37-.05.53-.15.29-.18.47-.5.47-.85v-4.76c1.83-1.47,3-3.72,3-6.24,0-4.41-3.59-8-8-8Zm0,14c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6Z"
-          {...common}
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8" {...common} />
-      <path d="M12 8v4l2.5 1.5" {...common} />
-    </svg>
-  );
+  const IconComponent = ICON_COMPONENTS[kind];
+  return IconComponent ? IconComponent(common) : null;
 }
 
 function DonutChart({ title, total, series }) {

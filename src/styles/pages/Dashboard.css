@@ -37,6 +37,8 @@
 }
 
 .dashboard-summary-card__icon {
+  --icon-bg: #e7f8f5;
+  --icon-color: #46c6b2;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -44,6 +46,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: var(--icon-bg);
+  color: var(--icon-color);
 }
 
 .dashboard-summary-card__icon svg {
@@ -52,28 +56,28 @@
 }
 
 .dashboard-summary-card__icon--teal {
-  background: #e7f8f5;
-  color: #46c6b2;
+  --icon-bg: #e7f8f5;
+  --icon-color: #46c6b2;
 }
 
 .dashboard-summary-card__icon--red {
-  background: #fdecef;
-  color: #ea6c73;
+  --icon-bg: #fdecef;
+  --icon-color: #ea6c73;
 }
 
 .dashboard-summary-card__icon--amber {
-  background: #fff6de;
-  color: #dbb247;
+  --icon-bg: #fff6de;
+  --icon-color: #dbb247;
 }
 
 .dashboard-summary-card__icon--green {
-  background: #eaf8ed;
-  color: #69bb76;
+  --icon-bg: #eaf8ed;
+  --icon-color: #69bb76;
 }
 
 .dashboard-summary-card__icon--blue {
-  background: #eaf3fe;
-  color: #63a6e8;
+  --icon-bg: #eaf3fe;
+  --icon-color: #63a6e8;
 }
 
 .dashboard-summary-card__label {
