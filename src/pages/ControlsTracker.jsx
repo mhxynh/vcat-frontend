@@ -4,10 +4,13 @@ import Tests from './views/Tests';
 import Requests from './views/Request';
 import Kanban from './views/Kanban';
 import Calendar from './views/Calendar';
+import CreateTestModal from '../components/CreateTestModal';
 import '../styles/pages/views/Tests.css';
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
+  const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
+
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
   const renderActiveView = () => {
@@ -54,7 +57,7 @@ export default function ControlsTracker() {
           ))}
         </div>
         {activeTab === 'Controls' && (
-          <button className="btn btn--new" type="button">
+          <button className="btn btn--new" type="button" onClick={() => setIsCreateTestOpen(true)}>
             + Add Control Test
           </button>
         )}
@@ -66,6 +69,8 @@ export default function ControlsTracker() {
       </div>
 
       <div className="tracker__content">{renderActiveView()}</div>
+
+      <CreateTestModal isOpen={isCreateTestOpen} onClose={() => setIsCreateTestOpen(false)} />
     </main>
   );
 }
