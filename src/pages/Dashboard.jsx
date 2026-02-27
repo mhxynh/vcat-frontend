@@ -165,6 +165,23 @@ function SummaryIcon({ kind }) {
   return IconComponent ? <IconComponent aria-hidden="true" /> : null;
 }
 
+function InfoTooltipIcon({ tooltip }) {
+  return (
+    <span className="dashboard-info-icon" title={tooltip}>
+      <span className="dashboard-info-icon__glyph">i</span>
+      <span className="dashboard-info-tooltip">{tooltip}</span>
+    </span>
+  );
+}
+
+function formatCapacityProgress(completedTests, assignedTests) {
+  const progressPercent = assignedTests ? (completedTests / assignedTests) * 100 : 0;
+  return {
+    progressPercent,
+    progressLabel: `${progressPercent.toFixed(1)}% (${completedTests}/${assignedTests})`,
+  };
+}
+
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = (angleDeg / 180) * Math.PI - Math.PI / 2;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -428,14 +445,17 @@ export default function Dashboard() {
     }, new Map());
 
     return Array.from(byTester.entries()).map(([name, counts], index) => {
-      const progress = counts.assigned ? (counts.completed / counts.assigned) * 100 : 0;
+      const { progressPercent, progressLabel } = formatCapacityProgress(
+        counts.completed,
+        counts.assigned
+      );
       return {
         initials: toInitials(name),
         name,
         assignedTests: counts.assigned,
         completedTests: counts.completed,
-        progress,
-        progressLabel: `${progress.toFixed(1)}%`,
+        progress: progressPercent,
+        progressLabel,
         color: getTeamColor(index),
       };
     });
@@ -447,10 +467,7 @@ export default function Dashboard() {
         title={
           <div className="dashboard-header-title">
             <span>Overview Dashboard</span>
-            <span className="dashboard-info-icon" title={`Last Updated ${lastUpdatedLabel}`}>
-              <span className="dashboard-info-icon__glyph">i</span>
-              <span className="dashboard-info-tooltip">Last Updated {lastUpdatedLabel}</span>
-            </span>
+            <InfoTooltipIcon tooltip={`Last Updated ${lastUpdatedLabel}`} />
           </div>
         }
         actions={
@@ -557,10 +574,7 @@ export default function Dashboard() {
           <article className="dashboard-panel">
             <div className="dashboard-panel__title dashboard-panel__title--with-info">
               <span>Team Capacity</span>
-              <span className="dashboard-info-icon" title="In-Progress Test/Total Test Assigned">
-                <span className="dashboard-info-icon__glyph">i</span>
-                <span className="dashboard-info-tooltip">In-Progress Test/Total Test Assigned</span>
-              </span>
+              <InfoTooltipIcon tooltip="In-Progress Test/Total Test Assigned" />
             </div>
             <div className="dashboard-capacity-list">
               {teamCapacity.map((member) => (
@@ -579,7 +593,7 @@ export default function Dashboard() {
                         style={{ width: `${member.progress}%`, backgroundColor: member.color }}
                       />
                       <span className="dashboard-capacity-item__bar-tooltip">
-                        {member.progressLabel} ({member.completedTests}/{member.assignedTests})
+                        {member.progressLabel}
                       </span>
                     </div>
                   </div>
