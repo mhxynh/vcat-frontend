@@ -66,7 +66,7 @@
   border-radius: 6px;
   border: 1px solid #e5e5e5;
   background: #ffffff;
-  min-height: 64px;
+  min-height: 85px;
   position: relative;
   text-align: left;
   padding: 7px 7px 6px;
@@ -164,7 +164,7 @@
 .calendar-detail-card {
   border: 1px solid #e5e5e5;
   border-radius: 6px;
-  height: 352px;
+  height: 420px;
   background: #ffffff;
   padding: 14px;
   overflow: hidden;
@@ -189,7 +189,7 @@
 .detail-list {
   display: grid;
   gap: 8px;
-  max-height: 275px;
+  max-height: 350px;
   overflow-y: auto;
   padding-right: 4px;
 }
