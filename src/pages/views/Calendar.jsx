@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -9,94 +10,114 @@ const STATUS_LABELS = {
   completed: 'Completed',
 };
 
-const EVENTS_BY_DAY = {
-  3: {
-    badge: 1,
-    bars: ['notStarted'],
-    items: [
-      { id: 'VG-1023', title: 'Access control walkthrough', assignee: 'MH', status: 'notStarted' },
-    ],
-  },
-  5: {
-    badge: 1,
-    bars: ['testing'],
-    items: [{ id: 'VG-2208', title: 'Evidence collection', assignee: 'AN', status: 'testing' }],
-  },
-  7: {
-    badge: 1,
-    bars: ['completed'],
-    items: [
-      { id: 'VG-3150', title: 'Identity governance check', assignee: 'MH', status: 'completed' },
-    ],
-  },
-  8: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-4119', title: 'Remediation validation', assignee: 'AN', status: 'addressing' },
-    ],
-  },
-  10: {
-    badge: 1,
-    bars: ['testing'],
-    items: [{ id: 'VG-2877', title: 'Quarterly sample review', assignee: 'MH', status: 'testing' }],
-  },
-  14: {
-    badge: 2,
-    bars: ['notStarted', 'notStarted'],
-    items: [
-      { id: 'VG-1180', title: 'Risk acceptance update', assignee: 'MH', status: 'notStarted' },
-      { id: 'VG-1189', title: 'Control owner signoff', assignee: 'AN', status: 'notStarted' },
-    ],
-  },
-  17: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-5522', title: 'Issue tracking review', assignee: 'AN', status: 'addressing' },
-    ],
-  },
-  18: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-7310', title: 'Testing checklist update', assignee: 'MH', status: 'addressing' },
-    ],
-  },
-  21: {
-    badge: 1,
-    bars: ['notStarted'],
-    items: [{ id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'notStarted' }],
-  },
-  23: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-6502', title: 'Audit trail gap closure', assignee: 'MH', status: 'addressing' },
-    ],
-  },
-  28: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-9014', title: 'Post-test findings review', assignee: 'AN', status: 'addressing' },
-    ],
-  },
-};
-
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
+const MAX_BARS_PER_DAY = 3;
+
+function parseDateOnly(value) {
+  if (!value || typeof value !== 'string') return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function mapApiStatusToCalendarStatus(status) {
+  switch (status) {
+    case 'NOT_STARTED':
+      return 'notStarted';
+    case 'IN_PROGRESS':
+      return 'inProgress';
+    case 'IN_REVIEW':
+      return 'testing';
+    case 'COMPLETED':
+      return 'completed';
+    case 'BLOCKED':
+    case 'ARCHIVED':
+      return 'addressing';
+    default:
+      return 'notStarted';
+  }
+}
+
+function getAssigneeLabel(test) {
+  if (test.assigned_tester_name) {
+    const initials = test.assigned_tester_name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+    return initials || '--';
+  }
+  return '--';
+}
+
+function buildEventsByDay(tests, month, year) {
+  return tests.reduce((acc, test) => {
+    const dueDate = parseDateOnly(test.due_date);
+    if (!dueDate) return acc;
+    if (dueDate.getFullYear() !== year || dueDate.getMonth() !== month) return acc;
+
+    const day = dueDate.getDate();
+    const status = mapApiStatusToCalendarStatus(test.status);
+    const item = {
+      id: test.vgcpid || `TEST-${test.test_id}`,
+      title: test.description || 'No description',
+      assignee: getAssigneeLabel(test),
+      status,
+    };
+
+    if (!acc[day]) {
+      acc[day] = { badge: 0, bars: [], items: [] };
+    }
+
+    acc[day].items.push(item);
+    acc[day].badge = acc[day].items.length;
+    acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
+    return acc;
+  }, {});
+}
 
 const CalendarView = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
   );
+  const [tests, setTests] = useState([]);
+  const [error, setError] = useState('');
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
-  const selectedEvents = selectedDay ? (EVENTS_BY_DAY[selectedDay]?.items ?? []) : [];
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadTests() {
+      try {
+        const rows = await fetchTests();
+        if (!isMounted) return;
+        setTests(rows);
+        setError('');
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err?.message || 'Failed to load calendar tests.');
+        setTests([]);
+      }
+    }
+
+    loadTests();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const eventsByDay = useMemo(
+    () => buildEventsByDay(tests, currentMonth, currentYear),
+    [currentMonth, currentYear, tests]
+  );
+
+  const selectedEvents = selectedDay ? (eventsByDay[selectedDay]?.items ?? []) : [];
 
   const selectedDateLabel = useMemo(() => {
     if (!selectedDay) return '';
@@ -166,7 +187,7 @@ const CalendarView = () => {
 
         <div className="calendar-grid">
           {dayCells.map((day, index) => {
-            const dayData = day ? EVENTS_BY_DAY[day] : null;
+            const dayData = day ? eventsByDay[day] : null;
             const isSelected = day && selectedDay === day;
 
             return (
@@ -213,6 +234,7 @@ const CalendarView = () => {
         </div>
 
         <div className="calendar-detail-card">
+          {error ? <div className="detail-empty">{error}</div> : null}
           {selectedDay ? (
             <>
               <div className="detail-header">
