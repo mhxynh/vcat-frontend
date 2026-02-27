@@ -428,13 +428,14 @@ export default function Dashboard() {
     }, new Map());
 
     return Array.from(byTester.entries()).map(([name, counts], index) => {
-      const progress = counts.assigned ? Math.round((counts.completed / counts.assigned) * 100) : 0;
+      const progress = counts.assigned ? (counts.completed / counts.assigned) * 100 : 0;
       return {
         initials: toInitials(name),
         name,
         assignedTests: counts.assigned,
         completedTests: counts.completed,
         progress,
+        progressLabel: `${progress.toFixed(1)}%`,
         color: getTeamColor(index),
       };
     });
@@ -563,11 +564,7 @@ export default function Dashboard() {
             </div>
             <div className="dashboard-capacity-list">
               {teamCapacity.map((member) => (
-                <div
-                  key={member.name}
-                  className="dashboard-capacity-item"
-                  title={`${member.name} | Assigned tests: ${member.assignedTests} | Completed tests: ${member.completedTests}`}
-                >
+                <div key={member.name} className="dashboard-capacity-item">
                   <span
                     className="dashboard-capacity-item__avatar"
                     style={{ backgroundColor: member.color }}
@@ -581,6 +578,9 @@ export default function Dashboard() {
                         className="dashboard-capacity-item__bar-fill"
                         style={{ width: `${member.progress}%`, backgroundColor: member.color }}
                       />
+                      <span className="dashboard-capacity-item__bar-tooltip">
+                        {member.progressLabel} ({member.completedTests}/{member.assignedTests})
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -529,13 +529,37 @@
   height: 8px;
   border-radius: 999px;
   background: #ececec;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .dashboard-capacity-item__bar-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
+}
+
+.dashboard-capacity-item__bar-tooltip {
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%) translateY(4px);
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f1f1f1;
+  border: 1px solid #d9d9d9;
+  color: #4d4d4d;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  pointer-events: none;
+}
+
+.dashboard-capacity-item__bar-track:hover .dashboard-capacity-item__bar-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 @media (max-width: 1040px) {
