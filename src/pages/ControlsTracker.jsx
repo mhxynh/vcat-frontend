@@ -70,7 +70,11 @@ export default function ControlsTracker() {
 
       <div className="tracker__content">{renderActiveView()}</div>
 
-      <CreateTestModal isOpen={isCreateTestOpen} onClose={() => setIsCreateTestOpen(false)} />
+      <CreateTestModal
+        isOpen={isCreateTestOpen}
+        onClose={() => setIsCreateTestOpen(false)}
+        onCreated={(created) => console.log('created test:', created)}
+      />
     </main>
   );
 }

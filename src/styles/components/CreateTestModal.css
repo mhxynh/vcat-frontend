@@ -64,8 +64,8 @@
 */
 .ctm-grid {
   width: 100%;
-  max-width: 760px;     /* makes fields shorter like your reference */
-  margin: 0 auto;       /* centers the grid in the modal */
+  max-width: 760px; /* makes fields shorter like your reference */
+  margin: 0 auto; /* centers the grid in the modal */
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 24px;
