@@ -95,8 +95,12 @@
 }
 
 .calendar-day-number {
+  position: absolute;
+  top: 7px;
+  left: 7px;
   font-size: 11px;
   color: #343434;
+  line-height: 1;
 }
 
 .calendar-day-badge {
