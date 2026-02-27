@@ -81,3 +81,26 @@ function formatDate(value) {
   if (!d) return '';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+export async function deleteRequest(requestId, { hard = false } = {}) {
+  if (requestId == null) throw new Error('Request ID is required');
+
+  const url = new URL(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`);
+  if (hard) url.searchParams.set('hard', 'true');
+
+  const resp = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Delete failed (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json().catch(() => ({}));
+}
