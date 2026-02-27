@@ -203,7 +203,9 @@ const CalendarView = () => {
                     <span className="calendar-day-number">{day}</span>
 
                     {dayData?.badge ? (
-                      <span className="calendar-day-badge">{dayData.badge}</span>
+                      <span className="calendar-day-badge">
+                        <span className="calendar-day-badge-text">{dayData.badge}</span>
+                      </span>
                     ) : null}
 
                     <div className="calendar-day-bars">
