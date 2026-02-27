@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
+import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
+import DetailsControlModal from '../components/DetailsControlModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
 import { ReactComponent as CubeIcon } from '../assets/images/dashboard-icons/cube.svg';
@@ -336,8 +338,11 @@ function DonutChart({ title, total, series }) {
 
 export default function Dashboard() {
   const [controls, setControls] = useState([]);
+  const [controlsCatalogById, setControlsCatalogById] = useState(new Map());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedControl, setSelectedControl] = useState(null);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
@@ -391,12 +396,20 @@ export default function Dashboard() {
     setLoadError('');
 
     try {
-      const rows = await fetchTests();
-      setControls(rows.map(mapTestRowToDashboardRow));
+      const [testRows, controlRows] = await Promise.all([fetchTests(), fetchControls()]);
+      setControls(testRows.map(mapTestRowToDashboardRow));
+      const controlsMap = new Map(
+        controlRows.map((row) => {
+          const mapped = mapControlRowToUi(row);
+          return [mapped.id, mapped];
+        })
+      );
+      setControlsCatalogById(controlsMap);
       setLastUpdatedAt(new Date());
     } catch (error) {
       setLoadError(error?.message || 'Failed to load dashboard data');
       setControls([]);
+      setControlsCatalogById(new Map());
     } finally {
       setLoading(false);
     }
@@ -439,7 +452,7 @@ export default function Dashboard() {
     const updatesForDay = updatesByDateKey.get(selectedDateKey) ?? [];
 
     if (!updatesForDay.length) {
-      return [{ id: '—', description: 'No VGCP updates for this date.' }];
+      return [{ id: '—', vgcpid: null, description: 'No VGCP updates for this date.' }];
     }
 
     return updatesForDay
@@ -447,9 +460,21 @@ export default function Dashboard() {
       .sort((left, right) => (left.vgcpid || '').localeCompare(right.vgcpid || ''))
       .map((control) => ({
         id: control.vgcpid,
+        vgcpid: control.vgcpid,
         description: `${control.tester || 'Unassigned'} • ${control.step || 'Pending update'}`,
       }));
   }, [centerProgressDate, updatesByDateKey]);
+
+  const openDetailsByVgcpid = useCallback(
+    (vgcpid) => {
+      if (!vgcpid) return;
+      const control = controlsCatalogById.get(vgcpid);
+      if (!control) return;
+      setSelectedControl(control);
+      setIsDetailsModalOpen(true);
+    },
+    [controlsCatalogById]
+  );
 
   const teamCapacity = useMemo(() => {
     const byTester = controls.reduce((accumulator, control) => {
@@ -593,7 +618,20 @@ export default function Dashboard() {
             <div className="dashboard-progress-list" key={dateKey(centerProgressDate)}>
               {progressItems.map((item) => (
                 <div key={`${item.id}-${item.description}`} className="dashboard-progress-item">
-                  <span className="dashboard-progress-item__code">{item.id}</span>
+                  <button
+                    type="button"
+                    className="dashboard-progress-item__code"
+                    onClick={() => openDetailsByVgcpid(item.vgcpid)}
+                    disabled={!item.vgcpid || !controlsCatalogById.has(item.vgcpid)}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                      cursor: item.vgcpid ? 'pointer' : 'default',
+                    }}
+                  >
+                    {item.id}
+                  </button>
                   <span className="dashboard-progress-item__text">{item.description}</span>
                 </div>
               ))}
@@ -632,6 +670,17 @@ export default function Dashboard() {
           </article>
         </div>
       </section>
+
+      <DetailsControlModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedControl(null);
+        }}
+        control={selectedControl}
+        onUpdated={loadDashboardData}
+        onDeleted={loadDashboardData}
+      />
     </div>
   );
 }

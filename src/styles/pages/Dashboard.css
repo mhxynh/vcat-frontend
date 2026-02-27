@@ -476,6 +476,12 @@
   font-size: clamp(13px, 0.78vw, 15px);
   line-height: 1;
   flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.dashboard-progress-item__code:not(:disabled):hover,
+.dashboard-progress-item__code:not(:disabled):focus-visible {
+  text-decoration: underline;
 }
 
 .dashboard-progress-item__text {
