@@ -229,7 +229,7 @@
 }
 
 .dashboard-donut__segment:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.05);
 }
 
 .dashboard-donut__hole {
