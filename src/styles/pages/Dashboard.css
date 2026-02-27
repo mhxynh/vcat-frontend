@@ -139,6 +139,10 @@
   color: #1e1e1e;
 }
 
+.dashboard-panel--donut {
+  padding: 20px;
+}
+
 .dashboard-donut-row {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(200px, 1fr);
@@ -148,8 +152,8 @@
 }
 
 .dashboard-donut {
-  width: 280px;
-  height: 280px;
+  width: 240px;
+  height: 240px;
   margin: 0 auto;
   position: relative;
   overflow: visible;
@@ -190,26 +194,33 @@
   }
 }
 
+.dashboard-donut__center-wrap {
+  overflow: visible;
+  pointer-events: none;
+}
+
 .dashboard-donut__center {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: #fff;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
+  gap: 2px;
 }
 
 .dashboard-donut__count {
   font-size: 35px;
   line-height: 1;
   color: #272727;
+  font-weight: 600;
 }
 
 .dashboard-donut__label {
   font-size: 13px;
+  line-height: 1;
   color: #3c3c3c;
 }
 

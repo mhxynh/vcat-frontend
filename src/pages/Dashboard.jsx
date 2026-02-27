@@ -184,7 +184,7 @@ function DonutChart({ title, total, series }) {
   const totalValue = series.reduce((sum, item) => sum + item.value, 0);
   const cx = 105;
   const cy = 105;
-  const innerR = 60;
+  const innerR = 55;
   const outerR = 105;
 
   const segments = useMemo(() => {
@@ -218,15 +218,15 @@ function DonutChart({ title, total, series }) {
   }, [hoveredIndex, segments]);
 
   return (
-    <div className="dashboard-panel">
+    <div className="dashboard-panel dashboard-panel--donut">
       <div className="dashboard-panel__title">{title}</div>
       <div className="dashboard-donut-row">
         <div className="dashboard-donut">
           <svg
             className="dashboard-donut__svg"
             viewBox="0 0 210 210"
-            width={280}
-            height={280}
+            width={240}
+            height={240}
             style={{ overflow: 'visible' }}
           >
             {segments.map((seg) => {
@@ -251,14 +251,18 @@ function DonutChart({ title, total, series }) {
               );
             })}
             <circle cx={cx} cy={cy} r={innerR} fill="#fff" className="dashboard-donut__hole" />
-            <g className="dashboard-donut__center">
-              <text x={cx} y={cy - 6} textAnchor="middle" className="dashboard-donut__count">
-                {total}
-              </text>
-              <text x={cx} y={cy + 12} textAnchor="middle" className="dashboard-donut__label">
-                Controls
-              </text>
-            </g>
+            <foreignObject
+              x={cx - innerR}
+              y={cy - innerR}
+              width={innerR * 2}
+              height={innerR * 2}
+              className="dashboard-donut__center-wrap"
+            >
+              <div className="dashboard-donut__center">
+                <span className="dashboard-donut__count">{total}</span>
+                <span className="dashboard-donut__label">Controls</span>
+              </div>
+            </foreignObject>
             {hoveredIndex !== null && tooltipPos && (
               <g
                 className="dashboard-donut__tooltip"
@@ -266,23 +270,34 @@ function DonutChart({ title, total, series }) {
                 style={{ pointerEvents: 'none' }}
               >
                 <rect
-                  x={-38}
-                  y={-26}
-                  width={76}
-                  height={44}
+                  x={-40}
+                  y={-28}
+                  width={80}
+                  height={54}
                   rx={8}
                   fill="#2c2c2c"
                   className="dashboard-donut__tooltip-bg"
                 />
-                <text x={0} y={-8} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={600}>
+                <text x={0} y={-10} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={600}>
                   {segments[hoveredIndex].value}
                 </text>
-                <text x={0} y={10} textAnchor="middle" fill="#fff" fontSize={12} opacity={0.9}>
-                  {totalValue > 0
-                    ? Math.round((segments[hoveredIndex].value / totalValue) * 100)
-                    : 0}
-                  %
-                </text>
+                <g>
+                  <rect x={-22} y={0} width={44} height={20} rx={4} fill="#9f141e" />
+                  <text
+                    x={0}
+                    y={10}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill="#fff"
+                    fontSize={12}
+                    fontWeight={600}
+                  >
+                    {totalValue > 0
+                      ? Math.round((segments[hoveredIndex].value / totalValue) * 100)
+                      : 0}
+                    %
+                  </text>
+                </g>
               </g>
             )}
           </svg>
