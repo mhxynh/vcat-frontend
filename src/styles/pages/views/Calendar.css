@@ -164,9 +164,10 @@
 .calendar-detail-card {
   border: 1px solid #e5e5e5;
   border-radius: 6px;
-  min-height: 352px;
+  height: 352px;
   background: #ffffff;
   padding: 14px;
+  overflow: hidden;
 }
 
 .detail-header {
@@ -188,6 +189,9 @@
 .detail-list {
   display: grid;
   gap: 8px;
+  max-height: 275px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .detail-item {
