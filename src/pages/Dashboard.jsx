@@ -46,18 +46,18 @@ const SUMMARY_CARD_META = [
 
 const DISTRIBUTION_STATUS_META = [
   { key: 'notStarted', label: 'Not Started' },
+  { key: 'walkthroughScheduled', label: 'Walkthrough Scheduled' },
+  { key: 'walkthroughCompleted', label: 'Walkthrough Completed' },
+  { key: 'testingInProgress', label: 'Testing In Progress' },
   { key: 'testingCompleted', label: 'Testing Completed' },
-  { key: 'completed', label: 'Completed' },
-  { key: 'addressingComments', label: 'Addressing Comment' },
-  { key: 'inProgress', label: 'In Progress' },
 ];
 
 const STATUS_DISTRIBUTION_COLORS = {
   notStarted: '#D22730',
-  testingCompleted: '#DD5D64',
-  completed: '#E99398',
-  addressingComments: '#F4C9CB',
-  inProgress: '#FBE9EA',
+  walkthroughScheduled: '#DD5D64',
+  walkthroughCompleted: '#E99398',
+  testingInProgress: '#F4C9CB',
+  testingCompleted: '#FBE9EA',
 };
 
 const WEEKDAY_LABELS = [
@@ -83,16 +83,16 @@ function toInitials(name) {
 const STATUS_BUCKET_RULES = [
   {
     check: (step) => step.includes('addressing comments'),
-    value: 'addressingComments',
+    value: 'testingInProgress',
   },
-  { check: (_, statusType) => statusType === 'completed', value: 'completed' },
-  { check: (step) => step === 'complete', value: 'completed' },
+  { check: (_, statusType) => statusType === 'completed', value: 'walkthroughCompleted' },
+  { check: (step) => step === 'complete', value: 'walkthroughCompleted' },
   { check: (_, statusType) => statusType === 'not-started', value: 'notStarted' },
   { check: (step) => step === 'not started', value: 'notStarted' },
-  { check: (_, statusType) => statusType === 'in-review', value: 'testingCompleted' },
+  { check: (_, statusType) => statusType === 'in-review', value: 'walkthroughScheduled' },
   {
     check: (_, statusType) => statusType === 'in-progress' || statusType === 'blocked',
-    value: 'inProgress',
+    value: 'testingCompleted',
   },
 ];
 
@@ -101,7 +101,7 @@ function statusBucketFromControl(control) {
   const statusType = (control.statusType || '').toLowerCase();
 
   const rule = STATUS_BUCKET_RULES.find((r) => r.check(step, statusType));
-  return rule ? rule.value : 'inProgress';
+  return rule ? rule.value : 'testingCompleted';
 }
 
 const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];
