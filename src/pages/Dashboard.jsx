@@ -165,27 +165,127 @@ function SummaryIcon({ kind }) {
   return IconComponent ? <IconComponent aria-hidden="true" /> : null;
 }
 
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const rad = (angleDeg / 180) * Math.PI - Math.PI / 2;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeDonutSegment(cx, cy, innerR, outerR, startPercent, endPercent) {
+  const start = polarToCartesian(cx, cy, outerR, (startPercent / 100) * 360);
+  const end = polarToCartesian(cx, cy, outerR, (endPercent / 100) * 360);
+  const innerStart = polarToCartesian(cx, cy, innerR, (endPercent / 100) * 360);
+  const innerEnd = polarToCartesian(cx, cy, innerR, (startPercent / 100) * 360);
+  const largeArc = endPercent - startPercent > 50 ? 1 : 0;
+  return `M ${start.x} ${start.y} A ${outerR} ${outerR} 0 ${largeArc} 1 ${end.x} ${end.y} L ${innerStart.x} ${innerStart.y} A ${innerR} ${innerR} 0 ${largeArc} 0 ${innerEnd.x} ${innerEnd.y} Z`;
+}
+
 function DonutChart({ title, total, series }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const totalValue = series.reduce((sum, item) => sum + item.value, 0);
-  let runningPercent = 0;
-  const gradientStops = series
-    .map((item) => {
-      const slicePercent = (item.value / totalValue) * 100;
+  const cx = 105;
+  const cy = 105;
+  const innerR = 60;
+  const outerR = 105;
+
+  const segments = useMemo(() => {
+    let runningPercent = 0;
+    return series.map((item, index) => {
+      const slicePercent = totalValue > 0 ? (item.value / totalValue) * 100 : 0;
       const fromPercent = runningPercent;
       runningPercent += slicePercent;
-      return `${item.color} ${fromPercent}% ${runningPercent}%`;
-    })
-    .join(', ');
+      return {
+        ...item,
+        index,
+        fromPercent,
+        toPercent: runningPercent,
+        slicePercent,
+        path: describeDonutSegment(cx, cy, innerR, outerR, fromPercent, runningPercent),
+      };
+    });
+  }, [series, totalValue]);
+
+  const tooltipPos = useMemo(() => {
+    if (hoveredIndex === null) return null;
+    const seg = segments[hoveredIndex];
+    const midPercent = seg.fromPercent + seg.slicePercent / 2;
+    const angleDeg = (midPercent / 100) * 360 - 90;
+    const rad = (angleDeg / 180) * Math.PI - Math.PI / 2;
+    const dist = 95;
+    return {
+      x: cx + Math.cos(rad) * dist,
+      y: cy + Math.sin(rad) * dist - 22,
+    };
+  }, [hoveredIndex, segments]);
 
   return (
     <div className="dashboard-panel">
       <div className="dashboard-panel__title">{title}</div>
       <div className="dashboard-donut-row">
-        <div className="dashboard-donut" style={{ background: `conic-gradient(${gradientStops})` }}>
-          <div className="dashboard-donut__center">
-            <div className="dashboard-donut__count">{total}</div>
-            <div className="dashboard-donut__label">Controls</div>
-          </div>
+        <div className="dashboard-donut">
+          <svg
+            className="dashboard-donut__svg"
+            viewBox="0 0 210 210"
+            width={280}
+            height={280}
+            style={{ overflow: 'visible' }}
+          >
+            {segments.map((seg) => {
+              const isHovered = hoveredIndex === seg.index;
+              return (
+                <g
+                  key={seg.label}
+                  transform={isHovered ? `scale(1.08)` : 'scale(1)'}
+                  style={{
+                    transformOrigin: '105px 105px',
+                    transition: 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                  }}
+                >
+                  <path
+                    d={seg.path}
+                    fill={seg.color}
+                    className="dashboard-donut__segment"
+                    onMouseEnter={() => setHoveredIndex(seg.index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  />
+                </g>
+              );
+            })}
+            <circle cx={cx} cy={cy} r={innerR} fill="#fff" className="dashboard-donut__hole" />
+            <g className="dashboard-donut__center">
+              <text x={cx} y={cy - 6} textAnchor="middle" className="dashboard-donut__count">
+                {total}
+              </text>
+              <text x={cx} y={cy + 12} textAnchor="middle" className="dashboard-donut__label">
+                Controls
+              </text>
+            </g>
+            {hoveredIndex !== null && tooltipPos && (
+              <g
+                className="dashboard-donut__tooltip"
+                transform={`translate(${tooltipPos.x}, ${tooltipPos.y})`}
+                style={{ pointerEvents: 'none' }}
+              >
+                <rect
+                  x={-38}
+                  y={-26}
+                  width={76}
+                  height={44}
+                  rx={8}
+                  fill="#2c2c2c"
+                  className="dashboard-donut__tooltip-bg"
+                />
+                <text x={0} y={-8} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={600}>
+                  {segments[hoveredIndex].value}
+                </text>
+                <text x={0} y={10} textAnchor="middle" fill="#fff" fontSize={12} opacity={0.9}>
+                  {totalValue > 0
+                    ? Math.round((segments[hoveredIndex].value / totalValue) * 100)
+                    : 0}
+                  %
+                </text>
+              </g>
+            )}
+          </svg>
         </div>
 
         <div className="dashboard-legend">

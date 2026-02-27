@@ -119,6 +119,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: visible;
+}
+
+.dashboard-main-grid__left .dashboard-panel {
+  overflow: visible;
 }
 
 .dashboard-panel {
@@ -136,19 +141,53 @@
 
 .dashboard-donut-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 1fr);
+  grid-template-columns: minmax(300px, 1fr) minmax(200px, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  overflow: visible;
 }
 
 .dashboard-donut {
-  width: 210px;
-  height: 210px;
-  border-radius: 50%;
+  width: 280px;
+  height: 280px;
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  overflow: visible;
+}
+
+.dashboard-donut__svg {
+  display: block;
+  overflow: visible;
+}
+
+.dashboard-donut__segment {
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.dashboard-donut__segment:hover {
+  filter: brightness(1.08);
+}
+
+.dashboard-donut__hole {
+  pointer-events: none;
+}
+
+.dashboard-donut__tooltip {
+  animation: dashboard-tooltip-fade 0.2s ease;
+}
+
+.dashboard-donut__tooltip-bg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+}
+
+@keyframes dashboard-tooltip-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .dashboard-donut__center {
