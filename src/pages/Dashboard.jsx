@@ -484,8 +484,8 @@ export default function Dashboard() {
 
       <section className="dashboard-main-grid">
         <div className="dashboard-main-grid__left">
-          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistribution} />
           <DonutChart title="DAT Distribution" total={datTotal} series={datDistribution} />
+          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistribution} />
         </div>
 
         <div className="dashboard-main-grid__right">
