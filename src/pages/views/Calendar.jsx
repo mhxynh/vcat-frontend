@@ -41,17 +41,20 @@ function mapApiStatusToCalendarStatus(status) {
   }
 }
 
-function getAssigneeLabel(test) {
-  if (test.assigned_tester_name) {
-    const initials = test.assigned_tester_name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? '')
-      .join('');
-    return initials || '--';
+function getAssigneeInfo(test) {
+  const fullName = test.assigned_tester_name || '';
+  if (!fullName) {
+    return { initials: '--', fullName: 'Unassigned' };
   }
-  return '--';
+
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
+  return { initials: initials || '--', fullName };
 }
 
 function buildEventsByDay(tests, month, year) {
@@ -62,10 +65,12 @@ function buildEventsByDay(tests, month, year) {
 
     const day = dueDate.getDate();
     const status = mapApiStatusToCalendarStatus(test.status);
+    const assignee = getAssigneeInfo(test);
     const item = {
       id: test.vgcpid || `TEST-${test.test_id}`,
       title: test.description || 'No description',
-      assignee: getAssigneeLabel(test),
+      assigneeInitials: assignee.initials,
+      assigneeName: assignee.fullName,
       status,
     };
 
@@ -288,7 +293,10 @@ const CalendarView = () => {
                         </button>
                         <div className="detail-desc">{event.title}</div>
                         <div className="detail-meta">
-                          <span className="detail-assignee">{event.assignee}</span>
+                          <span className="detail-assignee-wrap">
+                            <span className="detail-assignee">{event.assigneeInitials}</span>
+                            <span className="detail-assignee-name">{event.assigneeName}</span>
+                          </span>
                           <span className="detail-status">{STATUS_LABELS[event.status]}</span>
                         </div>
                       </div>
