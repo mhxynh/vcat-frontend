@@ -1,0 +1,677 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import '../styles/components/DetailsTestModal.css';
+import {
+  archiveTest,
+  hardDeleteTest,
+  startTest,
+  reviewTest,
+  completeTest,
+  updateDat,
+  updateOet,
+  fetchTestById,
+} from '../api/TestsAPI';
+
+export default function DetailsTestModal({ isOpen, onClose, test, onArchived, onDeleted, onEdit }) {
+  const [activeTab, setActiveTab] = useState('Details');
+  const [commentText, setCommentText] = useState('');
+  const [localComments, setLocalComments] = useState([]);
+  const [localTest, setLocalTest] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setActiveTab('Details');
+    setCommentText('');
+    setLocalComments([]);
+
+    setLocalTest(test ?? null);
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, test, onClose]);
+
+  async function refreshTest() {
+    const testId = (localTest ?? test)?.test_id ?? null;
+    if (testId == null) return null;
+
+    const fresh = await fetchTestById(testId);
+    setLocalTest(fresh);
+    onEdit?.(fresh);
+    return fresh;
+  }
+
+  const stop = (e) => e.stopPropagation();
+
+  const t = localTest ?? test ?? {};
+
+  const { currentStepLabel, nextStepLabel } = useMemo(() => computeStepLabels(t), [t]);
+
+  if (!isOpen) return null;
+
+  const testId = t?.test_id ?? null;
+  const vgcpid = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? 'Unknown';
+  const assignedName =
+    t?.assigned_tester_name ?? t?.tester_name ?? String(t?.assigned_tester_id ?? '-');
+
+  const status = t?.status ?? 'NOT_STARTED';
+  const typeLabel = testTypeFromFlags(t);
+
+  const updatedAt = formatLongDate(t?.updated_at);
+  const dueDate = formatLongDate(t?.due_date);
+  const etaDate = formatLongDate(t?.estimated_date);
+
+  const description = t?.description ?? 'No description.';
+
+  async function handleArchive() {
+    if (testId == null) return;
+
+    const ok = window.confirm(`Archive control test ${vgcpid}?`);
+    if (!ok) return;
+
+    try {
+      await archiveTest(testId);
+
+      const fresh = await refreshTest();
+
+      onArchived?.(testId, fresh ?? { ...t, status: 'ARCHIVED' });
+      onClose?.();
+    } catch (e) {
+      alert(e?.message || 'Failed to archive control test');
+    }
+  }
+
+  async function handleDelete() {
+    if (testId == null) return;
+
+    const ok = window.confirm(`Delete control test ${vgcpid}?\n\nThis is permanent.`);
+    if (!ok) return;
+
+    try {
+      await hardDeleteTest(testId);
+      onDeleted?.(testId);
+      onClose?.();
+    } catch (e) {
+      alert(e?.message || 'Failed to delete control test');
+    }
+  }
+
+  function getActiveTrack(testRow) {
+    const requiresDat = !!testRow?.requires_dat;
+    const requiresOet = !!testRow?.requires_oet;
+
+    const datStep = String(testRow?.['dat_step'] || '');
+    const oetStep = String(testRow?.['oet_step'] || '');
+
+    if (requiresDat && datStep !== 'COMPLETED') return 'DAT';
+
+    if (requiresOet && oetStep !== 'COMPLETED') return 'OET';
+
+    if (requiresOet) return 'OET';
+    if (requiresDat) return 'DAT';
+    return null;
+  }
+
+  function getFlowSteps(testRow, track) {
+    const requiresDat = !!testRow?.requires_dat;
+    const requiresOet = !!testRow?.requires_oet;
+
+    if (requiresDat && requiresOet) {
+      if (track === 'DAT') {
+        return [
+          '',
+          'WALKTHROUGH_SCHEDULED',
+          'WALKTHROUGH_COMPLETED',
+          'TESTING_IN_PROGRESS',
+          'COMPLETED',
+          'ADDRESSING_COMMENTS',
+        ];
+      }
+      if (track === 'OET') return ['', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+    }
+
+    if (requiresDat) {
+      return [
+        '',
+        'WALKTHROUGH_SCHEDULED',
+        'WALKTHROUGH_COMPLETED',
+        'TESTING_IN_PROGRESS',
+        'COMPLETED',
+        'ADDRESSING_COMMENTS',
+      ];
+    }
+
+    if (requiresOet) {
+      return ['', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+    }
+
+    return [''];
+  }
+
+  function getTrackStep(testRow, track) {
+    const raw =
+      track === 'DAT' ? String(testRow?.['dat_step'] || '') : String(testRow?.['oet_step'] || '');
+    return raw;
+  }
+
+  async function setTrackStepApi(track, nextStep, statusValue) {
+    if (testId == null) return null;
+    if (track === 'DAT') return updateDat(testId, nextStep || null, statusValue);
+    return updateOet(testId, nextStep || null, statusValue);
+  }
+
+  function isFinalTestingComplete(testRow) {
+    const requiresDat = !!testRow?.requires_dat;
+    const requiresOet = !!testRow?.requires_oet;
+
+    const datStep = String(testRow?.['dat_step'] || '');
+    const oetStep = String(testRow?.['oet_step'] || '');
+
+    const datReady = datStep === 'COMPLETED' || datStep === 'ADDRESSING_COMMENTS';
+    const oetReady = oetStep === 'COMPLETED' || oetStep === 'ADDRESSING_COMMENTS';
+
+    if (requiresDat && requiresOet) return datReady && oetReady;
+    if (requiresDat) return datReady;
+    if (requiresOet) return oetReady;
+    return false;
+  }
+
+  function getPrimaryActionLabel(testRow) {
+    const statusUpper = String(testRow?.status || 'NOT_STARTED').toUpperCase();
+
+    if (statusUpper === 'NOT_STARTED') return 'Start Work';
+    if (statusUpper === 'IN_PROGRESS') {
+      if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
+      return 'Next Step';
+    }
+    if (statusUpper === 'IN_REVIEW') return 'Approve Control ✓';
+    if (statusUpper === 'COMPLETED') return '';
+    return 'Next Step';
+  }
+
+  async function handleStartWork() {
+    if (testId == null) return;
+
+    try {
+      await startTest(testId);
+
+      const requiresDat = !!t?.requires_dat;
+      const requiresOet = !!t?.requires_oet;
+
+      if (requiresDat) {
+        await updateDat(testId, 'WALKTHROUGH_SCHEDULED', 'IN_PROGRESS');
+      } else if (requiresOet) {
+        await updateOet(testId, 'TESTING_IN_PROGRESS', 'IN_PROGRESS');
+      }
+
+      await refreshTest();
+    } catch (e) {
+      alert(e?.message || 'Failed to start work');
+    }
+  }
+
+  async function handlePrimaryAction() {
+    if (testId == null) return;
+
+    const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+
+    try {
+      if (statusUpper === 'NOT_STARTED') {
+        await handleStartWork();
+        return;
+      }
+
+      if (statusUpper === 'IN_REVIEW') {
+        const ok = window.confirm(`Approve control test ${vgcpid}?`);
+        if (!ok) return;
+
+        await completeTest(testId);
+        await refreshTest();
+        return;
+      }
+
+      if (statusUpper === 'IN_PROGRESS') {
+        if (isFinalTestingComplete(t)) {
+          const ok = window.confirm(`Submit ${vgcpid} for manager review?`);
+          if (!ok) return;
+
+          await reviewTest(testId);
+          await refreshTest();
+          return;
+        }
+
+        const track = getActiveTrack(t);
+        if (!track) return;
+
+        const steps = getFlowSteps(t, track);
+        const cur = getTrackStep(t, track);
+        const idx = Math.max(0, steps.indexOf(cur));
+        const next = steps[Math.min(idx + 1, steps.length - 1)];
+
+        await setTrackStepApi(track, next, 'IN_PROGRESS');
+        await refreshTest();
+        return;
+      }
+    } catch (e) {
+      alert(e?.message || 'Update failed');
+    }
+  }
+
+  function getRevertTrack(testRow) {
+    const requiresDat = !!testRow?.requires_dat;
+    const requiresOet = !!testRow?.requires_oet;
+
+    const datStep = String(testRow?.['dat_step'] || '');
+    const oetStep = String(testRow?.['oet_step'] || '');
+
+    const active = getActiveTrack(testRow);
+
+    if (requiresDat && requiresOet) {
+      if (active === 'OET' && oetStep === '' && datStep !== '') return 'DAT';
+      if (active === 'DAT' && datStep === '' && oetStep !== '') return 'OET';
+    }
+
+    return active;
+  }
+
+  async function handleRevert() {
+    if (testId == null) return;
+
+    const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+    if (statusUpper === 'COMPLETED') return;
+
+    try {
+      if (statusUpper === 'IN_REVIEW') {
+        const track = getActiveTrack(t) || (t?.requires_oet ? 'OET' : 'DAT');
+        await setTrackStepApi(track, 'COMPLETED', 'IN_PROGRESS');
+        await refreshTest();
+        return;
+      }
+
+      if (statusUpper === 'IN_PROGRESS') {
+        const track = getRevertTrack(t);
+        if (!track) return;
+
+        const steps = getFlowSteps(t, track);
+        const cur = getTrackStep(t, track);
+        const idx = Math.max(0, steps.indexOf(cur));
+        const prev = steps[Math.max(0, idx - 1)];
+
+        const otherTrack = track === 'DAT' ? 'OET' : 'DAT';
+        const otherStep = getTrackStep(t, otherTrack);
+
+        const willBeNotStarted =
+          prev === '' &&
+          ((!!t?.requires_dat && !t?.requires_oet) ||
+            (!t?.requires_dat && !!t?.requires_oet) ||
+            (!!t?.requires_dat && !!t?.requires_oet && String(otherStep || '') === ''));
+
+        const statusValue = willBeNotStarted ? 'NOT_STARTED' : 'IN_PROGRESS';
+
+        await setTrackStepApi(track, prev, statusValue);
+        await refreshTest();
+      }
+    } catch (e) {
+      alert(e?.message || 'Failed to revert');
+    }
+  }
+
+  async function handleReject() {
+    if (testId == null) return;
+
+    const statusUpper = String(t?.status || '').toUpperCase();
+    if (statusUpper !== 'IN_REVIEW') return;
+
+    const ok = window.confirm(
+      `Reject ${vgcpid}? This will move it back to In Progress (Addressing Comments).`
+    );
+    if (!ok) return;
+
+    try {
+      const finalTrack = t?.requires_oet ? 'OET' : 'DAT';
+      await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', 'IN_PROGRESS');
+      await refreshTest();
+    } catch (e) {
+      alert(e?.message || 'Failed to reject');
+    }
+  }
+
+  function handleAddComment() {
+    const text = commentText.trim();
+    if (!text) return;
+
+    const newComment = {
+      id: `local-${Date.now()}`,
+      author: 'You',
+      text,
+      date: new Date().toLocaleString(),
+    };
+
+    setLocalComments((prev) => [newComment, ...prev]);
+    setCommentText('');
+  }
+
+  function statusToLabel(status) {
+    return String(status || 'NOT_STARTED')
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+
+  function statusToBadgeType(status) {
+    return String(status || 'NOT_STARTED')
+      .toLowerCase()
+      .replaceAll('_', '-');
+  }
+
+  const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+  const showRevert = statusUpper !== 'NOT_STARTED' && statusUpper !== 'COMPLETED';
+  const showReject = statusUpper === 'IN_REVIEW';
+  const primaryLabel = getPrimaryActionLabel(t);
+
+  return (
+    <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
+      <div className="dtm-modal" onMouseDown={stop}>
+        <section className="dtm-header">
+          <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
+          <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </section>
+
+        <div className="dtm-divider" />
+
+        <section className="dtm-status">
+          <div className="dtm-status-top">
+            <div className="dtm-status-left">
+              <span className={`badge badge--${statusToBadgeType(status)}`}>
+                {statusToLabel(status)}
+              </span>
+              <span className="dtm-dot">•</span>
+              <span className="dtm-subtle">{typeLabel}</span>
+            </div>
+
+            <div className="dtm-assignee">
+              <div className="dtm-assignee-label">Assigned To</div>
+              <div className="dtm-assignee-row">
+                <div className="dtm-avatar" aria-hidden="true">
+                  {initials(assignedName)}
+                </div>
+                <div className="dtm-assignee-name">{assignedName}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="dtm-step-card">
+            <div className="dtm-step-left">
+              <div className="dtm-step-icon" aria-hidden="true">
+                ▶
+              </div>
+              <div>
+                <div className="dtm-step-label">CURRENT STEP</div>
+                <div className="dtm-step-value">{currentStepLabel}</div>
+              </div>
+            </div>
+
+            <div className="dtm-step-actions-left">
+              {showRevert ? (
+                <button className="dtm-btn dtm-btn--outline" type="button" onClick={handleRevert}>
+                  Revert
+                </button>
+              ) : null}
+
+              {showReject ? (
+                <button className="dtm-btn dtm-btn--danger" type="button" onClick={handleReject}>
+                  Reject
+                </button>
+              ) : null}
+            </div>
+
+            <div className="dtm-step-mid" aria-hidden="true">
+              →
+            </div>
+
+            <div className="dtm-step-right">
+              {primaryLabel ? (
+                <button
+                  className="dtm-btn dtm-btn--primary"
+                  type="button"
+                  onClick={handlePrimaryAction}
+                >
+                  {primaryLabel}
+                </button>
+              ) : null}
+
+              <span className="dtm-next">
+                <span className="dtm-next-label">Next:</span> {nextStepLabel}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <div className="dtm-divider" />
+
+        <section className="dtm-tabs">
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'Details' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('Details')}
+          >
+            Details
+          </button>
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('Attachments')}
+          >
+            Attachments
+          </button>
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('Comments')}
+          >
+            Comments
+          </button>
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'History' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('History')}
+          >
+            History
+          </button>
+        </section>
+
+        <section className="dtm-body">
+          {activeTab === 'Details' ? (
+            <>
+              <div className="dtm-details-grid">
+                <DetailItem label="DATE UPDATED" value={updatedAt} />
+                <DetailItem label="DUE DATE" value={dueDate} />
+                <DetailItem label="CURRENT STEP" value={currentStepLabel} />
+                <DetailItem label="ETA" value={etaDate} />
+              </div>
+
+              <div className="dtm-divider dtm-divider--soft" />
+
+              <div className="dtm-desc">
+                <div className="dtm-section-title">Test Description</div>
+                <div className="dtm-desc-text">{description}</div>
+              </div>
+            </>
+          ) : activeTab === 'Comments' ? (
+            <>
+              <div className="dtm-empty">
+                {localComments.length === 0 ? 'No comments found.' : null}
+              </div>
+
+              <div className="dtm-addcomment">
+                <input
+                  className="dtm-comment-input"
+                  placeholder="Write a comment…"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddComment();
+                  }}
+                />
+                <button
+                  className="dtm-send"
+                  type="button"
+                  onClick={handleAddComment}
+                  aria-label="Send"
+                >
+                  ➤
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="dtm-empty">This view is not implemented yet.</div>
+          )}
+        </section>
+
+        <div className="dtm-divider" />
+
+        <section className="dtm-footer">
+          <button className="dtm-btn" type="button" onClick={onClose}>
+            Close
+          </button>
+
+          <div className="dtm-footer-right">
+            <button className="dtm-btn dtm-btn--danger" type="button" onClick={handleDelete}>
+              Delete Control Test
+            </button>
+            <button className="dtm-btn dtm-btn--outline" type="button" onClick={handleArchive}>
+              Archive Control Test
+            </button>
+            <button
+              className="dtm-btn dtm-btn--primary"
+              type="button"
+              onClick={() => (onEdit ? onEdit(t) : alert('Edit (TODO)'))}
+            >
+              Edit Control Test
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function DetailItem({ label, value }) {
+  return (
+    <div className="dtm-detail">
+      <div className="dtm-detail-label">{label}</div>
+      <div className="dtm-detail-value">{value ?? '-'}</div>
+    </div>
+  );
+}
+
+function initials(name) {
+  const s = String(name || '?').trim();
+  if (!s) return '?';
+  const parts = s.split(/\s+/).filter(Boolean);
+  const a = parts[0]?.[0] || '?';
+  const b = parts[1]?.[0] || '';
+  return (a + b).toUpperCase();
+}
+
+function testTypeFromFlags(t) {
+  const dat = !!t?.requires_dat;
+  const oet = !!t?.requires_oet;
+  if (dat && oet) return 'DAT + OET';
+  if (dat) return 'DAT Only';
+  if (oet) return 'OET Only';
+  return '-';
+}
+
+function humanStep(s) {
+  if (!s) return 'Not Started';
+  return String(s)
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+}
+
+function computeStepLabels(test) {
+  const requiresDat = !!test?.requires_dat;
+  const requiresOet = !!test?.requires_oet;
+
+  const datStep = String(test?.['dat_step'] || '');
+  const oetStep = String(test?.['oet_step'] || '');
+
+  const datDone = datStep === 'COMPLETED';
+  const oetDone = oetStep === 'COMPLETED';
+
+  let track = null;
+  let step = null;
+
+  if (requiresDat && !datDone) {
+    track = 'DAT';
+    step = datStep;
+  } else if (requiresOet && !oetDone) {
+    track = 'OET';
+    step = oetStep;
+  } else if (requiresOet) {
+    track = 'OET';
+    step = oetStep;
+  } else if (requiresDat) {
+    track = 'DAT';
+    step = datStep;
+  }
+
+  const currentStepLabel = track ? `${track}: ${humanStep(step)}` : humanStep(null);
+
+  const datFlow = [
+    '',
+    'WALKTHROUGH_SCHEDULED',
+    'WALKTHROUGH_COMPLETED',
+    'TESTING_IN_PROGRESS',
+    'COMPLETED',
+    'ADDRESSING_COMMENTS',
+  ];
+  const oetFlow = ['', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+
+  const flow = track === 'DAT' ? datFlow : oetFlow;
+
+  let nextStepLabel = '-';
+
+  if (String(step || '').toUpperCase() === 'ADDRESSING_COMMENTS') {
+    nextStepLabel = 'Submit for Approval';
+  } else {
+    const idx = Math.max(0, flow.indexOf(String(step || '')));
+    const next = flow[Math.min(idx + 1, flow.length - 1)];
+
+    if (next === '')
+      nextStepLabel = track === 'DAT' ? 'Walkthrough Scheduled' : 'Testing In Progress';
+    else if (next === 'WALKTHROUGH_SCHEDULED') nextStepLabel = 'Walkthrough Scheduled';
+    else if (next === 'WALKTHROUGH_COMPLETED') nextStepLabel = 'Walkthrough Completed';
+    else if (next === 'TESTING_IN_PROGRESS') nextStepLabel = 'Testing In Progress';
+    else if (next === 'COMPLETED') nextStepLabel = 'Testing Completed';
+    else if (next === 'ADDRESSING_COMMENTS') nextStepLabel = 'Submit for Approval';
+    else nextStepLabel = humanStep(next);
+  }
+
+  return { currentStepLabel, nextStepLabel };
+}
+
+function formatLongDate(value) {
+  const d = parseLocalDate(value);
+  if (!d) return '-';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function parseLocalDate(value) {
+  if (!value) return null;
+
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
