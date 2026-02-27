@@ -554,7 +554,13 @@ export default function Dashboard() {
           </article>
 
           <article className="dashboard-panel">
-            <div className="dashboard-panel__title">Team Capacity</div>
+            <div className="dashboard-panel__title dashboard-panel__title--with-info">
+              <span>Team Capacity</span>
+              <span className="dashboard-info-icon" title="In-Progress Test/Total Test Assigned">
+                <span className="dashboard-info-icon__glyph">i</span>
+                <span className="dashboard-info-tooltip">In-Progress Test/Total Test Assigned</span>
+              </span>
+            </div>
             <div className="dashboard-capacity-list">
               {teamCapacity.map((member) => (
                 <div

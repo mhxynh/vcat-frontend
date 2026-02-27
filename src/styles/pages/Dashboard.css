@@ -192,6 +192,12 @@
   color: #1e1e1e;
 }
 
+.dashboard-panel__title--with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .dashboard-panel--donut {
   padding: 20px;
 }
