@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
-import { controlsData } from '../context/TestData';
+import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
 import { ReactComponent as CubeIcon } from '../assets/images/dashboard-icons/cube.svg';
@@ -335,7 +335,9 @@ function DonutChart({ title, total, series }) {
 }
 
 export default function Dashboard() {
-  const controls = controlsData;
+  const [controls, setControls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
@@ -384,9 +386,25 @@ export default function Dashboard() {
     return formatLastUpdated(lastUpdatedAt);
   }, [lastUpdatedAt]);
 
-  const refreshDashboard = () => {
-    setLastUpdatedAt(new Date());
-  };
+  const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
+
+    try {
+      const rows = await fetchTests();
+      setControls(rows.map(mapTestRowToDashboardRow));
+      setLastUpdatedAt(new Date());
+    } catch (error) {
+      setLoadError(error?.message || 'Failed to load dashboard data');
+      setControls([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const summaryCards = useMemo(() => {
     const valuesByKey = {
@@ -476,12 +494,19 @@ export default function Dashboard() {
             <button className="btn btn--white" type="button">
               Export
             </button>
-            <button className="btn btn--blue" type="button" onClick={refreshDashboard}>
+            <button
+              className="btn btn--blue"
+              type="button"
+              onClick={loadDashboardData}
+              disabled={loading}
+            >
               Refresh
             </button>
           </>
         }
       />
+
+      {loadError ? <div className="dashboard-panel">Error: {loadError}</div> : null}
 
       <section className="dashboard-summary-grid" aria-label="Dashboard summary cards">
         {summaryCards.map((card) => (
