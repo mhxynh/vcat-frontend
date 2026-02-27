@@ -47,19 +47,23 @@ const SUMMARY_CARD_META = [
 ];
 
 const DISTRIBUTION_STATUS_META = [
-  { key: 'notStarted', label: 'Not Started' },
-  { key: 'walkthroughScheduled', label: 'Walkthrough Scheduled' },
-  { key: 'walkthroughCompleted', label: 'Walkthrough Completed' },
-  { key: 'testingInProgress', label: 'Testing In Progress' },
-  { key: 'testingCompleted', label: 'Testing Completed' },
+  { key: 'TESTING_READY', label: 'Testing Ready' },
+  { key: 'WALKTHROUGH_SCHEDULED', label: 'Walkthrough Scheduled' },
+  { key: 'WALKTHROUGH_COMPLETED', label: 'Walkthrough Completed' },
+  { key: 'TESTING_IN_PROGRESS', label: 'Testing In Progress' },
+  { key: 'TESTING_BLOCKED', label: 'Testing Blocked' },
+  { key: 'TESTING_CANCELED', label: 'Testing Canceled' },
+  { key: 'COMPLETED', label: 'Completed' },
 ];
 
 const STATUS_DISTRIBUTION_COLORS = {
-  notStarted: '#D22730',
-  walkthroughScheduled: '#DD5D64',
-  walkthroughCompleted: '#E99398',
-  testingInProgress: '#F4C9CB',
-  testingCompleted: '#FBE9EA',
+  TESTING_READY: '#D22730',
+  WALKTHROUGH_SCHEDULED: '#DD5D64',
+  WALKTHROUGH_COMPLETED: '#E99398',
+  TESTING_IN_PROGRESS: '#F4C9CB',
+  TESTING_BLOCKED: '#D97706',
+  TESTING_CANCELED: '#6B7280',
+  COMPLETED: '#139A47',
 };
 
 const WEEKDAY_LABELS = [
@@ -82,28 +86,18 @@ function toInitials(name) {
     .join('');
 }
 
-const STATUS_BUCKET_RULES = [
-  {
-    check: (step) => step.includes('addressing comments'),
-    value: 'testingInProgress',
-  },
-  { check: (_, statusType) => statusType === 'completed', value: 'walkthroughCompleted' },
-  { check: (step) => step === 'complete', value: 'walkthroughCompleted' },
-  { check: (_, statusType) => statusType === 'not-started', value: 'notStarted' },
-  { check: (step) => step === 'not started', value: 'notStarted' },
-  { check: (_, statusType) => statusType === 'in-review', value: 'walkthroughScheduled' },
-  {
-    check: (_, statusType) => statusType === 'in-progress' || statusType === 'blocked',
-    value: 'testingCompleted',
-  },
-];
-
 function statusBucketFromControl(control) {
-  const step = (control.step || '').toLowerCase();
-  const statusType = (control.statusType || '').toLowerCase();
+  const step = (control.progressStep || '').toUpperCase();
+  if (DISTRIBUTION_STATUS_META.some((meta) => meta.key === step)) {
+    return step;
+  }
 
-  const rule = STATUS_BUCKET_RULES.find((r) => r.check(step, statusType));
-  return rule ? rule.value : 'testingCompleted';
+  const statusType = (control.statusType || '').toLowerCase();
+  if (statusType === 'completed') return 'COMPLETED';
+  if (statusType === 'blocked') return 'TESTING_BLOCKED';
+  if (statusType === 'in-progress') return 'TESTING_IN_PROGRESS';
+  if (statusType === 'in-review') return 'WALKTHROUGH_SCHEDULED';
+  return 'TESTING_READY';
 }
 
 const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];

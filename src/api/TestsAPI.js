@@ -47,6 +47,7 @@ function formatTestType(test) {
 
 export function mapTestRowToDashboardRow(test) {
   const statusMeta = normalizeStatus(test.status);
+  const progressStep = test.oet_step || test.dat_step || null;
   return {
     id: test.test_id,
     vgcpid: test.vgcpid,
@@ -54,6 +55,7 @@ export function mapTestRowToDashboardRow(test) {
     testType: formatTestType(test),
     status: statusMeta.status,
     statusType: statusMeta.statusType,
+    progressStep,
     step: formatStep(test.oet_step || test.dat_step),
     dateUpdated: formatDate(test.updated_at || test.created_at),
     dueDate: formatDate(test.due_date),
