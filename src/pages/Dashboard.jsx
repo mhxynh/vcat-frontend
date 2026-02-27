@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import PageHeader from '../components/PageHeader';
 import { controlsData } from '../context/TestData';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
@@ -6,6 +6,35 @@ import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/fla
 import { ReactComponent as CubeIcon } from '../assets/images/dashboard-icons/cube.svg';
 import { ReactComponent as MedalIcon } from '../assets/images/dashboard-icons/medal.svg';
 import { ReactComponent as ClockIcon } from '../assets/images/dashboard-icons/clock.svg';
+
+const ChevronLeft = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+);
+const ChevronRight = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 18l6-6-6-6" />
+  </svg>
+);
 
 const SUMMARY_CARD_META = [
   { key: 'totalControls', label: 'Total Controls', tone: 'teal', icon: 'clipboard' },
@@ -179,9 +208,6 @@ export default function Dashboard() {
   const [centerProgressDate, setCenterProgressDate] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), today.getDate())
   );
-  const [slideDirection, setSlideDirection] = useState(0);
-  const [isSliding, setIsSliding] = useState(false);
-  const [disableSlideTransition, setDisableSlideTransition] = useState(false);
 
   const updatesByDateKey = useMemo(() => {
     return controls.reduce((accumulator, control) => {
@@ -197,7 +223,7 @@ export default function Dashboard() {
   }, [controls]);
 
   const progressCalendarDays = useMemo(() => {
-    return [-3, -2, -1, 0, 1, 2, 3].map((offset) => {
+    return [-2, -1, 0, 1, 2].map((offset) => {
       const date = addDays(centerProgressDate, offset);
       const key = dateKey(date);
       return {
@@ -205,32 +231,15 @@ export default function Dashboard() {
         date,
         day: date.getDate(),
         weekday: WEEKDAY_LABELS[date.getDay()],
+        shortWeekday: WEEKDAY_LABELS[date.getDay()].slice(0, 3),
         offset,
       };
     });
-  }, [centerProgressDate, updatesByDateKey]);
+  }, [centerProgressDate]);
 
-  const slideTransformPercent = slideDirection === 1 ? -40 : slideDirection === -1 ? 0 : -20;
-
-  const triggerDaySlide = (direction) => {
-    if (isSliding) return;
-    setDisableSlideTransition(false);
-    setSlideDirection(direction);
-    setIsSliding(true);
-  };
-
-  const onDayTrackTransitionEnd = (event) => {
-    if (!isSliding || event.propertyName !== 'transform') return;
-
-    setCenterProgressDate((previousDate) => addDays(previousDate, slideDirection));
-    setDisableSlideTransition(true);
-    setSlideDirection(0);
-    setIsSliding(false);
-
-    requestAnimationFrame(() => {
-      setDisableSlideTransition(false);
-    });
-  };
+  const triggerDaySlide = useCallback((direction) => {
+    setCenterProgressDate((prev) => addDays(prev, direction));
+  }, []);
 
   const monthLabel = useMemo(() => {
     return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
@@ -365,37 +374,49 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-main-grid__right">
-          <article className="dashboard-panel">
+          <article className="dashboard-panel dashboard-panel--test-progress">
             <div className="dashboard-panel__title">Test Progress</div>
             <div className="dashboard-calendar">
-              <div className="dashboard-calendar__month">{monthLabel}</div>
-              <div
-                className={`dashboard-calendar__viewport ${isSliding ? 'dashboard-calendar__viewport--sliding' : ''}`}
-              >
-                <div
-                  className="dashboard-calendar__strip-track"
-                  style={{
-                    transform: `translateX(${slideTransformPercent}%)`,
-                    transition: disableSlideTransition ? 'none' : 'transform 260ms ease',
-                  }}
-                  onTransitionEnd={onDayTrackTransitionEnd}
-                >
+              <div className="dashboard-calendar__header">
+                <span className="dashboard-calendar__month">{monthLabel}</span>
+                <div className="dashboard-calendar__nav">
+                  <button
+                    type="button"
+                    className="dashboard-calendar__nav-btn"
+                    onClick={() => triggerDaySlide(-1)}
+                    aria-label="Previous day"
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-calendar__nav-btn"
+                    onClick={() => triggerDaySlide(1)}
+                    aria-label="Next day"
+                  >
+                    <ChevronRight />
+                  </button>
+                </div>
+              </div>
+              <div className="dashboard-calendar__viewport">
+                <div className="dashboard-calendar__strip-track">
                   {progressCalendarDays.map((item) => {
                     const isSelected = item.offset === 0;
-                    const isIncoming = isSliding && item.offset === slideDirection;
-
+                    const isClickable = item.offset !== 0;
                     return (
                       <button
-                        key={item.key}
+                        key={item.offset}
                         type="button"
-                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''} ${isIncoming ? 'dashboard-calendar__day--incoming' : ''}`}
-                        onClick={() => {
-                          if (item.offset > 0) triggerDaySlide(1);
-                          if (item.offset < 0) triggerDaySlide(-1);
-                        }}
-                        disabled={isSliding || item.offset === 0}
+                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''} ${isClickable ? 'dashboard-calendar__day--clickable' : ''}`}
+                        onClick={() => isClickable && triggerDaySlide(item.offset > 0 ? 1 : -1)}
+                        disabled={!isClickable}
+                        aria-label={
+                          isSelected
+                            ? `Selected: ${item.weekday} ${item.day}`
+                            : `Go to ${item.offset > 0 ? 'next' : 'previous'} day`
+                        }
                       >
-                        <span className="dashboard-calendar__weekday">{item.weekday}</span>
+                        <span className="dashboard-calendar__weekday">{item.shortWeekday}</span>
                         <span className="dashboard-calendar__date">{item.day}</span>
                       </button>
                     );
@@ -404,7 +425,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="dashboard-progress-list">
+            <div className="dashboard-progress-list" key={dateKey(centerProgressDate)}>
               {progressItems.map((item) => (
                 <div key={`${item.id}-${item.description}`} className="dashboard-progress-item">
                   <span className="dashboard-progress-item__code">{item.id}</span>

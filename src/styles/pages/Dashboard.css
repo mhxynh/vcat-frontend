@@ -195,105 +195,137 @@
   border: 1px solid #e0e0e0;
 }
 
+.dashboard-panel--test-progress {
+  overflow: hidden;
+}
+
 .dashboard-calendar {
-  padding: 2px 4px 0;
+  padding: 2px 0 0;
+}
+
+.dashboard-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
 .dashboard-calendar__month {
-  text-align: center;
   color: #666666;
-  font-size: clamp(16px, 1.1vw, 20px);
-  line-height: 1.05;
-  margin-bottom: 10px;
+  font-size: clamp(16px, 1.1vw, 18px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dashboard-calendar__nav {
+  display: flex;
+  gap: 4px;
+}
+
+.dashboard-calendar__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard-calendar__nav-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  color: #1e1e1e;
+  border-color: #ccc;
+}
+
+.dashboard-calendar__nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .dashboard-calendar__viewport {
-  --weekday-size: clamp(10px, 0.62vw, 12px);
-  --date-size: clamp(16px, 1.05vw, 21px);
-  --bubble-size: clamp(24px, 1.5vw, 28px);
-  border: 1px solid #dddddd;
-  border-radius: 9px;
-  padding: 8px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  --weekday-size: 11px;
+  --date-size: 18px;
+  --bubble-size: 36px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 12px 0;
+  background: #fafafa;
   overflow: hidden;
   position: relative;
 }
 
-.dashboard-calendar__viewport::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  font-size: var(--date-size);
-  top: calc(8px + var(--weekday-size) + 4px + 0.5em);
-  width: var(--bubble-size);
-  height: var(--bubble-size);
-  border-radius: 50%;
-  background: #9f141e;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 .dashboard-calendar__strip-track {
   display: grid;
-  grid-template-columns: repeat(7, 20%);
-  align-items: stretch;
-  position: relative;
-  z-index: 1;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
 }
 
 .dashboard-calendar__day {
-  border: 0;
-  background: transparent;
-  padding: 0 5px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+  font: inherit;
+}
+
+.dashboard-calendar__day--clickable {
   cursor: pointer;
-  position: relative;
+}
+
+.dashboard-calendar__day--clickable:hover {
+  opacity: 0.85;
+}
+
+.dashboard-calendar__day:disabled {
+  cursor: default;
 }
 
 .dashboard-calendar__weekday {
-  color: #a8a8a8;
+  color: #888;
   font-size: var(--weekday-size);
   line-height: 1;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .dashboard-calendar__date {
-  color: #b3b3b3;
+  color: #999;
   font-size: var(--date-size);
   line-height: 1;
+  font-weight: 600;
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .dashboard-calendar__day--active .dashboard-calendar__weekday {
-  color: #252525;
-  font-weight: 800;
+  color: #1e1e1e;
+  font-weight: 700;
 }
 
 .dashboard-calendar__day--active .dashboard-calendar__date {
   color: #fff;
   font-weight: 700;
-}
-
-.dashboard-calendar__viewport--sliding
-  .dashboard-calendar__day--active
-  .dashboard-calendar__weekday {
-  color: #a8a8a8;
-  font-weight: 600;
-}
-
-.dashboard-calendar__viewport--sliding .dashboard-calendar__day--active .dashboard-calendar__date {
-  color: #b3b3b3;
-  font-weight: 600;
-}
-
-.dashboard-calendar__viewport--sliding
-  .dashboard-calendar__day--incoming
-  .dashboard-calendar__date {
-  color: #fff;
-  font-weight: 700;
+  background: #9f141e;
+  box-shadow: 0 2px 6px rgba(159, 20, 30, 0.4);
 }
 
 .dashboard-progress-list {
@@ -302,6 +334,18 @@
   flex-direction: column;
   gap: 14px;
   min-height: 74px;
+  animation: dashboard-progress-fade-in 0.3s ease;
+}
+
+@keyframes dashboard-progress-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dashboard-progress-item {
@@ -405,6 +449,3 @@
   }
 }
 
-.dashboard-calendar__day:disabled {
-  cursor: default;
-}
