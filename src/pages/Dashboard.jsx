@@ -425,7 +425,7 @@ export default function Dashboard() {
     return SUMMARY_CARD_META.map((cardMeta) => ({
       ...cardMeta,
       value: valuesByKey[cardMeta.key] ?? 0,
-      delta: '',
+      delta: '~',
     }));
   }, [controls]);
 
@@ -502,31 +502,44 @@ export default function Dashboard() {
     });
   }, [controls]);
 
+  const header = (
+    <PageHeader
+      title={
+        <div className="dashboard-header-title">
+          <span>Overview Dashboard</span>
+          <InfoTooltipIcon tooltip={`Last Updated ${lastUpdatedLabel}`} />
+        </div>
+      }
+      actions={
+        <>
+          <button className="btn btn--white" type="button">
+            Export
+          </button>
+          <button
+            className="btn btn--blue"
+            type="button"
+            onClick={loadDashboardData}
+            disabled={loading}
+          >
+            Refresh
+          </button>
+        </>
+      }
+    />
+  );
+
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        {header}
+        <div className="no-results">Loading controls...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-page">
-      <PageHeader
-        title={
-          <div className="dashboard-header-title">
-            <span>Overview Dashboard</span>
-            <InfoTooltipIcon tooltip={`Last Updated ${lastUpdatedLabel}`} />
-          </div>
-        }
-        actions={
-          <>
-            <button className="btn btn--white" type="button">
-              Export
-            </button>
-            <button
-              className="btn btn--blue"
-              type="button"
-              onClick={loadDashboardData}
-              disabled={loading}
-            >
-              Refresh
-            </button>
-          </>
-        }
-      />
+      {header}
 
       {loadError ? <div className="dashboard-panel">Error: {loadError}</div> : null}
 
