@@ -446,7 +446,10 @@ export default function Dashboard() {
         title={
           <div className="dashboard-header-title">
             <span>Overview Dashboard</span>
-            <span className="dashboard-last-updated">Last Updated {lastUpdatedLabel}</span>
+            <span className="dashboard-info-icon" title={`Last Updated ${lastUpdatedLabel}`}>
+              <span className="dashboard-info-icon__glyph">i</span>
+              <span className="dashboard-info-tooltip">Last Updated {lastUpdatedLabel}</span>
+            </span>
           </div>
         }
         actions={
