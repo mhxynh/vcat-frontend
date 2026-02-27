@@ -65,7 +65,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
   z-index: 10;
   pointer-events: none;
 }
@@ -344,7 +346,10 @@
   background: #fff;
   color: #555;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .dashboard-calendar__nav-btn:hover:not(:disabled) {
@@ -422,7 +427,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
 .dashboard-calendar__day--active .dashboard-calendar__weekday {
@@ -553,7 +560,9 @@
   line-height: 1.2;
   white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.16s ease, transform 0.16s ease;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
   pointer-events: none;
 }
 
@@ -581,4 +590,3 @@
     grid-template-columns: 1fr;
   }
 }
-
