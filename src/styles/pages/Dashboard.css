@@ -21,23 +21,26 @@
   cursor: help;
   position: relative;
   border: 1px solid #d9d9d9;
+  transform: translateY(-0.5px);
 }
 
 .dashboard-info-icon::before {
   content: '';
   position: absolute;
+  left: 50%;
+  top: 50%;
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: #040505;
+  transform: translate(-50%, -50%);
 }
 
 .dashboard-info-icon__glyph {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  width: 12px;
-  height: 12px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   transform: translateY(1px);
