@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTests } from '../../api/TestsAPI';
+import { fetchControls, mapControlRowToUi } from '../../api/ControlsAPI';
+import DetailsControlModal from '../../components/DetailsControlModal';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -84,7 +86,10 @@ const CalendarView = () => {
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
   );
   const [tests, setTests] = useState([]);
+  const [controlsById, setControlsById] = useState({});
   const [error, setError] = useState('');
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedControl, setSelectedControl] = useState(null);
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -92,20 +97,29 @@ const CalendarView = () => {
   useEffect(() => {
     let isMounted = true;
 
-    async function loadTests() {
+    async function loadCalendarData() {
       try {
-        const rows = await fetchTests();
+        const [testRows, controlRows] = await Promise.all([fetchTests(), fetchControls()]);
         if (!isMounted) return;
-        setTests(rows);
+
+        const mappedControls = controlRows.map(mapControlRowToUi);
+        const byId = mappedControls.reduce((acc, control) => {
+          acc[control.id] = control;
+          return acc;
+        }, {});
+
+        setTests(testRows);
+        setControlsById(byId);
         setError('');
       } catch (err) {
         if (!isMounted) return;
         setError(err?.message || 'Failed to load calendar tests.');
         setTests([]);
+        setControlsById({});
       }
     }
 
-    loadTests();
+    loadCalendarData();
 
     return () => {
       isMounted = false;
@@ -152,6 +166,18 @@ const CalendarView = () => {
       (previousDate) => new Date(previousDate.getFullYear(), previousDate.getMonth() + offset, 1)
     );
     setSelectedDay(null);
+  };
+
+  const openDetailsByControlId = (controlId) => {
+    const control = controlsById[controlId];
+    if (!control) return;
+    setSelectedControl(control);
+    setIsDetailsModalOpen(true);
+  };
+
+  const closeDetails = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedControl(null);
   };
 
   return (
@@ -252,7 +278,14 @@ const CalendarView = () => {
                     <div key={event.id} className="detail-item">
                       <div className={`detail-bar status-${event.status}`} />
                       <div className="detail-body">
-                        <div className="detail-title">{event.id}</div>
+                        <button
+                          type="button"
+                          className="detail-title-btn"
+                          onClick={() => openDetailsByControlId(event.id)}
+                          title="View control details"
+                        >
+                          <span className="detail-title">{event.id}</span>
+                        </button>
                         <div className="detail-desc">{event.title}</div>
                         <div className="detail-meta">
                           <span className="detail-assignee">{event.assignee}</span>
@@ -275,6 +308,14 @@ const CalendarView = () => {
           )}
         </div>
       </div>
+
+      <DetailsControlModal
+        isOpen={isDetailsModalOpen}
+        onClose={closeDetails}
+        control={selectedControl}
+        onUpdated={async () => {}}
+        onDeleted={() => {}}
+      />
     </div>
   );
 };

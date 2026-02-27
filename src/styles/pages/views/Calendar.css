@@ -227,6 +227,19 @@
   color: #8b0f17;
 }
 
+.detail-title-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.detail-title-btn:hover .detail-title {
+  text-decoration: underline;
+}
+
 .detail-desc {
   font-size: 11px;
   color: #424242;
