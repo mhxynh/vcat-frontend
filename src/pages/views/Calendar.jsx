@@ -12,7 +12,7 @@ const STATUS_LABELS = {
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
-const MAX_BARS_PER_DAY = 3;
+const MAX_BARS_PER_DAY = 4;
 
 function parseDateOnly(value) {
   if (!value || typeof value !== 'string') return null;
