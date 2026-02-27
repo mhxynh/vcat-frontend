@@ -454,6 +454,9 @@ export default function Dashboard() {
   const teamCapacity = useMemo(() => {
     const byTester = controls.reduce((accumulator, control) => {
       const testerName = control.tester || 'Unassigned';
+      if (testerName === 'Unassigned') {
+        return accumulator;
+      }
       const current = accumulator.get(testerName) || { assigned: 0, completed: 0 };
       current.assigned += 1;
       if (control.statusType === 'completed') {
