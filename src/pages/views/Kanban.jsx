@@ -4,6 +4,13 @@ import { fetchKanban, mapTestRowToCard } from '../../api/KanbanAPI';
 import { fetchRequests } from '../../api/RequestsAPI';
 
 const KanbanBoard = () => {
+  const statusColors = {
+    not_started: '#ef4444',
+    in_progress: '#f59e0b',
+    in_review: '#a78bfa',
+    completed: '#22c55e',
+  };
+
   const columns = [
     { key: 'not_started', title: 'Not Started' },
     { key: 'in_progress', title: 'In Progress' },
@@ -63,7 +70,13 @@ const KanbanBoard = () => {
         return (
           <div key={column.key} className="kanban-column">
             <div className="kanban-column-header">
-              <span>{column.title}</span>
+              <div className="kanban-title-with-status">
+                <span
+                  className="kanban-status-dot"
+                  style={{ backgroundColor: statusColors[column.key] }}
+                />
+                <span>{column.title}</span>
+              </div>
               <span className="kanban-count">{columnCards.length}</span>
             </div>
 
