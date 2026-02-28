@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/pages/views/Kanban.css';
+import { fetchKanban, mapTestRowToCard } from '../../api/KanbanAPI';
+import { fetchRequests } from '../../api/RequestsAPI';
 
 const KanbanBoard = () => {
   const columns = [
@@ -9,41 +11,49 @@ const KanbanBoard = () => {
     { key: 'completed', title: 'Completed' },
   ];
 
-  /* placeholder */
-  const [cards, setCards] = useState([
-    {
-      id: 'VGCP-XXXX',
-      desc: 'Blah blah blah',
-      assignee: 'MH',
-      due: 'Jan 15',
-      status: 'not_started',
-      dot: '#ef4444',
-    },
-    {
-      id: 'VGCP-XXXX',
-      desc: 'MOre blah blahb lah',
-      assignee: 'MN',
-      due: 'Jan 18',
-      status: 'in_progress',
-      dot: '#ef4444',
-    },
-    {
-      id: 'VG-XXXX',
-      desc: 'Ye',
-      assignee: 'AN',
-      due: 'Jan 12',
-      status: 'in_review',
-      dot: '#f59e0b',
-    },
-    {
-      id: 'VG-XXXX',
-      desc: 'Amongus',
-      assignee: 'MH',
-      due: 'Jan 10',
-      status: 'completed',
-      dot: '#22c55e',
-    },
-  ]);
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function loadBoard() {
+      setLoading(true);
+      setError('');
+
+      try {
+        const requests = await fetchRequests();
+        const responses = await Promise.all(
+          requests.map((r) => fetchKanban({ requestId: r.request_id, details: true }))
+        );
+        const allTests = responses.flat();
+        const mapped = allTests.map(mapTestRowToCard);
+        setCards(mapped);
+      } catch (e) {
+        console.error('Kanban API error', e);
+        setError(e.message || 'Failed to load kanban data');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBoard();
+  }, []);
+
+  if (loading) {
+    return <div className="kanban-board">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="kanban-board">Error: {error}</div>;
+  }
+
+  if (cards.length === 0) {
+    return (
+      <div className="kanban-board">
+        <div className="no-results">No items to display.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="kanban-board">
