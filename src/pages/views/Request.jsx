@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import '../../styles/pages/views/Request.css';
 import { fetchRequests, mapRequestRowToUi } from '../../api/RequestsAPI';
 import { fetchTestsByRequestId, mapTestRowToRequestControlCard } from '../../api/TestsAPI';
+import DetailsRequestModal from '../../components/DetailsRequestModal';
+import '../../styles/components/DetailsRequestModal.css';
 
 export default function Requests() {
   const [search, setSearch] = useState('');
@@ -12,6 +14,19 @@ export default function Requests() {
   const [error, setError] = useState('');
 
   const [testsByRequestId, setTestsByRequestId] = useState({});
+
+  const [isRequestDetailsOpen, setIsRequestDetailsOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+
+  function openRequestDetails(req) {
+    setSelectedRequest(req);
+    setIsRequestDetailsOpen(true);
+  }
+
+  function closeRequestDetails() {
+    setIsRequestDetailsOpen(false);
+    setSelectedRequest(null);
+  }
 
   async function preloadAllTests(requestList) {
     setTestsByRequestId((prev) => {
@@ -175,7 +190,9 @@ export default function Requests() {
                   <div className="request-row">
                     <div className="req-left">
                       <div style={{ fontWeight: 800 }}>{req.id}</div>
-                      <div className="badge">{req.priority}</div>
+                      <div className={`badge badge-${String(req.priority || '').toLowerCase()}`}>
+                        {req.priority}
+                      </div>
                     </div>
 
                     <div className="req-meta-grid">
@@ -203,7 +220,7 @@ export default function Requests() {
                         </div>
                       </div>
 
-                      <button className="btn-outline" onClick={() => alert('Details (TODO)')}>
+                      <button className="btn-outline" onClick={() => openRequestDetails(req)}>
                         Details
                       </button>
                       <button className="btn-outline" onClick={() => alert('Assign (TODO)')}>
@@ -275,6 +292,45 @@ export default function Requests() {
           )}
         </div>
       )}
+
+      <DetailsRequestModal
+        isOpen={isRequestDetailsOpen}
+        onClose={closeRequestDetails}
+        request={selectedRequest}
+        onArchived={(requestId) => {
+          setRequests((prev) =>
+            prev.map((r) =>
+              r.requestId === requestId
+                ? {
+                    ...r,
+                    status: 'ARCHIVED',
+                  }
+                : r
+            )
+          );
+
+          setSelectedRequest((prev) => {
+            if (!prev) return prev;
+            if (prev.requestId !== requestId) return prev;
+            return { ...prev, status: 'ARCHIVED' };
+          });
+        }}
+        onDeleted={(requestId) => {
+          setRequests((prev) => prev.filter((r) => r.requestId !== requestId));
+          setTestsByRequestId((prev) => {
+            const next = { ...prev };
+            delete next[requestId];
+            return next;
+          });
+
+          setSelectedRequest((prev) => {
+            if (!prev) return prev;
+            if (prev.requestId !== requestId) return prev;
+            return null;
+          });
+          setIsRequestDetailsOpen(false);
+        }}
+      />
     </div>
   );
 }
