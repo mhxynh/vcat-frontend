@@ -131,9 +131,32 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: #fee2e2;
-  color: #991b1b;
   font-size: 12px;
   font-weight: inherit;
+}
+
+.badge-low {
+  background: #e6f7ea;
+  color: #0f6a2b;
+  border-color: #ccefd6;
+}
+
+.badge-medium {
+  background: #fff4dd;
+  color: #8a5a00;
+  border-color: #ffe2a8;
+}
+
+.badge-high {
+  background: #fdecec;
+  color: #8b0f17;
+  border-color: #f7caca;
+}
+
+.badge-critical {
+  background: #f3e8ff;
+  color: #5b21b6;
+  border-color: #e0ccff;
 }
 
 .req-meta-grid {
@@ -400,4 +423,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
+}
+
+.drm-delete-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #8b0f17;
 }

@@ -74,7 +74,6 @@ function formatShortDate(value) {
   if (!d) return '-';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
-
 export async function createTest(payload) {
   const resp = await fetch(`${API_BASE}/tests`, {
     method: 'POST',
@@ -92,4 +91,26 @@ export async function createTest(payload) {
   }
 
   return await resp.json();
+}
+
+
+export async function fetchAllTests() {
+  const url = new URL(`${API_BASE}/tests`);
+
+  const resp = await fetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  return Array.isArray(data) ? data : [];
 }
