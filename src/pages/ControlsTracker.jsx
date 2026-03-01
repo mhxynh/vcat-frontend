@@ -10,13 +10,14 @@ import '../styles/pages/views/Tests.css';
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
+  const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
 
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
   const renderActiveView = () => {
     switch (activeTab) {
       case 'Controls':
-        return <Tests />;
+        return <Tests refreshKey={controlsRefreshKey} />;
       case 'Kanban':
         return <Kanban />;
       case 'Requests':
@@ -24,8 +25,12 @@ export default function ControlsTracker() {
       case 'Calendar':
         return <Calendar />;
       default:
-        return <Tests />;
+        return <Tests refreshKey={controlsRefreshKey} />;
     }
+  };
+
+  const handleRefreshClick = () => {
+    if (activeTab === 'Controls') setControlsRefreshKey((k) => k + 1);
   };
 
   return (
@@ -73,7 +78,10 @@ export default function ControlsTracker() {
       <CreateTestModal
         isOpen={isCreateTestOpen}
         onClose={() => setIsCreateTestOpen(false)}
-        onCreated={(created) => console.log('created test:', created)}
+        onCreated={(created) => {
+          console.log('created test:', created);
+          setControlsRefreshKey((k) => k + 1);
+        }}
       />
     </main>
   );
