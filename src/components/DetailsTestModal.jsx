@@ -16,7 +16,18 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState([]);
   const [localTest, setLocalTest] = useState(null);
+  const [isBusy, setIsBusy] = useState(false);
+  const [busyMessage, setBusyMessage] = useState('Updating...');
 
+  async function runBusy(message, fn) {
+    setBusyMessage(message || 'Updating...');
+    setIsBusy(true);
+    try {
+      return await fn();
+    } finally {
+      setIsBusy(false);
+    }
+  }
   useEffect(() => {
     if (!isOpen) return;
 
@@ -196,18 +207,20 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
     if (testId == null) return;
 
     try {
-      await startTest(testId);
+      await runBusy('Starting work...', async () => {
+        await startTest(testId);
 
-      const requiresDat = !!t?.requires_dat;
-      const requiresOet = !!t?.requires_oet;
+        const requiresDat = !!t?.requires_dat;
+        const requiresOet = !!t?.requires_oet;
 
-      if (requiresDat) {
-        await updateDat(testId, 'WALKTHROUGH_SCHEDULED', 'IN_PROGRESS');
-      } else if (requiresOet) {
-        await updateOet(testId, 'TESTING_IN_PROGRESS', 'IN_PROGRESS');
-      }
+        if (requiresDat) {
+          await updateDat(testId, 'WALKTHROUGH_SCHEDULED', 'IN_PROGRESS');
+        } else if (requiresOet) {
+          await updateOet(testId, 'TESTING_IN_PROGRESS', 'IN_PROGRESS');
+        }
 
-      await refreshTest();
+        await refreshTest();
+      });
     } catch (e) {
       alert(e?.message || 'Failed to start work');
     }
@@ -228,8 +241,10 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
         const ok = window.confirm(`Approve control test ${vgcpid}?`);
         if (!ok) return;
 
-        await completeTest(testId);
-        await refreshTest();
+        await runBusy('Approving control...', async () => {
+          await completeTest(testId);
+          await refreshTest();
+        });
         return;
       }
 
@@ -238,8 +253,10 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
           const ok = window.confirm(`Submit ${vgcpid} for manager review?`);
           if (!ok) return;
 
-          await reviewTest(testId);
-          await refreshTest();
+          await runBusy('Submitting for approval...', async () => {
+            await reviewTest(testId);
+            await refreshTest();
+          });
           return;
         }
 
@@ -251,8 +268,10 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
         const idx = Math.max(0, steps.indexOf(cur));
         const next = steps[Math.min(idx + 1, steps.length - 1)];
 
-        await setTrackStepApi(track, next, 'IN_PROGRESS');
-        await refreshTest();
+        await runBusy('Updating step...', async () => {
+          await setTrackStepApi(track, next, 'IN_PROGRESS');
+          await refreshTest();
+        });
         return;
       }
     } catch (e) {
@@ -286,8 +305,11 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
     try {
       if (statusUpper === 'IN_REVIEW') {
         const track = getActiveTrack(t) || (t?.requires_oet ? 'OET' : 'DAT');
-        await setTrackStepApi(track, 'COMPLETED', 'IN_PROGRESS');
-        await refreshTest();
+
+        await runBusy('Reverting...', async () => {
+          await setTrackStepApi(track, 'COMPLETED', 'IN_PROGRESS');
+          await refreshTest();
+        });
         return;
       }
 
@@ -311,8 +333,10 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
 
         const statusValue = willBeNotStarted ? 'NOT_STARTED' : 'IN_PROGRESS';
 
-        await setTrackStepApi(track, prev, statusValue);
-        await refreshTest();
+        await runBusy('Reverting...', async () => {
+          await setTrackStepApi(track, prev, statusValue);
+          await refreshTest();
+        });
       }
     } catch (e) {
       alert(e?.message || 'Failed to revert');
@@ -331,9 +355,11 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
     if (!ok) return;
 
     try {
-      const finalTrack = t?.requires_oet ? 'OET' : 'DAT';
-      await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', 'IN_PROGRESS');
-      await refreshTest();
+      await runBusy('Rejecting...', async () => {
+        const finalTrack = t?.requires_oet ? 'OET' : 'DAT';
+        await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', 'IN_PROGRESS');
+        await refreshTest();
+      });
     } catch (e) {
       alert(e?.message || 'Failed to reject');
     }
@@ -375,6 +401,14 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
   return (
     <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
       <div className="dtm-modal" onMouseDown={stop}>
+        {isBusy ? (
+          <div className="dtm-busy-overlay" role="status" aria-live="polite">
+            <div className="dtm-busy-card">
+              <div className="dtm-spinner" aria-hidden="true" />
+              <div className="dtm-busy-text">{busyMessage}</div>
+            </div>
+          </div>
+        ) : null}
         <section className="dtm-header">
           <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
           <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
@@ -418,13 +452,23 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
 
             <div className="dtm-step-actions-left">
               {showRevert ? (
-                <button className="dtm-btn dtm-btn--outline" type="button" onClick={handleRevert}>
+                <button
+                  className="dtm-btn dtm-btn--outline"
+                  type="button"
+                  onClick={handleRevert}
+                  disabled={isBusy}
+                >
                   Revert
                 </button>
               ) : null}
 
               {showReject ? (
-                <button className="dtm-btn dtm-btn--danger" type="button" onClick={handleReject}>
+                <button
+                  className="dtm-btn dtm-btn--danger"
+                  type="button"
+                  onClick={handleReject}
+                  disabled={isBusy}
+                >
                   Reject
                 </button>
               ) : null}
@@ -440,6 +484,7 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
                   className="dtm-btn dtm-btn--primary"
                   type="button"
                   onClick={handlePrimaryAction}
+                  disabled={isBusy}
                 >
                   {primaryLabel}
                 </button>
@@ -536,15 +581,25 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
         <div className="dtm-divider" />
 
         <section className="dtm-footer">
-          <button className="dtm-btn" type="button" onClick={onClose}>
+          <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
             Close
           </button>
 
           <div className="dtm-footer-right">
-            <button className="dtm-btn dtm-btn--danger" type="button" onClick={handleDelete}>
+            <button
+              className="dtm-btn dtm-btn--danger"
+              type="button"
+              onClick={handleDelete}
+              disabled={isBusy}
+            >
               Delete Control Test
             </button>
-            <button className="dtm-btn dtm-btn--outline" type="button" onClick={handleArchive}>
+            <button
+              className="dtm-btn dtm-btn--outline"
+              type="button"
+              onClick={handleArchive}
+              disabled={isBusy}
+            >
               Archive Control Test
             </button>
             <button
