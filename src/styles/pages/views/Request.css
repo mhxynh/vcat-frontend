@@ -372,3 +372,32 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.control-meta-row--assignee {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.control-meta-row--eta-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-eta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+}
+
+.control-note-inline {
+  font-size: 12px;
+  color: #8b0f17;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}

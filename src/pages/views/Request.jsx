@@ -1,206 +1,280 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import '../../styles/pages/views/Request.css';
+import { fetchRequests, mapRequestRowToUi } from '../../api/RequestsAPI';
+import { fetchTestsByRequestId, mapTestRowToRequestControlCard } from '../../api/TestsAPI';
 
 export default function Requests() {
   const [search, setSearch] = useState('');
-  const [expanded, setExpanded] = useState(() => new Set(['REQ-2026-001']));
+  const [expanded, setExpanded] = useState(() => new Set());
+  const [requests, setRequests] = useState([]);
 
-  const requests = useMemo(
-    () => [
-      {
-        id: 'REQ-2026-001',
-        priority: 'High Priority',
-        requestedBy: 'Audit Committee',
-        requestDate: 'Jan 14, 2026',
-        dueDate: 'Feb 14, 2026',
-        overdue: true,
-        controls: [
-          {
-            id: 'VGCP-01001',
-            title: 'Access Control Review',
-            assignee: 'John Smith',
-            eta: 'Jan 27',
-            status: 'In Progress',
-            note: 'Addressing Comments',
-          },
-          {
-            id: 'VGCP-01002',
-            title: 'Password Policy Validation',
-            assignee: 'Sarah Johnson',
-            eta: 'Jan 17',
-            status: 'Completed',
-            note: '',
-          },
-          {
-            id: 'VGCP-01003',
-            title: 'Encryption Standards Check',
-            assignee: 'Michael Chen',
-            eta: 'Feb 4',
-            status: 'Not Started',
-            note: '',
-          },
-          {
-            id: 'VGCP-01004',
-            title: 'Change Management Process',
-            assignee: 'Emily Davis',
-            eta: 'Jan 31',
-            status: 'In Progress',
-            note: 'Testing in Progress',
-          },
-        ],
-      },
-      {
-        id: 'REQ-2026-002',
-        priority: 'High Priority',
-        requestedBy: 'Security Team',
-        requestDate: 'Jan 9, 2026',
-        dueDate: 'Feb 9, 2026',
-        overdue: true,
-        controls: [],
-      },
-    ],
-    []
-  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const filteredRequests = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return requests;
+  const [testsByRequestId, setTestsByRequestId] = useState({});
 
-    return requests.filter((r) => {
-      const matchReq =
-        r.id.toLowerCase().includes(q) ||
-        r.requestedBy.toLowerCase().includes(q) ||
-        r.priority.toLowerCase().includes(q);
+  async function preloadAllTests(requestList) {
+    setTestsByRequestId((prev) => {
+      const next = { ...prev };
 
-      const matchControl = r.controls.some(
-        (c) =>
-          c.id.toLowerCase().includes(q) ||
-          c.title.toLowerCase().includes(q) ||
-          c.assignee.toLowerCase().includes(q) ||
-          c.status.toLowerCase().includes(q)
-      );
+      requestList.forEach((r) => {
+        if (r.requestId == null) return;
 
-      return matchReq || matchControl;
+        const existing = next[r.requestId];
+        if (existing?.loading || Array.isArray(existing?.items)) return;
+
+        next[r.requestId] = { loading: true, error: '', items: null };
+      });
+
+      return next;
     });
-  }, [requests, search]);
 
-  function toggleExpand(reqId) {
+    await Promise.all(
+      requestList.map(async (r) => {
+        if (r.requestId == null) return;
+
+        try {
+          const rows = await fetchTestsByRequestId(r.requestId, { details: true });
+          const items = rows.map(mapTestRowToRequestControlCard);
+
+          setTestsByRequestId((prev) => ({
+            ...prev,
+            [r.requestId]: { loading: false, error: '', items },
+          }));
+        } catch (e) {
+          setTestsByRequestId((prev) => ({
+            ...prev,
+            [r.requestId]: {
+              loading: false,
+              error: e?.message || 'Failed to load tests',
+              items: [],
+            },
+          }));
+        }
+      })
+    );
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const rows = await fetchRequests();
+        const ui = rows.map(mapRequestRowToUi);
+
+        if (cancelled) return;
+
+        setRequests(ui);
+
+        if (ui[0]?.id) setExpanded(new Set([ui[0].id]));
+
+        await preloadAllTests(ui);
+      } catch (e) {
+        if (!cancelled) {
+          setError(e?.message || 'Failed to load requests');
+          setRequests([]);
+          setExpanded(new Set());
+          setTestsByRequestId({});
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function toggleExpand(req) {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(reqId)) next.delete(reqId);
-      else next.add(reqId);
+      if (next.has(req.id)) next.delete(req.id);
+      else next.add(req.id);
       return next;
     });
   }
 
+  const enrichedRequests = useMemo(() => {
+    return requests.map((r) => {
+      const bucket = r.requestId != null ? testsByRequestId[r.requestId] : null;
+      const controls = Array.isArray(bucket?.items) ? bucket.items : [];
+      return {
+        ...r,
+        controls,
+        testsLoading: Boolean(bucket?.loading),
+        testsError: bucket?.error || '',
+      };
+    });
+  }, [requests, testsByRequestId]);
+
+  const filteredRequests = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return enrichedRequests;
+
+    return enrichedRequests.filter((r) => {
+      const matchReq =
+        String(r.id).toLowerCase().includes(q) ||
+        String(r.requestedBy).toLowerCase().includes(q) ||
+        String(r.priority).toLowerCase().includes(q) ||
+        String(r.status).toLowerCase().includes(q);
+
+      const matchControl = (r.controls || []).some((c) => {
+        const id = String(c.id || '').toLowerCase();
+        const title = String(c.title || '').toLowerCase();
+        const assignee = String(c.assignee || '').toLowerCase();
+        const status = String(c.status || '').toLowerCase();
+        return id.includes(q) || title.includes(q) || assignee.includes(q) || status.includes(q);
+      });
+
+      return matchReq || matchControl;
+    });
+  }, [enrichedRequests, search]);
+
   function computeProgress(req) {
-    const total = req.controls.length;
+    const total = (req.controls || []).length;
     if (total === 0) return { label: '0/0 Completed', pct: 0 };
 
-    const done = req.controls.filter((c) => c.status === 'Completed').length;
+    const done = req.controls.filter((c) => String(c.status) === 'Completed').length;
     const pct = Math.round((done / total) * 100);
     return { label: `${done}/${total} Completed`, pct };
   }
 
   return (
     <div className="container">
-      <div className="requests-list">
-        {filteredRequests.map((req) => {
-          const isOpen = expanded.has(req.id);
-          const progress = computeProgress(req);
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+        <input
+          className="search-input"
+          placeholder="Search requests..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 320 }}
+        />
+      </div>
 
-          return (
-            <div key={req.id} className="request-card">
-              <div className="request-row">
-                <div className="req-left">
-                  <div style={{ fontWeight: 800 }}>{req.id}</div>
-                  <div className="badge">{req.priority}</div>
-                </div>
+      {loading ? (
+        <div className="no-results">Loading requests...</div>
+      ) : error ? (
+        <div className="no-results">Error: {error}</div>
+      ) : (
+        <div className="requests-list">
+          {filteredRequests.length === 0 ? (
+            <div className="no-results">No requests found.</div>
+          ) : (
+            filteredRequests.map((req) => {
+              const isOpen = expanded.has(req.id);
+              const progress = computeProgress(req);
 
-                <div className="req-meta-grid">
-                  <Meta label="Requested By" value={req.requestedBy} />
-                  <Meta label="Request Date" value={req.requestDate} />
-                  <Meta
-                    label="Due Date"
-                    value={
-                      <>
-                        {req.dueDate}{' '}
-                        {req.overdue ? <span className="overdue">Overdue</span> : null}
-                      </>
-                    }
-                  />
-                </div>
-
-                <div className="req-right">
-                  <div style={{ minWidth: 220 }}>
-                    <div className="progress-top">
-                      <span className="progress-label">Progress</span>
-                      <span className="progress-value">{progress.label}</span>
+              return (
+                <div key={req.id} className="request-card">
+                  <div className="request-row">
+                    <div className="req-left">
+                      <div style={{ fontWeight: 800 }}>{req.id}</div>
+                      <div className="badge">{req.priority}</div>
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${progress.pct}%` }} />
+
+                    <div className="req-meta-grid">
+                      <Meta label="Requested By" value={req.requestedBy} />
+                      <Meta label="Request Date" value={req.requestDate} />
+                      <Meta
+                        label="Due Date"
+                        value={
+                          <>
+                            {req.dueDate}{' '}
+                            {req.overdue ? <span className="overdue">Overdue</span> : null}
+                          </>
+                        }
+                      />
+                    </div>
+
+                    <div className="req-right">
+                      <div style={{ minWidth: 220 }}>
+                        <div className="progress-top">
+                          <span className="progress-label">Progress</span>
+                          <span className="progress-value">{progress.label}</span>
+                        </div>
+                        <div className="progress-bar">
+                          <div className="progress-fill" style={{ width: `${progress.pct}%` }} />
+                        </div>
+                      </div>
+
+                      <button className="btn-outline" onClick={() => alert('Details (TODO)')}>
+                        Details
+                      </button>
+                      <button className="btn-outline" onClick={() => alert('Assign (TODO)')}>
+                        Assign
+                      </button>
+
+                      <button className="btn-chev" onClick={() => toggleExpand(req)}>
+                        {isOpen ? '▴' : '▾'}
+                      </button>
                     </div>
                   </div>
 
-                  <button className="btn-outline" onClick={() => alert('Details alert')}>
-                    Details
-                  </button>
-                  <button className="btn-outline" onClick={() => alert('Assign alert')}>
-                    Assign
-                  </button>
+                  {isOpen && (
+                    <div className="controls-grid">
+                      {req.testsLoading ? (
+                        <div className="empty-controls">Loading tests...</div>
+                      ) : req.testsError ? (
+                        <div className="empty-controls">Error: {req.testsError}</div>
+                      ) : (req.controls || []).length === 0 ? (
+                        <div className="empty-controls">No tests found for this request.</div>
+                      ) : (
+                        req.controls.map((c) => (
+                          <div key={c.id} className="control-card">
+                            <div className="control-top">
+                              <div className="control-id-wrap">
+                                <span
+                                  className={`status-dot ${String(c.status || '')
+                                    .toLowerCase()
+                                    .replace(/\s+/g, '-')}`}
+                                />
+                                <span className="control-id">{c.id}</span>
+                              </div>
+                              <span
+                                className={`status-pill ${String(c.status || '')
+                                  .toLowerCase()
+                                  .replace(/\s+/g, '-')}`}
+                              >
+                                {c.status}
+                              </span>
+                            </div>
 
-                  <button className="btn-chev" onClick={() => toggleExpand(req.id)}>
-                    {isOpen ? '▴' : '▾'}
-                  </button>
-                </div>
-              </div>
+                            <div className="control-title">{c.title}</div>
 
-              {isOpen && (
-                <div className="controls-grid">
-                  {req.controls.length === 0 ? (
-                    <div className="empty-controls">
-                      No controls listed for this request (demo).
+                            <div className="control-meta">
+                              <div className="control-meta-row control-meta-row--assignee">
+                                <span className="meta-icon">👤</span>
+                                <span>{c.assignee}</span>
+                              </div>
+
+                              <div className="control-meta-row control-meta-row--eta-note">
+                                <div className="control-eta">
+                                  <span className="meta-icon">⏱</span>
+                                  <span>ETA: {c.eta}</span>
+                                </div>
+
+                                {c.note ? (
+                                  <span className="control-note-inline">{c.note}</span>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ) : (
-                    req.controls.map((c) => (
-                      <div key={c.id} className="control-card">
-                        <div className="control-top">
-                          <div className="control-id-wrap">
-                            <span
-                              className={`status-dot ${c.status.toLowerCase().replace(/\s+/g, '-')}`}
-                            />
-                            <span className="control-id">{c.id}</span>
-                          </div>
-                          <span
-                            className={`status-pill ${c.status.toLowerCase().replace(/\s+/g, '-')}`}
-                          >
-                            {c.status}
-                          </span>
-                        </div>
-
-                        <div className="control-title">{c.title}</div>
-
-                        <div className="control-meta">
-                          <div className="control-meta-row">
-                            <span className="meta-icon">👤</span>
-                            <span>{c.assignee}</span>
-                          </div>
-                          <div className="control-meta-row">
-                            <span className="meta-icon">⏱</span>
-                            <span>ETA: {c.eta}</span>
-                          </div>
-                        </div>
-
-                        {c.note ? <div className="control-note">{c.note}</div> : null}
-                      </div>
-                    ))
                   )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })
+          )}
+        </div>
+      )}
     </div>
   );
 }

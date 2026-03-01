@@ -42,8 +42,23 @@
 .kanban-column-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
   font-weight: bold;
+}
+
+.kanban-title-with-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kanban-status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .kanban-count {
