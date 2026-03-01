@@ -224,15 +224,16 @@ function DonutChart({ title, total, series }) {
   const tooltipPos = useMemo(() => {
     if (hoveredIndex === null) return null;
     const seg = segments[hoveredIndex];
+    if (!seg) return null;
     const midPercent = seg.fromPercent + seg.slicePercent / 2;
-    const angleDeg = (midPercent / 100) * 360 - 90;
-    const rad = (angleDeg / 180) * Math.PI - Math.PI / 2;
-    const dist = 95;
+    const angleDeg = (midPercent / 100) * 360;
+    const dist = (innerR + outerR) / 2;
+    const point = polarToCartesian(cx, cy, dist, angleDeg);
     return {
-      x: cx + Math.cos(rad) * dist,
-      y: cy + Math.sin(rad) * dist - 22,
+      x: point.x,
+      y: point.y,
     };
-  }, [hoveredIndex, segments]);
+  }, [hoveredIndex, segments, cx, cy, innerR, outerR]);
 
   return (
     <div className="dashboard-panel dashboard-panel--donut">
