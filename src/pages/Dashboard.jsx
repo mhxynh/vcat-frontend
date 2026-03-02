@@ -86,8 +86,8 @@ function toInitials(name) {
     .join('');
 }
 
-function statusBucketFromControl(control) {
-  const step = (control.progressStep || '').toUpperCase();
+function statusBucketFromStep(stepValue) {
+  const step = (stepValue || '').toUpperCase();
   if (DISTRIBUTION_STATUS_META.some((meta) => meta.key === step)) {
     return step;
   }
@@ -106,7 +106,8 @@ function buildDistributionForType(controls, type) {
   controls
     .filter((control) => supportsTestType(control, type))
     .forEach((control) => {
-      const bucket = statusBucketFromControl(control);
+      const stepForType = type === 'DAT' ? control.datStep : control.oetStep;
+      const bucket = statusBucketFromStep(stepForType);
       if (!bucket) return;
       counts[bucket] += 1;
     });
