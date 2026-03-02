@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
-import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
-import DetailsControlModal from '../components/DetailsControlModal';
+import DetailsTestModal from '../components/DetailsTestModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
 import { ReactComponent as CubeIcon } from '../assets/images/dashboard-icons/cube.svg';
@@ -328,11 +327,10 @@ function DonutChart({ title, total, series }) {
 
 export default function Dashboard() {
   const [controls, setControls] = useState([]);
-  const [controlsCatalogById, setControlsCatalogById] = useState(new Map());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedControl, setSelectedControl] = useState(null);
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
@@ -386,20 +384,12 @@ export default function Dashboard() {
     setLoadError('');
 
     try {
-      const [testRows, controlRows] = await Promise.all([fetchTests(), fetchControls()]);
+      const testRows = await fetchTests();
       setControls(testRows.map(mapTestRowToDashboardRow));
-      const controlsMap = new Map(
-        controlRows.map((row) => {
-          const mapped = mapControlRowToUi(row);
-          return [mapped.id, mapped];
-        })
-      );
-      setControlsCatalogById(controlsMap);
       setLastUpdatedAt(new Date());
     } catch (error) {
       setLoadError(error?.message || 'Failed to load dashboard data');
       setControls([]);
-      setControlsCatalogById(new Map());
     } finally {
       setLoading(false);
     }
@@ -455,15 +445,23 @@ export default function Dashboard() {
       }));
   }, [centerProgressDate, updatesByDateKey]);
 
-  const openDetailsByVgcpid = useCallback(
+  const testsByVgcpid = useMemo(() => {
+    return controls.reduce((accumulator, test) => {
+      if (!test?.vgcpid) return accumulator;
+      accumulator.set(test.vgcpid, test);
+      return accumulator;
+    }, new Map());
+  }, [controls]);
+
+  const openTestDetailsByVgcpid = useCallback(
     (vgcpid) => {
       if (!vgcpid) return;
-      const control = controlsCatalogById.get(vgcpid);
-      if (!control) return;
-      setSelectedControl(control);
-      setIsDetailsModalOpen(true);
+      const test = testsByVgcpid.get(vgcpid);
+      if (!test) return;
+      setSelectedTest(test);
+      setIsTestDetailsOpen(true);
     },
-    [controlsCatalogById]
+    [testsByVgcpid]
   );
 
   const teamCapacity = useMemo(() => {
@@ -624,8 +622,8 @@ export default function Dashboard() {
                   <button
                     type="button"
                     className="dashboard-progress-item__code"
-                    onClick={() => openDetailsByVgcpid(item.vgcpid)}
-                    disabled={!item.vgcpid || !controlsCatalogById.has(item.vgcpid)}
+                    onClick={() => openTestDetailsByVgcpid(item.vgcpid)}
+                    disabled={!item.vgcpid || !testsByVgcpid.has(item.vgcpid)}
                     style={{
                       border: 'none',
                       background: 'none',
@@ -674,15 +672,30 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <DetailsControlModal
-        isOpen={isDetailsModalOpen}
+      <DetailsTestModal
+        isOpen={isTestDetailsOpen}
         onClose={() => {
-          setIsDetailsModalOpen(false);
-          setSelectedControl(null);
+          setIsTestDetailsOpen(false);
+          setSelectedTest(null);
         }}
-        control={selectedControl}
-        onUpdated={loadDashboardData}
-        onDeleted={loadDashboardData}
+        test={selectedTest}
+        onArchived={(testId) => {
+          setControls((prev) => prev.filter((test) => test.test_id !== testId));
+        }}
+        onDeleted={(testId) => {
+          setControls((prev) => prev.filter((test) => test.test_id !== testId));
+        }}
+        onEdit={(updatedTest) => {
+          if (!updatedTest?.test_id) return;
+          setControls((prev) =>
+            prev.map((test) =>
+              test?.test_id === updatedTest.test_id ? mapTestRowToDashboardRow(updatedTest) : test
+            )
+          );
+          setSelectedTest((prev) =>
+            prev?.test_id === updatedTest.test_id ? mapTestRowToDashboardRow(updatedTest) : prev
+          );
+        }}
       />
     </div>
   );
