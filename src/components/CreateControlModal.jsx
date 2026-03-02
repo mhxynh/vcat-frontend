@@ -43,8 +43,8 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setError('');
 
     // Mandatory: vgcpid, description, control_owner, control_sme
-    if (!vgcpid.trim() || !description.trim() || !controlOwner.trim() || !controlSme.trim()) {
-      setError('Please fill in Control ID, Description, Control Owner, and Control SME.');
+    if (!vgcpid.trim() || !description.trim() || !controlOwner.trim()) {
+      setError('Please fill in Control ID, Description, Control Owner, and Escalation.');
       return;
     }
 
@@ -55,13 +55,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
       await createControl({
         vgcpid: vgcpid.trim(),
         description: description.trim(),
+        controlOwner: controlOwner.trim(),
+        controlSme: controlSme.trim(),
         escalation,
-        // eslint-disable-next-line camelcase
-        control_owner: controlOwner.trim(),
-        // eslint-disable-next-line camelcase
-        control_sme: controlSme.trim(),
-        // eslint-disable-next-line camelcase
-        is_active: isActive,
+        isActive: isActive,
       });
 
       if (onCreated) await onCreated();
@@ -118,7 +115,9 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="form-field">
-              <label className="form-label">Initial Status</label>
+              <label className="form-label">
+                Initial Status <span aria-hidden="true">*</span>
+              </label>
               <select
                 className="form-input"
                 value={initialStatus}
@@ -156,9 +155,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="form-field">
-              <label className="form-label">
-                Control SME <span aria-hidden="true">*</span>
-              </label>
+              <label className="form-label">Control SME</label>
               <input
                 className="form-input"
                 placeholder="Name"
@@ -169,7 +166,9 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="form-field form-field--full">
-              <label className="form-label">Escalation Required?</label>
+              <label className="form-label">
+                Escalation Required? <span aria-hidden="true">*</span>
+              </label>
 
               <div className="radio-row" role="radiogroup" aria-label="Escalation Required">
                 <label className="radio-item">

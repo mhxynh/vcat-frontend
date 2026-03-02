@@ -1,3 +1,5 @@
+import { objectToSnakeCase } from '../utils/transformer';
+
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
 
 export async function deleteControl(vgcpid, { hard = false } = {}) {
@@ -65,7 +67,7 @@ export async function createControl(payload) {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(objectToSnakeCase(payload)),
   });
 
   const data = await resp.json().catch(() => ({}));
@@ -88,7 +90,7 @@ export async function updateControl(vgcpid, updates) {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(updates),
+    body: JSON.stringify(objectToSnakeCase(updates)),
   });
 
   const data = await resp.json().catch(() => null);
