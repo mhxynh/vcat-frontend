@@ -6,10 +6,10 @@ import { fetchUsers } from '../api/UsersAPI';
 import { createTest } from '../api/TestsAPI';
 
 function flagsFromTestType(v) {
-  if (v === 'DAT Only') return { requires_dat: true, requires_oet: false };
-  if (v === 'OET Only') return { requires_dat: false, requires_oet: true };
-  if (v === 'DAT & OET') return { requires_dat: true, requires_oet: true };
-  return { requires_dat: false, requires_oet: false };
+  if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
+  if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
+  if (v === 'DAT & OET') return { requiresDat: true, requiresOet: true };
+  return { requiresDat: false, requiresOet: false };
 }
 
 export default function CreateTestModal({ isOpen, onClose, onCreated }) {
@@ -74,10 +74,10 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
   const controlOptions = useMemo(() => {
     return controls
       .map((c) => ({
-        control_id: c.control_id,
+        controlId: c.controlId,
         vgcpid: c.vgcpid,
         description: c.description,
-        is_active: c.is_active,
+        isActive: c.isActive,
       }))
       .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
   }, [controls]);
@@ -85,29 +85,29 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
   const requestOptions = useMemo(() => {
     return requests
       .map((r) => ({
-        request_id: r.request_id,
+        requestId: r.requestId,
         requestor: r.requestor,
-        due_date: r.due_date,
+        dueDate: r.dueDate,
         priority: r.priority,
         status: r.status,
       }))
-      .sort((a, b) => Number(b.request_id) - Number(a.request_id));
+      .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
 
   const testerOptions = useMemo(() => {
     return users
       .map((u) => ({
-        user_id: u.user_id,
-        display_name: u.display_name ?? u.email ?? `User ${u.user_id}`,
-        is_active: u.is_active,
+        userId: u.userId,
+        displayName: u.displayName ?? u.email ?? `User ${u.userId}`,
+        isActive: u.isActive,
       }))
-      .sort((a, b) => String(a.display_name).localeCompare(String(b.display_name)));
+      .sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
   }, [users]);
 
   const selectedControl = useMemo(() => {
     if (!selectedControlId) return null;
     const idNum = Number(selectedControlId);
-    return controls.find((c) => Number(c.control_id) === idNum) || null;
+    return controls.find((c) => Number(c.controlId) === idNum) || null;
   }, [controls, selectedControlId]);
 
   const selectedVgcpid = selectedControl?.vgcpid ?? '';
@@ -132,15 +132,15 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
     const payload = {
       vgcpid: selectedVgcpid,
-      control_id: Number(selectedControlId),
-      request_id: Number(selectedRequestId),
+      controlId: Number(selectedControlId),
+      requestId: Number(selectedRequestId),
       ...flags,
-      due_date: dueDate,
+      dueDate: dueDate,
       description: description.trim() || ' ', // backend requires description
     };
 
-    if (etaDate) payload.estimated_date = etaDate;
-    if (selectedTesterId) payload.assigned_tester_id = Number(selectedTesterId);
+    if (etaDate) payload.estimatedDate = etaDate;
+    if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
     try {
       setSubmitting(true);
@@ -183,7 +183,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                   {loading ? 'Loading controls...' : 'Select VGCPID'}
                 </option>
                 {controlOptions.map((c) => (
-                  <option key={c.control_id} value={String(c.control_id)}>
+                  <option key={c.controlId} value={String(c.controlId)}>
                     {c.vgcpid}
                   </option>
                 ))}
@@ -205,8 +205,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                   {loading ? 'Loading requests...' : 'Select request'}
                 </option>
                 {requestOptions.map((r) => (
-                  <option key={r.request_id} value={String(r.request_id)}>
-                    {`REQ-${String(r.request_id).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.priority ?? '-'} • ${r.due_date ?? '-'}`}
+                  <option key={r.requestId} value={String(r.requestId)}>
+                    {`REQ-${String(r.requestId).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.priority ?? '-'} • ${r.dueDate ?? '-'}`}
                   </option>
                 ))}
               </select>
@@ -226,8 +226,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
               >
                 <option value="">Unassigned</option>
                 {testerOptions.map((u) => (
-                  <option key={u.user_id} value={String(u.user_id)}>
-                    {u.display_name}
+                  <option key={u.userId} value={String(u.userId)}>
+                    {u.displayName}
                   </option>
                 ))}
               </select>
