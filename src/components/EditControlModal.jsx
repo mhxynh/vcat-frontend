@@ -79,13 +79,13 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
         // Normal updates via PUT
         const payload = {
           description: description.trim(),
-          control_owner: controlOwner.trim(),
-          control_sme: controlSme.trim(),
+          controlOwner: controlOwner.trim(),
+          controlSme: controlSme.trim(),
           escalation,
         };
 
-        if (lastTested && lastTested !== '-') {
-          payload.last_tested = lastTested;
+        if (controlSme !== '-') {
+          payload.controlSme = controlSme.trim();
         }
 
         await updateControl(originalVgcpid, payload);
@@ -142,7 +142,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             </div>
 
             <div className="ecm-field">
-              <label className="ecm-label">Status</label>
+              <label className="ecm-label">Status *</label>
               <select
                 className="ecm-select"
                 value={status}
@@ -174,7 +174,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             </div>
 
             <div className="ecm-field">
-              <label className="ecm-label">Control SME *</label>
+              <label className="ecm-label">Control SME</label>
               <input
                 className="ecm-input"
                 value={controlSme}
@@ -182,18 +182,8 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
               />
             </div>
 
-            <div className="ecm-field">
-              <label className="ecm-label">Last Tested</label>
-              <input
-                className="ecm-input"
-                type="date"
-                value={lastTested}
-                onChange={(e) => setLastTested(e.target.value)}
-              />
-            </div>
-
             <div className="ecm-field ecm-field--full">
-              <label className="ecm-label">Escalation Required?</label>
+              <label className="ecm-label">Escalation Required? *</label>
               <div className="ecm-radio-row" role="radiogroup" aria-label="Escalation Required">
                 <label className="ecm-radio-item">
                   <input
