@@ -42,7 +42,7 @@ const SUMMARY_CARD_META = [
   { key: 'totalControls', label: 'Total Controls', tone: 'teal', icon: 'clipboard' },
   { key: 'notStarted', label: 'Not Started', tone: 'red', icon: 'flag' },
   { key: 'openRequests', label: 'Open Requests', tone: 'amber', icon: 'cube' },
-  { key: 'completion', label: 'Completion', tone: 'green', icon: 'medal' },
+  { key: 'completion', label: 'Completed Requests', tone: 'green', icon: 'medal' },
   { key: 'blockedControls', label: 'Blocked Controls', tone: 'blue', icon: 'clock' },
 ];
 
@@ -412,14 +412,34 @@ export default function Dashboard() {
   }, [loadDashboardData]);
 
   const summaryCards = useMemo(() => {
+    const testsByRequestId = controls.reduce((accumulator, control) => {
+      const requestId = control?.request_id;
+      if (requestId == null) return accumulator;
+
+      const current = accumulator.get(requestId) || { total: 0, completed: 0 };
+      current.total += 1;
+      if (control.statusType === 'completed') {
+        current.completed += 1;
+      }
+      accumulator.set(requestId, current);
+      return accumulator;
+    }, new Map());
+
     const requestStatusCounts = requests.reduce(
       (accumulator, request) => {
+        const requestId = request?.request_id ?? request?.requestId;
         const status = String(request?.status || '').toUpperCase();
-        if (status === 'NOT_STARTED' || status === 'IN_PROGRESS') {
-          accumulator.open += 1;
-        }
-        if (status === 'COMPLETED') {
+        if (status === 'ARCHIVED') return accumulator;
+
+        const requestTests = requestId != null ? testsByRequestId.get(requestId) : null;
+        const isCompletedByTests =
+          !!requestTests && requestTests.total > 0 && requestTests.completed === requestTests.total;
+        const isCompleted = isCompletedByTests || (!requestTests && status === 'COMPLETED');
+
+        if (isCompleted) {
           accumulator.completed += 1;
+        } else {
+          accumulator.open += 1;
         }
         return accumulator;
       },
