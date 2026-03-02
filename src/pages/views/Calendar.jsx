@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTests } from '../../api/TestsAPI';
-import { fetchControls, mapControlRowToUi } from '../../api/ControlsAPI';
-import DetailsControlModal from '../../components/DetailsControlModal';
+import DetailsTestModal from '../../components/DetailsTestModal';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -67,11 +66,13 @@ function buildEventsByDay(tests, month, year) {
     const status = mapApiStatusToCalendarStatus(test.status);
     const assignee = getAssigneeInfo(test);
     const item = {
-      id: test.vgcpid || `TEST-${test.test_id}`,
+      id: test.test_id ?? `${test.vgcpid || 'TEST'}-${day}`,
+      displayId: test.vgcpid || `TEST-${test.test_id}`,
       title: test.description || 'No description',
       assigneeInitials: assignee.initials,
       assigneeName: assignee.fullName,
       status,
+      test,
     };
 
     if (!acc[day]) {
@@ -91,11 +92,10 @@ const CalendarView = () => {
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
   );
   const [tests, setTests] = useState([]);
-  const [controlsById, setControlsById] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedControl, setSelectedControl] = useState(null);
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
@@ -107,22 +107,14 @@ const CalendarView = () => {
       try {
         setLoading(true);
         setError('');
-        const [testRows, controlRows] = await Promise.all([fetchTests(), fetchControls()]);
+        const testRows = await fetchTests();
         if (!isMounted) return;
 
-        const mappedControls = controlRows.map(mapControlRowToUi);
-        const byId = mappedControls.reduce((acc, control) => {
-          acc[control.id] = control;
-          return acc;
-        }, {});
-
         setTests(testRows);
-        setControlsById(byId);
       } catch (err) {
         if (!isMounted) return;
         setError(err?.message || 'Failed to load calendar tests.');
         setTests([]);
-        setControlsById({});
       } finally {
         if (!isMounted) return;
         setLoading(false);
@@ -178,16 +170,15 @@ const CalendarView = () => {
     setSelectedDay(null);
   };
 
-  const openDetailsByControlId = (controlId) => {
-    const control = controlsById[controlId];
-    if (!control) return;
-    setSelectedControl(control);
-    setIsDetailsModalOpen(true);
+  const openTestDetails = (test) => {
+    if (!test) return;
+    setSelectedTest(test);
+    setIsTestDetailsOpen(true);
   };
 
-  const closeDetails = () => {
-    setIsDetailsModalOpen(false);
-    setSelectedControl(null);
+  const closeTestDetails = () => {
+    setIsTestDetailsOpen(false);
+    setSelectedTest(null);
   };
 
   if (loading) {
@@ -295,10 +286,10 @@ const CalendarView = () => {
                         <button
                           type="button"
                           className="detail-title-btn"
-                          onClick={() => openDetailsByControlId(event.id)}
-                          title="View control details"
+                          onClick={() => openTestDetails(event.test)}
+                          title="View test details"
                         >
-                          <span className="detail-title">{event.id}</span>
+                          <span className="detail-title">{event.displayId}</span>
                         </button>
                         <div className="detail-desc">{event.title}</div>
                         <div className="detail-meta">
@@ -326,12 +317,35 @@ const CalendarView = () => {
         </div>
       </div>
 
-      <DetailsControlModal
-        isOpen={isDetailsModalOpen}
-        onClose={closeDetails}
-        control={selectedControl}
-        onUpdated={async () => {}}
-        onDeleted={() => {}}
+      <DetailsTestModal
+        isOpen={isTestDetailsOpen}
+        onClose={closeTestDetails}
+        test={selectedTest}
+        onArchived={(testId, updatedTest) => {
+          setTests((prev) =>
+            prev.map((x) =>
+              x.test_id === testId
+                ? updatedTest
+                  ? { ...x, ...updatedTest }
+                  : { ...x, status: 'ARCHIVED' }
+                : x
+            )
+          );
+        }}
+        onDeleted={(testId) => {
+          setTests((prev) => prev.filter((x) => x.test_id !== testId));
+          setSelectedTest((prev) => (prev?.test_id === testId ? null : prev));
+          setIsTestDetailsOpen(false);
+        }}
+        onEdit={(updatedTest) => {
+          if (!updatedTest?.test_id) return;
+          setTests((prev) =>
+            prev.map((x) => (x?.test_id === updatedTest.test_id ? { ...x, ...updatedTest } : x))
+          );
+          setSelectedTest((prev) =>
+            prev?.test_id === updatedTest.test_id ? { ...prev, ...updatedTest } : prev
+          );
+        }}
       />
     </div>
   );
