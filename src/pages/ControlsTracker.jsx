@@ -78,8 +78,7 @@ export default function ControlsTracker() {
       <CreateTestModal
         isOpen={isCreateTestOpen}
         onClose={() => setIsCreateTestOpen(false)}
-        onCreated={(created) => {
-          console.log('created test:', created);
+        onCreated={() => {
           setControlsRefreshKey((k) => k + 1);
         }}
       />
