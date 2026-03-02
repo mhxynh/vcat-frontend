@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
-import { fetchRequests } from '../api/RequestsAPI';
 import DetailsTestModal from '../components/DetailsTestModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
@@ -41,9 +40,9 @@ const ChevronRight = () => (
 const SUMMARY_CARD_META = [
   { key: 'totalControls', label: 'Total Controls', tone: 'teal', icon: 'clipboard' },
   { key: 'notStarted', label: 'Not Started', tone: 'red', icon: 'flag' },
-  { key: 'openRequests', label: 'Open Requests', tone: 'amber', icon: 'cube' },
-  { key: 'completion', label: 'Completed Requests', tone: 'green', icon: 'medal' },
-  { key: 'blockedControls', label: 'Blocked Controls', tone: 'blue', icon: 'clock' },
+  { key: 'openRequests', label: 'Open', tone: 'amber', icon: 'cube' },
+  { key: 'completion', label: 'Completed', tone: 'green', icon: 'medal' },
+  { key: 'blockedControls', label: 'Blocked', tone: 'blue', icon: 'clock' },
 ];
 
 const DISTRIBUTION_STATUS_META = [
@@ -336,7 +335,6 @@ function DonutChart({ title, total, series }) {
 
 export default function Dashboard() {
   const [controls, setControls] = useState([]);
-  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
@@ -394,14 +392,12 @@ export default function Dashboard() {
     setLoadError('');
 
     try {
-      const [testRows, requestRows] = await Promise.all([fetchTests(), fetchRequests()]);
+      const testRows = await fetchTests();
       setControls(testRows.map(mapTestRowToDashboardRow));
-      setRequests(Array.isArray(requestRows) ? requestRows : []);
       setLastUpdatedAt(new Date());
     } catch (error) {
       setLoadError(error?.message || 'Failed to load dashboard data');
       setControls([]);
-      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -412,45 +408,11 @@ export default function Dashboard() {
   }, [loadDashboardData]);
 
   const summaryCards = useMemo(() => {
-    const testsByRequestId = controls.reduce((accumulator, control) => {
-      const requestId = control?.request_id;
-      if (requestId == null) return accumulator;
-
-      const current = accumulator.get(requestId) || { total: 0, completed: 0 };
-      current.total += 1;
-      if (control.statusType === 'completed') {
-        current.completed += 1;
-      }
-      accumulator.set(requestId, current);
-      return accumulator;
-    }, new Map());
-
-    const requestStatusCounts = requests.reduce(
-      (accumulator, request) => {
-        const requestId = request?.request_id ?? request?.requestId;
-        const status = String(request?.status || '').toUpperCase();
-        if (status === 'ARCHIVED') return accumulator;
-
-        const requestTests = requestId != null ? testsByRequestId.get(requestId) : null;
-        const isCompletedByTests =
-          !!requestTests && requestTests.total > 0 && requestTests.completed === requestTests.total;
-        const isCompleted = isCompletedByTests || (!requestTests && status === 'COMPLETED');
-
-        if (isCompleted) {
-          accumulator.completed += 1;
-        } else {
-          accumulator.open += 1;
-        }
-        return accumulator;
-      },
-      { open: 0, completed: 0 }
-    );
-
     const valuesByKey = {
       totalControls: controls.length,
       notStarted: controls.filter((c) => c.statusType === 'not-started').length,
-      openRequests: requestStatusCounts.open,
-      completion: requestStatusCounts.completed,
+      openRequests: controls.filter((c) => c.statusType !== 'completed').length,
+      completion: controls.filter((c) => c.statusType === 'completed').length,
       blockedControls: controls.filter((c) => c.statusType === 'blocked').length,
     };
 
@@ -459,7 +421,7 @@ export default function Dashboard() {
       value: valuesByKey[cardMeta.key] ?? 0,
       delta: '~',
     }));
-  }, [controls, requests]);
+  }, [controls]);
 
   const oetDistribution = useMemo(() => buildDistributionForType(controls, 'OET'), [controls]);
   const datDistribution = useMemo(() => buildDistributionForType(controls, 'DAT'), [controls]);
