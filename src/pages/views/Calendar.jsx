@@ -92,6 +92,7 @@ const CalendarView = () => {
   );
   const [tests, setTests] = useState([]);
   const [controlsById, setControlsById] = useState({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -104,6 +105,8 @@ const CalendarView = () => {
 
     async function loadCalendarData() {
       try {
+        setLoading(true);
+        setError('');
         const [testRows, controlRows] = await Promise.all([fetchTests(), fetchControls()]);
         if (!isMounted) return;
 
@@ -115,12 +118,14 @@ const CalendarView = () => {
 
         setTests(testRows);
         setControlsById(byId);
-        setError('');
       } catch (err) {
         if (!isMounted) return;
         setError(err?.message || 'Failed to load calendar tests.');
         setTests([]);
         setControlsById({});
+      } finally {
+        if (!isMounted) return;
+        setLoading(false);
       }
     }
 
@@ -184,6 +189,10 @@ const CalendarView = () => {
     setIsDetailsModalOpen(false);
     setSelectedControl(null);
   };
+
+  if (loading) {
+    return <div className="no-results">Loading calendar...</div>;
+  }
 
   return (
     <div className="calendar-shell">
