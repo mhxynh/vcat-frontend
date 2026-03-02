@@ -50,6 +50,20 @@ function formatTestType(test) {
 export function mapTestRowToDashboardRow(test) {
   const statusMeta = normalizeStatus(test.status);
   const progressStep = test.oet_step || test.dat_step || null;
+  const modalFields = objectToSnakeCase({
+    testId: test.test_id,
+    requestId: test.request_id ?? null,
+    controlId: test.control_id ?? null,
+    assignedTesterName: test.assigned_tester_name || 'Unassigned',
+    requiresDat: !!test.requires_dat,
+    requiresOet: !!test.requires_oet,
+    datStep: test.dat_step || null,
+    oetStep: test.oet_step || null,
+    updatedAt: test.updated_at ?? null,
+    dueDate: test.due_date ?? null,
+    estimatedDate: test.estimated_date ?? null,
+  });
+
   return {
     id: test.test_id,
     vgcpid: test.vgcpid,
@@ -61,9 +75,11 @@ export function mapTestRowToDashboardRow(test) {
     datStep: test.dat_step || null,
     oetStep: test.oet_step || null,
     step: formatStep(test.oet_step || test.dat_step),
+    description: test.control_description ?? test.description ?? '',
     dateUpdated: formatDate(test.updated_at || test.created_at),
     dueDate: formatDate(test.due_date),
     etaDate: formatDate(test.estimated_date),
+    ...modalFields,
   };
 }
 
