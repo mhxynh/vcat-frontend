@@ -51,15 +51,19 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setSubmitting(true);
     try {
       const isActive = initialStatus === 'active';
-
-      await createControl({
+      const payload = {
         vgcpid: vgcpid.trim(),
         description: description.trim(),
         controlOwner: controlOwner.trim(),
         controlSme: controlSme.trim(),
         escalation,
         isActive: isActive,
-      });
+      };
+      payload['control_owner'] = controlOwner.trim();
+      payload['control_sme'] = controlSme.trim();
+      payload['is_active'] = isActive;
+
+      await createControl(payload);
 
       if (onCreated) await onCreated();
       onClose();

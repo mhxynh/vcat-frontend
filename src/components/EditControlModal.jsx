@@ -83,9 +83,15 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
           controlSme: controlSme.trim(),
           escalation,
         };
+        payload['control_owner'] = controlOwner.trim();
+        payload['control_sme'] = controlSme.trim();
 
         if (controlSme !== '-') {
           payload.controlSme = controlSme.trim();
+        }
+
+        if (lastTested && lastTested !== '-') {
+          payload['last_tested'] = lastTested;
         }
 
         await updateControl(originalVgcpid, payload);
