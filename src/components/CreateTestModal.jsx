@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/CreateTestModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
+import { fetchUsers } from '../api/UsersAPI';
 import { createTest } from '../api/TestsAPI';
 
 function flagsFromTestType(v) {
@@ -11,22 +12,17 @@ function flagsFromTestType(v) {
   return { requires_dat: false, requires_oet: false };
 }
 
-// TODO: Replace this with a real /users fetch once the backend endpoint exists.
-const DUMMY_TESTERS = [
-  { user_id: 6, display_name: 'Jimbobimnous James' },
-  { user_id: 7, display_name: 'Sarah Patel' },
-  { user_id: 8, display_name: 'Alex Rivera' },
-];
-
 export default function CreateTestModal({ isOpen, onClose, onCreated }) {
   const [controls, setControls] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [users, setUsers] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   const [selectedControlId, setSelectedControlId] = useState('');
   const [selectedRequestId, setSelectedRequestId] = useState('');
+  const [selectedTesterId, setSelectedTesterId] = useState('');
 
   const [testType, setTestType] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -36,8 +32,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  const [selectedTesterId, setSelectedTesterId] = useState('');
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -45,11 +39,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     setSubmitError('');
     setSelectedControlId('');
     setSelectedRequestId('');
+    setSelectedTesterId('');
     setTestType('');
     setDueDate('');
     setEtaDate('');
     setDescription('');
-    setSelectedTesterId('');
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
@@ -59,9 +53,14 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     (async () => {
       try {
         setLoading(true);
-        const [c, r] = await Promise.all([fetchControls(), fetchRequests()]);
+        const [c, r, u] = await Promise.all([
+          fetchControls(),
+          fetchRequests(),
+          fetchUsers({ isActive: true }),
+        ]);
         setControls(Array.isArray(c) ? c : []);
         setRequests(Array.isArray(r) ? r : []);
+        setUsers(Array.isArray(u) ? u : []);
       } catch (e) {
         setLoadError(e?.message || 'Failed to load dropdown data.');
       } finally {
@@ -95,6 +94,16 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
       .sort((a, b) => Number(b.request_id) - Number(a.request_id));
   }, [requests]);
 
+  const testerOptions = useMemo(() => {
+    return users
+      .map((u) => ({
+        user_id: u.user_id,
+        display_name: u.display_name ?? u.email ?? `User ${u.user_id}`,
+        is_active: u.is_active,
+      }))
+      .sort((a, b) => String(a.display_name).localeCompare(String(b.display_name)));
+  }, [users]);
+
   const selectedControl = useMemo(() => {
     if (!selectedControlId) return null;
     const idNum = Number(selectedControlId);
@@ -127,10 +136,10 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
       request_id: Number(selectedRequestId),
       ...flags,
       due_date: dueDate,
+      description: description.trim() || ' ', // backend requires description
     };
 
     if (etaDate) payload.estimated_date = etaDate;
-    if (description.trim()) payload.description = description.trim();
     if (selectedTesterId) payload.assigned_tester_id = Number(selectedTesterId);
 
     try {
@@ -213,10 +222,10 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 className="ctm-select"
                 value={selectedTesterId}
                 onChange={(e) => setSelectedTesterId(e.target.value)}
-                disabled={!!loadError}
+                disabled={loading || !!loadError}
               >
                 <option value="">Unassigned</option>
-                {DUMMY_TESTERS.map((u) => (
+                {testerOptions.map((u) => (
                   <option key={u.user_id} value={String(u.user_id)}>
                     {u.display_name}
                   </option>
@@ -274,7 +283,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
             <div className="ctm-field ctm-field--full">
               <label className="ctm-label" htmlFor="description">
-                Description
+                Description<span className="ctm-req">*</span>
               </label>
               <textarea
                 id="description"
