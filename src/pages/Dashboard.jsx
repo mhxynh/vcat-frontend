@@ -91,13 +91,7 @@ function statusBucketFromControl(control) {
   if (DISTRIBUTION_STATUS_META.some((meta) => meta.key === step)) {
     return step;
   }
-
-  const statusType = (control.statusType || '').toLowerCase();
-  if (statusType === 'completed') return 'COMPLETED';
-  if (statusType === 'blocked') return 'TESTING_BLOCKED';
-  if (statusType === 'in-progress') return 'TESTING_IN_PROGRESS';
-  if (statusType === 'in-review') return 'WALKTHROUGH_SCHEDULED';
-  return 'TESTING_READY';
+  return null;
 }
 
 const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];
@@ -113,6 +107,7 @@ function buildDistributionForType(controls, type) {
     .filter((control) => supportsTestType(control, type))
     .forEach((control) => {
       const bucket = statusBucketFromControl(control);
+      if (!bucket) return;
       counts[bucket] += 1;
     });
 
