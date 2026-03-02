@@ -12,7 +12,7 @@
   width: 780px;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   font-family: inherit;
 }
@@ -50,11 +50,16 @@
   gap: 12px;
   margin-bottom: 6px;
 }
-.arm-bulk-icon { width: 28px; height: 28px; }
+.arm-bulk-icon {
+  width: 28px;
+  height: 28px;
+}
 .arm-bulk-title {
   font-weight: 700;
 }
-.arm-bulk-desc { font-size: 14px; }
+.arm-bulk-desc {
+  font-size: 14px;
+}
 
 .arm-form {
   padding: 16px 24px;
@@ -62,7 +67,10 @@
   flex-direction: column;
   gap: 8px;
 }
-.arm-label { font-size: 13px; color: #333; }
+.arm-label {
+  font-size: 13px;
+  color: #333;
+}
 .arm-select {
   height: 36px;
   padding: 6px 8px;
@@ -84,6 +92,17 @@
   gap: 12px;
   align-items: center;
 }
-.arm-btn { padding: 9px 16px; border-radius: 8px; cursor: pointer; }
-.arm-btn-ghost { background: #fff; border: 1px solid #eaeaea; }
-.arm-btn-primary { background: #96151d; color: #fff; border: none; }
+.arm-btn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.arm-btn-ghost {
+  background: #fff;
+  border: 1px solid #eaeaea;
+}
+.arm-btn-primary {
+  background: #96151d;
+  color: #fff;
+  border: none;
+}

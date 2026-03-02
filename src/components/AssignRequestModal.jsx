@@ -29,7 +29,9 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
         const all = await fetchUsers({ isActive: true });
         if (cancelled) return;
 
-        const testers = Array.isArray(all) ? all.filter((u) => String(u.role).toUpperCase() === 'TESTER') : [];
+        const testers = Array.isArray(all)
+          ? all.filter((u) => String(u.role).toUpperCase() === 'TESTER')
+          : [];
         setUsers(testers);
       } catch (e) {
         if (!cancelled) setUsersError(e?.message || 'Failed to load users');
@@ -60,7 +62,10 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
 
     // find selected user's display name (support multiple id/name shapes)
     const sel = users.find(
-      (u) => String(u.userId) === String(selectedUser) || String(u.user_id) === String(selectedUser) || String(u.id) === String(selectedUser)
+      (u) =>
+        String(u.userId) === String(selectedUser) ||
+        String(u.user_id) === String(selectedUser) ||
+        String(u.id) === String(selectedUser)
     );
     const display = sel?.display_name ?? sel?.displayName ?? sel?.email ?? String(selectedUser);
     const idVal = sel?.userId ?? sel?.user_id ?? sel?.id ?? selectedUser;
@@ -87,7 +92,8 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
             <div className="arm-bulk-title">Bulk Assignment</div>
           </div>
           <div className="arm-bulk-desc">
-            You are about to assign {controlsCount} controls in this request to a new tester. This will update the assignee for all associated controls.
+            You are about to assign {controlsCount} controls in this request to a new tester. This
+            will update the assignee for all associated controls.
           </div>
         </section>
 
@@ -100,15 +106,16 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
             disabled={loadingUsers}
           >
             <option value="">{loadingUsers ? 'Loading testers...' : 'Select a user'}</option>
-            {!loadingUsers && users.map((u) => {
-              const idVal = u.userId ?? u.user_id ?? u.id;
-              const label = u.display_name ?? u.displayName ?? u.email ?? `User ${idVal}`;
-              return (
-                <option key={String(idVal)} value={String(idVal)}>
-                  {label}
-                </option>
-              );
-            })}
+            {!loadingUsers &&
+              users.map((u) => {
+                const idVal = u.userId ?? u.user_id ?? u.id;
+                const label = u.display_name ?? u.displayName ?? u.email ?? `User ${idVal}`;
+                return (
+                  <option key={String(idVal)} value={String(idVal)}>
+                    {label}
+                  </option>
+                );
+              })}
           </select>
           {usersError ? <div className="arm-error">Error: {usersError}</div> : null}
 
@@ -124,8 +131,12 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button className="arm-btn arm-btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="arm-btn arm-btn-primary" onClick={handleAssign}>Assign All Controls</button>
+          <button className="arm-btn arm-btn-ghost" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="arm-btn arm-btn-primary" onClick={handleAssign}>
+            Assign All Controls
+          </button>
         </footer>
       </div>
     </div>

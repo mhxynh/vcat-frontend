@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../../styles/pages/views/Request.css';
 import { fetchRequests, mapRequestRowToUi } from '../../api/RequestsAPI';
-import { fetchTestsByRequestId, mapTestRowToRequestControlCard, updateTest } from '../../api/TestsAPI';
+import {
+  fetchTestsByRequestId,
+  mapTestRowToRequestControlCard,
+  updateTest,
+} from '../../api/TestsAPI';
 import DetailsRequestModal from '../../components/DetailsRequestModal';
 import AssignRequestModal from '../../components/AssignRequestModal';
 import '../../styles/components/DetailsRequestModal.css';
