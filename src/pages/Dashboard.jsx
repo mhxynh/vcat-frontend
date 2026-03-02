@@ -173,11 +173,11 @@ function InfoTooltipIcon({ tooltip }) {
   );
 }
 
-function formatCapacityProgress(completedTests, assignedTests) {
-  const progressPercent = assignedTests ? (completedTests / assignedTests) * 100 : 0;
+function formatCapacityProgress(inProgressTests, assignedTests) {
+  const progressPercent = assignedTests ? (inProgressTests / assignedTests) * 100 : 0;
   return {
     progressPercent,
-    progressLabel: `${progressPercent.toFixed(1)}% (${completedTests}/${assignedTests})`,
+    progressLabel: `${progressPercent.toFixed(1)}% (${inProgressTests}/${assignedTests})`,
   };
 }
 
@@ -478,10 +478,10 @@ export default function Dashboard() {
       if (testerName === 'Unassigned') {
         return accumulator;
       }
-      const current = accumulator.get(testerName) || { assigned: 0, completed: 0 };
+      const current = accumulator.get(testerName) || { assigned: 0, inProgress: 0 };
       current.assigned += 1;
-      if (control.statusType === 'completed') {
-        current.completed += 1;
+      if (control.statusType === 'in-progress') {
+        current.inProgress += 1;
       }
       accumulator.set(testerName, current);
       return accumulator;
@@ -489,14 +489,14 @@ export default function Dashboard() {
 
     return Array.from(byTester.entries()).map(([name, counts], index) => {
       const { progressPercent, progressLabel } = formatCapacityProgress(
-        counts.completed,
+        counts.inProgress,
         counts.assigned
       );
       return {
         initials: toInitials(name),
         name,
         assignedTests: counts.assigned,
-        completedTests: counts.completed,
+        inProgressTests: counts.inProgress,
         progress: progressPercent,
         progressLabel,
         color: getTeamColor(index),
