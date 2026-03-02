@@ -56,11 +56,12 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
         vgcpid: vgcpid.trim(),
         description: description.trim(),
         escalation,
-        // eslint-disable camelcase
+        // eslint-disable-next-line camelcase
         control_owner: controlOwner.trim(),
+        // eslint-disable-next-line camelcase
         control_sme: controlSme.trim(),
+        // eslint-disable-next-line camelcase
         is_active: isActive,
-        // eslint-enable camelcase
       });
 
       if (onCreated) await onCreated();
