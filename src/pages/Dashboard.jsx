@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
+import { fetchRequests } from '../api/RequestsAPI';
 import DetailsTestModal from '../components/DetailsTestModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
@@ -335,6 +336,7 @@ function DonutChart({ title, total, series }) {
 
 export default function Dashboard() {
   const [controls, setControls] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
@@ -392,12 +394,14 @@ export default function Dashboard() {
     setLoadError('');
 
     try {
-      const testRows = await fetchTests();
+      const [testRows, requestRows] = await Promise.all([fetchTests(), fetchRequests()]);
       setControls(testRows.map(mapTestRowToDashboardRow));
+      setRequests(Array.isArray(requestRows) ? requestRows : []);
       setLastUpdatedAt(new Date());
     } catch (error) {
       setLoadError(error?.message || 'Failed to load dashboard data');
       setControls([]);
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -408,11 +412,25 @@ export default function Dashboard() {
   }, [loadDashboardData]);
 
   const summaryCards = useMemo(() => {
+    const requestStatusCounts = requests.reduce(
+      (accumulator, request) => {
+        const status = String(request?.status || '').toUpperCase();
+        if (status === 'NOT_STARTED' || status === 'IN_PROGRESS') {
+          accumulator.open += 1;
+        }
+        if (status === 'COMPLETED') {
+          accumulator.completed += 1;
+        }
+        return accumulator;
+      },
+      { open: 0, completed: 0 }
+    );
+
     const valuesByKey = {
       totalControls: controls.length,
       notStarted: controls.filter((c) => c.statusType === 'not-started').length,
-      openRequests: controls.filter((c) => c.statusType !== 'completed').length,
-      completion: controls.filter((c) => c.statusType === 'completed').length,
+      openRequests: requestStatusCounts.open,
+      completion: requestStatusCounts.completed,
       blockedControls: controls.filter((c) => c.statusType === 'blocked').length,
     };
 
@@ -421,7 +439,7 @@ export default function Dashboard() {
       value: valuesByKey[cardMeta.key] ?? 0,
       delta: '~',
     }));
-  }, [controls]);
+  }, [controls, requests]);
 
   const oetDistribution = useMemo(() => buildDistributionForType(controls, 'OET'), [controls]);
   const datDistribution = useMemo(() => buildDistributionForType(controls, 'DAT'), [controls]);
