@@ -1,0 +1,458 @@
+/* Overlay */
+.drm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+/* Modal (scrollable body) */
+.drm-modal {
+  width: min(980px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Sections */
+.drm-section-header,
+.drm-section-statusbar,
+.drm-section-description-details,
+.drm-section-associated,
+.drm-section-tabs,
+.drm-section-addcomment,
+.drm-section-footer {
+  padding: 14px 18px;
+}
+
+.drm-divider {
+  height: 1px;
+  background: #ededed;
+}
+
+/* Header */
+.drm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drm-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.drm-close {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* Status bar */
+.drm-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.drm-statusbar-mid {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drm-status-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 700;
+}
+
+.drm-statusbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #444;
+}
+
+.drm-progress {
+  font-weight: 800;
+}
+
+.drm-progress-label {
+  color: #666;
+}
+
+/* Pills (reuse style vibe of your base badges) */
+.drm-pill {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.drm-pill--good {
+  background: #e6f7ea;
+  color: #0f6a2b;
+  border-color: #ccefd6;
+}
+
+.drm-pill--info {
+  background: #e8f1ff;
+  color: #1b4db3;
+  border-color: #cfe0ff;
+}
+
+.drm-pill--bad {
+  background: #fdecec;
+  color: #8b0f17;
+  border-color: #f7caca;
+}
+
+.drm-pill--neutral {
+  background: #f2f2f2;
+  color: #444;
+  border-color: #e5e5e5;
+}
+
+.drm-pill--low {
+  background: #e6f7ea;
+  color: #0f6a2b;
+  border: 1px solid #ccefd6;
+}
+
+.drm-pill--medium {
+  background: #fff4dd;
+  color: #8a5a00;
+  border: 1px solid #ffe2a8;
+}
+
+.drm-pill--high {
+  background: #fdecec;
+  color: #8b0f17;
+  border: 1px solid #f7caca;
+}
+
+.drm-pill--critical {
+  background: #f3e8ff;
+  color: #5b21b6;
+  border: 1px solid #e0ccff;
+}
+
+/* Content */
+.drm-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.drm-section-title--withicon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drm-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+}
+
+.drm-description {
+  font-weight: 400;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+/* Details card */
+.drm-details-card {
+  border: 1px solid #ededed;
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.drm-detail-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #777;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.drm-detail-value {
+  font-size: 12px;
+  color: #111;
+  font-weight: 800;
+}
+
+.drm-date-warn {
+  color: #8b0f17;
+}
+
+/* Table */
+.drm-table-wrap {
+  border: 1px solid #ededed;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.drm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.drm-table thead th {
+  text-align: left;
+  background: #fafafa;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ededed;
+}
+
+.drm-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.drm-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.drm-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-weight: 800;
+  color: #8b0f17;
+}
+
+/* Tabs */
+.drm-tabs {
+  display: flex;
+  gap: 14px;
+  border-bottom: 1px solid #ededed;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.drm-tab {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+  color: #666;
+  padding: 8px 2px;
+}
+
+.drm-tab--active {
+  color: #8b0f17;
+}
+
+/* Comments */
+.drm-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drm-comment {
+  display: flex;
+  gap: 10px;
+}
+
+.drm-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  border: 1px solid #e5e5e5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.drm-comment-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drm-comment-author {
+  font-size: 12px;
+  font-weight: 800;
+  color: #111;
+}
+
+.drm-comment-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.drm-comment-text {
+  font-weight: 400;
+  color: #333;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Add comment */
+.drm-addcomment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ededed;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.drm-comment-input {
+  border: 0;
+  outline: none;
+  flex: 1;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.drm-send {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Footer */
+.drm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drm-footer-right {
+  display: flex;
+  gap: 10px;
+}
+
+.drm-btn {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 800;
+  background: #f4f4f4;
+}
+
+.drm-btn--ghost {
+  background: #fff;
+  border-color: #e6e6e6;
+}
+
+.drm-btn--outline {
+  background: #fff;
+  border-color: #f0c9cc;
+  color: #8b0f17;
+}
+
+.drm-btn--primary {
+  background: #8b0f17;
+  color: #fff;
+}
+
+.drm-empty {
+  font-size: 12px;
+  color: #666;
+  padding: 8px 0;
+}
+
+.dtm-addcomment {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dtm-comment-input {
+  flex: 1;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 12px 12px;
+  outline: none;
+}
+
+.dtm-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: #b21d1d;
+  color: white;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.dtm-busy-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(1px);
+}
+
+.dtm-modal {
+  position: relative;
+}
+
+.dtm-busy-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.dtm-busy-text {
+  font-weight: 700;
+  color: #333;
+  font-size: 13px;
+}
+
+.dtm-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(0, 0, 0, 0.55);
+  animation: dtm-spin 0.9s linear infinite;
+}
+
+@keyframes dtm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,3 +1,5 @@
+import { objectToSnakeCase } from '../utils/transformer';
+
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
 
 export async function deleteControl(vgcpid, { hard = false } = {}) {
@@ -65,7 +67,7 @@ export async function createControl(payload) {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(objectToSnakeCase(payload)),
   });
 
   const data = await resp.json().catch(() => ({}));
@@ -88,7 +90,7 @@ export async function updateControl(vgcpid, updates) {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify(updates),
+    body: JSON.stringify(objectToSnakeCase(updates)),
   });
 
   const data = await resp.json().catch(() => null);
@@ -111,6 +113,22 @@ export async function retireControl(vgcpid) {
 
   if (!resp.ok) {
     const msg = data?.error || data?.message || `Failed to retire control (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  return data;
+}
+
+export async function fetchControlByVgcpid(vgcpid) {
+  const resp = await fetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  const data = await resp.json().catch(() => null);
+
+  if (!resp.ok) {
+    const msg = data?.error || data?.message || `Failed to fetch control (HTTP ${resp.status})`;
     throw new Error(msg);
   }
 

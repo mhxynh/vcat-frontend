@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchTests } from '../../api/TestsAPI';
+import DetailsTestModal from '../../components/DetailsTestModal';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -9,94 +11,129 @@ const STATUS_LABELS = {
   completed: 'Completed',
 };
 
-const EVENTS_BY_DAY = {
-  3: {
-    badge: 1,
-    bars: ['notStarted'],
-    items: [
-      { id: 'VG-1023', title: 'Access control walkthrough', assignee: 'MH', status: 'notStarted' },
-    ],
-  },
-  5: {
-    badge: 1,
-    bars: ['testing'],
-    items: [{ id: 'VG-2208', title: 'Evidence collection', assignee: 'AN', status: 'testing' }],
-  },
-  7: {
-    badge: 1,
-    bars: ['completed'],
-    items: [
-      { id: 'VG-3150', title: 'Identity governance check', assignee: 'MH', status: 'completed' },
-    ],
-  },
-  8: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-4119', title: 'Remediation validation', assignee: 'AN', status: 'addressing' },
-    ],
-  },
-  10: {
-    badge: 1,
-    bars: ['testing'],
-    items: [{ id: 'VG-2877', title: 'Quarterly sample review', assignee: 'MH', status: 'testing' }],
-  },
-  14: {
-    badge: 2,
-    bars: ['notStarted', 'notStarted'],
-    items: [
-      { id: 'VG-1180', title: 'Risk acceptance update', assignee: 'MH', status: 'notStarted' },
-      { id: 'VG-1189', title: 'Control owner signoff', assignee: 'AN', status: 'notStarted' },
-    ],
-  },
-  17: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-5522', title: 'Issue tracking review', assignee: 'AN', status: 'addressing' },
-    ],
-  },
-  18: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-7310', title: 'Testing checklist update', assignee: 'MH', status: 'addressing' },
-    ],
-  },
-  21: {
-    badge: 1,
-    bars: ['notStarted'],
-    items: [{ id: 'VG-8844', title: 'API security review', assignee: 'AN', status: 'notStarted' }],
-  },
-  23: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-6502', title: 'Audit trail gap closure', assignee: 'MH', status: 'addressing' },
-    ],
-  },
-  28: {
-    badge: 1,
-    bars: ['addressing'],
-    items: [
-      { id: 'VG-9014', title: 'Post-test findings review', assignee: 'AN', status: 'addressing' },
-    ],
-  },
-};
-
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
+const MAX_BARS_PER_DAY = 4;
+
+function parseDateOnly(value) {
+  if (!value || typeof value !== 'string') return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function mapApiStatusToCalendarStatus(status) {
+  switch (status) {
+    case 'NOT_STARTED':
+      return 'notStarted';
+    case 'IN_PROGRESS':
+      return 'inProgress';
+    case 'IN_REVIEW':
+      return 'testing';
+    case 'COMPLETED':
+      return 'completed';
+    case 'BLOCKED':
+    case 'ARCHIVED':
+      return 'addressing';
+    default:
+      return 'notStarted';
+  }
+}
+
+function getAssigneeInfo(test) {
+  const fullName = test.assigned_tester_name || '';
+  if (!fullName) {
+    return { initials: '--', fullName: 'Unassigned' };
+  }
+
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
+  return { initials: initials || '--', fullName };
+}
+
+function buildEventsByDay(tests, month, year) {
+  return tests.reduce((acc, test) => {
+    const dueDate = parseDateOnly(test.due_date);
+    if (!dueDate) return acc;
+    if (dueDate.getFullYear() !== year || dueDate.getMonth() !== month) return acc;
+
+    const day = dueDate.getDate();
+    const status = mapApiStatusToCalendarStatus(test.status);
+    const assignee = getAssigneeInfo(test);
+    const item = {
+      id: test.test_id ?? `${test.vgcpid || 'TEST'}-${day}`,
+      displayId: test.vgcpid || `TEST-${test.test_id}`,
+      title: test.description || 'No description',
+      assigneeInitials: assignee.initials,
+      assigneeName: assignee.fullName,
+      status,
+      test,
+    };
+
+    if (!acc[day]) {
+      acc[day] = { badge: 0, bars: [], items: [] };
+    }
+
+    acc[day].items.push(item);
+    acc[day].badge = acc[day].items.length;
+    acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
+    return acc;
+  }, {});
+}
 
 const CalendarView = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
   );
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
-  const selectedEvents = selectedDay ? (EVENTS_BY_DAY[selectedDay]?.items ?? []) : [];
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCalendarData() {
+      try {
+        setLoading(true);
+        setError('');
+        const testRows = await fetchTests();
+        if (!isMounted) return;
+
+        setTests(testRows);
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err?.message || 'Failed to load calendar tests.');
+        setTests([]);
+      } finally {
+        if (!isMounted) return;
+        setLoading(false);
+      }
+    }
+
+    loadCalendarData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const eventsByDay = useMemo(
+    () => buildEventsByDay(tests, currentMonth, currentYear),
+    [currentMonth, currentYear, tests]
+  );
+
+  const selectedEvents = selectedDay ? (eventsByDay[selectedDay]?.items ?? []) : [];
 
   const selectedDateLabel = useMemo(() => {
     if (!selectedDay) return '';
@@ -133,6 +170,21 @@ const CalendarView = () => {
     setSelectedDay(null);
   };
 
+  const openTestDetails = (test) => {
+    if (!test) return;
+    setSelectedTest(test);
+    setIsTestDetailsOpen(true);
+  };
+
+  const closeTestDetails = () => {
+    setIsTestDetailsOpen(false);
+    setSelectedTest(null);
+  };
+
+  if (loading) {
+    return <div className="no-results">Loading calendar...</div>;
+  }
+
   return (
     <div className="calendar-shell">
       <div className="calendar-left-panel">
@@ -166,7 +218,7 @@ const CalendarView = () => {
 
         <div className="calendar-grid">
           {dayCells.map((day, index) => {
-            const dayData = day ? EVENTS_BY_DAY[day] : null;
+            const dayData = day ? eventsByDay[day] : null;
             const isSelected = day && selectedDay === day;
 
             return (
@@ -182,7 +234,9 @@ const CalendarView = () => {
                     <span className="calendar-day-number">{day}</span>
 
                     {dayData?.badge ? (
-                      <span className="calendar-day-badge">{dayData.badge}</span>
+                      <span className="calendar-day-badge">
+                        <span className="calendar-day-badge-text">{dayData.badge}</span>
+                      </span>
                     ) : null}
 
                     <div className="calendar-day-bars">
@@ -213,6 +267,7 @@ const CalendarView = () => {
         </div>
 
         <div className="calendar-detail-card">
+          {error ? <div className="detail-empty">{error}</div> : null}
           {selectedDay ? (
             <>
               <div className="detail-header">
@@ -228,10 +283,20 @@ const CalendarView = () => {
                     <div key={event.id} className="detail-item">
                       <div className={`detail-bar status-${event.status}`} />
                       <div className="detail-body">
-                        <div className="detail-title">{event.id}</div>
+                        <button
+                          type="button"
+                          className="detail-title-btn"
+                          onClick={() => openTestDetails(event.test)}
+                          title="View test details"
+                        >
+                          <span className="detail-title">{event.displayId}</span>
+                        </button>
                         <div className="detail-desc">{event.title}</div>
                         <div className="detail-meta">
-                          <span className="detail-assignee">{event.assignee}</span>
+                          <span className="detail-assignee-wrap">
+                            <span className="detail-assignee">{event.assigneeInitials}</span>
+                            <span className="detail-assignee-name">{event.assigneeName}</span>
+                          </span>
                           <span className="detail-status">{STATUS_LABELS[event.status]}</span>
                         </div>
                       </div>
@@ -251,6 +316,37 @@ const CalendarView = () => {
           )}
         </div>
       </div>
+
+      <DetailsTestModal
+        isOpen={isTestDetailsOpen}
+        onClose={closeTestDetails}
+        test={selectedTest}
+        onArchived={(testId, updatedTest) => {
+          setTests((prev) =>
+            prev.map((x) =>
+              x.test_id === testId
+                ? updatedTest
+                  ? { ...x, ...updatedTest }
+                  : { ...x, status: 'ARCHIVED' }
+                : x
+            )
+          );
+        }}
+        onDeleted={(testId) => {
+          setTests((prev) => prev.filter((x) => x.test_id !== testId));
+          setSelectedTest((prev) => (prev?.test_id === testId ? null : prev));
+          setIsTestDetailsOpen(false);
+        }}
+        onEdit={(updatedTest) => {
+          if (!updatedTest?.test_id) return;
+          setTests((prev) =>
+            prev.map((x) => (x?.test_id === updatedTest.test_id ? { ...x, ...updatedTest } : x))
+          );
+          setSelectedTest((prev) =>
+            prev?.test_id === updatedTest.test_id ? { ...prev, ...updatedTest } : prev
+          );
+        }}
+      />
     </div>
   );
 };
