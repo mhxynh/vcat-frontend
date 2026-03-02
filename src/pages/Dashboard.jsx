@@ -51,10 +51,11 @@ const DISTRIBUTION_STATUS_META = [
   { key: 'WALKTHROUGH_COMPLETED', label: 'Walkthrough Completed' },
   { key: 'TESTING_IN_PROGRESS', label: 'Testing In Progress' },
   { key: 'ADDRESSING_COMMENTS', label: 'Addressing Comments' },
+  { key: 'COMPLETED', label: 'Completed' },
   { key: 'TESTING_BLOCKED', label: 'Testing Blocked' },
   { key: 'TESTING_CANCELED', label: 'Testing Canceled' },
-  { key: 'COMPLETED', label: 'Completed' },
 ];
+const OET_EXCLUDED_STATUS_KEYS = new Set(['WALKTHROUGH_SCHEDULED', 'WALKTHROUGH_COMPLETED']);
 
 const STATUS_DISTRIBUTION_COLORS = {
   TESTING_READY: '#D22730',
@@ -87,9 +88,9 @@ function toInitials(name) {
     .join('');
 }
 
-function statusBucketFromStep(stepValue) {
+function statusBucketFromStep(stepValue, allowedStatusKeys) {
   const step = (stepValue || '').toUpperCase();
-  if (DISTRIBUTION_STATUS_META.some((meta) => meta.key === step)) {
+  if (allowedStatusKeys.has(step)) {
     return step;
   }
   return null;
@@ -102,18 +103,23 @@ function supportsTestType(control, type) {
 }
 
 function buildDistributionForType(controls, type) {
-  const counts = Object.fromEntries(DISTRIBUTION_STATUS_META.map((meta) => [meta.key, 0]));
+  const statusMetaForType =
+    type === 'OET'
+      ? DISTRIBUTION_STATUS_META.filter((meta) => !OET_EXCLUDED_STATUS_KEYS.has(meta.key))
+      : DISTRIBUTION_STATUS_META;
+  const allowedStatusKeys = new Set(statusMetaForType.map((meta) => meta.key));
+  const counts = Object.fromEntries(statusMetaForType.map((meta) => [meta.key, 0]));
 
   controls
     .filter((control) => supportsTestType(control, type))
     .forEach((control) => {
       const stepForType = type === 'DAT' ? control.datStep : control.oetStep;
-      const bucket = statusBucketFromStep(stepForType);
+      const bucket = statusBucketFromStep(stepForType, allowedStatusKeys);
       if (!bucket) return;
       counts[bucket] += 1;
     });
 
-  return DISTRIBUTION_STATUS_META.map((statusMeta) => ({
+  return statusMetaForType.map((statusMeta) => ({
     label: statusMeta.label,
     value: counts[statusMeta.key],
     color: STATUS_DISTRIBUTION_COLORS[statusMeta.key],
