@@ -56,6 +56,8 @@ export function mapTestRowToDashboardRow(test) {
     status: statusMeta.status,
     statusType: statusMeta.statusType,
     progressStep,
+    datStep: test.dat_step || null,
+    oetStep: test.oet_step || null,
     step: formatStep(test.oet_step || test.dat_step),
     dateUpdated: formatDate(test.updated_at || test.created_at),
     dueDate: formatDate(test.due_date),
