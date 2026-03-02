@@ -124,6 +124,25 @@ function formatShortDate(value) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+export async function createTest(payload) {
+  const resp = await fetch(`${API_BASE}/tests`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to create test (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json();
+}
+
 export async function startTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
