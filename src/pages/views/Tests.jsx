@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
+import DetailsTestModal from '../../components/DetailsTestModal';
 
 function parseLocalDate(value) {
   if (!value) return null;
@@ -60,6 +61,19 @@ export default function Tests({ refreshKey = 0 }) {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
+
+  function openTestDetails(t) {
+    setSelectedTest(t);
+    setIsTestDetailsOpen(true);
+  }
+
+  function closeTestDetails() {
+    setIsTestDetailsOpen(false);
+    setSelectedTest(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -214,7 +228,16 @@ export default function Tests({ refreshKey = 0 }) {
                     />
                   </td>
 
-                  <td className="table__cell table__cell--vgcpid">{vgcpidCell}</td>
+                  <td className="table__cell table__cell--vgcpid">
+                    <button
+                      type="button"
+                      className="vgcpid-link"
+                      onClick={() => openTestDetails(t)}
+                      title="Open test details"
+                    >
+                      {vgcpidCell}
+                    </button>
+                  </td>
                   <td className="table__cell">{testerCell}</td>
                   <td className="table__cell">{testType}</td>
 
@@ -232,6 +255,30 @@ export default function Tests({ refreshKey = 0 }) {
           </tbody>
         </table>
       )}
+      <DetailsTestModal
+        isOpen={isTestDetailsOpen}
+        onClose={closeTestDetails}
+        test={selectedTest}
+        onArchived={(testId) => {
+          setTests((prev) =>
+            prev.map((x) => (x.test_id === testId ? { ...x, status: 'ARCHIVED' } : x))
+          );
+        }}
+        onDeleted={(testId) => {
+          setTests((prev) => prev.filter((x) => x.test_id !== testId));
+        }}
+        onEdit={(updatedTest) => {
+          if (!updatedTest?.test_id) return;
+
+          setTests((prev) =>
+            prev.map((x) => (x?.test_id === updatedTest.test_id ? { ...x, ...updatedTest } : x))
+          );
+
+          setSelectedTest((prev) =>
+            prev?.test_id === updatedTest.test_id ? { ...prev, ...updatedTest } : prev
+          );
+        }}
+      />
     </div>
   );
 }

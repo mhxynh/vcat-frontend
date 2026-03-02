@@ -383,3 +383,76 @@
   color: #666;
   padding: 8px 0;
 }
+
+.dtm-addcomment {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dtm-comment-input {
+  flex: 1;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 12px 12px;
+  outline: none;
+}
+
+.dtm-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: #b21d1d;
+  color: white;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.dtm-busy-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(1px);
+}
+
+.dtm-modal {
+  position: relative;
+}
+
+.dtm-busy-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.dtm-busy-text {
+  font-weight: 700;
+  color: #333;
+  font-size: 13px;
+}
+
+.dtm-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(0, 0, 0, 0.55);
+  animation: dtm-spin 0.9s linear infinite;
+}
+
+@keyframes dtm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
