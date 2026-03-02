@@ -98,8 +98,10 @@ export default function ControlsTracker() {
       <CreateRequestModal
         isOpen={isCreateRequestOpen}
         onClose={() => setIsCreateRequestOpen(false)}
-        onOpenCreateControl={() => {
-          alert('Open Create Control modal (TODO)');
+        onCreated={(created) => {
+          console.log('created request:', created);
+          setIsCreateRequestOpen(false);
+          setRequestsRefreshKey((k) => k + 1);
         }}
       />
     </main>

@@ -177,8 +177,8 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
         created_by: DUMMY_CURRENT_USER_ID,
       });
 
-      const requestId = createdReq?.request_id;
-      if (requestId == null) throw new Error('Request created but missing request_id.');
+      const requestId = createdReq?.request_id ?? createdReq?.requestId;
+      if (requestId == null) throw new Error('Request created but missing request id.');
 
       // Create associated tests (the “associate controls” behavior you had originally)
       if (selectedControls.length > 0) {
@@ -208,11 +208,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
   };
 
   const handleFinalize = async () => {
-    if (createdRequestId == null) {
-      await handleSave();
-      if (createdRequestId == null) return;
-    }
-    onClose?.();
+    await handleSave();
   };
 
   return (
