@@ -57,7 +57,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
           fetchUsers({ isActive: true }),
         ]);
 
-        // Santize Controls
+        // Sanitize Controls
         const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
           .map((c) => ({
             id: Number(c.id || c.control_id || c.controlId),
