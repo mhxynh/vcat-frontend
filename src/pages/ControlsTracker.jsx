@@ -10,10 +10,10 @@ import '../styles/pages/views/Tests.css';
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
+  const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
+
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
-
-  const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
   const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
@@ -35,6 +35,7 @@ export default function ControlsTracker() {
 
   const handleRefreshClick = () => {
     if (activeTab === 'Controls') setControlsRefreshKey((k) => k + 1);
+    if (activeTab === 'Requests') setRequestsRefreshKey((k) => k + 1);
   };
 
   return (
@@ -46,7 +47,7 @@ export default function ControlsTracker() {
             <button className="btn btn--white" type="button">
               Export
             </button>
-            <button className="btn btn--blue" type="button">
+            <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
               Refresh
             </button>
           </>
@@ -84,7 +85,8 @@ export default function ControlsTracker() {
       </div>
 
       <div className="tracker__content">{renderActiveView()}</div>
-            <CreateTestModal
+
+      <CreateTestModal
         isOpen={isCreateTestOpen}
         onClose={() => setIsCreateTestOpen(false)}
         onCreated={(created) => {
@@ -93,12 +95,10 @@ export default function ControlsTracker() {
         }}
       />
 
-            <CreateRequestModal
+      <CreateRequestModal
         isOpen={isCreateRequestOpen}
         onClose={() => setIsCreateRequestOpen(false)}
-        onCreated={() => setRequestsRefreshKey((k) => k + 1)}
         onOpenCreateControl={() => {
-          // wire this to your Create Control modal when you plug it in
           alert('Open Create Control modal (TODO)');
         }}
       />

@@ -25,12 +25,7 @@ function todayIso() {
 // Replace DUMMY_CURRENT_USER_ID with the logged-in user's user_id once auth is implemented.
 const DUMMY_CURRENT_USER_ID = 1;
 
-export default function CreateRequestModal({
-  isOpen,
-  onClose,
-  onCreated, // (createdRequest) => void
-  onOpenCreateControl, // () => void
-}) {
+export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
   const [controls, setControls] = useState([]);
   const [users, setUsers] = useState([]);
 
@@ -53,6 +48,8 @@ export default function CreateRequestModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const [createdRequestId, setCreatedRequestId] = useState(null);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -72,6 +69,8 @@ export default function CreateRequestModal({
 
     setTestType('DAT & OET');
     setAssignedTesterId('');
+
+    setCreatedRequestId(null);
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
@@ -156,8 +155,11 @@ export default function CreateRequestModal({
     setSelectedControls((prev) => prev.filter((c) => Number(c.control_id) !== Number(controlId)));
   };
 
-  const handleSubmit = async () => {
+  // SAVE: creates the request but keeps the modal open
+  const handleSave = async () => {
     setSubmitError('');
+
+    if (createdRequestId != null) return;
 
     if (!priority) return setSubmitError('Priority is required.');
     if (!requestedBy.trim()) return setSubmitError('Requested By is required.');
@@ -178,9 +180,9 @@ export default function CreateRequestModal({
       const requestId = createdReq?.request_id;
       if (requestId == null) throw new Error('Request created but missing request_id.');
 
+      // Create associated tests (the “associate controls” behavior you had originally)
       if (selectedControls.length > 0) {
         const flags = flagsFromTestType(testType);
-
         await Promise.all(
           selectedControls.map((c) =>
             createTest({
@@ -195,13 +197,22 @@ export default function CreateRequestModal({
         );
       }
 
+      setCreatedRequestId(Number(requestId));
       onCreated?.(createdReq);
       onClose?.();
     } catch (e) {
-      setSubmitError(e?.message || 'Failed to create request.');
+      setSubmitError(e?.message || 'Failed to save request.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleFinalize = async () => {
+    if (createdRequestId == null) {
+      await handleSave();
+      if (createdRequestId == null) return;
+    }
+    onClose?.();
   };
 
   return (
@@ -222,7 +233,15 @@ export default function CreateRequestModal({
               <label className="crm-label">
                 Request ID<span className="crm-req">*</span>
               </label>
-              <input className="crm-input" value="REQ-YYYY-###" disabled />
+              <input
+                className="crm-input"
+                value={
+                  createdRequestId != null
+                    ? `REQ-${String(createdRequestId).padStart(4, '0')}`
+                    : 'REQ-YYYY-###'
+                }
+                disabled
+              />
             </div>
 
             <div className="crm-field">
@@ -233,7 +252,7 @@ export default function CreateRequestModal({
                 className="crm-select"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                disabled={loading || !!loadError}
+                disabled={loading || !!loadError || createdRequestId != null}
               >
                 <option value="" disabled>
                   Select priority
@@ -254,7 +273,7 @@ export default function CreateRequestModal({
                 value={requestedBy}
                 onChange={(e) => setRequestedBy(e.target.value)}
                 placeholder="Enter requester name..."
-                disabled={loading || !!loadError}
+                disabled={loading || !!loadError || createdRequestId != null}
               />
             </div>
 
@@ -274,7 +293,7 @@ export default function CreateRequestModal({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                disabled={loading || !!loadError}
+                disabled={loading || !!loadError || createdRequestId != null}
               />
             </div>
 
@@ -287,7 +306,7 @@ export default function CreateRequestModal({
                 placeholder="Describe the purpose of this request..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                disabled={loading || !!loadError}
+                disabled={loading || !!loadError || createdRequestId != null}
               />
             </div>
           </div>
@@ -295,9 +314,7 @@ export default function CreateRequestModal({
           <div className="crm-divider" />
 
           <div className="crm-section">
-            <div className="crm-section-title">
-              Associate Control Tests<span className="crm-req">*</span>
-            </div>
+            <div className="crm-section-title">Associate Control Tests</div>
 
             <div className="crm-assoc-box">
               <div className="crm-assoc-top">
@@ -308,14 +325,19 @@ export default function CreateRequestModal({
                     placeholder="Search controls to link..."
                     value={controlSearch}
                     onChange={(e) => setControlSearch(e.target.value)}
-                    disabled={loading || !!loadError}
+                    disabled={loading || !!loadError || createdRequestId != null}
                   />
                 </div>
                 <button
                   className="crm-btn crm-btn--outline"
                   type="button"
                   onClick={addSelectedControls}
-                  disabled={pendingSelectedIds.length === 0 || loading || !!loadError}
+                  disabled={
+                    pendingSelectedIds.length === 0 ||
+                    loading ||
+                    !!loadError ||
+                    createdRequestId != null
+                  }
                 >
                   Add Selected
                 </button>
@@ -331,6 +353,7 @@ export default function CreateRequestModal({
                         type="checkbox"
                         checked={pendingSelectedIds.includes(c.control_id)}
                         onChange={() => togglePending(c.control_id)}
+                        disabled={createdRequestId != null}
                       />
                       <div className="crm-pick-text">
                         <div className="crm-pick-title">
@@ -359,20 +382,12 @@ export default function CreateRequestModal({
                       type="button"
                       onClick={() => removeSelectedControl(c.control_id)}
                       aria-label="Remove"
+                      disabled={createdRequestId != null}
                     >
                       ×
                     </button>
                   </div>
                 ))}
-
-                <button
-                  className="crm-link"
-                  type="button"
-                  onClick={() => onOpenCreateControl?.()}
-                  disabled={loading || !!loadError}
-                >
-                  + Create New Control for this Request
-                </button>
               </div>
 
               <div className="crm-test-defaults">
@@ -382,7 +397,7 @@ export default function CreateRequestModal({
                     className="crm-select"
                     value={assignedTesterId}
                     onChange={(e) => setAssignedTesterId(e.target.value)}
-                    disabled={loading || !!loadError}
+                    disabled={loading || !!loadError || createdRequestId != null}
                   >
                     <option value="">Unassigned</option>
                     {userOptions.map((u) => (
@@ -399,7 +414,7 @@ export default function CreateRequestModal({
                     className="crm-select"
                     value={testType}
                     onChange={(e) => setTestType(e.target.value)}
-                    disabled={loading || !!loadError}
+                    disabled={loading || !!loadError || createdRequestId != null}
                   >
                     <option value="DAT Only">DAT Only</option>
                     <option value="OET Only">OET Only</option>
@@ -426,13 +441,24 @@ export default function CreateRequestModal({
           >
             Cancel
           </button>
+
+          <button
+            className="crm-btn crm-btn--outline"
+            type="button"
+            onClick={handleSave}
+            disabled={submitting || !!loadError || createdRequestId != null}
+            title={createdRequestId != null ? 'Already saved.' : ''}
+          >
+            {createdRequestId != null ? 'Saved' : 'Save'}
+          </button>
+
           <button
             className="crm-btn crm-btn--primary"
             type="button"
-            onClick={handleSubmit}
+            onClick={handleFinalize}
             disabled={submitting || !!loadError}
           >
-            {submitting ? 'Creating...' : 'Create Request'}
+            Create Request
           </button>
         </div>
       </div>
