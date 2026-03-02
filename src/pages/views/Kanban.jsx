@@ -5,9 +5,9 @@ import { fetchRequests } from '../../api/RequestsAPI';
 
 const KanbanBoard = () => {
   const statusColors = {
-    not_started: '#ef4444',
-    in_progress: '#f59e0b',
-    in_review: '#a78bfa',
+    notStarted: '#ef4444',
+    inProgress: '#f59e0b',
+    inReview: '#a78bfa',
     completed: '#22c55e',
   };
 

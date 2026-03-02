@@ -1,4 +1,10 @@
+import { objectToSnakeCase } from '../utils/transformer';
+
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+
+export async function fetchTests() {
+  return fetchAllTests();
+}
 
 export async function fetchAllTests() {
   const resp = await fetch(`${API_BASE}/tests`, {
@@ -117,8 +123,8 @@ function mapTestStatusToUi(s) {
 }
 
 function pickNote(test) {
-  const dat = test?.dat_step ? `DAT: ${String(test.dat_step).replaceAll('_', ' ')}` : '';
-  const oet = test?.oet_step ? `OET: ${String(test.oet_step).replaceAll('_', ' ')}` : '';
+  const dat = test?.datStep ? `DAT: ${String(test.datStep).replaceAll('_', ' ')}` : '';
+  const oet = test?.oetStep ? `OET: ${String(test.oetStep).replaceAll('_', ' ')}` : '';
   const parts = [dat, oet].filter(Boolean);
   return parts.length ? parts.join(' • ') : '';
 }
@@ -141,13 +147,32 @@ function formatShortDate(value) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+export async function createTest(payload) {
+  const resp = await fetch(`${API_BASE}/tests`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(objectToSnakeCase(payload)),
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to create test (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json();
+}
+
 export async function startTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
   const resp = await fetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'start' }),
+    body: JSON.stringify(objectToSnakeCase({ action: 'start' })),
   });
 
   if (!resp.ok) {
@@ -168,7 +193,7 @@ export async function reviewTest(testId) {
   const resp = await fetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'review' }),
+    body: JSON.stringify(objectToSnakeCase({ action: 'review' })),
   });
 
   if (!resp.ok) {
@@ -189,7 +214,7 @@ export async function completeTest(testId) {
   const resp = await fetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'complete' }),
+    body: JSON.stringify(objectToSnakeCase({ action: 'complete' })),
   });
 
   if (!resp.ok) {
@@ -210,7 +235,7 @@ export async function updateDat(testId, datStep, status) {
   const resp = await fetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'update_dat', ['dat_step']: datStep, status }),
+    body: JSON.stringify(objectToSnakeCase({ action: 'update_dat', datStep: datStep, status })),
   });
 
   if (!resp.ok) {
@@ -231,7 +256,7 @@ export async function updateOet(testId, oetStep, status) {
   const resp = await fetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'update_oet', ['oet_step']: oetStep, status }),
+    body: JSON.stringify(objectToSnakeCase({ action: 'update_oet', oetStep: oetStep, status })),
   });
 
   if (!resp.ok) {

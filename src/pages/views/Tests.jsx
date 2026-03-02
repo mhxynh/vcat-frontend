@@ -54,7 +54,7 @@ function normalizeText(v) {
   return String(v ?? '').toLowerCase();
 }
 
-export default function Tests() {
+export default function Tests({ refreshKey = 0 }) {
   const [search, setSearch] = useState('');
   const [tests, setTests] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -103,7 +103,7 @@ export default function Tests() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();
