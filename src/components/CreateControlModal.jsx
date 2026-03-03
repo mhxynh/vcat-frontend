@@ -54,7 +54,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
     if (Object.keys(errs).length) {
       setFieldErrors(errs);
-      setError('Please fix the highlighted fields.');
       return;
     }
 
