@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/components/CreateTestModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
@@ -15,20 +15,18 @@ function flagsFromTestType(v) {
 export default function CreateTestModal({ isOpen, onClose, onCreated }) {
   const [controls, setControls] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [testers, setTesters] = useState([]);
 
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState('');
-
-  const [selectedControlId, setSelectedControlId] = useState('');
+  const [selectedVgcpid, setSelectedVgcpid] = useState('');
   const [selectedRequestId, setSelectedRequestId] = useState('');
   const [selectedTesterId, setSelectedTesterId] = useState('');
-
   const [testType, setTestType] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [etaDate, setEtaDate] = useState('');
   const [description, setDescription] = useState('');
 
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -37,7 +35,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
     setLoadError('');
     setSubmitError('');
-    setSelectedControlId('');
+    setSelectedVgcpid('');
     setSelectedRequestId('');
     setSelectedTesterId('');
     setTestType('');
@@ -50,78 +48,62 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     };
     window.addEventListener('keydown', onKeyDown);
 
-    (async () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const [c, r, u] = await Promise.all([
+        const [rawControls, rawRequests, rawUsers] = await Promise.all([
           fetchControls(),
           fetchRequests(),
           fetchUsers({ isActive: true }),
         ]);
-        setControls(Array.isArray(c) ? c : []);
-        setRequests(Array.isArray(r) ? r : []);
-        setUsers(Array.isArray(u) ? u : []);
+
+        // Sanitize Controls
+        const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
+          .map((c) => ({
+            id: Number(c.id || c.control_id || c.controlId),
+            vgcpid: c.vgcpid,
+          }))
+          .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
+          .sort((a, b) => a.vgcpid.localeCompare(b.vgcpid));
+
+        // Sanitize Requests
+        const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
+          .map((r) => ({
+            id: Number(r.id || r.request_id || r.requestId),
+            label: `REQ-${String(r.id || r.request_id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
+          }))
+          .filter((r) => !Number.isNaN(r.id))
+          .sort((a, b) => b.id - a.id);
+
+        // Sanitize Users/Testers
+        const cleanTesters = (Array.isArray(rawUsers) ? rawUsers : [])
+          .map((u) => ({
+            id: Number(u.id || u.user_id || u.userId),
+            name: u.displayName || u.email || `User ${u.id || u.userId}`,
+          }))
+          .filter((u) => !Number.isNaN(u.id))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        setControls(cleanControls);
+        setRequests(cleanRequests);
+        setTesters(cleanTesters);
       } catch (e) {
         setLoadError(e?.message || 'Failed to load dropdown data.');
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    loadData();
 
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  const controlOptions = useMemo(() => {
-    return (controls || [])
-      .map((c) => ({
-        control_id: c.control_id,
-        vgcpid: c.vgcpid,
-        description: c.description,
-        is_active: c.is_active,
-      }))
-      .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
-  }, [controls]);
-
-  const requestOptions = useMemo(() => {
-    return (requests || [])
-      .map((r) => ({
-        request_id: r.request_id,
-        requestor: r.requestor,
-        due_date: r.due_date,
-        priority: r.priority,
-        status: r.status,
-      }))
-      .sort((a, b) => Number(b.request_id) - Number(a.request_id));
-  }, [requests]);
-
-  const testerOptions = useMemo(() => {
-    return (users || [])
-      .map((u) => ({
-        user_id: u.user_id,
-        display_name: u.display_name ?? u.email ?? `User ${u.user_id}`,
-        is_active: u.is_active,
-      }))
-      .sort((a, b) => String(a.display_name).localeCompare(String(b.display_name)));
-  }, [users]);
-
-  const selectedControl = useMemo(() => {
-    if (!selectedControlId) return null;
-    const idNum = Number(selectedControlId);
-    return (controls || []).find((c) => Number(c.control_id) === idNum) || null;
-  }, [controls, selectedControlId]);
-
-  const selectedVgcpid = selectedControl?.vgcpid ?? '';
-
-  if (!isOpen) return null;
-
-  const handleOverlayMouseDown = (e) => {
-    if (e.target === e.currentTarget) onClose?.();
-  };
-
   const handleSubmit = async () => {
     setSubmitError('');
 
-    if (!selectedControlId) return setSubmitError('VGCPID is required.');
+    // Strict Validation
+    if (!selectedVgcpid) return setSubmitError('VGCPID is required.');
     if (!selectedRequestId) return setSubmitError('Link to Request is required.');
     if (!testType) return setSubmitError('Test Type is required.');
     if (!dueDate) return setSubmitError('Due Date is required.');
@@ -129,14 +111,19 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     if (!description.trim()) return setSubmitError('Description is required.');
 
     const flags = flagsFromTestType(testType);
-    if (!flags.requires_dat && !flags.requires_oet) return setSubmitError('Invalid Test Type.');
+    if (!flags.requiresDat && !flags.requiresOet) return setSubmitError('Invalid Test Type.');
+
+    // Find the mapped Control ID based on the chosen VGCPID
+    const matchingControl = controls.find((c) => c.vgcpid === selectedVgcpid);
+    if (!matchingControl) return setSubmitError('Invalid VGCPID selection.');
 
     const payload = {
       vgcpid: selectedVgcpid,
-      request_id: Number(selectedRequestId),
+      controlId: matchingControl.id,
+      requestId: Number(selectedRequestId),
       ...flags,
-      due_date: dueDate,
-      description: description.trim(),
+      dueDate: dueDate,
+      description: description.trim() || ' ',
     };
 
     if (etaDate) payload.estimated_date = etaDate;
@@ -154,8 +141,14 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="ctm-overlay" onMouseDown={handleOverlayMouseDown} role="presentation">
+    <div
+      className="ctm-overlay"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
+      role="presentation"
+    >
       <div className="ctm-modal" role="dialog" aria-modal="true" aria-label="Create Control Test">
         <div className="ctm-header">
           <h2 className="ctm-title">Create Control Test</h2>
@@ -165,7 +158,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
         </div>
 
         <div className="ctm-body">
-          {loadError ? <div className="ctm-error">{loadError}</div> : null}
+          {loadError && <div className="ctm-error">{loadError}</div>}
 
           <div className="ctm-grid">
             <div className="ctm-field">
@@ -175,15 +168,15 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
               <select
                 id="vgcpid"
                 className="ctm-select"
-                value={selectedControlId}
-                onChange={(e) => setSelectedControlId(e.target.value)}
+                value={selectedVgcpid}
+                onChange={(e) => setSelectedVgcpid(e.target.value)}
                 disabled={loading || !!loadError}
               >
                 <option value="" disabled>
-                  {loading ? 'Loading controls...' : 'Select VGCPID'}
+                  {loading ? 'Loading...' : 'Select VGCPID'}
                 </option>
-                {controlOptions.map((c) => (
-                  <option key={c.control_id} value={String(c.control_id)}>
+                {controls.map((c) => (
+                  <option key={`ctrl-${c.id}`} value={c.vgcpid}>
                     {c.vgcpid}
                   </option>
                 ))}
@@ -202,13 +195,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 disabled={loading || !!loadError}
               >
                 <option value="" disabled>
-                  {loading ? 'Loading requests...' : 'Select request'}
+                  {loading ? 'Loading...' : 'Select request'}
                 </option>
-                {requestOptions.map((r) => (
-                  <option key={r.request_id} value={String(r.request_id)}>
-                    {`REQ-${String(r.request_id).padStart(4, '0')} • ${r.requestor ?? '-'} • ${
-                      r.priority ?? '-'
-                    } • ${r.due_date ?? '-'}`}
+                {requests.map((r) => (
+                  <option key={`req-${r.id}`} value={String(r.id)}>
+                    {r.label}
                   </option>
                 ))}
               </select>
@@ -226,9 +217,9 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 disabled={loading || !!loadError}
               >
                 <option value="">Unassigned</option>
-                {testerOptions.map((u) => (
-                  <option key={u.user_id} value={String(u.user_id)}>
-                    {u.display_name}
+                {testers.map((t) => (
+                  <option key={`tester-${t.id}`} value={String(t.id)}>
+                    {t.name}
                   </option>
                 ))}
               </select>
@@ -296,11 +287,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
               />
             </div>
 
-            {submitError ? (
+            {submitError && (
               <div className="ctm-field ctm-field--full">
                 <div className="ctm-error">{submitError}</div>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
 
