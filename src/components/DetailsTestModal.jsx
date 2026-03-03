@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
+import EditTestModal from './EditTestModal';
 import {
   archiveTest,
   hardDeleteTest,
@@ -11,13 +12,29 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 
-export default function DetailsTestModal({ isOpen, onClose, test, onArchived, onDeleted, onEdit }) {
+export default function DetailsTestModal({
+  isOpen,
+  onClose,
+  test,
+  onArchived,
+  onDeleted,
+  onEdit,
+  onUpdated,
+}) {
   const [activeTab, setActiveTab] = useState('Details');
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState([]);
   const [localTest, setLocalTest] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
   const [busyMessage, setBusyMessage] = useState('Updating...');
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const openEdit = () => setIsEditOpen(true);
+  const closeEdit = () => setIsEditOpen(false);
+
+  useEffect(() => {
+    if (!isOpen) setIsEditOpen(false);
+  }, [isOpen]);
 
   async function runBusy(message, fn) {
     setBusyMessage(message || 'Updating...');
@@ -57,7 +74,7 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
 
   const stop = (e) => e.stopPropagation();
 
-  const t = localTest ?? test ?? {};
+  const t = useMemo(() => localTest ?? test ?? {}, [localTest, test]);
 
   const { currentStepLabel, nextStepLabel } = useMemo(() => computeStepLabels(t), [t]);
 
@@ -399,220 +416,234 @@ export default function DetailsTestModal({ isOpen, onClose, test, onArchived, on
   const primaryLabel = getPrimaryActionLabel(t);
 
   return (
-    <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
-      <div className="dtm-modal" onMouseDown={stop}>
-        {isBusy ? (
-          <div className="dtm-busy-overlay" role="status" aria-live="polite">
-            <div className="dtm-busy-card">
-              <div className="dtm-spinner" aria-hidden="true" />
-              <div className="dtm-busy-text">{busyMessage}</div>
+    <>
+      <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
+        <div className="dtm-modal" onMouseDown={stop}>
+          {isBusy ? (
+            <div className="dtm-busy-overlay" role="status" aria-live="polite">
+              <div className="dtm-busy-card">
+                <div className="dtm-spinner" aria-hidden="true" />
+                <div className="dtm-busy-text">{busyMessage}</div>
+              </div>
             </div>
-          </div>
-        ) : null}
-        <section className="dtm-header">
-          <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
-          <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
-            ×
-          </button>
-        </section>
+          ) : null}
+          <section className="dtm-header">
+            <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
+            <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
+              ×
+            </button>
+          </section>
 
-        <div className="dtm-divider" />
+          <div className="dtm-divider" />
 
-        <section className="dtm-status">
-          <div className="dtm-status-top">
-            <div className="dtm-status-left">
-              <span className={`badge badge--${statusToBadgeType(status)}`}>
-                {statusToLabel(status)}
-              </span>
-              <span className="dtm-dot">•</span>
-              <span className="dtm-subtle">{typeLabel}</span>
-            </div>
+          <section className="dtm-status">
+            <div className="dtm-status-top">
+              <div className="dtm-status-left">
+                <span className={`badge badge--${statusToBadgeType(status)}`}>
+                  {statusToLabel(status)}
+                </span>
+                <span className="dtm-dot">•</span>
+                <span className="dtm-subtle">{typeLabel}</span>
+              </div>
 
-            <div className="dtm-assignee">
-              <div className="dtm-assignee-label">Assigned To</div>
-              <div className="dtm-assignee-row">
-                <div className="dtm-avatar" aria-hidden="true">
-                  {initials(assignedName)}
+              <div className="dtm-assignee">
+                <div className="dtm-assignee-label">Assigned To</div>
+                <div className="dtm-assignee-row">
+                  <div className="dtm-avatar" aria-hidden="true">
+                    {initials(assignedName)}
+                  </div>
+                  <div className="dtm-assignee-name">{assignedName}</div>
                 </div>
-                <div className="dtm-assignee-name">{assignedName}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="dtm-step-card">
-            <div className="dtm-step-left">
-              <div className="dtm-step-icon" aria-hidden="true">
-                ▶
-              </div>
-              <div>
-                <div className="dtm-step-label">CURRENT STEP</div>
-                <div className="dtm-step-value">{currentStepLabel}</div>
               </div>
             </div>
 
-            <div className="dtm-step-actions-left">
-              {showRevert ? (
-                <button
-                  className="dtm-btn dtm-btn--outline"
-                  type="button"
-                  onClick={handleRevert}
-                  disabled={isBusy}
-                >
-                  Revert
-                </button>
-              ) : null}
+            <div className="dtm-step-card">
+              <div className="dtm-step-left">
+                <div className="dtm-step-icon" aria-hidden="true">
+                  ▶
+                </div>
+                <div>
+                  <div className="dtm-step-label">CURRENT STEP</div>
+                  <div className="dtm-step-value">{currentStepLabel}</div>
+                </div>
+              </div>
 
-              {showReject ? (
-                <button
-                  className="dtm-btn dtm-btn--danger"
-                  type="button"
-                  onClick={handleReject}
-                  disabled={isBusy}
-                >
-                  Reject
-                </button>
-              ) : null}
+              <div className="dtm-step-actions-left">
+                {showRevert ? (
+                  <button
+                    className="dtm-btn dtm-btn--outline"
+                    type="button"
+                    onClick={handleRevert}
+                    disabled={isBusy}
+                  >
+                    Revert
+                  </button>
+                ) : null}
+
+                {showReject ? (
+                  <button
+                    className="dtm-btn dtm-btn--danger"
+                    type="button"
+                    onClick={handleReject}
+                    disabled={isBusy}
+                  >
+                    Reject
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="dtm-step-mid" aria-hidden="true">
+                →
+              </div>
+
+              <div className="dtm-step-right">
+                {primaryLabel ? (
+                  <button
+                    className="dtm-btn dtm-btn--primary"
+                    type="button"
+                    onClick={handlePrimaryAction}
+                    disabled={isBusy}
+                  >
+                    {primaryLabel}
+                  </button>
+                ) : null}
+
+                <span className="dtm-next">
+                  <span className="dtm-next-label">Next:</span> {nextStepLabel}
+                </span>
+              </div>
             </div>
+          </section>
 
-            <div className="dtm-step-mid" aria-hidden="true">
-              →
-            </div>
+          <div className="dtm-divider" />
 
-            <div className="dtm-step-right">
-              {primaryLabel ? (
-                <button
-                  className="dtm-btn dtm-btn--primary"
-                  type="button"
-                  onClick={handlePrimaryAction}
-                  disabled={isBusy}
-                >
-                  {primaryLabel}
-                </button>
-              ) : null}
-
-              <span className="dtm-next">
-                <span className="dtm-next-label">Next:</span> {nextStepLabel}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <div className="dtm-divider" />
-
-        <section className="dtm-tabs">
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'Details' ? 'dtm-tab--active' : ''}`}
-            onClick={() => setActiveTab('Details')}
-          >
-            Details
-          </button>
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
-            onClick={() => setActiveTab('Attachments')}
-          >
-            Attachments
-          </button>
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
-            onClick={() => setActiveTab('Comments')}
-          >
-            Comments
-          </button>
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'History' ? 'dtm-tab--active' : ''}`}
-            onClick={() => setActiveTab('History')}
-          >
-            History
-          </button>
-        </section>
-
-        <section className="dtm-body">
-          {activeTab === 'Details' ? (
-            <>
-              <div className="dtm-details-grid">
-                <DetailItem label="DATE UPDATED" value={updatedAt} />
-                <DetailItem label="DUE DATE" value={dueDate} />
-                <DetailItem label="CURRENT STEP" value={currentStepLabel} />
-                <DetailItem label="ETA" value={etaDate} />
-              </div>
-
-              <div className="dtm-divider dtm-divider--soft" />
-
-              <div className="dtm-desc">
-                <div className="dtm-section-title">Test Description</div>
-                <div className="dtm-desc-text">{description}</div>
-              </div>
-            </>
-          ) : activeTab === 'Comments' ? (
-            <>
-              <div className="dtm-empty">
-                {localComments.length === 0 ? 'No comments found.' : null}
-              </div>
-
-              <div className="dtm-addcomment">
-                <input
-                  className="dtm-comment-input"
-                  placeholder="Write a comment…"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddComment();
-                  }}
-                />
-                <button
-                  className="dtm-send"
-                  type="button"
-                  onClick={handleAddComment}
-                  aria-label="Send"
-                >
-                  ➤
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="dtm-empty">This view is not implemented yet.</div>
-          )}
-        </section>
-
-        <div className="dtm-divider" />
-
-        <section className="dtm-footer">
-          <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
-            Close
-          </button>
-
-          <div className="dtm-footer-right">
+          <section className="dtm-tabs">
             <button
-              className="dtm-btn dtm-btn--danger"
               type="button"
-              onClick={handleDelete}
-              disabled={isBusy}
+              className={`dtm-tab ${activeTab === 'Details' ? 'dtm-tab--active' : ''}`}
+              onClick={() => setActiveTab('Details')}
             >
-              Delete Control Test
+              Details
             </button>
             <button
-              className="dtm-btn dtm-btn--outline"
               type="button"
-              onClick={handleArchive}
-              disabled={isBusy}
+              className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
+              onClick={() => setActiveTab('Attachments')}
             >
-              Archive Control Test
+              Attachments
             </button>
             <button
-              className="dtm-btn dtm-btn--primary"
               type="button"
-              onClick={() => (onEdit ? onEdit(t) : alert('Edit (TODO)'))}
+              className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
+              onClick={() => setActiveTab('Comments')}
             >
-              Edit Control Test
+              Comments
             </button>
-          </div>
-        </section>
+            <button
+              type="button"
+              className={`dtm-tab ${activeTab === 'History' ? 'dtm-tab--active' : ''}`}
+              onClick={() => setActiveTab('History')}
+            >
+              History
+            </button>
+          </section>
+
+          <section className="dtm-body">
+            {activeTab === 'Details' ? (
+              <>
+                <div className="dtm-details-grid">
+                  <DetailItem label="DATE UPDATED" value={updatedAt} />
+                  <DetailItem label="DUE DATE" value={dueDate} />
+                  <DetailItem label="CURRENT STEP" value={currentStepLabel} />
+                  <DetailItem label="ETA" value={etaDate} />
+                </div>
+
+                <div className="dtm-divider dtm-divider--soft" />
+
+                <div className="dtm-desc">
+                  <div className="dtm-section-title">Test Description</div>
+                  <div className="dtm-desc-text">{description}</div>
+                </div>
+              </>
+            ) : activeTab === 'Comments' ? (
+              <>
+                <div className="dtm-empty">
+                  {localComments.length === 0 ? 'No comments found.' : null}
+                </div>
+
+                <div className="dtm-addcomment">
+                  <input
+                    className="dtm-comment-input"
+                    placeholder="Write a comment…"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleAddComment();
+                    }}
+                  />
+                  <button
+                    className="dtm-send"
+                    type="button"
+                    onClick={handleAddComment}
+                    aria-label="Send"
+                  >
+                    ➤
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="dtm-empty">This view is not implemented yet.</div>
+            )}
+          </section>
+
+          <div className="dtm-divider" />
+
+          <section className="dtm-footer">
+            <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
+              Close
+            </button>
+
+            <div className="dtm-footer-right">
+              <button
+                className="dtm-btn dtm-btn--danger"
+                type="button"
+                onClick={handleDelete}
+                disabled={isBusy}
+              >
+                Delete Control Test
+              </button>
+              <button
+                className="dtm-btn dtm-btn--outline"
+                type="button"
+                onClick={handleArchive}
+                disabled={isBusy}
+              >
+                Archive Control Test
+              </button>
+              <button
+                className="dtm-btn dtm-btn--primary"
+                type="button"
+                onClick={openEdit}
+                disabled={!testId}
+              >
+                Edit Control Test
+              </button>
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
+
+      <EditTestModal
+        isOpen={isEditOpen}
+        onClose={closeEdit}
+        test={t}
+        onUpdated={async () => {
+          closeEdit();
+          onClose?.();
+          window.location.reload();
+        }}
+      />
+    </>
   );
 }
 
