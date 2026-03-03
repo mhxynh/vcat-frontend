@@ -67,7 +67,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
     if (Object.keys(errs).length) {
       setFieldErrors(errs);
-      setError('Please fix the highlighted fields.');
       return;
     }
 
@@ -174,7 +173,9 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 onChange={(e) => setDescription(e.target.value)}
                 aria-invalid={fieldErrors.description ? 'true' : 'false'}
               />
-              {fieldErrors.description ? <div className="field-error">{fieldErrors.description}</div> : null}
+              {fieldErrors.description ? (
+                <div className="field-error">{fieldErrors.description}</div>
+              ) : null}
             </div>
 
             <div className="ecm-field">
@@ -185,7 +186,9 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 onChange={(e) => setControlOwner(e.target.value)}
                 aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
               />
-              {fieldErrors.controlOwner ? <div className="field-error">{fieldErrors.controlOwner}</div> : null}
+              {fieldErrors.controlOwner ? (
+                <div className="field-error">{fieldErrors.controlOwner}</div>
+              ) : null}
             </div>
 
             <div className="ecm-field">

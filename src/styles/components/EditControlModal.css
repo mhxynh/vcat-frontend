@@ -92,8 +92,8 @@
 }
 
 /* invalid field styling */
-.ecm-input[aria-invalid="true"],
-.ecm-textarea[aria-invalid="true"] {
+.ecm-input[aria-invalid='true'],
+.ecm-textarea[aria-invalid='true'] {
   border-color: #d9534f;
   box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.06);
 }
