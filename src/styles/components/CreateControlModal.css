@@ -85,6 +85,29 @@
   border-color: #bbb;
 }
 
+/* invalid field styling */
+.form-input[aria-invalid="true"],
+.form-textarea[aria-invalid="true"] {
+  border-color: #d9534f;
+  box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.06);
+}
+
+.field-error {
+  color: #d9534f;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* radio group invalid */
+.radio-row.invalid {
+  display: inline-flex;
+  outline: 1px solid #d9534f;
+  padding: 4px 8px;
+  border-radius: 6px;
+  width: auto;
+  align-self: flex-start;
+}
+
 .form-textarea {
   height: 160px;
   resize: none;

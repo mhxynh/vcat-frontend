@@ -135,7 +135,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 onChange={(e) => setInitialStatus(e.target.value)}
               >
                 <option value="active">Active</option>
-                <option value="draft">Draft</option>
               </select>
             </div>
 
@@ -186,7 +185,11 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 Escalation Required? <span aria-hidden="true">*</span>
               </label>
 
-              <div className="radio-row" role="radiogroup" aria-label="Escalation Required">
+              <div
+                className={`radio-row ${fieldErrors.escalation ? 'invalid' : ''}`}
+                role="radiogroup"
+                aria-label="Escalation Required"
+              >
                 <label className="radio-item">
                   <input
                     type="radio"
