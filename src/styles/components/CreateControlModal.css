@@ -86,8 +86,8 @@
 }
 
 /* invalid field styling */
-.form-input[aria-invalid="true"],
-.form-textarea[aria-invalid="true"] {
+.form-input[aria-invalid='true'],
+.form-textarea[aria-invalid='true'] {
   border-color: #d9534f;
   box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.06);
 }
