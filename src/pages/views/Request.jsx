@@ -1,9 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../../styles/pages/views/Request.css';
 import { fetchRequests, mapRequestRowToUi } from '../../api/RequestsAPI';
-import { fetchTestsByRequestId, mapTestRowToRequestControlCard } from '../../api/TestsAPI';
+import {
+  fetchTestsByRequestId,
+  mapTestRowToRequestControlCard,
+  updateTest,
+} from '../../api/TestsAPI';
 import DetailsRequestModal from '../../components/DetailsRequestModal';
+import AssignRequestModal from '../../components/AssignRequestModal';
 import '../../styles/components/DetailsRequestModal.css';
+import '../../styles/components/AssignRequestModal.css';
 
 export default function Requests() {
   const [search, setSearch] = useState('');
@@ -17,6 +23,8 @@ export default function Requests() {
 
   const [isRequestDetailsOpen, setIsRequestDetailsOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -26,6 +34,63 @@ export default function Requests() {
   function closeRequestDetails() {
     setIsRequestDetailsOpen(false);
     setSelectedRequest(null);
+  }
+
+  function openAssignModal(req) {
+    setSelectedAssignRequest(req);
+    setIsAssignOpen(true);
+  }
+
+  function closeAssignModal() {
+    setIsAssignOpen(false);
+    setSelectedAssignRequest(null);
+  }
+
+  async function handleAssign(requestId, userId, displayName, note) {
+    if (!requestId) return;
+
+    // optimistic UI update: update testsByRequestId so UI reflects new assignee
+    setTestsByRequestId((prev) => {
+      const next = { ...prev };
+      const bucket = next[requestId];
+      if (!bucket || !Array.isArray(bucket.items)) return prev;
+
+      next[requestId] = {
+        ...bucket,
+        items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+      };
+      return next;
+    });
+
+    try {
+      // fetch raw tests for this request so we have test IDs
+      const raw = await fetchTestsByRequestId(requestId, { details: true });
+      if (!Array.isArray(raw)) return;
+
+      await Promise.all(
+        raw.map(async (t) => {
+          const id = t?.test_id ?? t?.id ?? t?.testId ?? null;
+          if (id == null) return;
+
+          // backend expects an action + assigned_tester_id in the body
+          await updateTest(id, {
+            action: 'assign',
+            assignedTesterId: String(userId),
+          });
+        })
+      );
+    } catch (e) {
+      // on error, revert UI and set an error marker
+      setTestsByRequestId((prev) => {
+        const next = { ...prev };
+        const bucket = next[requestId];
+        if (!bucket || !Array.isArray(bucket.items)) return prev;
+
+        // mark error on bucket
+        next[requestId] = { ...bucket, error: e?.message || 'Failed to assign testers' };
+        return next;
+      });
+    }
   }
 
   async function preloadAllTests(requestList) {
@@ -223,7 +288,7 @@ export default function Requests() {
                       <button className="btn-outline" onClick={() => openRequestDetails(req)}>
                         Details
                       </button>
-                      <button className="btn-outline" onClick={() => alert('Assign (TODO)')}>
+                      <button className="btn-outline" onClick={() => openAssignModal(req)}>
                         Assign
                       </button>
 
@@ -330,6 +395,12 @@ export default function Requests() {
           });
           setIsRequestDetailsOpen(false);
         }}
+      />
+      <AssignRequestModal
+        isOpen={isAssignOpen}
+        onClose={closeAssignModal}
+        request={selectedAssignRequest}
+        onAssign={(requestId, assignee, note) => handleAssign(requestId, assignee, note)}
       />
     </div>
   );
