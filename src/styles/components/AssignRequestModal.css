@@ -1,0 +1,108 @@
+.arm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.arm-modal {
+  width: 780px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.arm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.arm-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.arm-divider {
+  height: 1px;
+  background: #eaeaea;
+}
+
+.arm-bulk {
+  padding: 18px 24px;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  color: #1c398e;
+  display: flex;
+  flex-direction: column;
+}
+.arm-bulk-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.arm-bulk-icon {
+  width: 28px;
+  height: 28px;
+}
+.arm-bulk-title {
+  font-weight: 700;
+}
+.arm-bulk-desc {
+  font-size: 14px;
+}
+
+.arm-form {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.arm-label {
+  font-size: 13px;
+  color: #333;
+}
+.arm-select {
+  height: 36px;
+  padding: 6px 8px;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+}
+.arm-textarea {
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.arm-footer {
+  padding: 12px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+}
+.arm-btn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.arm-btn-ghost {
+  background: #fff;
+  border: 1px solid #eaeaea;
+}
+.arm-btn-primary {
+  background: #96151d;
+  color: #fff;
+  border: none;
+}

@@ -147,6 +147,48 @@ function formatShortDate(value) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+export async function createTest(payload) {
+  const resp = await fetch(`${API_BASE}/tests`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(objectToSnakeCase(payload)),
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to create test (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json();
+}
+
+export async function updateTest(testId, payload) {
+  if (testId == null) throw new Error('Test ID is required');
+
+  const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
+
+  const resp = await fetch(url.toString(), {
+    method: 'PUT',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(objectToSnakeCase(payload)),
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to update test (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json().catch(() => ({}));
+}
+
 export async function startTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
@@ -272,23 +314,4 @@ export async function fetchTestById(testId) {
   }
 
   return await resp.json().catch(() => ({}));
-}
-
-export async function updateTest(testId, updates) {
-  if (testId == null) throw new Error('Test ID is required');
-
-  const resp = await fetch(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ action: 'update', ...updates }),
-  });
-
-  const data = await resp.json().catch(() => null);
-
-  if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to update test (HTTP ${resp.status})`;
-    throw new Error(msg);
-  }
-
-  return data;
 }
