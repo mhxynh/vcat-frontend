@@ -13,7 +13,6 @@ function todayIso() {
 const DUMMY_CURRENT_USER_ID = 1;
 
 export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
-  // 1. Form State
   const [priority, setPriority] = useState('');
   const [requestedBy, setRequestedBy] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -22,12 +21,10 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
   const [requestDate, setRequestDate] = useState(todayIso());
   const currentYear = new Date().getFullYear();
 
-  // 2. UI State
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // 3. Reset Form on Open
   useEffect(() => {
     if (!isOpen) return;
 
@@ -47,13 +44,11 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  // 4. Submit Handler
   const handleSubmit = async (e) => {
     e?.preventDefault();
     setError('');
     setFieldErrors({});
 
-    // Field-level Validation
     const errs = {};
     if (!priority) errs.priority = 'Priority is required.';
     if (!requestedBy.trim()) errs.requestedBy = 'Requested By is required.';
