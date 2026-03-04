@@ -27,6 +27,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,6 +42,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
     setError('');
     setSubmitting(false);
+    setFieldErrors({});
   }, [isOpen, initial]);
 
   useEffect(() => {
@@ -56,19 +58,20 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
   async function handleSave() {
     setError('');
+    setFieldErrors({});
 
-    if (!vgcpid.trim() || !description.trim() || !controlOwner.trim() || !controlSme.trim()) {
-      setError('Please fill in Control ID, Description, Control Owner, and Control SME.');
+    const errs = {};
+    if (!vgcpid.trim()) errs.vgcpid = 'Control ID is required.';
+    if (!description.trim()) errs.description = 'Description is required.';
+    if (!controlOwner.trim()) errs.controlOwner = 'Control Owner is required.';
+
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
       return;
     }
 
-    // Backend does not support changing vgcpid via PUT right now.
+    // include vgcpid in payload to allow backend to update the ID
     const vgcpidChanged = vgcpid.trim() !== originalVgcpid.trim();
-    if (vgcpidChanged) {
-      setError(
-        'Control ID changes are not supported yet (backend uses the original ID). Saving other edits only.'
-      );
-    }
 
     setSubmitting(true);
     try {
@@ -78,15 +81,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       } else {
         // Normal updates via PUT
         const payload = {
+          vgcpid: vgcpid.trim(),
           description: description.trim(),
           controlOwner: controlOwner.trim(),
           controlSme: controlSme.trim(),
           escalation,
         };
-
-        if (controlSme !== '-') {
-          payload.controlSme = controlSme.trim();
-        }
 
         await updateControl(originalVgcpid, payload);
       }
@@ -138,7 +138,9 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 value={vgcpid}
                 onChange={(e) => setVgcpid(e.target.value)}
                 placeholder="e.g. VGCP-123456"
+                aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
               />
+              {fieldErrors.vgcpid ? <div className="field-error">{fieldErrors.vgcpid}</div> : null}
             </div>
 
             <div className="ecm-field">
@@ -148,7 +150,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
-                <option value="Draft">Draft</option>
                 <option value="Active">Active</option>
                 <option value="Retired">Retired</option>
               </select>
@@ -161,7 +162,11 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 placeholder="Enter detailed control description..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                aria-invalid={fieldErrors.description ? 'true' : 'false'}
               />
+              {fieldErrors.description ? (
+                <div className="field-error">{fieldErrors.description}</div>
+              ) : null}
             </div>
 
             <div className="ecm-field">
@@ -170,7 +175,11 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 className="ecm-input"
                 value={controlOwner}
                 onChange={(e) => setControlOwner(e.target.value)}
+                aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
               />
+              {fieldErrors.controlOwner ? (
+                <div className="field-error">{fieldErrors.controlOwner}</div>
+              ) : null}
             </div>
 
             <div className="ecm-field">

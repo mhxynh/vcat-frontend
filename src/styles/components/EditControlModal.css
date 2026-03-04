@@ -91,6 +91,19 @@
   border-color: #bbb;
 }
 
+/* invalid field styling */
+.ecm-input[aria-invalid='true'],
+.ecm-textarea[aria-invalid='true'] {
+  border-color: #d9534f;
+  box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.06);
+}
+
+.field-error {
+  color: #d9534f;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
 /* Description*/
 .ecm-textarea {
   resize: none;
