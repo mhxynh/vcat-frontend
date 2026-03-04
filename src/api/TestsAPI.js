@@ -231,6 +231,29 @@ export async function createTest(payload) {
   return await resp.json();
 }
 
+export async function updateTest(testId, payload) {
+  if (testId == null) throw new Error('Test ID is required');
+
+  const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
+
+  const resp = await fetch(url.toString(), {
+    method: 'PUT',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(objectToSnakeCase(payload)),
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to update test (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json().catch(() => ({}));
+}
+
 export async function startTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 

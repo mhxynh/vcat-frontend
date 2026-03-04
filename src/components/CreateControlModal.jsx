@@ -6,11 +6,12 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [description, setDescription] = useState('');
   const [controlOwner, setControlOwner] = useState('');
   const [controlSme, setControlSme] = useState('');
-  const [escalation, setEscalation] = useState(false);
+  const [escalation, setEscalation] = useState(null);
   const [initialStatus, setInitialStatus] = useState('active');
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (!isOpen) return;
@@ -19,13 +20,14 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setDescription('');
     setControlOwner('');
     setControlSme('');
-    setEscalation(false);
+    setEscalation(null);
 
     // FE default: Active
     setInitialStatus('active');
 
     setError('');
     setSubmitting(false);
+    setFieldErrors({});
   }, [isOpen]);
 
   useEffect(() => {
@@ -39,12 +41,19 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  async function handleCreate() {
+  async function handleCreate(e) {
+    e?.preventDefault();
     setError('');
+    setFieldErrors({});
 
-    // Mandatory: vgcpid, description, control_owner, control_sme
-    if (!vgcpid.trim() || !description.trim() || !controlOwner.trim()) {
-      setError('Please fill in Control ID, Description, Control Owner, and Escalation.');
+    const errs = {};
+    if (!vgcpid.trim()) errs.vgcpid = 'Control ID is required.';
+    if (!description.trim()) errs.description = 'Description is required.';
+    if (!controlOwner.trim()) errs.controlOwner = 'Control Owner is required.';
+    if (escalation === null) errs.escalation = 'Please select Yes or No.';
+
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
       return;
     }
 
@@ -109,8 +118,9 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 placeholder="e.g. VGCP-123456"
                 value={vgcpid}
                 onChange={(e) => setVgcpid(e.target.value)}
-                required
+                aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
               />
+              {fieldErrors.vgcpid ? <div className="field-error">{fieldErrors.vgcpid}</div> : null}
             </div>
 
             <div className="form-field">
@@ -123,7 +133,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 onChange={(e) => setInitialStatus(e.target.value)}
               >
                 <option value="active">Active</option>
-                <option value="draft">Draft</option>
               </select>
             </div>
 
@@ -136,8 +145,11 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 placeholder="Enter detailed control description..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                required
+                aria-invalid={fieldErrors.description ? 'true' : 'false'}
               />
+              {fieldErrors.description ? (
+                <div className="field-error">{fieldErrors.description}</div>
+              ) : null}
             </div>
 
             <div className="form-field">
@@ -149,8 +161,11 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 placeholder="Name"
                 value={controlOwner}
                 onChange={(e) => setControlOwner(e.target.value)}
-                required
+                aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
               />
+              {fieldErrors.controlOwner ? (
+                <div className="field-error">{fieldErrors.controlOwner}</div>
+              ) : null}
             </div>
 
             <div className="form-field">
@@ -160,7 +175,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 placeholder="Name"
                 value={controlSme}
                 onChange={(e) => setControlSme(e.target.value)}
-                required
               />
             </div>
 
@@ -169,7 +183,11 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                 Escalation Required? <span aria-hidden="true">*</span>
               </label>
 
-              <div className="radio-row" role="radiogroup" aria-label="Escalation Required">
+              <div
+                className={`radio-row ${fieldErrors.escalation ? 'invalid' : ''}`}
+                role="radiogroup"
+                aria-label="Escalation Required"
+              >
                 <label className="radio-item">
                   <input
                     type="radio"
@@ -190,6 +208,9 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
                   <span>No</span>
                 </label>
               </div>
+              {fieldErrors.escalation ? (
+                <div className="field-error">{fieldErrors.escalation}</div>
+              ) : null}
             </div>
           </div>
         </form>

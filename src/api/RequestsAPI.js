@@ -1,3 +1,4 @@
+import { objectToSnakeCase } from '../utils/transformer';
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
 
 export async function fetchRequests() {
@@ -103,4 +104,27 @@ export async function deleteRequest(requestId, { hard = false } = {}) {
   }
 
   return await resp.json().catch(() => ({}));
+}
+
+export async function createRequest(payload) {
+  const resp = await fetch(`${API_BASE}/requests`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(objectToSnakeCase(payload)),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+
+  if (!resp.ok) {
+    const msg =
+      data?.error ||
+      (Array.isArray(data?.missing) ? `Missing: ${data.missing.join(', ')}` : null) ||
+      `Failed to create request (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  return data;
 }
