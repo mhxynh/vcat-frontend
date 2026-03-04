@@ -12,7 +12,7 @@ function flagsFromTestType(v) {
   return { requiresDat: false, requiresOet: false };
 }
 
-export default function CreateTestModal({ isOpen, onClose, onCreated }) {
+export default function CreateTestModal({ isOpen, onClose, onCreated, defaultRequestId }) {
   const [controls, setControls] = useState([]);
   const [requests, setRequests] = useState([]);
   const [testers, setTesters] = useState([]);
@@ -97,7 +97,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     loadData();
 
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, defaultRequestId]);
+
+  // also ensure default request is pre-selected when the modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
+  }, [isOpen, defaultRequestId]);
 
   const handleSubmit = async () => {
     setSubmitError('');
@@ -149,7 +155,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
       onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
       role="presentation"
     >
-      <div className="ctm-modal" role="dialog" aria-modal="true" aria-label="Create Control Test">
+      <div
+        className="ctm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Create Control Test"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className="ctm-header">
           <h2 className="ctm-title">Create Control Test</h2>
           <button className="ctm-close" type="button" onClick={onClose} aria-label="Close">

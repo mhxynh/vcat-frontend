@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import '../../styles/pages/views/Request.css';
 import { fetchRequests, mapRequestRowToUi } from '../../api/RequestsAPI';
 import {
@@ -34,6 +34,7 @@ export default function Requests({ refreshKey = 0 }) {
   function closeRequestDetails() {
     setIsRequestDetailsOpen(false);
     setSelectedRequest(null);
+    refreshRequests();
   }
 
   function openAssignModal(req) {
@@ -93,7 +94,7 @@ export default function Requests({ refreshKey = 0 }) {
     }
   }
 
-  async function preloadAllTests(requestList) {
+  const preloadAllTests = useCallback(async (requestList) => {
     setTestsByRequestId((prev) => {
       const next = { ...prev };
 
@@ -133,35 +134,41 @@ export default function Requests({ refreshKey = 0 }) {
         }
       })
     );
-  }
+  }, []);
+  const refreshRequests = useCallback(async () => {
+    try {
+      const rows = await fetchRequests();
+      const ui = rows.map(mapRequestRowToUi);
+
+      setRequests(ui);
+
+      if (ui[0]?.id) setExpanded((prev) => (prev.size === 0 ? new Set([ui[0].id]) : prev));
+
+      await preloadAllTests(ui);
+    } catch (e) {
+      setError(e?.message || 'Failed to load requests');
+    }
+  }, [preloadAllTests]);
+
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await refreshRequests();
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshRequests]);
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
-        setLoading(true);
-        setError('');
-
-        const rows = await fetchRequests();
-        const ui = rows.map(mapRequestRowToUi);
-
-        if (cancelled) return;
-
-        setRequests(ui);
-
-        if (ui[0]?.id) setExpanded(new Set([ui[0].id]));
-
-        await preloadAllTests(ui);
+        await loadRequests();
       } catch (e) {
         if (!cancelled) {
           setError(e?.message || 'Failed to load requests');
-          setRequests([]);
-          setExpanded(new Set());
-          setTestsByRequestId({});
         }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     }
 
@@ -169,7 +176,7 @@ export default function Requests({ refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, refreshRequests, loadRequests]);
 
   function toggleExpand(req) {
     setExpanded((prev) => {
@@ -362,6 +369,26 @@ export default function Requests({ refreshKey = 0 }) {
         isOpen={isRequestDetailsOpen}
         onClose={closeRequestDetails}
         request={selectedRequest}
+        onUpdated={(requestId, ui, items) => {
+          if (!requestId) return;
+
+          if (ui) {
+            setRequests((prev) =>
+              prev.map((r) => (r.requestId === requestId ? { ...r, ...ui } : r))
+            );
+          }
+
+          if (Array.isArray(items)) {
+            setTestsByRequestId((prev) => ({
+              ...prev,
+              [requestId]: { loading: false, error: '', items },
+            }));
+          }
+
+          setSelectedRequest((prev) =>
+            prev && prev.requestId === requestId ? { ...prev, ...(ui || {}) } : prev
+          );
+        }}
         onArchived={(requestId) => {
           setRequests((prev) =>
             prev.map((r) =>

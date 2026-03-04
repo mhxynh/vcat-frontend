@@ -20,6 +20,51 @@ export async function fetchRequests() {
   return Array.isArray(data) ? data : [];
 }
 
+export async function fetchRequestById(requestId) {
+  if (requestId == null) throw new Error('Request ID is required');
+
+  const resp = await fetch(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to fetch request (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return await resp.json().catch(() => ({}));
+}
+
+export async function updateRequest(requestId, payload) {
+  if (requestId == null) throw new Error('Request ID is required');
+
+  const resp = await fetch(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`, {
+    method: 'PUT',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(objectToSnakeCase(payload)),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+
+  if (!resp.ok) {
+    const msg =
+      data?.error ||
+      (Array.isArray(data?.missing) ? `Missing: ${data.missing.join(', ')}` : null) ||
+      `Failed to update request (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  return data;
+}
+
 export function mapRequestRowToUi(row) {
   const startDate = row.start_date ?? null;
   const dueDate = row.due_date ?? null;

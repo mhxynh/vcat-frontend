@@ -1,11 +1,25 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
-import { deleteRequest } from '../api/RequestsAPI';
+import EditRequestModal from './EditRequestModal';
+import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
+import { fetchTestsByRequestId, mapTestRowToRequestControlCard } from '../api/TestsAPI';
 
-export default function DetailsRequestModal({ isOpen, onClose, request, onDeleted, onArchived }) {
+export default function DetailsRequestModal({
+  isOpen,
+  onClose,
+  request,
+  onUpdated,
+  onDeleted,
+  onArchived,
+}) {
   const [activeTab, setActiveTab] = useState('Comments');
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState([]);
+  const [localRequest, setLocalRequest] = useState(request || null);
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const openEdit = () => setIsEditOpen(true);
+  const closeEdit = () => setIsEditOpen(false);
 
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -25,10 +39,15 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
   }, [isOpen, onClose]);
 
   useEffect(() => {
+    if (!isOpen) setIsEditOpen(false);
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     setActiveTab('Comments');
     setCommentText('');
+    setLocalRequest(request || null);
     setLocalComments(Array.isArray(request?.comments) ? request.comments : []);
     setArchiving(false);
     setDeleting(false);
@@ -37,8 +56,8 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
   }, [isOpen, request]);
 
   const controls = useMemo(() => {
-    return Array.isArray(request?.controls) ? request.controls : [];
-  }, [request?.controls]);
+    return Array.isArray(localRequest?.controls) ? localRequest.controls : [];
+  }, [localRequest?.controls]);
 
   const progress = useMemo(() => {
     const total = controls.length;
@@ -48,17 +67,17 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
 
   if (!isOpen) return null;
 
-  const requestTitle = request?.id ?? 'Request Details';
-  const backendStatus = request?.status ?? 'NOT_STARTED';
+  const requestTitle = localRequest?.id ?? 'Request Details';
+  const backendStatus = localRequest?.status ?? 'NOT_STARTED';
   const status = localStatus ?? backendStatus;
 
-  const priority = request?.priority ?? 'MEDIUM';
-  const description = request?.description ?? 'No description.';
-  const requestedBy = request?.requestedBy ?? request?.requestor ?? '-';
-  const requestDate = request?.requestDate ?? '-';
-  const dueDate = request?.dueDate ?? '-';
+  const priority = localRequest?.priority ?? 'MEDIUM';
+  const description = localRequest?.description ?? 'No description.';
+  const requestedBy = localRequest?.requestedBy ?? localRequest?.requestor ?? '-';
+  const requestDate = localRequest?.requestDate ?? '-';
+  const dueDate = localRequest?.dueDate ?? '-';
 
-  const requestId = request?.requestId;
+  const requestId = localRequest?.requestId ?? request?.requestId;
 
   const stop = (e) => e.stopPropagation();
 
@@ -123,6 +142,34 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
       setDeleteError(e?.message || 'Failed to delete request');
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function refreshLocalRequest() {
+    const rid = requestId;
+    if (rid == null) return;
+    try {
+      const raw = await fetchRequestById(rid);
+      const ui = mapRequestRowToUi(raw);
+
+      let items = [];
+      try {
+        const rows = await fetchTestsByRequestId(rid, { details: true });
+        items = Array.isArray(rows) ? rows.map(mapTestRowToRequestControlCard) : [];
+      } catch (e) {
+        console.warn('Failed to refresh tests for request', rid, e);
+      }
+
+      setLocalRequest({ ...ui, controls: items });
+      setLocalComments(Array.isArray(ui.comments) ? ui.comments : []);
+
+      try {
+        onUpdated?.(rid, ui, items);
+      } catch (e) {
+        console.warn('Parent onUpdated handler failed', e);
+      }
+    } catch (e) {
+      console.warn('Failed to refresh request', requestId, e);
     }
   }
 
@@ -356,7 +403,8 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
               <button
                 className="drm-btn drm-btn--primary"
                 type="button"
-                onClick={() => alert('Edit (TODO)')}
+                onClick={openEdit}
+                disabled={!requestId}
               >
                 Edit Request
               </button>
@@ -366,6 +414,16 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
           {deleteError ? <div className="drm-delete-error">Error: {deleteError}</div> : null}
         </section>
       </div>
+
+      <EditRequestModal
+        isOpen={isEditOpen}
+        onClose={closeEdit}
+        requestId={requestId}
+        onUpdated={async () => {
+          await refreshLocalRequest();
+          closeEdit();
+        }}
+      />
     </div>
   );
 }

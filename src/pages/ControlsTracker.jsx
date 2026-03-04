@@ -18,6 +18,8 @@ export default function ControlsTracker() {
   const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
 
+  const [newRequestToOpen, setNewRequestToOpen] = useState(null);
+
   const renderActiveView = () => {
     switch (activeTab) {
       case 'Controls':
@@ -25,7 +27,13 @@ export default function ControlsTracker() {
       case 'Kanban':
         return <Kanban />;
       case 'Requests':
-        return <Requests refreshKey={requestsRefreshKey} />;
+        return (
+          <Requests
+            refreshKey={requestsRefreshKey}
+            newRequestToOpen={newRequestToOpen}
+            onNewRequestOpened={() => setNewRequestToOpen(null)}
+          />
+        );
       case 'Calendar':
         return <Calendar />;
       default:
@@ -90,7 +98,6 @@ export default function ControlsTracker() {
         isOpen={isCreateTestOpen}
         onClose={() => setIsCreateTestOpen(false)}
         onCreated={(created) => {
-          console.log('created test:', created);
           setControlsRefreshKey((k) => k + 1);
         }}
       />
@@ -99,9 +106,9 @@ export default function ControlsTracker() {
         isOpen={isCreateRequestOpen}
         onClose={() => setIsCreateRequestOpen(false)}
         onCreated={(created) => {
-          console.log('created request:', created);
           setIsCreateRequestOpen(false);
           setRequestsRefreshKey((k) => k + 1);
+          setNewRequestToOpen(created);
         }}
       />
     </main>

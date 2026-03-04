@@ -1,0 +1,270 @@
+.erm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.erm-modal {
+  width: 100%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.erm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.erm-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.erm-close {
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 10px;
+  color: #666;
+}
+
+.erm-close:hover {
+  color: #000;
+}
+
+.erm-body {
+  padding: 22px;
+  overflow-y: auto;
+}
+
+.erm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.erm-grid > * {
+  min-width: 0;
+}
+
+.erm-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.erm-field--full {
+  grid-column: 1 / -1;
+}
+
+.erm-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #444;
+  font-weight: 500;
+}
+
+.erm-input,
+.erm-textarea,
+.erm-select,
+.erm-search {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  color: #333;
+  font-family: inherit;
+}
+
+.erm-input:focus,
+.erm-textarea:focus,
+.erm-select:focus,
+.erm-search:focus {
+  border-color: #bbb;
+}
+
+.erm-textarea {
+  resize: none;
+  height: 140px;
+  overflow: auto;
+  line-height: 1.35;
+}
+
+.erm-input:disabled,
+.erm-select:disabled,
+.erm-textarea:disabled {
+  background: #f7f7f7;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.erm-summary-card {
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.erm-summary-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6c757d;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.erm-summary-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: #9b1c22;
+  margin: 4px 0;
+}
+
+.erm-summary-sub {
+  font-size: 13px;
+  color: #666;
+}
+
+.erm-divider {
+  height: 1px;
+  background: #eee;
+  margin: 28px 0;
+}
+
+.erm-section-title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.erm-search-row {
+  margin-bottom: 16px;
+}
+
+.erm-test-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.erm-test-item {
+  border: 1px solid #eee;
+  background: #fafafa;
+  padding: 14px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.erm-test-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.erm-test-meta {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.erm-x {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.erm-x:hover {
+  color: #d32f2f;
+}
+
+.erm-error-msg {
+  margin-top: 16px;
+  margin-bottom: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 0, 0, 0.25);
+  background: rgba(180, 0, 0, 0.06);
+  color: #7a0000;
+  font-size: 14px;
+}
+
+.erm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.erm-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.erm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.erm-btn--ghost {
+  background: #fff;
+  border-color: #ddd;
+  color: #333;
+}
+
+.erm-btn--ghost:hover:not(:disabled) {
+  background: #f7f7f7;
+  border-color: #bbb;
+}
+
+.erm-btn--primary {
+  background: #9b1c22;
+  color: #fff;
+}
+
+.erm-btn--primary:hover:not(:disabled) {
+  background: #7a161b;
+}

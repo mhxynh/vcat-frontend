@@ -70,9 +70,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       return;
     }
 
-    // include vgcpid in payload to allow backend to update the ID
-    const vgcpidChanged = vgcpid.trim() !== originalVgcpid.trim();
-
     setSubmitting(true);
     try {
       // If user selected Retired, do soft delete (sets is_active=false)
