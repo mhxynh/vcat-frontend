@@ -158,7 +158,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
-                <option value="Draft">Draft</option>
                 <option value="Active">Active</option>
                 <option value="Retired">Retired</option>
               </select>
