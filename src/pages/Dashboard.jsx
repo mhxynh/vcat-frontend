@@ -234,6 +234,10 @@ function DonutChart({ title, total, series }) {
     };
   }, [hoveredIndex, segments, cx, cy, innerR, outerR]);
 
+  const hoveredSegment = hoveredIndex !== null ? segments[hoveredIndex] : null;
+  const hoveredSegmentPercent =
+    hoveredSegment && totalValue > 0 ? Math.round((hoveredSegment.value / totalValue) * 100) : 0;
+
   return (
     <div className="dashboard-panel dashboard-panel--donut">
       <div className="dashboard-panel__title">{title}</div>
@@ -280,26 +284,29 @@ function DonutChart({ title, total, series }) {
                 <span className="dashboard-donut__label">Controls</span>
               </div>
             </foreignObject>
-            {hoveredIndex !== null && tooltipPos && (
+            {hoveredSegment && tooltipPos && (
               <g
                 className="dashboard-donut__tooltip"
                 transform={`translate(${tooltipPos.x}, ${tooltipPos.y})`}
                 style={{ pointerEvents: 'none' }}
               >
                 <rect
-                  x={-40}
-                  y={-28}
-                  width={80}
-                  height={54}
+                  x={-78}
+                  y={-36}
+                  width={156}
+                  height={68}
                   rx={8}
                   fill="#2c2c2c"
                   className="dashboard-donut__tooltip-bg"
                 />
-                <text x={0} y={-10} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={600}>
-                  {segments[hoveredIndex].value}
+                <text x={0} y={-17} textAnchor="middle" fill="#fff" fontSize={11} fontWeight={600}>
+                  {hoveredSegment.label}
                 </text>
-                <g>
-                  <rect x={-22} y={0} width={44} height={20} rx={4} fill="#9f141e" />
+                <text x={0} y={2} textAnchor="middle" fill="#fff" fontSize={16} fontWeight={700}>
+                  {hoveredSegment.value}
+                </text>
+                <g transform="translate(0, 10)">
+                  <rect x={-27} y={0} width={54} height={18} rx={4} fill={hoveredSegment.color} />
                   <text
                     x={0}
                     y={10}
@@ -309,10 +316,7 @@ function DonutChart({ title, total, series }) {
                     fontSize={12}
                     fontWeight={600}
                   >
-                    {totalValue > 0
-                      ? Math.round((segments[hoveredIndex].value / totalValue) * 100)
-                      : 0}
-                    %
+                    {hoveredSegmentPercent}%
                   </text>
                 </g>
               </g>
@@ -321,8 +325,15 @@ function DonutChart({ title, total, series }) {
         </div>
 
         <div className="dashboard-legend">
-          {series.map((item) => (
-            <div key={item.label} className="dashboard-legend__item">
+          {series.map((item, index) => (
+            <div
+              key={item.label}
+              className={`dashboard-legend__item ${
+                hoveredIndex === index ? 'dashboard-legend__item--active' : ''
+              }`}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
               <span className="dashboard-legend__swatch" style={{ backgroundColor: item.color }} />
               <span>{item.label}</span>
             </div>
