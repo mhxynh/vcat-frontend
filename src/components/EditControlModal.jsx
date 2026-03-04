@@ -70,13 +70,8 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       return;
     }
 
-    // Backend does not support changing vgcpid via PUT right now.
+    // include vgcpid in payload to allow backend to update the ID
     const vgcpidChanged = vgcpid.trim() !== originalVgcpid.trim();
-    if (vgcpidChanged) {
-      setError(
-        'Control ID changes are not supported yet (backend uses the original ID). Saving other edits only.'
-      );
-    }
 
     setSubmitting(true);
     try {
@@ -86,15 +81,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       } else {
         // Normal updates via PUT
         const payload = {
+          vgcpid: vgcpid.trim(),
           description: description.trim(),
           controlOwner: controlOwner.trim(),
           controlSme: controlSme.trim(),
           escalation,
         };
-
-        if (controlSme !== '-') {
-          payload.controlSme = controlSme.trim();
-        }
 
         await updateControl(originalVgcpid, payload);
       }
