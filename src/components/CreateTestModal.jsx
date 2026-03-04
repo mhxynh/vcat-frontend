@@ -6,10 +6,10 @@ import { fetchUsers } from '../api/UsersAPI';
 import { createTest } from '../api/TestsAPI';
 
 function flagsFromTestType(v) {
-  if (v === 'DAT Only') return { requires_dat: true, requires_oet: false };
-  if (v === 'OET Only') return { requires_dat: false, requires_oet: true };
-  if (v === 'DAT & OET') return { requires_dat: true, requires_oet: true };
-  return { requires_dat: false, requires_oet: false };
+  if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
+  if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
+  if (v === 'DAT & OET') return { requiresDat: true, requiresOet: true };
+  return { requiresDat: false, requiresOet: false };
 }
 
 export default function CreateTestModal({ isOpen, onClose, onCreated }) {
@@ -60,7 +60,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
         // Sanitize Controls
         const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
           .map((c) => ({
-            id: Number(c.id || c.control_id || c.controlId),
+            id: Number(c.id || c.controlId),
             vgcpid: c.vgcpid,
           }))
           .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
@@ -69,8 +69,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
         // Sanitize Requests
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => ({
-            id: Number(r.id || r.request_id || r.requestId),
-            label: `REQ-${String(r.id || r.request_id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
+            id: Number(r.id || r.requestId),
+            label: `REQ-${String(r.id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
           }))
           .filter((r) => !Number.isNaN(r.id))
           .sort((a, b) => b.id - a.id);
@@ -126,8 +126,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
       description: description.trim() || ' ',
     };
 
-    if (etaDate) payload.estimated_date = etaDate;
-    if (selectedTesterId) payload.assigned_tester_id = Number(selectedTesterId);
+    if (etaDate) payload.estimatedDate = etaDate;
+    if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
     try {
       setSubmitting(true);

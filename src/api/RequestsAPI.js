@@ -1,3 +1,4 @@
+import { objectToSnakeCase } from '../utils/transformer';
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
 
 export async function fetchRequests() {
@@ -112,7 +113,7 @@ export async function createRequest(payload) {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(objectToSnakeCase(payload)),
   });
 
   const data = await resp.json().catch(() => ({}));

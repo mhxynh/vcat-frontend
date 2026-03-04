@@ -50,23 +50,6 @@ export async function fetchTestsByRequestId(requestId, { details = true } = {}) 
   return Array.isArray(data) ? data : [];
 }
 
-export async function createTest(payload) {
-  const resp = await fetch(`${API_BASE}/tests`, {
-    method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await resp.json().catch(() => ({}));
-
-  if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to create test (HTTP ${resp.status})`;
-    throw new Error(msg);
-  }
-
-  return data;
-}
-
 export async function deleteTest(testId, { hard = false } = {}) {
   if (testId == null) throw new Error('Test ID is required');
 
