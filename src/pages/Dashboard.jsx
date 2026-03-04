@@ -46,6 +46,7 @@ const SUMMARY_CARD_META = [
 ];
 
 const DISTRIBUTION_STATUS_META = [
+  { key: 'NOT_STARTED', label: 'Not Started' },
   { key: 'TESTING_READY', label: 'Testing Ready' },
   { key: 'WALKTHROUGH_SCHEDULED', label: 'Walkthrough Scheduled' },
   { key: 'WALKTHROUGH_COMPLETED', label: 'Walkthrough Completed' },
@@ -58,6 +59,7 @@ const DISTRIBUTION_STATUS_META = [
 const OET_EXCLUDED_STATUS_KEYS = new Set(['WALKTHROUGH_SCHEDULED', 'WALKTHROUGH_COMPLETED']);
 
 const STATUS_DISTRIBUTION_COLORS = {
+  NOT_STARTED: '#E5E7EB',
   TESTING_READY: '#7A0F16',
   WALKTHROUGH_SCHEDULED: '#932029',
   WALKTHROUGH_COMPLETED: '#AD343C',
@@ -93,13 +95,22 @@ function statusBucketFromStep(stepValue, allowedStatusKeys) {
   if (allowedStatusKeys.has(step)) {
     return step;
   }
-  return null;
+  return allowedStatusKeys.has('NOT_STARTED') ? 'NOT_STARTED' : null;
 }
 
 const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];
 
 function supportsTestType(control, type) {
-  return (control.testType || '').toUpperCase().includes(type);
+  const requiresDat = Boolean(control.requires_dat ?? control.requiresDat);
+  const requiresOet = Boolean(control.requires_oet ?? control.requiresOet);
+
+  if (type === 'DAT') {
+    return requiresDat || (control.testType || '').toUpperCase().includes('DAT');
+  }
+  if (type === 'OET') {
+    return requiresOet || (control.testType || '').toUpperCase().includes('OET');
+  }
+  return false;
 }
 
 function buildDistributionForType(controls, type) {
