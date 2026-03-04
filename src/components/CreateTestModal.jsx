@@ -60,7 +60,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
         // Sanitize Controls
         const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
           .map((c) => ({
-            id: Number(c.id || c.control_id || c.controlId),
+            id: Number(c.id || c.controlId),
             vgcpid: c.vgcpid,
           }))
           .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
@@ -69,8 +69,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
         // Sanitize Requests
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => ({
-            id: Number(r.id || r.request_id || r.requestId),
-            label: `REQ-${String(r.id || r.request_id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
+            id: Number(r.id || r.requestId),
+            label: `REQ-${String(r.id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
           }))
           .filter((r) => !Number.isNaN(r.id))
           .sort((a, b) => b.id - a.id);
@@ -107,6 +107,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     if (!selectedRequestId) return setSubmitError('Link to Request is required.');
     if (!testType) return setSubmitError('Test Type is required.');
     if (!dueDate) return setSubmitError('Due Date is required.');
+    if (!selectedVgcpid) return setSubmitError('VGCPID is required.');
+    if (!description.trim()) return setSubmitError('Description is required.');
 
     const flags = flagsFromTestType(testType);
     if (!flags.requiresDat && !flags.requiresOet) return setSubmitError('Invalid Test Type.');

@@ -5,14 +5,18 @@ import Requests from './views/Request';
 import Kanban from './views/Kanban';
 import Calendar from './views/Calendar';
 import CreateTestModal from '../components/CreateTestModal';
+import CreateRequestModal from '../components/CreateRequestModal';
 import '../styles/pages/views/Tests.css';
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
+  const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
+
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
 
-  const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
+  const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
+  const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -21,7 +25,7 @@ export default function ControlsTracker() {
       case 'Kanban':
         return <Kanban />;
       case 'Requests':
-        return <Requests />;
+        return <Requests refreshKey={requestsRefreshKey} />;
       case 'Calendar':
         return <Calendar />;
       default:
@@ -31,6 +35,7 @@ export default function ControlsTracker() {
 
   const handleRefreshClick = () => {
     if (activeTab === 'Controls') setControlsRefreshKey((k) => k + 1);
+    if (activeTab === 'Requests') setRequestsRefreshKey((k) => k + 1);
   };
 
   return (
@@ -42,7 +47,7 @@ export default function ControlsTracker() {
             <button className="btn btn--white" type="button">
               Export
             </button>
-            <button className="btn btn--blue" type="button">
+            <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
               Refresh
             </button>
           </>
@@ -61,13 +66,19 @@ export default function ControlsTracker() {
             </button>
           ))}
         </div>
+
         {activeTab === 'Controls' && (
           <button className="btn btn--new" type="button" onClick={() => setIsCreateTestOpen(true)}>
             + Add Control Test
           </button>
         )}
+
         {activeTab === 'Requests' && (
-          <button className="btn btn--new" type="button">
+          <button
+            className="btn btn--new"
+            type="button"
+            onClick={() => setIsCreateRequestOpen(true)}
+          >
             + Add Request
           </button>
         )}
@@ -81,6 +92,16 @@ export default function ControlsTracker() {
         onCreated={(created) => {
           console.log('created test:', created);
           setControlsRefreshKey((k) => k + 1);
+        }}
+      />
+
+      <CreateRequestModal
+        isOpen={isCreateRequestOpen}
+        onClose={() => setIsCreateRequestOpen(false)}
+        onCreated={(created) => {
+          console.log('created request:', created);
+          setIsCreateRequestOpen(false);
+          setRequestsRefreshKey((k) => k + 1);
         }}
       />
     </main>

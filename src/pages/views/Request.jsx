@@ -11,7 +11,7 @@ import AssignRequestModal from '../../components/AssignRequestModal';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
-export default function Requests() {
+export default function Requests({ refreshKey = 0 }) {
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState(() => new Set());
   const [requests, setRequests] = useState([]);
@@ -169,7 +169,7 @@ export default function Requests() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   function toggleExpand(req) {
     setExpanded((prev) => {
