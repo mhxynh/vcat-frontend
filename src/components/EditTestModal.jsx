@@ -132,14 +132,14 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     const payload = {
       action: 'update_details',
       vgcpid: selectedVgcpid,
-      request_id: Number(selectedRequestId),
+      requestId: Number(selectedRequestId),
       ...flags,
-      due_date: dueDate,
+      dueDate: dueDate,
       description: description.trim() || ' ',
     };
 
-    if (etaDate) payload.estimated_date = etaDate;
-    if (selectedTesterId) payload.assigned_tester_id = Number(selectedTesterId);
+    if (etaDate) payload.estimatedDate = etaDate;
+    if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
     try {
       setSubmitting(true);
