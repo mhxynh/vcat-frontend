@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
-import { controlsData } from '../context/TestData';
+import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
+import DetailsTestModal from '../components/DetailsTestModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
 import { ReactComponent as CubeIcon } from '../assets/images/dashboard-icons/cube.svg';
@@ -39,25 +40,34 @@ const ChevronRight = () => (
 const SUMMARY_CARD_META = [
   { key: 'totalControls', label: 'Total Controls', tone: 'teal', icon: 'clipboard' },
   { key: 'notStarted', label: 'Not Started', tone: 'red', icon: 'flag' },
-  { key: 'openRequests', label: 'Open Requests', tone: 'amber', icon: 'cube' },
-  { key: 'completion', label: 'Completion', tone: 'green', icon: 'medal' },
-  { key: 'blockedControls', label: 'Blocked Controls', tone: 'blue', icon: 'clock' },
+  { key: 'openRequests', label: 'Open', tone: 'amber', icon: 'cube' },
+  { key: 'completion', label: 'Completed', tone: 'green', icon: 'medal' },
+  { key: 'blockedControls', label: 'Blocked', tone: 'blue', icon: 'clock' },
 ];
 
 const DISTRIBUTION_STATUS_META = [
-  { key: 'notStarted', label: 'Not Started' },
-  { key: 'walkthroughScheduled', label: 'Walkthrough Scheduled' },
-  { key: 'walkthroughCompleted', label: 'Walkthrough Completed' },
-  { key: 'testingInProgress', label: 'Testing In Progress' },
-  { key: 'testingCompleted', label: 'Testing Completed' },
+  { key: 'NOT_STARTED', label: 'Not Started' },
+  { key: 'TESTING_READY', label: 'Testing Ready' },
+  { key: 'WALKTHROUGH_SCHEDULED', label: 'Walkthrough Scheduled' },
+  { key: 'WALKTHROUGH_COMPLETED', label: 'Walkthrough Completed' },
+  { key: 'TESTING_IN_PROGRESS', label: 'Testing In Progress' },
+  { key: 'ADDRESSING_COMMENTS', label: 'Addressing Comments' },
+  { key: 'COMPLETED', label: 'Completed' },
+  { key: 'TESTING_BLOCKED', label: 'Testing Blocked' },
+  { key: 'TESTING_CANCELED', label: 'Testing Canceled' },
 ];
+const OET_EXCLUDED_STATUS_KEYS = new Set(['WALKTHROUGH_SCHEDULED', 'WALKTHROUGH_COMPLETED']);
 
 const STATUS_DISTRIBUTION_COLORS = {
-  notStarted: '#D22730',
-  walkthroughScheduled: '#DD5D64',
-  walkthroughCompleted: '#E99398',
-  testingInProgress: '#F4C9CB',
-  testingCompleted: '#FBE9EA',
+  NOT_STARTED: '#E5E7EB',
+  TESTING_READY: '#7A0F16',
+  WALKTHROUGH_SCHEDULED: '#932029',
+  WALKTHROUGH_COMPLETED: '#AD343C',
+  TESTING_IN_PROGRESS: '#C64D55',
+  ADDRESSING_COMMENTS: '#D96D74',
+  COMPLETED: '#E89499',
+  TESTING_BLOCKED: '#F2BCC0',
+  TESTING_CANCELED: '#6B7280',
 };
 
 const WEEKDAY_LABELS = [
@@ -80,47 +90,47 @@ function toInitials(name) {
     .join('');
 }
 
-const STATUS_BUCKET_RULES = [
-  {
-    check: (step) => step.includes('addressing comments'),
-    value: 'testingInProgress',
-  },
-  { check: (_, statusType) => statusType === 'completed', value: 'walkthroughCompleted' },
-  { check: (step) => step === 'complete', value: 'walkthroughCompleted' },
-  { check: (_, statusType) => statusType === 'not-started', value: 'notStarted' },
-  { check: (step) => step === 'not started', value: 'notStarted' },
-  { check: (_, statusType) => statusType === 'in-review', value: 'walkthroughScheduled' },
-  {
-    check: (_, statusType) => statusType === 'in-progress' || statusType === 'blocked',
-    value: 'testingCompleted',
-  },
-];
-
-function statusBucketFromControl(control) {
-  const step = (control.step || '').toLowerCase();
-  const statusType = (control.statusType || '').toLowerCase();
-
-  const rule = STATUS_BUCKET_RULES.find((r) => r.check(step, statusType));
-  return rule ? rule.value : 'testingCompleted';
+function statusBucketFromStep(stepValue, allowedStatusKeys) {
+  const step = (stepValue || '').toUpperCase();
+  if (allowedStatusKeys.has(step)) {
+    return step;
+  }
+  return allowedStatusKeys.has('NOT_STARTED') ? 'NOT_STARTED' : null;
 }
 
 const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];
 
 function supportsTestType(control, type) {
-  return (control.testType || '').toUpperCase().includes(type);
+  const requiresDat = Boolean(control.requires_dat ?? control.requiresDat);
+  const requiresOet = Boolean(control.requires_oet ?? control.requiresOet);
+
+  if (type === 'DAT') {
+    return requiresDat || (control.testType || '').toUpperCase().includes('DAT');
+  }
+  if (type === 'OET') {
+    return requiresOet || (control.testType || '').toUpperCase().includes('OET');
+  }
+  return false;
 }
 
 function buildDistributionForType(controls, type) {
-  const counts = Object.fromEntries(DISTRIBUTION_STATUS_META.map((meta) => [meta.key, 0]));
+  const statusMetaForType =
+    type === 'OET'
+      ? DISTRIBUTION_STATUS_META.filter((meta) => !OET_EXCLUDED_STATUS_KEYS.has(meta.key))
+      : DISTRIBUTION_STATUS_META;
+  const allowedStatusKeys = new Set(statusMetaForType.map((meta) => meta.key));
+  const counts = Object.fromEntries(statusMetaForType.map((meta) => [meta.key, 0]));
 
   controls
     .filter((control) => supportsTestType(control, type))
     .forEach((control) => {
-      const bucket = statusBucketFromControl(control);
+      const stepForType = type === 'DAT' ? control.datStep : control.oetStep;
+      const bucket = statusBucketFromStep(stepForType, allowedStatusKeys);
+      if (!bucket) return;
       counts[bucket] += 1;
     });
 
-  return DISTRIBUTION_STATUS_META.map((statusMeta) => ({
+  return statusMetaForType.map((statusMeta) => ({
     label: statusMeta.label,
     value: counts[statusMeta.key],
     color: STATUS_DISTRIBUTION_COLORS[statusMeta.key],
@@ -174,11 +184,11 @@ function InfoTooltipIcon({ tooltip }) {
   );
 }
 
-function formatCapacityProgress(completedTests, assignedTests) {
-  const progressPercent = assignedTests ? (completedTests / assignedTests) * 100 : 0;
+function formatCapacityProgress(inProgressTests, assignedTests) {
+  const progressPercent = assignedTests ? (inProgressTests / assignedTests) * 100 : 0;
   return {
     progressPercent,
-    progressLabel: `${progressPercent.toFixed(1)}% (${completedTests}/${assignedTests})`,
+    progressLabel: `${progressPercent.toFixed(1)}% (${inProgressTests}/${assignedTests})`,
   };
 }
 
@@ -235,6 +245,10 @@ function DonutChart({ title, total, series }) {
     };
   }, [hoveredIndex, segments, cx, cy, innerR, outerR]);
 
+  const hoveredSegment = hoveredIndex !== null ? segments[hoveredIndex] : null;
+  const hoveredSegmentPercent =
+    hoveredSegment && totalValue > 0 ? Math.round((hoveredSegment.value / totalValue) * 100) : 0;
+
   return (
     <div className="dashboard-panel dashboard-panel--donut">
       <div className="dashboard-panel__title">{title}</div>
@@ -281,26 +295,29 @@ function DonutChart({ title, total, series }) {
                 <span className="dashboard-donut__label">Controls</span>
               </div>
             </foreignObject>
-            {hoveredIndex !== null && tooltipPos && (
+            {hoveredSegment && tooltipPos && (
               <g
                 className="dashboard-donut__tooltip"
                 transform={`translate(${tooltipPos.x}, ${tooltipPos.y})`}
                 style={{ pointerEvents: 'none' }}
               >
                 <rect
-                  x={-40}
-                  y={-28}
-                  width={80}
-                  height={54}
+                  x={-78}
+                  y={-36}
+                  width={156}
+                  height={68}
                   rx={8}
                   fill="#2c2c2c"
                   className="dashboard-donut__tooltip-bg"
                 />
-                <text x={0} y={-10} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={600}>
-                  {segments[hoveredIndex].value}
+                <text x={0} y={-17} textAnchor="middle" fill="#fff" fontSize={11} fontWeight={600}>
+                  {hoveredSegment.label}
                 </text>
-                <g>
-                  <rect x={-22} y={0} width={44} height={20} rx={4} fill="#9f141e" />
+                <text x={0} y={2} textAnchor="middle" fill="#fff" fontSize={16} fontWeight={700}>
+                  {hoveredSegment.value}
+                </text>
+                <g transform="translate(0, 10)">
+                  <rect x={-27} y={0} width={54} height={18} rx={4} fill={hoveredSegment.color} />
                   <text
                     x={0}
                     y={10}
@@ -310,10 +327,7 @@ function DonutChart({ title, total, series }) {
                     fontSize={12}
                     fontWeight={600}
                   >
-                    {totalValue > 0
-                      ? Math.round((segments[hoveredIndex].value / totalValue) * 100)
-                      : 0}
-                    %
+                    {hoveredSegmentPercent}%
                   </text>
                 </g>
               </g>
@@ -322,8 +336,15 @@ function DonutChart({ title, total, series }) {
         </div>
 
         <div className="dashboard-legend">
-          {series.map((item) => (
-            <div key={item.label} className="dashboard-legend__item">
+          {series.map((item, index) => (
+            <div
+              key={item.label}
+              className={`dashboard-legend__item ${
+                hoveredIndex === index ? 'dashboard-legend__item--active' : ''
+              }`}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
               <span className="dashboard-legend__swatch" style={{ backgroundColor: item.color }} />
               <span>{item.label}</span>
             </div>
@@ -335,7 +356,11 @@ function DonutChart({ title, total, series }) {
 }
 
 export default function Dashboard() {
-  const controls = controlsData;
+  const [controls, setControls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
@@ -384,9 +409,25 @@ export default function Dashboard() {
     return formatLastUpdated(lastUpdatedAt);
   }, [lastUpdatedAt]);
 
-  const refreshDashboard = () => {
-    setLastUpdatedAt(new Date());
-  };
+  const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
+
+    try {
+      const testRows = await fetchTests();
+      setControls(testRows.map(mapTestRowToDashboardRow));
+      setLastUpdatedAt(new Date());
+    } catch (error) {
+      setLoadError(error?.message || 'Failed to load dashboard data');
+      setControls([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const summaryCards = useMemo(() => {
     const valuesByKey = {
@@ -400,7 +441,7 @@ export default function Dashboard() {
     return SUMMARY_CARD_META.map((cardMeta) => ({
       ...cardMeta,
       value: valuesByKey[cardMeta.key] ?? 0,
-      delta: '',
+      delta: '~',
     }));
   }, [controls]);
 
@@ -421,7 +462,7 @@ export default function Dashboard() {
     const updatesForDay = updatesByDateKey.get(selectedDateKey) ?? [];
 
     if (!updatesForDay.length) {
-      return [{ id: '—', description: 'No VGCP updates for this date.' }];
+      return [{ id: '—', vgcpid: null, description: 'No VGCP updates for this date.' }];
     }
 
     return updatesForDay
@@ -429,17 +470,40 @@ export default function Dashboard() {
       .sort((left, right) => (left.vgcpid || '').localeCompare(right.vgcpid || ''))
       .map((control) => ({
         id: control.vgcpid,
+        vgcpid: control.vgcpid,
         description: `${control.tester || 'Unassigned'} • ${control.step || 'Pending update'}`,
       }));
   }, [centerProgressDate, updatesByDateKey]);
 
+  const testsByVgcpid = useMemo(() => {
+    return controls.reduce((accumulator, test) => {
+      if (!test?.vgcpid) return accumulator;
+      accumulator.set(test.vgcpid, test);
+      return accumulator;
+    }, new Map());
+  }, [controls]);
+
+  const openTestDetailsByVgcpid = useCallback(
+    (vgcpid) => {
+      if (!vgcpid) return;
+      const test = testsByVgcpid.get(vgcpid);
+      if (!test) return;
+      setSelectedTest(test);
+      setIsTestDetailsOpen(true);
+    },
+    [testsByVgcpid]
+  );
+
   const teamCapacity = useMemo(() => {
     const byTester = controls.reduce((accumulator, control) => {
       const testerName = control.tester || 'Unassigned';
-      const current = accumulator.get(testerName) || { assigned: 0, completed: 0 };
+      if (testerName === 'Unassigned') {
+        return accumulator;
+      }
+      const current = accumulator.get(testerName) || { assigned: 0, inProgress: 0 };
       current.assigned += 1;
-      if (control.statusType === 'completed') {
-        current.completed += 1;
+      if (control.statusType === 'in-progress') {
+        current.inProgress += 1;
       }
       accumulator.set(testerName, current);
       return accumulator;
@@ -447,14 +511,14 @@ export default function Dashboard() {
 
     return Array.from(byTester.entries()).map(([name, counts], index) => {
       const { progressPercent, progressLabel } = formatCapacityProgress(
-        counts.completed,
+        counts.inProgress,
         counts.assigned
       );
       return {
         initials: toInitials(name),
         name,
         assignedTests: counts.assigned,
-        completedTests: counts.completed,
+        inProgressTests: counts.inProgress,
         progress: progressPercent,
         progressLabel,
         color: getTeamColor(index),
@@ -462,26 +526,46 @@ export default function Dashboard() {
     });
   }, [controls]);
 
+  const header = (
+    <PageHeader
+      title={
+        <div className="dashboard-header-title">
+          <span>Overview Dashboard</span>
+          <InfoTooltipIcon tooltip={`Last Updated ${lastUpdatedLabel}`} />
+        </div>
+      }
+      actions={
+        <>
+          <button className="btn btn--white" type="button">
+            Export
+          </button>
+          <button
+            className="btn btn--blue"
+            type="button"
+            onClick={loadDashboardData}
+            disabled={loading}
+          >
+            Refresh
+          </button>
+        </>
+      }
+    />
+  );
+
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        {header}
+        <div className="no-results">Loading controls...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-page">
-      <PageHeader
-        title={
-          <div className="dashboard-header-title">
-            <span>Overview Dashboard</span>
-            <InfoTooltipIcon tooltip={`Last Updated ${lastUpdatedLabel}`} />
-          </div>
-        }
-        actions={
-          <>
-            <button className="btn btn--white" type="button">
-              Export
-            </button>
-            <button className="btn btn--blue" type="button" onClick={refreshDashboard}>
-              Refresh
-            </button>
-          </>
-        }
-      />
+      {header}
+
+      {loadError ? <div className="dashboard-panel">Error: {loadError}</div> : null}
 
       <section className="dashboard-summary-grid" aria-label="Dashboard summary cards">
         {summaryCards.map((card) => (
@@ -565,7 +649,20 @@ export default function Dashboard() {
             <div className="dashboard-progress-list" key={dateKey(centerProgressDate)}>
               {progressItems.map((item) => (
                 <div key={`${item.id}-${item.description}`} className="dashboard-progress-item">
-                  <span className="dashboard-progress-item__code">{item.id}</span>
+                  <button
+                    type="button"
+                    className="dashboard-progress-item__code"
+                    onClick={() => openTestDetailsByVgcpid(item.vgcpid)}
+                    disabled={!item.vgcpid || !testsByVgcpid.has(item.vgcpid)}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                      cursor: item.vgcpid ? 'pointer' : 'default',
+                    }}
+                  >
+                    {item.id}
+                  </button>
                   <span className="dashboard-progress-item__text">{item.description}</span>
                 </div>
               ))}
@@ -604,6 +701,32 @@ export default function Dashboard() {
           </article>
         </div>
       </section>
+
+      <DetailsTestModal
+        isOpen={isTestDetailsOpen}
+        onClose={() => {
+          setIsTestDetailsOpen(false);
+          setSelectedTest(null);
+        }}
+        test={selectedTest}
+        onArchived={(testId) => {
+          setControls((prev) => prev.filter((test) => test.test_id !== testId));
+        }}
+        onDeleted={(testId) => {
+          setControls((prev) => prev.filter((test) => test.test_id !== testId));
+        }}
+        onEdit={(updatedTest) => {
+          if (!updatedTest?.test_id) return;
+          setControls((prev) =>
+            prev.map((test) =>
+              test?.test_id === updatedTest.test_id ? mapTestRowToDashboardRow(updatedTest) : test
+            )
+          );
+          setSelectedTest((prev) =>
+            prev?.test_id === updatedTest.test_id ? mapTestRowToDashboardRow(updatedTest) : prev
+          );
+        }}
+      />
     </div>
   );
 }
