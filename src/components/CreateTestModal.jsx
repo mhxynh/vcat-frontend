@@ -59,20 +59,32 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
         // Sanitize Controls
         const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
-          .map((c) => ({
-            id: Number(c.id || c.controlId),
-            vgcpid: c.vgcpid,
-          }))
-          .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
-          .sort((a, b) => a.vgcpid.localeCompare(b.vgcpid));
+          .map((c) => {
+            const id = Number(c.id ?? c.controlId ?? c.control_id ?? c.ControlID ?? c.control_id);
+            const vgcpid =
+              c.vgcpid ??
+              c.vgcpId ??
+              c.vgcp_id ??
+              c.VGCPID ??
+              (Number.isFinite(id) ? `CONTROL-${id}` : 'UNKNOWN');
+            return { id, vgcpid };
+          })
+          .filter((c) => Number.isFinite(c.id))
+          .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
 
         // Sanitize Requests
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
-          .map((r) => ({
-            id: Number(r.id || r.requestId),
-            label: `REQ-${String(r.id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
-          }))
-          .filter((r) => !Number.isNaN(r.id))
+          .map((r) => {
+            const id = Number(r.id ?? r.requestId ?? r.request_id ?? r.RequestId);
+            const rid = id;
+            const requester = r.requestor ?? r.requester ?? r.requestedBy ?? '-';
+            const due = r.dueDate ?? r.due_date ?? '-';
+            return {
+              id: rid,
+              label: `REQ-${String(rid).padStart(4, '0')} • ${requester} • ${due}`,
+            };
+          })
+          .filter((r) => Number.isFinite(r.id))
           .sort((a, b) => b.id - a.id);
 
         // Sanitize Users/Testers
@@ -86,6 +98,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
         setControls(cleanControls);
         setRequests(cleanRequests);
+        // If a defaultRequestId was provided, preselect it after requests are loaded
+        if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
         setTesters(cleanTesters);
       } catch (e) {
         setLoadError(e?.message || 'Failed to load dropdown data.');
