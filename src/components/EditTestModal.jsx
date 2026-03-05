@@ -13,23 +13,41 @@ function flagsFromTestType(v) {
 }
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
-  const originalTestId = test?.testId ?? '';
+  const originalTestId = test?.testId ?? test?.test_id ?? '';
 
   const initial = useMemo(() => {
     let testType = '';
     if (test) {
-      if (test.requiresDat && test.requiresOet) testType = 'DAT & OET';
-      else if (test.requiresDat) testType = 'DAT Only';
-      else if (test.requiresOet) testType = 'OET Only';
+      const requiresDat = test?.requiresDat ?? test?.requires_dat;
+      const requiresOet = test?.requiresOet ?? test?.requires_oet;
+
+      if (requiresDat && requiresOet) testType = 'DAT & OET';
+      else if (requiresDat) testType = 'DAT Only';
+      else if (requiresOet) testType = 'OET Only';
     }
 
     return {
-      selectedControlId: test?.controlId != null ? String(test.controlId) : '',
-      selectedRequestId: test?.requestId != null ? String(test.requestId) : '',
-      selectedTesterId: test?.assignedTesterId != null ? String(test.assignedTesterId) : '',
+      selectedControlId:
+        test?.controlId != null
+          ? String(test.controlId)
+          : test?.control_id != null
+            ? String(test.control_id)
+            : '',
+      selectedRequestId:
+        test?.requestId != null
+          ? String(test.requestId)
+          : test?.request_id != null
+            ? String(test.request_id)
+            : '',
+      selectedTesterId:
+        test?.assignedTesterId != null
+          ? String(test.assignedTesterId)
+          : test?.assigned_tester_id != null
+            ? String(test.assigned_tester_id)
+            : '',
       testType,
-      dueDate: test?.dueDate || '',
-      etaDate: test?.estimatedDate || '',
+      dueDate: test?.dueDate || test?.due_date || '',
+      etaDate: test?.estimatedDate || test?.estimated_date || '',
       description: test?.description ?? '',
     };
   }, [test]);
@@ -92,21 +110,29 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   const controlOptions = useMemo(() => {
     return controls
-      .map((c) => ({ controlId: c.controlId, vgcpid: c.vgcpid, description: c.description }))
+      .map((c) => ({
+        controlId: c.controlId ?? c.control_id,
+        vgcpid: c.vgcpid,
+        description: c.description,
+      }))
       .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
   }, [controls]);
 
   const requestOptions = useMemo(() => {
     return requests
-      .map((r) => ({ requestId: r.requestId, requestor: r.requestor, dueDate: r.dueDate }))
+      .map((r) => ({
+        requestId: r.requestId ?? r.request_id,
+        requestor: r.requestor,
+        dueDate: r.dueDate ?? r.due_date,
+      }))
       .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
 
   const testerOptions = useMemo(() => {
     return users
       .map((u) => ({
-        userId: u.userId,
-        displayName: u.displayName ?? u.email ?? `User ${u.userId}`,
+        userId: u.userId ?? u.user_id,
+        displayName: u.displayName ?? u.display_name ?? u.email ?? `User ${u.userId ?? u.user_id}`,
       }))
       .sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
   }, [users]);
@@ -114,7 +140,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const selectedControl = useMemo(() => {
     if (!selectedControlId) return null;
     const idNum = Number(selectedControlId);
-    return controls.find((c) => Number(c.controlId) === idNum) || null;
+    return controls.find((c) => Number(c.controlId ?? c.control_id) === idNum) || null;
   }, [controls, selectedControlId]);
 
   const selectedVgcpid = selectedControl?.vgcpid ?? '';
@@ -195,7 +221,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                   Select VGCPID
                 </option>
                 {controlOptions.map((c) => (
-                  <option key={c.control_id} value={String(c.control_id)}>
+                  <option key={c.controlId} value={String(c.controlId)}>
                     {c.vgcpid}
                   </option>
                 ))}
@@ -214,9 +240,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                 </option>
                 {requestOptions.map((r) => (
                   <option
-                    key={r.request_id}
-                    value={String(r.request_id)}
-                  >{`REQ-${String(r.request_id).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.due_date ?? '-'}`}</option>
+                    key={r.requestId}
+                    value={String(r.requestId)}
+                  >{`REQ-${String(r.requestId).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.dueDate ?? '-'}`}</option>
                 ))}
               </select>
             </div>
@@ -230,8 +256,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
               >
                 <option value="">Unassigned</option>
                 {testerOptions.map((u) => (
-                  <option key={u.user_id} value={String(u.user_id)}>
-                    {u.display_name}
+                  <option key={u.userId} value={String(u.userId)}>
+                    {u.displayName}
                   </option>
                 ))}
               </select>
