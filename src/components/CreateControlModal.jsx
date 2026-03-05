@@ -60,7 +60,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setSubmitting(true);
     try {
       const isActive = initialStatus === 'active';
-
       await createControl({
         vgcpid: vgcpid.trim(),
         description: description.trim(),
