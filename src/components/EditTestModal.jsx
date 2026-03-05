@@ -130,6 +130,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     if (!selectedRequestId) return setError('Link to Request is required.');
     if (!testType) return setError('Test Type is required.');
     if (!dueDate) return setError('Due Date is required.');
+    if (!description.trim()) return setError('Description is required.');
 
     const flags = flagsFromTestType(testType);
 
@@ -189,7 +190,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
           <div className="ctm-grid">
             <div className="ctm-field">
-              <label className="ctm-label">VGCPID *</label>
+              <label className="ctm-label">
+                VGCPID <span className="ctm-req">*</span>{' '}
+              </label>
               <select
                 className="ctm-select"
                 value={selectedControlId}
@@ -207,7 +210,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             </div>
 
             <div className="ctm-field">
-              <label className="ctm-label">Link to Request *</label>
+              <label className="ctm-label">
+                Link to Request <span className="ctm-req">*</span>
+              </label>
               <select
                 className="ctm-select"
                 value={selectedRequestId}
@@ -242,7 +247,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             </div>
 
             <div className="ctm-field">
-              <label className="ctm-label">Test Type *</label>
+              <label className="ctm-label">
+                Test Type <span className="ctm-req">*</span>
+              </label>
               <select
                 className="ctm-select"
                 value={testType}
@@ -258,7 +265,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             </div>
 
             <div className="ctm-field">
-              <label className="ctm-label">Due Date *</label>
+              <label className="ctm-label">
+                Due Date <span className="ctm-req">*</span>
+              </label>
               <input
                 className="ctm-input"
                 type="date"
@@ -278,7 +287,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             </div>
 
             <div className="ctm-field ctm-field--full">
-              <label className="ctm-label">Description</label>
+              <label className="ctm-label">
+                Description <span className="ctm-req">*</span>{' '}
+              </label>
               <textarea
                 className="ctm-textarea"
                 value={description}

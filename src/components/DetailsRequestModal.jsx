@@ -51,6 +51,7 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
   const requestTitle = request?.id ?? 'Request Details';
   const backendStatus = request?.status ?? 'NOT_STARTED';
   const status = localStatus ?? backendStatus;
+  const isCompleted = String(status || '').toUpperCase() === 'COMPLETED';
 
   const priority = request?.priority ?? 'MEDIUM';
   const description = request?.description ?? 'No description.';
@@ -335,8 +336,14 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
                 className="drm-btn drm-btn--outline"
                 type="button"
                 onClick={handleArchiveRequest}
-                disabled={archiving || deleting || requestId == null}
-                title={requestId == null ? 'No request selected' : 'Archive this request'}
+                disabled={archiving || deleting || requestId == null || isCompleted}
+                title={
+                  requestId == null
+                    ? 'No request selected'
+                    : isCompleted
+                      ? 'Cannot archive a completed request'
+                      : 'Archive this request'
+                }
               >
                 {archiving ? 'Archiving…' : 'Archive Request'}
               </button>
@@ -345,9 +352,13 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
                 className="drm-btn drm-btn--outline"
                 type="button"
                 onClick={handleHardDeleteRequest}
-                disabled={deleting || archiving || requestId == null}
+                disabled={deleting || archiving || requestId == null || isCompleted}
                 title={
-                  requestId == null ? 'No request selected' : 'Permanently delete this request'
+                  requestId == null
+                    ? 'No request selected'
+                    : isCompleted
+                      ? 'Cannot delete a completed request'
+                      : 'Permanently delete this request'
                 }
               >
                 {deleting ? 'Deleting…' : 'Delete Request'}

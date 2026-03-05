@@ -362,6 +362,26 @@
   background: #f4f4f4;
 }
 
+.drm-btn:disabled,
+.drm-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.35);
+}
+
+.drm-btn--outline:disabled,
+.drm-btn--outline[disabled] {
+  background: #f3f3f3;
+  border-color: #d6d6d6;
+  color: #8a8a8a;
+}
+
+.drm-btn--outline:disabled:hover,
+.drm-btn--primary:disabled:hover,
+.drm-btn--ghost:disabled:hover {
+  background: inherit;
+}
+
 .drm-btn--ghost {
   background: #fff;
   border-color: #e6e6e6;
