@@ -6,10 +6,10 @@ import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 
 function flagsFromTestType(v) {
-  if (v === 'DAT Only') return { requires_dat: true, requires_oet: false };
-  if (v === 'OET Only') return { requires_dat: false, requires_oet: true };
-  if (v === 'DAT & OET') return { requires_dat: true, requires_oet: true };
-  return { requires_dat: false, requires_oet: false };
+  if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
+  if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
+  if (v === 'DAT & OET') return { requiresDat: true, requiresOet: true };
+  return { requiresDat: false, requiresOet: false };
 }
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
@@ -92,23 +92,27 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   const controlOptions = useMemo(() => {
     return controls
-      .map((c) => ({ control_id: c.control_id, vgcpid: c.vgcpid, description: c.description }))
+      .map((c) => ({ controlId: c.control_id, vgcpid: c.vgcpid, description: c.description }))
       .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
   }, [controls]);
 
   const requestOptions = useMemo(() => {
     return requests
-      .map((r) => ({ request_id: r.request_id, requestor: r.requestor, due_date: r.due_date }))
-      .sort((a, b) => Number(b.request_id) - Number(a.request_id));
+      .map((r) => ({
+        requestId: r.request_id,
+        requestor: r.requestor,
+        dueDate: r.due_date,
+      }))
+      .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
 
   const testerOptions = useMemo(() => {
     return users
       .map((u) => ({
-        user_id: u.user_id,
-        display_name: u.display_name ?? u.email ?? `User ${u.user_id}`,
+        userId: u.user_id,
+        displayName: u.display_name ?? u.email ?? `User ${u.user_id}`,
       }))
-      .sort((a, b) => String(a.display_name).localeCompare(String(b.display_name)));
+      .sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
   }, [users]);
 
   const selectedControl = useMemo(() => {
@@ -132,14 +136,14 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     const payload = {
       action: 'update_details',
       vgcpid: selectedVgcpid,
-      request_id: Number(selectedRequestId),
+      requestId: Number(selectedRequestId),
       ...flags,
-      due_date: dueDate,
+      dueDate: dueDate,
       description: description.trim() || ' ',
     };
 
-    if (etaDate) payload.estimated_date = etaDate;
-    if (selectedTesterId) payload.assigned_tester_id = Number(selectedTesterId);
+    if (etaDate) payload.estimatedDate = etaDate;
+    if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
     try {
       setSubmitting(true);
@@ -195,7 +199,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                   Select VGCPID
                 </option>
                 {controlOptions.map((c) => (
-                  <option key={c.control_id} value={String(c.control_id)}>
+                  <option key={c.controlId} value={String(c.controlId)}>
                     {c.vgcpid}
                   </option>
                 ))}
@@ -214,9 +218,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                 </option>
                 {requestOptions.map((r) => (
                   <option
-                    key={r.request_id}
-                    value={String(r.request_id)}
-                  >{`REQ-${String(r.request_id).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.due_date ?? '-'}`}</option>
+                    key={r.requestId}
+                    value={String(r.requestId)}
+                  >{`REQ-${String(r.requestId).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.dueDate ?? '-'}`}</option>
                 ))}
               </select>
             </div>
@@ -230,8 +234,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
               >
                 <option value="">Unassigned</option>
                 {testerOptions.map((u) => (
-                  <option key={u.user_id} value={String(u.user_id)}>
-                    {u.display_name}
+                  <option key={u.userId} value={String(u.userId)}>
+                    {u.displayName}
                   </option>
                 ))}
               </select>
