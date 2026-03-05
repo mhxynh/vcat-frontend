@@ -13,41 +13,23 @@ function flagsFromTestType(v) {
 }
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
-  const originalTestId = test?.testId ?? test?.test_id ?? '';
+  const originalTestId = test?.test_id ?? '';
 
   const initial = useMemo(() => {
     let testType = '';
     if (test) {
-      const requiresDat = test?.requiresDat ?? test?.requires_dat;
-      const requiresOet = test?.requiresOet ?? test?.requires_oet;
-
-      if (requiresDat && requiresOet) testType = 'DAT & OET';
-      else if (requiresDat) testType = 'DAT Only';
-      else if (requiresOet) testType = 'OET Only';
+      if (test.requires_dat && test.requires_oet) testType = 'DAT & OET';
+      else if (test.requires_dat) testType = 'DAT Only';
+      else if (test.requires_oet) testType = 'OET Only';
     }
 
     return {
-      selectedControlId:
-        test?.controlId != null
-          ? String(test.controlId)
-          : test?.control_id != null
-            ? String(test.control_id)
-            : '',
-      selectedRequestId:
-        test?.requestId != null
-          ? String(test.requestId)
-          : test?.request_id != null
-            ? String(test.request_id)
-            : '',
-      selectedTesterId:
-        test?.assignedTesterId != null
-          ? String(test.assignedTesterId)
-          : test?.assigned_tester_id != null
-            ? String(test.assigned_tester_id)
-            : '',
+      selectedControlId: test?.control_id != null ? String(test.control_id) : '',
+      selectedRequestId: test?.request_id != null ? String(test.request_id) : '',
+      selectedTesterId: test?.assigned_tester_id != null ? String(test.assigned_tester_id) : '',
       testType,
-      dueDate: test?.dueDate || test?.due_date || '',
-      etaDate: test?.estimatedDate || test?.estimated_date || '',
+      dueDate: test?.due_date || '',
+      etaDate: test?.estimated_date || '',
       description: test?.description ?? '',
     };
   }, [test]);
@@ -110,20 +92,16 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   const controlOptions = useMemo(() => {
     return controls
-      .map((c) => ({
-        controlId: c.controlId ?? c.control_id,
-        vgcpid: c.vgcpid,
-        description: c.description,
-      }))
+      .map((c) => ({ controlId: c.control_id, vgcpid: c.vgcpid, description: c.description }))
       .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
   }, [controls]);
 
   const requestOptions = useMemo(() => {
     return requests
       .map((r) => ({
-        requestId: r.requestId ?? r.request_id,
+        requestId: r.request_id,
         requestor: r.requestor,
-        dueDate: r.dueDate ?? r.due_date,
+        dueDate: r.due_date,
       }))
       .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
@@ -131,8 +109,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const testerOptions = useMemo(() => {
     return users
       .map((u) => ({
-        userId: u.userId ?? u.user_id,
-        displayName: u.displayName ?? u.display_name ?? u.email ?? `User ${u.userId ?? u.user_id}`,
+        userId: u.user_id,
+        displayName: u.display_name ?? u.email ?? `User ${u.user_id}`,
       }))
       .sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
   }, [users]);
@@ -140,7 +118,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const selectedControl = useMemo(() => {
     if (!selectedControlId) return null;
     const idNum = Number(selectedControlId);
-    return controls.find((c) => Number(c.controlId ?? c.control_id) === idNum) || null;
+    return controls.find((c) => Number(c.control_id) === idNum) || null;
   }, [controls, selectedControlId]);
 
   const selectedVgcpid = selectedControl?.vgcpid ?? '';
