@@ -448,6 +448,15 @@ export default function Dashboard() {
   const oetDistribution = useMemo(() => buildDistributionForType(controls, 'OET'), [controls]);
   const datDistribution = useMemo(() => buildDistributionForType(controls, 'DAT'), [controls]);
 
+  const datDistributionDisplay = useMemo(
+    () => datDistribution.filter((s) => s.value > 0),
+    [datDistribution]
+  );
+  const oetDistributionDisplay = useMemo(
+    () => oetDistribution.filter((s) => s.value > 0),
+    [oetDistribution]
+  );
+
   const oetTotal = useMemo(
     () => oetDistribution.reduce((sum, item) => sum + item.value, 0),
     [oetDistribution]
@@ -590,8 +599,8 @@ export default function Dashboard() {
 
       <section className="dashboard-main-grid">
         <div className="dashboard-main-grid__left">
-          <DonutChart title="DAT Distribution" total={datTotal} series={datDistribution} />
-          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistribution} />
+          <DonutChart title="DAT Distribution" total={datTotal} series={datDistributionDisplay} />
+          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistributionDisplay} />
         </div>
 
         <div className="dashboard-main-grid__right">
