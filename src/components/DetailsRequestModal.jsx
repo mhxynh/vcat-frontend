@@ -66,9 +66,7 @@ export default function DetailsRequestModal({
 
   const progress = useMemo(() => {
     const total = controls.length;
-    const completed = controls.filter(
-      (c) => String(c.statusLabel || c.status) === 'Completed'
-    ).length;
+    const completed = controls.filter((c) => String(c.status).toUpperCase() === 'COMPLETED').length;
     return { completed, total };
   }, [controls]);
 
@@ -291,7 +289,7 @@ export default function DetailsRequestModal({
                           <span
                             className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
                           >
-                            {formatStatus(c.status ?? '-')}
+                            {c.statusLabel || formatStatus(c.status)}
                           </span>
                         </td>
                         <td>{c.assignee ?? '-'}</td>

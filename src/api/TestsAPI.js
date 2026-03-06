@@ -165,7 +165,6 @@ export async function hardDeleteTest(testId) {
 
 export function mapTestRowToRequestControlCard(test) {
   const statusLabel = mapTestStatusToUi(test?.status);
-  const note = pickNote(test);
 
   return {
     ...test,
@@ -174,7 +173,6 @@ export function mapTestRowToRequestControlCard(test) {
     assignee: test?.assigned_tester_name ?? test?.tester_name ?? '-',
     eta: formatShortDate(test?.estimated_date ?? test?.due_date ?? null),
     statusLabel,
-    note,
   };
 }
 

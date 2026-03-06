@@ -228,9 +228,7 @@ export default function Requests({ refreshKey = 0 }) {
     const total = (req.controls || []).length;
     if (total === 0) return { label: '0/0 Completed', pct: 0 };
 
-    const done = req.controls.filter(
-      (c) => String(c.statusLabel || c.status) === 'Completed'
-    ).length;
+    const done = req.controls.filter((c) => String(c.status).toUpperCase() === 'COMPLETED').length;
     const pct = Math.round((done / total) * 100);
     return { label: `${done}/${total} Completed`, pct };
   }
@@ -324,7 +322,7 @@ export default function Requests({ refreshKey = 0 }) {
                             <div className="control-top">
                               <div className="control-id-wrap">
                                 <span
-                                  className={`status-dot ${String(c.status || '')
+                                  className={`status-dot ${String(c.statusLabel || c.status || '')
                                     .toLowerCase()
                                     .replace(/\s+/g, '-')}`}
                                 />

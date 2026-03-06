@@ -45,7 +45,6 @@ export default function DetailsTestModal({
       setIsBusy(false);
     }
   }
-
   useEffect(() => {
     if (!isOpen) return;
 
