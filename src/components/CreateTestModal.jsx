@@ -12,7 +12,7 @@ function flagsFromTestType(v) {
   return { requiresDat: false, requiresOet: false };
 }
 
-export default function CreateTestModal({ isOpen, onClose, onCreated }) {
+export default function CreateTestModal({ isOpen, onClose, onCreated, defaultRequestId }) {
   const [controls, setControls] = useState([]);
   const [requests, setRequests] = useState([]);
   const [testers, setTesters] = useState([]);
@@ -59,12 +59,18 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
         // Sanitize Controls
         const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
-          .map((c) => ({
-            id: Number(c.id || c.controlId),
-            vgcpid: c.vgcpid,
-          }))
-          .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
-          .sort((a, b) => a.vgcpid.localeCompare(b.vgcpid));
+          .map((c) => {
+            const id = Number(c.id ?? c.controlId ?? c.control_id ?? c.ControlID ?? c.control_id);
+            const vgcpid =
+              c.vgcpid ??
+              c.vgcpId ??
+              c.vgcp_id ??
+              c.VGCPID ??
+              (Number.isFinite(id) ? `CONTROL-${id}` : 'UNKNOWN');
+            return { id, vgcpid };
+          })
+          .filter((c) => Number.isFinite(c.id))
+          .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
 
         // Sanitize Requests (include dueDate for auto-matching test due date to request)
         const toDateInput = (v) => {
@@ -74,7 +80,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
         };
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => {
-            const id = Number(r.id ?? r.request_id ?? r.requestId);
+            const id = Number(r.id ?? r.requestId ?? r.request_id ?? r.RequestId);
             const dueDateRaw = r.due_date ?? r.dueDate;
             const dueDateDisplay = dueDateRaw
               ? new Date(dueDateRaw).toLocaleDateString(undefined, {
@@ -83,13 +89,14 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                   year: 'numeric',
                 })
               : '-';
+            const requester = r.requestor ?? r.requester ?? r.requestedBy ?? '-';
             return {
               id,
-              label: `REQ-${String(id).padStart(4, '0')} • ${r.requestor || '-'} • ${dueDateDisplay}`,
+              label: `REQ-${String(id).padStart(4, '0')} • ${requester} • ${dueDateDisplay}`,
               dueDate: toDateInput(dueDateRaw),
             };
           })
-          .filter((r) => !Number.isNaN(r.id))
+          .filter((r) => Number.isFinite(r.id))
           .sort((a, b) => b.id - a.id);
 
         // Sanitize Users/Testers
@@ -103,6 +110,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
         setControls(cleanControls);
         setRequests(cleanRequests);
+        // If a defaultRequestId was provided, preselect it after requests are loaded
+        if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
         setTesters(cleanTesters);
       } catch (e) {
         setLoadError(e?.message || 'Failed to load dropdown data.');
@@ -114,7 +123,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     loadData();
 
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, defaultRequestId]);
+
+  // also ensure default request is pre-selected when the modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
+  }, [isOpen, defaultRequestId]);
 
   // Auto-populate due date from selected request (test due date matches request)
   useEffect(() => {
@@ -172,7 +187,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
       onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
       role="presentation"
     >
-      <div className="ctm-modal" role="dialog" aria-modal="true" aria-label="Create Control Test">
+      <div
+        className="ctm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Create Control Test"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className="ctm-header">
           <h2 className="ctm-title">Create Control Test</h2>
           <button className="ctm-close" type="button" onClick={onClose} aria-label="Close">
