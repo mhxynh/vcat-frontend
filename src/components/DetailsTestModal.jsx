@@ -629,8 +629,9 @@ export default function DetailsTestModal({
                 logs={historyLogs}
                 loading={historyLoading}
                 error={historyError}
-                overlayTitle="Test History"
+                overlayTitle={`Test History: ${vgcpid}`}
                 showContent={true}
+                contextVgcpid={vgcpid}
               />
             ) : (
               <div className="dtm-empty">This view is not implemented yet.</div>

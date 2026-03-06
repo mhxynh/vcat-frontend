@@ -39,20 +39,26 @@ export async function fetchAuditLogsByRequestId({ requestId, limit = 50, offset 
 }
 
 /**
- * Fetch audit logs for a single test (control test).
+ * Fetch audit logs for a single entity (e.g. REQUEST or TEST).
  *
  * @param {Object} opts
- * @param {number} opts.testId - Test ID to fetch history for
+ * @param {string} opts.entityType - Entity type (e.g. 'REQUEST', 'TEST')
+ * @param {number|string} opts.entityId - Entity ID
  * @param {number} [opts.limit=50]
  * @param {number} [opts.offset=0]
  * @returns {Promise<Array>} Audit log entries
  */
-export async function fetchAuditLogsByTestId({ testId, limit = 50, offset = 0 }) {
-  if (testId == null) return [];
+export async function fetchAuditLogsByEntity({
+  entityType,
+  entityId,
+  limit = 50,
+  offset = 0,
+}) {
+  if (entityType == null || entityId == null) return [];
 
   const params = new URLSearchParams();
-  params.set('entity_type', 'TEST');
-  params.set('entity_id', String(testId));
+  params.set('entity_type', String(entityType));
+  params.set('entity_id', String(entityId));
   params.set('limit', String(limit));
   params.set('offset', String(offset));
 
@@ -74,4 +80,23 @@ export async function fetchAuditLogsByTestId({ testId, limit = 50, offset = 0 })
 
   const data = await resp.json();
   return Array.isArray(data?.data) ? data.data : [];
+}
+
+/**
+ * Fetch audit logs for a single test (control test).
+ *
+ * @param {Object} opts
+ * @param {number} opts.testId - Test ID to fetch history for
+ * @param {number} [opts.limit=50]
+ * @param {number} [opts.offset=0]
+ * @returns {Promise<Array>} Audit log entries
+ */
+export async function fetchAuditLogsByTestId({ testId, limit = 50, offset = 0 }) {
+  if (testId == null) return [];
+  return fetchAuditLogsByEntity({
+    entityType: 'TEST',
+    entityId: testId,
+    limit,
+    offset,
+  });
 }

@@ -12,6 +12,9 @@ import '../styles/components/AuditHistoryView.css';
  * @param {string} props.overlayTitle - Title for the expand overlay (e.g. "Request History", "Test History")
  * @param {boolean} [props.showContent] - If false, show statusMessage instead of history (for request: only when IN_PROGRESS/COMPLETED)
  * @param {string} [props.statusMessage] - Message when showContent is false (e.g. "History is available when the request is in progress or completed.")
+ * @param {string} [props.contextVgcpid] - VGCP ID of the current test (when viewing single test history). Shown with each "Test updated" entry.
+ * @param {string} [props.contextRequestId] - Request display ID (e.g. "REQ-0001") when viewing request history. Shown with each "Request updated" entry.
+ * @param {Object} [props.contextTestIdToVgcpid] - Map of test_id -> vgcpid for tests under a request. Used when viewing request history to show "Test: VGCP-xxx Updated" for each test.
  */
 export default function AuditHistoryView({
   logs,
@@ -20,6 +23,9 @@ export default function AuditHistoryView({
   overlayTitle = 'History',
   showContent = true,
   statusMessage = 'History is available when the request is in progress or completed.',
+  contextVgcpid = null,
+  contextRequestId = null,
+  contextTestIdToVgcpid = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
 
@@ -57,7 +63,19 @@ export default function AuditHistoryView({
             <div className="ahv-header">
               <div className="ahv-avatar">{String(log.action || '?').slice(0, 1)}</div>
               <div className="ahv-meta">
-                <span className="ahv-action">{formatAuditAction(log)}</span>
+                <span className="ahv-action">
+                  {formatAuditAction(log, {
+                    vgcpid:
+                      log.vgcpid ??
+                      contextVgcpid ??
+                      (contextTestIdToVgcpid && log.entity_id != null
+                        ? (contextTestIdToVgcpid[log.entity_id] ??
+                          contextTestIdToVgcpid[String(log.entity_id)] ??
+                          contextTestIdToVgcpid[Number(log.entity_id)])
+                        : null),
+                    requestId: contextRequestId,
+                  })}
+                </span>
                 {log.actor_user_id != null && (
                   <span className="ahv-actor"> · User {log.actor_user_id}</span>
                 )}
@@ -126,20 +144,22 @@ export default function AuditHistoryView({
   );
 }
 
-function formatAuditAction(log) {
+function formatAuditAction(log, { vgcpid, requestId } = {}) {
   const action = String(log.action || '').toUpperCase();
   const entity = String(log.entity_type || '').toUpperCase();
+  const reqId = requestId ? `: ${requestId}` : '';
+  const vgcp = vgcpid ? `: ${vgcpid}` : '';
   if (entity === 'REQUEST') {
-    if (action === 'CREATE') return 'Request created';
-    if (action === 'UPDATE') return 'Request updated';
-    if (action === 'DELETE') return 'Request archived';
+    if (action === 'CREATE') return `Request${reqId} Created`;
+    if (action === 'UPDATE') return `Request${reqId} Updated`;
+    if (action === 'DELETE') return `Request${reqId} Archived`;
   }
   if (entity === 'TEST') {
-    if (action === 'CREATE') return 'Test created';
-    if (action === 'UPDATE') return 'Test updated';
-    if (action === 'DELETE') return 'Test archived';
+    if (action === 'CREATE') return `Test${vgcp} Created`;
+    if (action === 'UPDATE') return `Test${vgcp} Updated`;
+    if (action === 'DELETE') return `Test${vgcp} Archived`;
   }
-  return `${entity} ${action}`;
+  return `${entity}${reqId || vgcp} ${action}`;
 }
 
 function getAuditChanges(log) {

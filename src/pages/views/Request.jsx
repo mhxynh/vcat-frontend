@@ -193,6 +193,15 @@ export default function Requests({ refreshKey = 0 }) {
     });
   }, [requests, testsByRequestId]);
 
+  // Keep selectedRequest in sync with enriched data (e.g. when controls load)
+  useEffect(() => {
+    if (!selectedRequest || !isRequestDetailsOpen) return;
+    const enriched = enrichedRequests.find((r) => r.requestId === selectedRequest.requestId);
+    if (enriched) {
+      setSelectedRequest(enriched);
+    }
+  }, [enrichedRequests, isRequestDetailsOpen, selectedRequest?.requestId]);
+
   const filteredRequests = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return enrichedRequests;

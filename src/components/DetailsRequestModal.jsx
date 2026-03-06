@@ -57,9 +57,51 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
     setHistoryLoading(true);
     setHistoryError('');
 
+    const controlsList = request?.controls || [];
+    const testIdsForRequest = new Set();
+    controlsList.forEach((c) => {
+      const tid = c.testId ?? c.test_id;
+      if (tid != null) {
+        testIdsForRequest.add(tid);
+        testIdsForRequest.add(String(tid));
+        testIdsForRequest.add(Number(tid));
+      }
+    });
+    const testIdToVgcpid = controlsList.reduce((m, c) => {
+      if (c.testId != null && c.id) {
+        m[String(c.testId)] = c.id;
+        m[Number(c.testId)] = c.id;
+      }
+      return m;
+    }, {});
+
     fetchAuditLogsByRequestId({ requestId: request.requestId })
       .then((logs) => {
-        if (!cancelled) setHistoryLogs(logs);
+        if (!cancelled) {
+          const filtered = (logs || []).filter((log) => {
+            const entity = String(log?.entity_type || '').toUpperCase();
+            if (entity === 'REQUEST') return log.entity_id == request.requestId;
+            if (entity === 'TEST')
+              return (
+                testIdsForRequest.has(log.entity_id) ||
+                testIdsForRequest.has(Number(log.entity_id)) ||
+                testIdsForRequest.has(String(log.entity_id))
+              );
+            return true;
+          });
+          const enriched = filtered.map((log) => {
+            if (String(log?.entity_type || '').toUpperCase() === 'TEST' && !log.vgcpid) {
+              const eid = log.entity_id;
+              const vgcpid =
+                testIdToVgcpid[eid] ??
+                testIdToVgcpid[String(eid)] ??
+                testIdToVgcpid[Number(eid)];
+              if (vgcpid) return { ...log, vgcpid };
+            }
+            return log;
+          });
+          setHistoryLogs(enriched);
+        }
       })
       .catch((e) => {
         if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
@@ -71,7 +113,7 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
     return () => {
       cancelled = true;
     };
-  }, [isOpen, activeTab, request?.requestId, request?.status, localStatus]);
+  }, [isOpen, activeTab, request?.requestId, request?.status, request?.controls, localStatus]);
 
   const controls = useMemo(() => {
     return Array.isArray(request?.controls) ? request.controls : [];
@@ -334,9 +376,17 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
                 logs={historyLogs}
                 loading={historyLoading}
                 error={historyError}
-                overlayTitle="Request History"
+                overlayTitle={`Request History: ${requestTitle}`}
                 showContent={status === 'IN_PROGRESS' || status === 'COMPLETED'}
                 statusMessage="History is available when the request is in progress or completed."
+                contextRequestId={requestTitle}
+                contextTestIdToVgcpid={controls.reduce((m, c) => {
+                  if (c.testId != null && c.id) {
+                    m[String(c.testId)] = c.id;
+                    m[Number(c.testId)] = c.id;
+                  }
+                  return m;
+                }, {})}
               />
             ) : null}
           </div>
