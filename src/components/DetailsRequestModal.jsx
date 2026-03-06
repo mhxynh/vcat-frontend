@@ -414,6 +414,17 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
 }
 
 function HistoryTabContent({ status, logs, loading, error }) {
+  const [showExpanded, setShowExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!showExpanded) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowExpanded(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showExpanded]);
+
   const s = String(status || '').toUpperCase();
   const showHistory = s === 'IN_PROGRESS' || s === 'COMPLETED';
 
@@ -437,7 +448,7 @@ function HistoryTabContent({ status, logs, loading, error }) {
     return <div className="drm-empty">No history found.</div>;
   }
 
-  return (
+  const historyContent = (
     <div className="drm-history">
       {logs.map((log) => {
         const changes = getAuditChanges(log);
@@ -479,6 +490,46 @@ function HistoryTabContent({ status, logs, loading, error }) {
         );
       })}
     </div>
+  );
+
+  return (
+    <>
+      <div className="drm-history-scroll-wrap">
+        <div className="drm-history-scroll">{historyContent}</div>
+        <button
+          type="button"
+          className="drm-history-expand-btn"
+          onClick={() => setShowExpanded(true)}
+          aria-label="View full history"
+        >
+          View full history
+        </button>
+      </div>
+      {showExpanded && (
+        <div
+          className="drm-history-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full history"
+        >
+          <div className="drm-history-overlay-backdrop" onClick={() => setShowExpanded(false)} />
+          <div className="drm-history-overlay-box">
+            <div className="drm-history-overlay-header">
+              <h3 className="drm-history-overlay-title">Request History</h3>
+              <button
+                type="button"
+                className="drm-history-overlay-close"
+                onClick={() => setShowExpanded(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="drm-history-overlay-body">{historyContent}</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
