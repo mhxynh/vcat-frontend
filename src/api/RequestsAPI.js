@@ -70,7 +70,7 @@ export function mapRequestRowToUi(row) {
   const dueDate = row.due_date ?? null;
 
   return {
-    id: `REQ-${String(row.request_id).padStart(4, '0')}`,
+    id: String(row.request_id).padStart(4, '0'),
     requestId: row.request_id,
 
     priority: formatPriority(row.priority),

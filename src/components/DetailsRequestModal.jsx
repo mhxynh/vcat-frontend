@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
+import DetailsTestModal from './DetailsTestModal';
 import EditRequestModal from './EditRequestModal';
 import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
 import { fetchTestsByRequestId, mapTestRowToRequestControlCard } from '../api/TestsAPI';
@@ -26,6 +27,10 @@ export default function DetailsRequestModal({
   const [deleteError, setDeleteError] = useState('');
 
   const [localStatus, setLocalStatus] = useState(null);
+  const [activeTest, setActiveTest] = useState(null);
+
+  const openTestDetails = (testRow) => setActiveTest(testRow ?? null);
+  const closeTestDetails = () => setActiveTest(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -61,14 +66,16 @@ export default function DetailsRequestModal({
 
   const progress = useMemo(() => {
     const total = controls.length;
-    const completed = controls.filter((c) => String(c.status) === 'Completed').length;
+    const completed = controls.filter(
+      (c) => String(c.statusLabel || c.status) === 'Completed'
+    ).length;
     return { completed, total };
   }, [controls]);
 
   if (!isOpen) return null;
 
   const requestTitle = localRequest?.id ?? 'Request Details';
-  const backendStatus = localRequest?.status ?? 'NOT_STARTED';
+  const backendStatus = localRequest?.status ?? 'Not Started';
   const status = localStatus ?? backendStatus;
 
   const priority = localRequest?.priority ?? 'MEDIUM';
@@ -269,12 +276,22 @@ export default function DetailsRequestModal({
                   </thead>
                   <tbody>
                     {controls.map((c) => (
-                      <tr key={c.id}>
-                        <td className="drm-mono">{c.id}</td>
-                        <td>{c.title ?? '-'}</td>
+                      <tr key={c.test_id || c.id}>
+                        <td className="drm-mono">
+                          <button
+                            type="button"
+                            className="vgcpid-link"
+                            onClick={() => openTestDetails(c)}
+                          >
+                            {c.vgcpid || c.id}
+                          </button>
+                        </td>
+                        <td>{c.title || c.description || '-'}</td>
                         <td>
-                          <span className={`drm-pill ${testStatusBadgeClass(c.status)}`}>
-                            {c.status ?? '-'}
+                          <span
+                            className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
+                          >
+                            {formatStatus(c.status ?? '-')}
                           </span>
                         </td>
                         <td>{c.assignee ?? '-'}</td>
@@ -421,7 +438,23 @@ export default function DetailsRequestModal({
         requestId={requestId}
         onUpdated={async () => {
           await refreshLocalRequest();
-          closeEdit();
+        }}
+      />
+      <DetailsTestModal
+        isOpen={!!activeTest}
+        onClose={closeTestDetails}
+        test={activeTest}
+        onArchived={async () => {
+          await refreshLocalRequest();
+          closeTestDetails();
+        }}
+        onDeleted={async () => {
+          await refreshLocalRequest();
+          closeTestDetails();
+        }}
+        onUpdated={async () => {
+          await refreshLocalRequest();
+          closeTestDetails();
         }}
       />
     </div>

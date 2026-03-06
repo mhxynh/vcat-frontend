@@ -25,6 +25,7 @@ export default function Requests({ refreshKey = 0 }) {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
+  const currentYear = new Date().getFullYear();
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -227,7 +228,9 @@ export default function Requests({ refreshKey = 0 }) {
     const total = (req.controls || []).length;
     if (total === 0) return { label: '0/0 Completed', pct: 0 };
 
-    const done = req.controls.filter((c) => String(c.status) === 'Completed').length;
+    const done = req.controls.filter(
+      (c) => String(c.statusLabel || c.status) === 'Completed'
+    ).length;
     const pct = Math.round((done / total) * 100);
     return { label: `${done}/${total} Completed`, pct };
   }
@@ -261,7 +264,9 @@ export default function Requests({ refreshKey = 0 }) {
                 <div key={req.id} className="request-card">
                   <div className="request-row">
                     <div className="req-left">
-                      <div style={{ fontWeight: 800 }}>{req.id}</div>
+                      <div
+                        style={{ fontWeight: 800 }}
+                      >{`REQ-${currentYear}-${String(req.id).padStart(4, '0')}`}</div>
                       <div className={`badge badge-${String(req.priority || '').toLowerCase()}`}>
                         {req.priority}
                       </div>
@@ -326,11 +331,11 @@ export default function Requests({ refreshKey = 0 }) {
                                 <span className="control-id">{c.id}</span>
                               </div>
                               <span
-                                className={`status-pill ${String(c.status || '')
+                                className={`status-pill ${String(c.statusLabel || c.status || '')
                                   .toLowerCase()
                                   .replace(/\s+/g, '-')}`}
                               >
-                                {c.status}
+                                {c.statusLabel || c.status}
                               </span>
                             </div>
 
@@ -386,7 +391,9 @@ export default function Requests({ refreshKey = 0 }) {
           }
 
           setSelectedRequest((prev) =>
-            prev && prev.requestId === requestId ? { ...prev, ...(ui || {}) } : prev
+            prev && prev.requestId === requestId
+              ? { ...prev, ...(ui || {}), controls: Array.isArray(items) ? items : prev.controls }
+              : prev
           );
         }}
         onArchived={(requestId) => {
@@ -423,6 +430,7 @@ export default function Requests({ refreshKey = 0 }) {
           setIsRequestDetailsOpen(false);
         }}
       />
+
       <AssignRequestModal
         isOpen={isAssignOpen}
         onClose={closeAssignModal}
