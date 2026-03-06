@@ -455,9 +455,7 @@ function HistoryTabContent({ status, logs, loading, error }) {
         return (
           <div className="drm-history-entry" key={log.audit_id}>
             <div className="drm-history-header">
-              <div className="drm-history-avatar">
-                {String(log.action || '?').slice(0, 1)}
-              </div>
+              <div className="drm-history-avatar">{String(log.action || '?').slice(0, 1)}</div>
               <div className="drm-history-meta">
                 <span className="drm-history-action">{formatAuditAction(log)}</span>
                 {log.actor_user_id != null && (
@@ -609,10 +607,25 @@ function formatFieldLabel(field) {
 function formatAuditValue(field, value) {
   if (value === null || value === undefined) return '—';
   if (field === 'status') return formatStatusValue(value);
-  const dateFields = ['updated_at', 'due_date', 'estimated_date', 'start_date', 'complete_date', 'created_at'];
+  const dateFields = [
+    'updated_at',
+    'due_date',
+    'estimated_date',
+    'start_date',
+    'complete_date',
+    'created_at',
+  ];
   if (dateFields.includes(field)) {
     const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return Number.isNaN(d.getTime())
+      ? String(value)
+      : d.toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
   }
   return String(value);
 }
