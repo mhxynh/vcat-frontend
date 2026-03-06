@@ -1,6 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/components/AuditHistoryView.css';
 
+const DATE_FORMAT = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+/** Look up vgcpid from testId->vgcpid map (handles number/string keys). */
+export function getVgcpidFromMap(map, entityId) {
+  if (!map || entityId == null) return null;
+  return map[entityId] ?? map[String(entityId)] ?? map[Number(entityId)] ?? null;
+}
+
+function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
+  return log.vgcpid ?? contextVgcpid ?? getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
+}
+
 /**
  * Shared audit history view: scrollable list, expand button, full overlay.
  * Used by DetailsRequestModal and DetailsTestModal.
@@ -38,48 +56,28 @@ export default function AuditHistoryView({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [showExpanded]);
 
-  if (!showContent) {
-    return <div className="ahv-empty">{statusMessage}</div>;
-  }
-
-  if (loading) {
-    return <div className="ahv-empty">Loading history…</div>;
-  }
-
-  if (error) {
-    return <div className="ahv-empty ahv-error">Error: {error}</div>;
-  }
-
-  if (!logs || logs.length === 0) {
-    return <div className="ahv-empty">No history found.</div>;
-  }
+  if (!showContent) return <div className="ahv-empty">{statusMessage}</div>;
+  if (loading) return <div className="ahv-empty">Loading history…</div>;
+  if (error) return <div className="ahv-empty ahv-error">Error: {error}</div>;
+  if (!logs?.length) return <div className="ahv-empty">No history found.</div>;
 
   const historyContent = (
     <div className="ahv-history">
       {logs.map((log) => {
         const changes = getAuditChanges(log);
+        const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
               <div className="ahv-avatar">{String(log.action || '?').slice(0, 1)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
-                  {formatAuditAction(log, {
-                    vgcpid:
-                      log.vgcpid ??
-                      contextVgcpid ??
-                      (contextTestIdToVgcpid && log.entity_id != null
-                        ? (contextTestIdToVgcpid[log.entity_id] ??
-                          contextTestIdToVgcpid[String(log.entity_id)] ??
-                          contextTestIdToVgcpid[Number(log.entity_id)])
-                        : null),
-                    requestId: contextRequestId,
-                  })}
+                  {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
                 </span>
                 {log.actor_user_id != null && (
                   <span className="ahv-actor"> · User {log.actor_user_id}</span>
                 )}
-                <span className="ahv-date">{formatAuditDate(log.changed_at)}</span>
+                <span className="ahv-date">{formatDate(log.changed_at)}</span>
               </div>
             </div>
             {changes.length > 0 && (
@@ -221,28 +219,27 @@ function formatFieldLabel(field) {
   return labels[field] || field.replace(/_/g, ' ');
 }
 
+const DATE_FIELDS = [
+  'updated_at',
+  'due_date',
+  'estimated_date',
+  'start_date',
+  'complete_date',
+  'created_at',
+];
+
+function formatDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, DATE_FORMAT);
+}
+
 function formatAuditValue(field, value) {
   if (value === null || value === undefined) return '—';
   if (field === 'status') return formatStatusValue(value);
-  const dateFields = [
-    'updated_at',
-    'due_date',
-    'estimated_date',
-    'start_date',
-    'complete_date',
-    'created_at',
-  ];
-  if (dateFields.includes(field)) {
+  if (DATE_FIELDS.includes(field)) {
     const d = new Date(value);
-    return Number.isNaN(d.getTime())
-      ? String(value)
-      : d.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(undefined, DATE_FORMAT);
   }
   return String(value);
 }
@@ -252,17 +249,4 @@ function formatStatusValue(v) {
     .replace(/_/g, ' ')
     .toLowerCase();
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
-}
-
-function formatAuditDate(value) {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }

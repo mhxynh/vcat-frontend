@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
 import { deleteRequest } from '../api/RequestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
-import AuditHistoryView from './AuditHistoryView';
+import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 
 export default function DetailsRequestModal({ isOpen, onClose, request, onDeleted, onArchived }) {
   const [activeTab, setActiveTab] = useState('Comments');
@@ -44,6 +44,22 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
     setHistoryError('');
   }, [isOpen, request]);
 
+  const controls = useMemo(
+    () => (Array.isArray(request?.controls) ? request.controls : []),
+    [request?.controls]
+  );
+
+  const contextTestIdToVgcpid = useMemo(() => {
+    const map = {};
+    for (const c of controls) {
+      if (c.testId != null && c.id) {
+        map[String(c.testId)] = c.id;
+        map[Number(c.testId)] = c.id;
+      }
+    }
+    return map;
+  }, [controls]);
+
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !request?.requestId) return;
 
@@ -53,27 +69,19 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
       return;
     }
 
-    let cancelled = false;
-    setHistoryLoading(true);
-    setHistoryError('');
-
-    const controlsList = request?.controls || [];
     const testIdsForRequest = new Set();
-    controlsList.forEach((c) => {
+    for (const c of controls) {
       const tid = c.testId ?? c.test_id;
       if (tid != null) {
         testIdsForRequest.add(tid);
         testIdsForRequest.add(String(tid));
         testIdsForRequest.add(Number(tid));
       }
-    });
-    const testIdToVgcpid = controlsList.reduce((m, c) => {
-      if (c.testId != null && c.id) {
-        m[String(c.testId)] = c.id;
-        m[Number(c.testId)] = c.id;
-      }
-      return m;
-    }, {});
+    }
+
+    let cancelled = false;
+    setHistoryLoading(true);
+    setHistoryError('');
 
     fetchAuditLogsByRequestId({ requestId: request.requestId })
       .then((logs) => {
@@ -91,11 +99,7 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
           });
           const enriched = filtered.map((log) => {
             if (String(log?.entity_type || '').toUpperCase() === 'TEST' && !log.vgcpid) {
-              const eid = log.entity_id;
-              const vgcpid =
-                testIdToVgcpid[eid] ??
-                testIdToVgcpid[String(eid)] ??
-                testIdToVgcpid[Number(eid)];
+              const vgcpid = getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
               if (vgcpid) return { ...log, vgcpid };
             }
             return log;
@@ -113,11 +117,15 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
     return () => {
       cancelled = true;
     };
-  }, [isOpen, activeTab, request?.requestId, request?.status, request?.controls, localStatus]);
-
-  const controls = useMemo(() => {
-    return Array.isArray(request?.controls) ? request.controls : [];
-  }, [request?.controls]);
+  }, [
+    isOpen,
+    activeTab,
+    request?.requestId,
+    request?.status,
+    localStatus,
+    controls,
+    contextTestIdToVgcpid,
+  ]);
 
   const progress = useMemo(() => {
     const total = controls.length;
@@ -380,13 +388,7 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
                 showContent={status === 'IN_PROGRESS' || status === 'COMPLETED'}
                 statusMessage="History is available when the request is in progress or completed."
                 contextRequestId={requestTitle}
-                contextTestIdToVgcpid={controls.reduce((m, c) => {
-                  if (c.testId != null && c.id) {
-                    m[String(c.testId)] = c.id;
-                    m[Number(c.testId)] = c.id;
-                  }
-                  return m;
-                }, {})}
+                contextTestIdToVgcpid={contextTestIdToVgcpid}
               />
             ) : null}
           </div>
