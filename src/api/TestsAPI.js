@@ -164,17 +164,16 @@ export async function hardDeleteTest(testId) {
 }
 
 export function mapTestRowToRequestControlCard(test) {
-  const status = mapTestStatusToUi(test?.status);
-  const note = pickNote(test);
+  const statusLabel = mapTestStatusToUi(test?.status);
 
   return {
+    ...test,
     id: test?.vgcpid ?? (test?.control_id != null ? `CONTROL-${test.control_id}` : 'UNKNOWN'),
     testId: test?.test_id ?? null,
     title: test?.control_description ?? test?.description ?? 'No description',
     assignee: test?.assigned_tester_name ?? test?.tester_name ?? '-',
     eta: formatShortDate(test?.estimated_date ?? test?.due_date ?? null),
-    status,
-    note,
+    statusLabel,
   };
 }
 
