@@ -8,6 +8,7 @@ import {
 } from '../../api/TestsAPI';
 import DetailsRequestModal from '../../components/DetailsRequestModal';
 import AssignRequestModal from '../../components/AssignRequestModal';
+import DetailsTestModal from '../../components/DetailsTestModal';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
@@ -20,11 +21,14 @@ export default function Requests({ refreshKey = 0 }) {
   const [error, setError] = useState('');
 
   const [testsByRequestId, setTestsByRequestId] = useState({});
+  const [fullTestsById, setFullTestsById] = useState({});
 
   const [isRequestDetailsOpen, setIsRequestDetailsOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -44,6 +48,19 @@ export default function Requests({ refreshKey = 0 }) {
   function closeAssignModal() {
     setIsAssignOpen(false);
     setSelectedAssignRequest(null);
+  }
+
+  function openTestDetails(testId) {
+    const test = fullTestsById[testId];
+    if (test) {
+      setSelectedTest(test);
+      setIsTestDetailsOpen(true);
+    }
+  }
+
+  function closeTestDetails() {
+    setIsTestDetailsOpen(false);
+    setSelectedTest(null);
   }
 
   async function handleAssign(requestId, userId, displayName, note) {
@@ -116,6 +133,13 @@ export default function Requests({ refreshKey = 0 }) {
         try {
           const rows = await fetchTestsByRequestId(r.requestId, { details: true });
           const items = rows.map(mapTestRowToRequestControlCard);
+
+          const testsMap = {};
+          rows.forEach((test) => {
+            const testId = test.vgcpid || test.test_id || String(test.control_id || '');
+            testsMap[testId] = test;
+          });
+          setFullTestsById((prev) => ({ ...prev, ...testsMap }));
 
           setTestsByRequestId((prev) => ({
             ...prev,
@@ -316,7 +340,13 @@ export default function Requests({ refreshKey = 0 }) {
                                     .toLowerCase()
                                     .replace(/\s+/g, '-')}`}
                                 />
-                                <span className="control-id">{c.id}</span>
+                                <span
+                                  className="control-id"
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() => openTestDetails(c.id)}
+                                >
+                                  {c.id}
+                                </span>
                               </div>
                               <span
                                 className={`status-pill ${String(c.status || '')
@@ -402,6 +432,7 @@ export default function Requests({ refreshKey = 0 }) {
         request={selectedAssignRequest}
         onAssign={(requestId, assignee, note) => handleAssign(requestId, assignee, note)}
       />
+      <DetailsTestModal isOpen={isTestDetailsOpen} onClose={closeTestDetails} test={selectedTest} />
     </div>
   );
 }
