@@ -3,7 +3,11 @@ import '../styles/components/DetailsRequestModal.css';
 import DetailsTestModal from './DetailsTestModal';
 import EditRequestModal from './EditRequestModal';
 import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
-import { fetchTestsByRequestId, mapTestRowToRequestControlCard } from '../api/TestsAPI';
+import {
+  fetchTestsByRequestId,
+  mapTestRowToRequestControlCard,
+  archiveTest,
+} from '../api/TestsAPI';
 
 export default function DetailsRequestModal({
   isOpen,
@@ -105,7 +109,7 @@ export default function DetailsRequestModal({
     if (requestId == null) return;
 
     const ok = window.confirm(
-      `Archive request ${requestTitle}?\n\nThis will set status to ARCHIVED.`
+      `Archive request ${requestTitle}?\n\nThis will set status to ARCHIVED for this request and all associated tests.`
     );
     if (!ok) return;
 
@@ -113,15 +117,25 @@ export default function DetailsRequestModal({
       setArchiving(true);
       setDeleteError('');
 
+      const rows = await fetchTestsByRequestId(requestId, { details: true });
+      const tests = Array.isArray(rows) ? rows : [];
+
+      await Promise.all(
+        tests
+          .filter((t) => String(t?.status || '').toUpperCase() !== 'ARCHIVED')
+          .map((t) => archiveTest(t.test_id))
+      );
+
       await deleteRequest(requestId, { hard: false });
+
+      await refreshLocalRequest();
 
       setLocalStatus('ARCHIVED');
 
       onArchived?.(requestId);
-
       onClose?.();
     } catch (e) {
-      setDeleteError(e?.message || 'Failed to archive request');
+      setDeleteError(e?.message || 'Failed to archive request and associated tests');
     } finally {
       setArchiving(false);
     }
