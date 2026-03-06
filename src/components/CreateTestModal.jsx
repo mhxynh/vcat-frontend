@@ -29,12 +29,14 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
   const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (!isOpen) return;
 
     setLoadError('');
     setSubmitError('');
+    setFieldErrors({});
     setSelectedVgcpid('');
     setSelectedRequestId('');
     setSelectedTesterId('');
@@ -57,7 +59,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
           fetchUsers({ isActive: true }),
         ]);
 
-        // Sanitize Controls
         const cleanControls = (Array.isArray(rawControls) ? rawControls : [])
           .map((c) => ({
             id: Number(c.id || c.controlId),
@@ -66,7 +67,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
           .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
           .sort((a, b) => a.vgcpid.localeCompare(b.vgcpid));
 
-        // Sanitize Requests
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => ({
             id: Number(r.id || r.requestId),
@@ -75,7 +75,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
           .filter((r) => !Number.isNaN(r.id))
           .sort((a, b) => b.id - a.id);
 
-        // Sanitize Users/Testers
         const cleanTesters = (Array.isArray(rawUsers) ? rawUsers : [])
           .map((u) => ({
             id: Number(u.id || u.user_id || u.userId),
@@ -101,21 +100,31 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
   const handleSubmit = async () => {
     setSubmitError('');
+    setFieldErrors({});
 
-    // Strict Validation
-    if (!selectedVgcpid) return setSubmitError('VGCPID is required.');
-    if (!selectedRequestId) return setSubmitError('Link to Request is required.');
-    if (!testType) return setSubmitError('Test Type is required.');
-    if (!dueDate) return setSubmitError('Due Date is required.');
-    if (!selectedVgcpid) return setSubmitError('VGCPID is required.');
-    if (!description.trim()) return setSubmitError('Description is required.');
+    const errs = {};
+    if (!selectedVgcpid) errs.selectedVgcpid = 'VGCPID is required.';
+    if (!selectedRequestId) errs.selectedRequestId = 'Link to Request is required.';
+    if (!testType) errs.testType = 'Test Type is required.';
+    if (!dueDate) errs.dueDate = 'Due Date is required.';
+    if (!description.trim()) errs.description = 'Test description is a required field';
+
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
+      return;
+    }
 
     const flags = flagsFromTestType(testType);
-    if (!flags.requiresDat && !flags.requiresOet) return setSubmitError('Invalid Test Type.');
+    if (!flags.requiresDat && !flags.requiresOet) {
+      setSubmitError('Invalid Test Type.');
+      return;
+    }
 
-    // Find the mapped Control ID based on the chosen VGCPID
     const matchingControl = controls.find((c) => c.vgcpid === selectedVgcpid);
-    if (!matchingControl) return setSubmitError('Invalid VGCPID selection.');
+    if (!matchingControl) {
+      setSubmitError('Invalid VGCPID selection.');
+      return;
+    }
 
     const payload = {
       vgcpid: selectedVgcpid,
@@ -159,6 +168,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
 
         <div className="ctm-body">
           {loadError && <div className="ctm-error">{loadError}</div>}
+          {submitError && <div className="ctm-error">{submitError}</div>}
 
           <div className="ctm-grid">
             <div className="ctm-field">
@@ -171,6 +181,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 value={selectedVgcpid}
                 onChange={(e) => setSelectedVgcpid(e.target.value)}
                 disabled={loading || !!loadError}
+                aria-invalid={fieldErrors.selectedVgcpid ? 'true' : 'false'}
               >
                 <option value="" disabled>
                   {loading ? 'Loading...' : 'Select VGCPID'}
@@ -181,6 +192,9 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                   </option>
                 ))}
               </select>
+              {fieldErrors.selectedVgcpid ? (
+                <div className="field-error">{fieldErrors.selectedVgcpid}</div>
+              ) : null}
             </div>
 
             <div className="ctm-field">
@@ -193,6 +207,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 value={selectedRequestId}
                 onChange={(e) => setSelectedRequestId(e.target.value)}
                 disabled={loading || !!loadError}
+                aria-invalid={fieldErrors.selectedRequestId ? 'true' : 'false'}
               >
                 <option value="" disabled>
                   {loading ? 'Loading...' : 'Select request'}
@@ -203,6 +218,9 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                   </option>
                 ))}
               </select>
+              {fieldErrors.selectedRequestId ? (
+                <div className="field-error">{fieldErrors.selectedRequestId}</div>
+              ) : null}
             </div>
 
             <div className="ctm-field">
@@ -235,6 +253,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 value={testType}
                 onChange={(e) => setTestType(e.target.value)}
                 disabled={!!loadError}
+                aria-invalid={fieldErrors.testType ? 'true' : 'false'}
               >
                 <option value="" disabled>
                   Select test type
@@ -243,6 +262,9 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 <option value="OET Only">OET Only</option>
                 <option value="DAT & OET">DAT &amp; OET</option>
               </select>
+              {fieldErrors.testType ? (
+                <div className="field-error">{fieldErrors.testType}</div>
+              ) : null}
             </div>
 
             <div className="ctm-field">
@@ -256,7 +278,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={!!loadError}
+                aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
               />
+              {fieldErrors.dueDate ? (
+                <div className="field-error">{fieldErrors.dueDate}</div>
+              ) : null}
             </div>
 
             <div className="ctm-field">
@@ -284,14 +310,12 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={!!loadError}
+                aria-invalid={fieldErrors.description ? 'true' : 'false'}
               />
+              {fieldErrors.description ? (
+                <div className="field-error">{fieldErrors.description}</div>
+              ) : null}
             </div>
-
-            {submitError && (
-              <div className="ctm-field ctm-field--full">
-                <div className="ctm-error">{submitError}</div>
-              </div>
-            )}
           </div>
         </div>
 
