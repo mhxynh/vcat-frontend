@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
 import { deleteRequest } from '../api/RequestsAPI';
+import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 
 export default function DetailsRequestModal({ isOpen, onClose, request, onDeleted, onArchived }) {
   const [activeTab, setActiveTab] = useState('Comments');
@@ -12,6 +13,10 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
   const [deleteError, setDeleteError] = useState('');
 
   const [localStatus, setLocalStatus] = useState(null);
+
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -34,7 +39,38 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
     setDeleting(false);
     setDeleteError('');
     setLocalStatus(null);
+    setHistoryLogs([]);
+    setHistoryError('');
   }, [isOpen, request]);
+
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'History' || !request?.requestId) return;
+
+    const status = String(localStatus ?? request?.status ?? '').toUpperCase();
+    if (status !== 'IN_PROGRESS' && status !== 'COMPLETED') {
+      setHistoryLogs([]);
+      return;
+    }
+
+    let cancelled = false;
+    setHistoryLoading(true);
+    setHistoryError('');
+
+    fetchAuditLogsByRequestId({ requestId: request.requestId })
+      .then((logs) => {
+        if (!cancelled) setHistoryLogs(logs);
+      })
+      .catch((e) => {
+        if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, activeTab, request?.requestId, request?.status, localStatus]);
 
   const controls = useMemo(() => {
     return Array.isArray(request?.controls) ? request.controls : [];
@@ -292,7 +328,14 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
               </div>
             ) : null}
 
-            {activeTab === 'History' ? <div className="drm-empty">No history found.</div> : null}
+            {activeTab === 'History' ? (
+              <HistoryTabContent
+                status={status}
+                logs={historyLogs}
+                loading={historyLoading}
+                error={historyError}
+              />
+            ) : null}
           </div>
         </section>
 
@@ -368,6 +411,179 @@ export default function DetailsRequestModal({ isOpen, onClose, request, onDelete
       </div>
     </div>
   );
+}
+
+function HistoryTabContent({ status, logs, loading, error }) {
+  const s = String(status || '').toUpperCase();
+  const showHistory = s === 'IN_PROGRESS' || s === 'COMPLETED';
+
+  if (!showHistory) {
+    return (
+      <div className="drm-empty">
+        History is available when the request is in progress or completed.
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="drm-empty">Loading history…</div>;
+  }
+
+  if (error) {
+    return <div className="drm-empty drm-delete-error">Error: {error}</div>;
+  }
+
+  if (!logs || logs.length === 0) {
+    return <div className="drm-empty">No history found.</div>;
+  }
+
+  return (
+    <div className="drm-history">
+      {logs.map((log) => {
+        const changes = getAuditChanges(log);
+        return (
+          <div className="drm-history-entry" key={log.audit_id}>
+            <div className="drm-history-header">
+              <div className="drm-history-avatar">
+                {String(log.action || '?').slice(0, 1)}
+              </div>
+              <div className="drm-history-meta">
+                <span className="drm-history-action">{formatAuditAction(log)}</span>
+                {log.actor_user_id != null && (
+                  <span className="drm-history-actor"> · User {log.actor_user_id}</span>
+                )}
+                <span className="drm-history-date">{formatAuditDate(log.changed_at)}</span>
+              </div>
+            </div>
+            {changes.length > 0 && (
+              <div className="drm-history-changes">
+                {changes.map((c) => (
+                  <div className="drm-history-row" key={c.field}>
+                    <div className="drm-history-cell">
+                      <span className="drm-history-cell-label">What was updated</span>
+                      <span className="drm-history-cell-value">{c.label}</span>
+                    </div>
+                    <div className="drm-history-cell">
+                      <span className="drm-history-cell-label">Before</span>
+                      <span className="drm-history-cell-value">{c.fromStr}</span>
+                    </div>
+                    <div className="drm-history-cell">
+                      <span className="drm-history-cell-label">After</span>
+                      <span className="drm-history-cell-value">{c.toStr}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function formatAuditAction(log) {
+  const action = String(log.action || '').toUpperCase();
+  const entity = String(log.entity_type || '').toUpperCase();
+  if (entity === 'REQUEST') {
+    if (action === 'CREATE') return 'Request created';
+    if (action === 'UPDATE') return 'Request updated';
+    if (action === 'DELETE') return 'Request archived';
+  }
+  if (entity === 'TEST') {
+    if (action === 'CREATE') return 'Test created';
+    if (action === 'UPDATE') return 'Test updated';
+    if (action === 'DELETE') return 'Test archived';
+  }
+  return `${entity} ${action}`;
+}
+
+function getAuditChanges(log) {
+  const action = String(log.action || '').toUpperCase();
+  const after = log.after_snapshot || {};
+  const before = log.before_snapshot || {};
+  const changed = log.changed_fields || [];
+
+  if (action === 'UPDATE') {
+    const diff = after.changed || {};
+    return changed
+      .filter((field) => {
+        const entry = diff[field];
+        if (!entry) return false;
+        if (field === 'updated_at') return false;
+        if (entry.from === entry.to) return false;
+        return true;
+      })
+      .map((field) => {
+        const entry = diff[field];
+        const label = formatFieldLabel(field);
+        const fromStr = formatAuditValue(field, entry?.from);
+        const toStr = formatAuditValue(field, entry?.to);
+        return { field, label, fromStr, toStr };
+      });
+  }
+
+  if (action === 'DELETE' && before.status) {
+    return [
+      {
+        field: 'status',
+        label: 'Status',
+        fromStr: formatStatusValue(before.status),
+        toStr: 'Archived',
+      },
+    ];
+  }
+
+  return [];
+}
+
+function formatFieldLabel(field) {
+  const labels = {
+    status: 'Status',
+    dat_step: 'DAT step',
+    oet_step: 'OET step',
+    updated_at: 'Updated',
+    due_date: 'Due date',
+    estimated_date: 'ETA',
+    start_date: 'Start date',
+    complete_date: 'Complete date',
+    description: 'Description',
+    priority: 'Priority',
+    requestor: 'Requestor',
+    assigned_tester_id: 'Assignee',
+  };
+  return labels[field] || field.replace(/_/g, ' ');
+}
+
+function formatAuditValue(field, value) {
+  if (value === null || value === undefined) return '—';
+  if (field === 'status') return formatStatusValue(value);
+  const dateFields = ['updated_at', 'due_date', 'estimated_date', 'start_date', 'complete_date', 'created_at'];
+  if (dateFields.includes(field)) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  return String(value);
+}
+
+function formatStatusValue(v) {
+  const s = String(v || '')
+    .replace(/_/g, ' ')
+    .toLowerCase();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
+}
+
+function formatAuditDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 /* helpers */

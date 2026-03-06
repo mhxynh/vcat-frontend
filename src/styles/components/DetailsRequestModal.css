@@ -278,6 +278,100 @@
   gap: 10px;
 }
 
+/* History */
+.drm-history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drm-history-entry {
+  border: 1px solid #ededed;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.drm-history-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border-bottom: 1px solid #ededed;
+}
+
+.drm-history-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  border: 1px solid #e5e5e5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.drm-history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drm-history-action {
+  font-size: 12px;
+  font-weight: 800;
+  color: #111;
+}
+
+.drm-history-actor {
+  font-size: 12px;
+  color: #666;
+}
+
+.drm-history-date {
+  font-size: 11px;
+  color: #888;
+  margin-left: auto;
+}
+
+.drm-history-changes {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drm-history-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+}
+
+.drm-history-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drm-history-cell-label {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: #777;
+  text-transform: uppercase;
+}
+
+.drm-history-cell-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111;
+}
+
 .drm-avatar {
   width: 28px;
   height: 28px;
