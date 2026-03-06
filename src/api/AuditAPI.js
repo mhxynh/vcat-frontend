@@ -37,3 +37,41 @@ export async function fetchAuditLogsByRequestId({ requestId, limit = 50, offset 
   const data = await resp.json();
   return Array.isArray(data?.data) ? data.data : [];
 }
+
+/**
+ * Fetch audit logs for a single test (control test).
+ *
+ * @param {Object} opts
+ * @param {number} opts.testId - Test ID to fetch history for
+ * @param {number} [opts.limit=50]
+ * @param {number} [opts.offset=0]
+ * @returns {Promise<Array>} Audit log entries
+ */
+export async function fetchAuditLogsByTestId({ testId, limit = 50, offset = 0 }) {
+  if (testId == null) return [];
+
+  const params = new URLSearchParams();
+  params.set('entity_type', 'TEST');
+  params.set('entity_id', String(testId));
+  params.set('limit', String(limit));
+  params.set('offset', String(offset));
+
+  const resp = await fetch(`${API_BASE}/audit?${params}`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    const msg = `Failed to fetch audit logs (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      throw new Error(data?.error || data?.message || msg);
+    } catch (e) {
+      if (e instanceof Error && e.message !== msg) throw e;
+      throw new Error(msg);
+    }
+  }
+
+  const data = await resp.json();
+  return Array.isArray(data?.data) ? data.data : [];
+}
