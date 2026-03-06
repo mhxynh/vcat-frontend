@@ -341,7 +341,6 @@ export default function Requests({ refreshKey = 0 }) {
 
                             <div className="control-meta">
                               <div className="control-meta-row control-meta-row--assignee">
-                                <span className="meta-icon">👤</span>
                                 <span>{c.assignee}</span>
                               </div>
 
