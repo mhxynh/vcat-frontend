@@ -66,12 +66,29 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
           .filter((c) => !Number.isNaN(c.id) && c.vgcpid)
           .sort((a, b) => a.vgcpid.localeCompare(b.vgcpid));
 
-        // Sanitize Requests
+        // Sanitize Requests (include dueDate for auto-matching test due date to request)
+        const toDateInput = (v) => {
+          if (!v) return '';
+          const s = typeof v === 'string' ? v.split('T')[0] : String(v).split('T')[0];
+          return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+        };
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
-          .map((r) => ({
-            id: Number(r.id || r.requestId),
-            label: `REQ-${String(r.id || r.requestId).padStart(4, '0')} • ${r.requestor || '-'} • ${r.dueDate || '-'}`,
-          }))
+          .map((r) => {
+            const id = Number(r.id ?? r.request_id ?? r.requestId);
+            const dueDateRaw = r.due_date ?? r.dueDate;
+            const dueDateDisplay = dueDateRaw
+              ? new Date(dueDateRaw).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : '-';
+            return {
+              id,
+              label: `REQ-${String(id).padStart(4, '0')} • ${r.requestor || '-'} • ${dueDateDisplay}`,
+              dueDate: toDateInput(dueDateRaw),
+            };
+          })
           .filter((r) => !Number.isNaN(r.id))
           .sort((a, b) => b.id - a.id);
 
@@ -99,6 +116,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
+  // Auto-populate due date from selected request (test due date matches request)
+  useEffect(() => {
+    if (!selectedRequestId || !requests.length) return;
+    const req = requests.find((r) => String(r.id) === String(selectedRequestId));
+    if (req?.dueDate) setDueDate(req.dueDate);
+  }, [selectedRequestId, requests]);
+
   const handleSubmit = async () => {
     setSubmitError('');
 
@@ -106,8 +130,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
     if (!selectedVgcpid) return setSubmitError('VGCPID is required.');
     if (!selectedRequestId) return setSubmitError('Link to Request is required.');
     if (!testType) return setSubmitError('Test Type is required.');
-    if (!dueDate) return setSubmitError('Due Date is required.');
-    if (!selectedVgcpid) return setSubmitError('VGCPID is required.');
+    if (!dueDate) return setSubmitError('Due Date is required. Select a request first.');
     if (!description.trim()) return setSubmitError('Description is required.');
 
     const flags = flagsFromTestType(testType);
@@ -256,6 +279,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated }) {
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={!!loadError}
+                readOnly={!!selectedRequestId}
+                title={selectedRequestId ? 'Matches the selected request' : undefined}
               />
             </div>
 
