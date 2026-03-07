@@ -186,13 +186,6 @@ function mapTestStatusToUi(s) {
   return 'Not Started';
 }
 
-function pickNote(test) {
-  const dat = test?.datStep ? `DAT: ${String(test.datStep).replaceAll('_', ' ')}` : '';
-  const oet = test?.oetStep ? `OET: ${String(test.oetStep).replaceAll('_', ' ')}` : '';
-  const parts = [dat, oet].filter(Boolean);
-  return parts.length ? parts.join(' • ') : '';
-}
-
 function parseLocalDate(value) {
   if (!value) return null;
 
