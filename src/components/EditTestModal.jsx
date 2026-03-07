@@ -90,13 +90,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  // Auto-update due date when request changes (test due date matches request)
-  useEffect(() => {
-    if (!selectedRequestId || !requestOptions.length) return;
-    const req = requestOptions.find((r) => String(r.requestId) === String(selectedRequestId));
-    if (req?.dueDate) setDueDate(req.dueDate);
-  }, [selectedRequestId, requestOptions]);
-
   const controlOptions = useMemo(() => {
     return controls
       .map((c) => ({ controlId: c.control_id, vgcpid: c.vgcpid, description: c.description }))
@@ -117,6 +110,13 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       }))
       .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
+
+  // Auto-update due date when request changes (test due date matches request)
+  useEffect(() => {
+    if (!selectedRequestId || !requestOptions.length) return;
+    const req = requestOptions.find((r) => String(r.requestId) === String(selectedRequestId));
+    if (req?.dueDate) setDueDate(req.dueDate);
+  }, [selectedRequestId, requestOptions]);
 
   const testerOptions = useMemo(() => {
     return users
