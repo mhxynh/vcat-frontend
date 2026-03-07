@@ -59,7 +59,7 @@ const DISTRIBUTION_STATUS_META = [
 const OET_EXCLUDED_STATUS_KEYS = new Set(['WALKTHROUGH_SCHEDULED', 'WALKTHROUGH_COMPLETED']);
 
 const STATUS_DISTRIBUTION_COLORS = {
-  NOT_STARTED: '#E5E7EB',
+  NOT_STARTED: '#4B5563',
   TESTING_READY: '#7A0F16',
   WALKTHROUGH_SCHEDULED: '#932029',
   WALKTHROUGH_COMPLETED: '#AD343C',
@@ -67,7 +67,7 @@ const STATUS_DISTRIBUTION_COLORS = {
   ADDRESSING_COMMENTS: '#D96D74',
   COMPLETED: '#E89499',
   TESTING_BLOCKED: '#F2BCC0',
-  TESTING_CANCELED: '#6B7280',
+  TESTING_CANCELED: '#9CA3AF',
 };
 
 const WEEKDAY_LABELS = [
@@ -448,6 +448,15 @@ export default function Dashboard() {
   const oetDistribution = useMemo(() => buildDistributionForType(controls, 'OET'), [controls]);
   const datDistribution = useMemo(() => buildDistributionForType(controls, 'DAT'), [controls]);
 
+  const datDistributionDisplay = useMemo(
+    () => datDistribution.filter((s) => s.value > 0),
+    [datDistribution]
+  );
+  const oetDistributionDisplay = useMemo(
+    () => oetDistribution.filter((s) => s.value > 0),
+    [oetDistribution]
+  );
+
   const oetTotal = useMemo(
     () => oetDistribution.reduce((sum, item) => sum + item.value, 0),
     [oetDistribution]
@@ -590,8 +599,8 @@ export default function Dashboard() {
 
       <section className="dashboard-main-grid">
         <div className="dashboard-main-grid__left">
-          <DonutChart title="DAT Distribution" total={datTotal} series={datDistribution} />
-          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistribution} />
+          <DonutChart title="DAT Distribution" total={datTotal} series={datDistributionDisplay} />
+          <DonutChart title="OET Distribution" total={oetTotal} series={oetDistributionDisplay} />
         </div>
 
         <div className="dashboard-main-grid__right">
