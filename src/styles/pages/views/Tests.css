@@ -115,18 +115,20 @@ body {
 }
 
 .sub-tab {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 16px;
   font-weight: 400;
   line-height: 20px;
-  width: 90px;
+  min-width: 90px;
   height: 38px;
   padding: 8px 16px;
-  justify-content: center;
-  align-items: center;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   cursor: pointer;
   background: var(--color-surface);
+  text-align: center;
 }
 
 .sub-tab--active {
