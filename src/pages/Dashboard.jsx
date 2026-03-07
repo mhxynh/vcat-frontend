@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
+import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import DetailsTestModal from '../components/DetailsTestModal';
@@ -174,15 +175,6 @@ const ICON_COMPONENTS = {
 function SummaryIcon({ kind }) {
   const IconComponent = ICON_COMPONENTS[kind];
   return IconComponent ? <IconComponent aria-hidden="true" /> : null;
-}
-
-function InfoTooltipIcon({ tooltip }) {
-  return (
-    <span className="dashboard-info-icon" title={tooltip}>
-      <span className="dashboard-info-icon__glyph">i</span>
-      <span className="dashboard-info-tooltip">{tooltip}</span>
-    </span>
-  );
 }
 
 function formatCapacityProgress(inProgressTests, assignedTests) {

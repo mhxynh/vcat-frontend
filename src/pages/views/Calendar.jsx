@@ -113,7 +113,7 @@ function buildEventsByDay(tests, month, year, dateFilter) {
   }, {});
 }
 
-const CalendarView = () => {
+const CalendarView = ({ refreshKey = 0 }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
@@ -154,7 +154,7 @@ const CalendarView = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshKey]);
 
   const eventsByDay = useMemo(
     () => buildEventsByDay(tests, currentMonth, currentYear, dateFilter),

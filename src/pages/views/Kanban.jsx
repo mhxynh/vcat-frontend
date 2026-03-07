@@ -3,7 +3,7 @@ import '../../styles/pages/views/Kanban.css';
 import { fetchKanban, mapTestRowToCard } from '../../api/KanbanAPI';
 import { fetchRequests } from '../../api/RequestsAPI';
 
-const KanbanBoard = () => {
+const KanbanBoard = ({ refreshKey = 0 }) => {
   const statusColors = {
     notStarted: '#ef4444',
     inProgress: '#f59e0b',
@@ -44,7 +44,7 @@ const KanbanBoard = () => {
     }
 
     loadBoard();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return <div className="kanban-board">Loading...</div>;

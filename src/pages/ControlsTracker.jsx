@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PageHeader from '../components/PageHeader';
+import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import Tests from './views/Tests';
 import Requests from './views/Request';
 import Kanban from './views/Kanban';
@@ -10,8 +11,18 @@ import AssignTestModal from '../components/AssignTestModal';
 import { updateTest } from '../api/TestsAPI';
 import '../styles/pages/views/Tests.css';
 
+function formatLastUpdated(date) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
@@ -21,6 +32,8 @@ export default function ControlsTracker() {
 
   const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
+  const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
 
@@ -35,7 +48,7 @@ export default function ControlsTracker() {
           />
         );
       case 'Kanban':
-        return <Kanban />;
+        return <Kanban refreshKey={kanbanRefreshKey} />;
       case 'Requests':
         return (
           <Requests
@@ -45,21 +58,29 @@ export default function ControlsTracker() {
           />
         );
       case 'Calendar':
-        return <Calendar />;
+        return <Calendar refreshKey={calendarRefreshKey} />;
       default:
         return <Tests refreshKey={controlsRefreshKey} />;
     }
   };
 
   const handleRefreshClick = () => {
+    setLastUpdatedAt(new Date());
     if (activeTab === 'Controls') setControlsRefreshKey((k) => k + 1);
     if (activeTab === 'Requests') setRequestsRefreshKey((k) => k + 1);
+    if (activeTab === 'Kanban') setKanbanRefreshKey((k) => k + 1);
+    if (activeTab === 'Calendar') setCalendarRefreshKey((k) => k + 1);
   };
 
   return (
     <main className="tracker">
       <PageHeader
-        title="Controls Tracker"
+        title={
+          <div className="dashboard-header-title">
+            <span>Controls Tracker</span>
+            <InfoTooltipIcon tooltip={`Last Updated ${formatLastUpdated(lastUpdatedAt)}`} />
+          </div>
+        }
         actions={
           <>
             <button className="btn btn--white" type="button">
