@@ -5,20 +5,26 @@ import EditControlModal from './EditControlModal';
 
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
+  const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
+  const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
 
   useEffect(() => {
     if (!isOpen) return;
 
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key === 'Escape') {
+        if (isDeleteConfirmOpen) closeDeleteConfirm();
+        else onClose?.();
+      }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isDeleteConfirmOpen]);
 
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -30,7 +36,10 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   }, [isOpen, control]);
 
   useEffect(() => {
-    if (!isOpen) setIsEditOpen(false);
+    if (!isOpen) {
+      setIsEditOpen(false);
+      setIsDeleteConfirmOpen(false);
+    }
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -56,11 +65,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   async function handleDelete() {
     if (!id) return;
-
-    const ok = window.confirm(
-      `Permanently delete control ${id}?\n\nThis will hard-delete it from the database.`
-    );
-    if (!ok) return;
 
     try {
       setDeleting(true);
@@ -235,7 +239,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                 <button
                   className="dcm-btn dcm-btn--outline"
                   type="button"
-                  onClick={handleDelete}
+                  onClick={openDeleteConfirm}
                   disabled={deleting || !id}
                   title={!id ? 'No control selected' : 'Delete this control'}
                 >
@@ -257,6 +261,54 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           </section>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {isDeleteConfirmOpen && (
+        <div
+          className="dcm-confirm-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dcm-confirm-title"
+          onMouseDown={(e) => e.target === e.currentTarget && closeDeleteConfirm()}
+        >
+          <div className="dcm-confirm-modal" onMouseDown={stop}>
+            <h2 id="dcm-confirm-title" className="dcm-confirm-title">
+              Delete Control?
+            </h2>
+            <div className="dcm-confirm-message">
+              <p className="dcm-confirm-question">
+                Are you sure you want to{' '}
+                <strong className="dcm-confirm-bold-black">permanently delete</strong> control?
+              </p>
+              <p className="dcm-confirm-id">{id}</p>
+              <p className="dcm-confirm-warning">
+                <strong>This will hard-delete it from the database and cannot be undone.</strong>
+              </p>
+            </div>
+            <div className="dcm-confirm-actions">
+              <button
+                type="button"
+                className="dcm-confirm-btn dcm-confirm-btn--cancel"
+                onClick={closeDeleteConfirm}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="dcm-confirm-btn dcm-confirm-btn--delete"
+                onClick={async () => {
+                  closeDeleteConfirm();
+                  await handleDelete();
+                }}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit modal is mounted by details modal */}
       <EditControlModal
