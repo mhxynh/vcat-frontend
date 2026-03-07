@@ -579,6 +579,15 @@
   background: #f6f6f7;
 }
 
+.dashboard-capacity-item--empty {
+  grid-template-columns: 1fr;
+}
+
+.dashboard-capacity-item--empty .dashboard-capacity-item__name {
+  color: #6b7280;
+  font-style: italic;
+}
+
 .dashboard-capacity-item__avatar {
   width: 26px;
   height: 26px;
