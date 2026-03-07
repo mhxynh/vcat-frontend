@@ -46,9 +46,7 @@ function testTypeFromFlags(t) {
 function formatStepLabel(step) {
   if (!step) return '-';
 
-  return String(step)
-    .replaceAll('_', ' ')
-    .toUpperCase();
+  return String(step).replaceAll('_', ' ').toUpperCase();
 }
 
 function stepFromTracks(t) {
