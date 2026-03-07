@@ -227,3 +227,26 @@ body {
   font-weight: 800;
   text-decoration: underline;
 }
+
+/* Selection bar when rows are selected */
+.selection-bar {
+  background: transparent;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.selection-badge {
+  border-radius: 4px;
+  background-color: rgba(150, 21, 29, 0.05);
+  border: 1px solid rgba(150, 21, 29, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  gap: 8px;
+  text-align: left;
+  font-size: 14px;
+  color: #96151d;
+}
+
+.selection-count {
+  line-height: 16px;
+}
