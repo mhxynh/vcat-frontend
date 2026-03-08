@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/pages/views/Kanban.css';
 import { fetchKanban, mapTestRowToCard } from '../../api/KanbanAPI';
 import { fetchRequests } from '../../api/RequestsAPI';
+import DetailsTestModal from '../../components/DetailsTestModal';
 
 const KanbanBoard = ({ refreshKey = 0 }) => {
   const statusColors = {
@@ -19,8 +20,11 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
   ];
 
   const [cards, setCards] = useState([]);
+  const [tests, setTests] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
 
   useEffect(() => {
     async function loadBoard() {
@@ -34,7 +38,13 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
         );
         const allTests = responses.flat();
         const mapped = allTests.map(mapTestRowToCard);
+        const testsMap = {};
+        allTests.forEach((test) => {
+          const id = test.vgcpid || test.test_id || String(test.control_id || '');
+          testsMap[id] = test;
+        });
         setCards(mapped);
+        setTests(testsMap);
       } catch (e) {
         console.error('Kanban API error', e);
         setError(e.message || 'Failed to load kanban data');
@@ -45,6 +55,19 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
 
     loadBoard();
   }, [refreshKey]);
+
+  function openTestDetails(cardId) {
+    const test = tests[cardId];
+    if (test) {
+      setSelectedTest(test);
+      setIsTestDetailsOpen(true);
+    }
+  }
+
+  function closeTestDetails() {
+    setIsTestDetailsOpen(false);
+    setSelectedTest(null);
+  }
 
   if (loading) {
     return <div className="kanban-board">Loading...</div>;
@@ -83,7 +106,13 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
             {columnCards.map((card) => (
               <div key={card.id} className="kanban-card acc-card">
                 <div className="kanban-card-top">
-                  <span className="kanban-code">{card.id}</span>
+                  <span
+                    className="kanban-code"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => openTestDetails(card.id)}
+                  >
+                    {card.id}
+                  </span>
                   <span className="kanban-dot" style={{ backgroundColor: card.dot }} />
                 </div>
 
@@ -98,6 +127,7 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
           </div>
         );
       })}
+      <DetailsTestModal isOpen={isTestDetailsOpen} onClose={closeTestDetails} test={selectedTest} />
     </div>
   );
 };
