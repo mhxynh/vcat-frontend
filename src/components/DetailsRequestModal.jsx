@@ -91,7 +91,7 @@ export default function DetailsRequestModal({
     if (!isOpen || activeTab !== 'History' || !request?.requestId) return;
 
     const status = String(localStatus ?? request?.status ?? '').toUpperCase();
-    if (status !== 'IN_PROGRESS' && status !== 'COMPLETED') {
+    if (status !== 'DAT_IN_PROGRESS' && status !== 'OET_IN_PROGRESS' && status !== 'COMPLETED') {
       setHistoryLogs([]);
       return;
     }
@@ -461,7 +461,11 @@ export default function DetailsRequestModal({
                 loading={historyLoading}
                 error={historyError}
                 overlayTitle={`Request History: ${requestTitle}`}
-                showContent={status === 'IN_PROGRESS' || status === 'COMPLETED'}
+                showContent={
+                  status === 'DAT_IN_PROGRESS' ||
+                  status === 'OET_IN_PROGRESS' ||
+                  status === 'COMPLETED'
+                }
                 statusMessage="History is available when the request is in progress or completed."
                 contextRequestId={requestTitle}
                 contextTestIdToVgcpid={contextTestIdToVgcpid}
@@ -601,7 +605,8 @@ function formatPriority(p) {
 function statusBadgeClass(status) {
   const v = String(status || '').toUpperCase();
   if (v === 'COMPLETED') return 'drm-pill--good';
-  if (v === 'IN_PROGRESS') return 'drm-pill--info';
+  if (v === 'DAT_IN_PROGRESS') return 'drm-pill--info';
+  if (v === 'OET_IN_PROGRESS') return 'drm-pill--info';
   if (v === 'BLOCKED') return 'drm-pill--bad';
   if (v === 'ARCHIVED') return 'drm-pill--neutral';
   return 'drm-pill--neutral';

@@ -14,7 +14,7 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
 
   const columns = [
     { key: 'not_started', title: 'Not Started' },
-    { key: 'in_progress', title: 'In Progress' },
+    { key: 'in_progress', title: 'In Progress', match: ['dat_in_progress', 'oet_in_progress'] },
     { key: 'in_review', title: 'In Review' },
     { key: 'completed', title: 'Completed' },
   ];
@@ -88,7 +88,9 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
   return (
     <div className="kanban-board">
       {columns.map((column) => {
-        const columnCards = cards.filter((card) => card.status === column.key);
+        const columnCards = cards.filter((card) =>
+          column.match ? column.match.includes(card.status) : card.status === column.key
+        );
 
         return (
           <div key={column.key} className="kanban-column">

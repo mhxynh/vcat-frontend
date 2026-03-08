@@ -67,7 +67,9 @@ function statusColor(statusKey) {
   switch (statusKey) {
     case 'not_started':
       return '#ef4444';
-    case 'in_progress':
+    case 'dat_in_progress':
+      return '#f59e0b';
+    case 'oet_in_progress':
       return '#f59e0b';
     case 'in_review':
       return '#a78bfa';

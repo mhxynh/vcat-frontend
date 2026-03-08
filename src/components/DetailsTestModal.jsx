@@ -184,6 +184,7 @@ export default function DetailsTestModal({
       if (track === 'DAT') {
         return [
           '',
+          'TESTING_READY',
           'WALKTHROUGH_SCHEDULED',
           'WALKTHROUGH_COMPLETED',
           'TESTING_IN_PROGRESS',
@@ -191,12 +192,14 @@ export default function DetailsTestModal({
           'ADDRESSING_COMMENTS',
         ];
       }
-      if (track === 'OET') return ['', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+      if (track === 'OET')
+        return ['', 'TESTING_READY', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
     }
 
     if (requiresDat) {
       return [
         '',
+        'TESTING_READY',
         'WALKTHROUGH_SCHEDULED',
         'WALKTHROUGH_COMPLETED',
         'TESTING_IN_PROGRESS',
@@ -206,7 +209,7 @@ export default function DetailsTestModal({
     }
 
     if (requiresOet) {
-      return ['', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+      return ['', 'TESTING_READY', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
     }
 
     return [''];
@@ -240,11 +243,20 @@ export default function DetailsTestModal({
     return false;
   }
 
+  function isInProgress(status) {
+    const s = String(status || '').toUpperCase();
+    return s === 'DAT_IN_PROGRESS' || s === 'OET_IN_PROGRESS';
+  }
+
+  function statusForTrack(track) {
+    return track === 'DAT' ? 'DAT_IN_PROGRESS' : 'OET_IN_PROGRESS';
+  }
+
   function getPrimaryActionLabel(testRow) {
     const statusUpper = String(testRow?.status || 'NOT_STARTED').toUpperCase();
 
     if (statusUpper === 'NOT_STARTED') return 'Start Work';
-    if (statusUpper === 'IN_PROGRESS') {
+    if (isInProgress(statusUpper)) {
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
     }
@@ -264,9 +276,9 @@ export default function DetailsTestModal({
         const requiresOet = !!t?.requires_oet;
 
         if (requiresDat) {
-          await updateDat(testId, 'WALKTHROUGH_SCHEDULED', 'IN_PROGRESS');
+          await updateDat(testId, 'TESTING_READY', 'DAT_IN_PROGRESS');
         } else if (requiresOet) {
-          await updateOet(testId, 'TESTING_IN_PROGRESS', 'IN_PROGRESS');
+          await updateOet(testId, 'TESTING_READY', 'OET_IN_PROGRESS');
         }
 
         await refreshTest();
@@ -298,7 +310,7 @@ export default function DetailsTestModal({
         return;
       }
 
-      if (statusUpper === 'IN_PROGRESS') {
+      if (isInProgress(statusUpper)) {
         if (isFinalTestingComplete(t)) {
           const ok = window.confirm(`Submit ${vgcpid} for manager review?`);
           if (!ok) return;
@@ -319,7 +331,7 @@ export default function DetailsTestModal({
         const next = steps[Math.min(idx + 1, steps.length - 1)];
 
         await runBusy('Updating step...', async () => {
-          await setTrackStepApi(track, next, 'IN_PROGRESS');
+          await setTrackStepApi(track, next, statusForTrack(track));
           await refreshTest();
         });
         return;
@@ -357,13 +369,13 @@ export default function DetailsTestModal({
         const track = getActiveTrack(t) || (t?.requires_oet ? 'OET' : 'DAT');
 
         await runBusy('Reverting...', async () => {
-          await setTrackStepApi(track, 'COMPLETED', 'IN_PROGRESS');
+          await setTrackStepApi(track, 'COMPLETED', statusForTrack(track));
           await refreshTest();
         });
         return;
       }
 
-      if (statusUpper === 'IN_PROGRESS') {
+      if (isInProgress(statusUpper)) {
         const track = getRevertTrack(t);
         if (!track) return;
 
@@ -381,7 +393,7 @@ export default function DetailsTestModal({
             (!t?.requires_dat && !!t?.requires_oet) ||
             (!!t?.requires_dat && !!t?.requires_oet && String(otherStep || '') === ''));
 
-        const statusValue = willBeNotStarted ? 'NOT_STARTED' : 'IN_PROGRESS';
+        const statusValue = willBeNotStarted ? 'NOT_STARTED' : statusForTrack(track);
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, prev, statusValue);
@@ -407,7 +419,7 @@ export default function DetailsTestModal({
     try {
       await runBusy('Rejecting...', async () => {
         const finalTrack = t?.requires_oet ? 'OET' : 'DAT';
-        await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', 'IN_PROGRESS');
+        await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', statusForTrack(finalTrack));
         await refreshTest();
       });
     } catch (e) {
@@ -434,7 +446,8 @@ export default function DetailsTestModal({
     return String(status || 'NOT_STARTED')
       .replaceAll('_', ' ')
       .toLowerCase()
-      .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+      .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
+      .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
   }
 
   function statusToBadgeType(status) {
@@ -751,17 +764,18 @@ function computeStepLabels(test) {
     step = datStep;
   }
 
-  const currentStepLabel = track ? `${track}: ${humanStep(step)}` : humanStep(null);
+  const currentStepLabel = track ? `${humanStep(step)}` : humanStep(null);
 
   const datFlow = [
     '',
+    'TESTING_READY',
     'WALKTHROUGH_SCHEDULED',
     'WALKTHROUGH_COMPLETED',
     'TESTING_IN_PROGRESS',
     'COMPLETED',
     'ADDRESSING_COMMENTS',
   ];
-  const oetFlow = ['', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+  const oetFlow = ['', 'TESTING_READY', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
 
   const flow = track === 'DAT' ? datFlow : oetFlow;
 
