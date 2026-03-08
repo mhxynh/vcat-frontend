@@ -5,13 +5,7 @@ body,
 #root {
   height: 100%;
   font-family:
-    'Tenorite',
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Arial,
-    sans-serif;
+    'Tenorite';
   font-weight: 700;
 }
 
@@ -22,6 +16,11 @@ body {
 
 * {
   font-family: inherit;
+}
+
+body,
+body * {
+  font-family: 'Tenorite', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 /* Buttons */
@@ -108,14 +107,12 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease;
   font-size: 15px;
   line-height: 1;
-  transform-origin: 50% 50%;
 }
 
 .chev--open {
-  transform: rotate(180deg);
+  /* kept for compatibility but no rotation applied; controls render explicit glyphs */
 }
 
 /* Pagination */

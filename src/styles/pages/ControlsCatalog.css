@@ -14,6 +14,12 @@
   align-items: center;
 }
 
+/* Ensure filter pills in Controls Catalog are not bold (base sets 700 globally) */
+.controls-page .pill,
+.controls-page .pill--active {
+  font-weight: 400;
+}
+
 .filter-search {
   display: flex;
   justify-content: center;
@@ -38,6 +44,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Make description and detail values non-bold in Controls Catalog */
+.controls-page .acc-card__text,
+.controls-page .acc-details__v {
+  font-weight: 400;
 }
 
 .acc-item {

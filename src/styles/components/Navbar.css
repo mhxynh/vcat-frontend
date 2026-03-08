@@ -31,13 +31,7 @@
 .navbar__brand {
   font-family:
     'Fremont',
-    'Tenorite',
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Arial,
-    sans-serif;
+    'Tenorite';
   color: #8b0f17;
   font-weight: 700;
   font-size: 25px;

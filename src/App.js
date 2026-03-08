@@ -19,9 +19,7 @@ export default function App() {
         <Router>
           <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Navbar />
-            <div
-              style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-            >
+            <div style={{ flex: 1 }}>
               <Authenticator components={components} formFields={formFields} hideSignUp={true}>
                 {({ signOut, user }) => (
                   <main style={{ width: '100%', padding: '20px' }}>
