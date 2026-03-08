@@ -1,4 +1,4 @@
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+import { authFetch, API_BASE } from './apiClient';
 
 export async function fetchKanban({ requestId, controlId, details } = {}) {
   const buildUrl = ({ requestId, controlId, details } = {}) => {
@@ -11,13 +11,13 @@ export async function fetchKanban({ requestId, controlId, details } = {}) {
     return u.toString();
   };
 
-  let resp = await fetch(buildUrl({ requestId, controlId, details }), {
+  let resp = await authFetch(buildUrl({ requestId, controlId, details }), {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
 
   if (resp.status === 400 && requestId == null && controlId == null) {
-    resp = await fetch(buildUrl({ requestId: 0, details }), {
+    resp = await authFetch(buildUrl({ requestId: 0, details }), {
       method: 'GET',
       headers: { Accept: 'application/json' },
     });

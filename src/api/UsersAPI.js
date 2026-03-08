@@ -1,10 +1,10 @@
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+import { authFetch, API_BASE } from './apiClient';
 
 export async function fetchUsers({ isActive } = {}) {
   const url = new URL(`${API_BASE}/users`);
   if (isActive != null) url.searchParams.set('is_active', String(isActive));
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });

@@ -1,12 +1,11 @@
 import { objectToSnakeCase } from '../utils/transformer';
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+import { authFetch, API_BASE } from './apiClient';
 
 export async function deleteControl(vgcpid, { hard = false } = {}) {
   const url = new URL(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`);
   if (hard) url.searchParams.set('hard', 'true');
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'DELETE',
     headers: { Accept: 'application/json' },
   });
@@ -27,7 +26,7 @@ export async function deleteControl(vgcpid, { hard = false } = {}) {
 }
 
 export async function fetchControls() {
-  const resp = await fetch(`${API_BASE}/controls`, {
+  const resp = await authFetch(`${API_BASE}/controls`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -61,7 +60,7 @@ export function mapControlRowToUi(control) {
 }
 
 export async function createControl(payload) {
-  const resp = await fetch(`${API_BASE}/controls`, {
+  const resp = await authFetch(`${API_BASE}/controls`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -84,7 +83,7 @@ export async function createControl(payload) {
 }
 
 export async function updateControl(vgcpid, updates) {
-  const resp = await fetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+  const resp = await authFetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -104,7 +103,7 @@ export async function updateControl(vgcpid, updates) {
 }
 
 export async function retireControl(vgcpid) {
-  const resp = await fetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+  const resp = await authFetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
     method: 'DELETE',
     headers: { Accept: 'application/json' },
   });
@@ -120,7 +119,7 @@ export async function retireControl(vgcpid) {
 }
 
 export async function fetchControlByVgcpid(vgcpid) {
-  const resp = await fetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+  const resp = await authFetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });

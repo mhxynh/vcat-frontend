@@ -1,8 +1,8 @@
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+import { authFetch, API_BASE } from './apiClient';
 
 async function fetchAuditLogs(params) {
   const search = new URLSearchParams(params);
-  const resp = await fetch(`${API_BASE}/audit?${search}`, {
+  const resp = await authFetch(`${API_BASE}/audit?${search}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
