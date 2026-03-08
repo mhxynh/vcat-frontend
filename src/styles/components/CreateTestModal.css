@@ -64,8 +64,8 @@
 */
 .ctm-grid {
   width: 100%;
-  max-width: 760px; /* makes fields shorter like your reference */
-  margin: 0 auto; /* centers the grid in the modal */
+  max-width: 760px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 24px;
@@ -88,7 +88,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 0; /* prevents overflow in grid */
+  min-width: 0;
 }
 
 .ctm-field--full {
@@ -176,4 +176,11 @@
 
 .ctm-btn--primary:hover {
   background: #7f1d1d;
+}
+
+.ctm-input[aria-invalid='true']:not(:disabled),
+.ctm-select[aria-invalid='true']:not(:disabled),
+.ctm-textarea[aria-invalid='true']:not(:disabled) {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }

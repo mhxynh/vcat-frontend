@@ -43,11 +43,25 @@ function testTypeFromFlags(t) {
   return '-';
 }
 
+function formatStepLabel(step) {
+  if (!step) return '-';
+
+  return String(step).replaceAll('_', ' ').toUpperCase();
+}
+
 function stepFromTracks(t) {
-  const dat = t?.dat_step ? `DAT: ${String(t.dat_step).replaceAll('_', ' ')}` : '';
-  const oet = t?.oet_step ? `OET: ${String(t.oet_step).replaceAll('_', ' ')}` : '';
-  const parts = [dat, oet].filter(Boolean);
-  return parts.length ? parts.join(' • ') : '-';
+  const requiresDat = !!t?.requires_dat;
+  const requiresOet = !!t?.requires_oet;
+
+  if (requiresDat) {
+    return formatStepLabel(t?.dat_step);
+  }
+
+  if (requiresOet) {
+    return formatStepLabel(t?.oet_step);
+  }
+
+  return '-';
 }
 
 function normalizeText(v) {
