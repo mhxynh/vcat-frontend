@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
 import EditTestModal from './EditTestModal';
+import AuditHistoryView from './AuditHistoryView';
 import {
   archiveTest,
   hardDeleteTest,
@@ -11,6 +12,7 @@ import {
   updateOet,
   fetchTestById,
 } from '../api/TestsAPI';
+import { fetchAuditLogsByTestId } from '../api/AuditAPI';
 
 export default function DetailsTestModal({
   isOpen,
@@ -32,6 +34,10 @@ export default function DetailsTestModal({
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
 
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+
   useEffect(() => {
     if (!isOpen) setIsEditOpen(false);
   }, [isOpen]);
@@ -51,6 +57,8 @@ export default function DetailsTestModal({
     setActiveTab('Details');
     setCommentText('');
     setLocalComments([]);
+    setHistoryLogs([]);
+    setHistoryError('');
 
     setLocalTest(test ?? null);
 
@@ -61,6 +69,31 @@ export default function DetailsTestModal({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, test, onClose]);
+
+  const currentTestId = (localTest ?? test)?.test_id ?? null;
+
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'History' || !currentTestId) return;
+
+    let cancelled = false;
+    setHistoryLoading(true);
+    setHistoryError('');
+
+    fetchAuditLogsByTestId({ testId: currentTestId })
+      .then((logs) => {
+        if (!cancelled) setHistoryLogs(logs);
+      })
+      .catch((e) => {
+        if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, activeTab, currentTestId]);
 
   async function refreshTest() {
     const testId = (localTest ?? test)?.test_id ?? null;
@@ -80,7 +113,7 @@ export default function DetailsTestModal({
 
   if (!isOpen) return null;
 
-  const testId = t?.test_id ?? null;
+  const testId = currentTestId;
   const vgcpid = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? 'Unknown';
   const assignedName =
     t?.assigned_tester_name ?? t?.tester_name ?? String(t?.assigned_tester_id ?? '-');
@@ -591,6 +624,15 @@ export default function DetailsTestModal({
                   </button>
                 </div>
               </>
+            ) : activeTab === 'History' ? (
+              <AuditHistoryView
+                logs={historyLogs}
+                loading={historyLoading}
+                error={historyError}
+                overlayTitle={`Test History: ${vgcpid}`}
+                showContent={true}
+                contextVgcpid={vgcpid}
+              />
             ) : (
               <div className="dtm-empty">This view is not implemented yet.</div>
             )}
