@@ -1,8 +1,8 @@
 import { objectToSnakeCase } from '../utils/transformer';
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+import { authFetch, API_BASE } from './apiClient';
 
 export async function fetchRequests() {
-  const resp = await fetch(`${API_BASE}/requests`, {
+  const resp = await authFetch(`${API_BASE}/requests`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -23,7 +23,7 @@ export async function fetchRequests() {
 export async function fetchRequestById(requestId) {
   if (requestId == null) throw new Error('Request ID is required');
 
-  const resp = await fetch(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`, {
+  const resp = await authFetch(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -43,7 +43,7 @@ export async function fetchRequestById(requestId) {
 export async function updateRequest(requestId, payload) {
   if (requestId == null) throw new Error('Request ID is required');
 
-  const resp = await fetch(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`, {
+  const resp = await authFetch(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`, {
     method: 'PUT',
     headers: {
       Accept: 'application/json',
@@ -134,7 +134,7 @@ export async function deleteRequest(requestId, { hard = false } = {}) {
   const url = new URL(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`);
   if (hard) url.searchParams.set('hard', 'true');
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'DELETE',
     headers: { Accept: 'application/json' },
   });
@@ -152,7 +152,7 @@ export async function deleteRequest(requestId, { hard = false } = {}) {
 }
 
 export async function createRequest(payload) {
-  const resp = await fetch(`${API_BASE}/requests`, {
+  const resp = await authFetch(`${API_BASE}/requests`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',

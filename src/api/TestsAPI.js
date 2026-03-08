@@ -1,6 +1,5 @@
 import { objectToSnakeCase } from '../utils/transformer';
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:3001';
+import { authFetch, API_BASE } from './apiClient';
 
 function formatDate(value) {
   if (!value) return '';
@@ -91,7 +90,7 @@ export async function fetchTests() {
 }
 
 export async function fetchAllTests() {
-  const resp = await fetch(`${API_BASE}/tests`, {
+  const resp = await authFetch(`${API_BASE}/tests`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -116,7 +115,7 @@ export async function fetchTestsByRequestId(requestId, { details = true } = {}) 
   url.searchParams.set('request_id', String(requestId));
   if (details) url.searchParams.set('details', 'true');
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -140,7 +139,7 @@ export async function deleteTest(testId, { hard = false } = {}) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
   if (hard) url.searchParams.set('hard', 'true');
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'DELETE',
     headers: { Accept: 'application/json' },
   });
@@ -209,7 +208,7 @@ function formatShortDate(value) {
 }
 
 export async function createTest(payload) {
-  const resp = await fetch(`${API_BASE}/tests`, {
+  const resp = await authFetch(`${API_BASE}/tests`, {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase(payload)),
@@ -232,7 +231,7 @@ export async function updateTest(testId, payload) {
 
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase(payload)),
@@ -253,7 +252,7 @@ export async function updateTest(testId, payload) {
 export async function startTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase({ action: 'start' })),
@@ -274,7 +273,7 @@ export async function startTest(testId) {
 export async function reviewTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase({ action: 'review' })),
@@ -295,7 +294,7 @@ export async function reviewTest(testId) {
 export async function completeTest(testId) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase({ action: 'complete' })),
@@ -316,7 +315,7 @@ export async function completeTest(testId) {
 export async function updateDat(testId, datStep, status) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase({ action: 'update_dat', datStep: datStep, status })),
@@ -337,7 +336,7 @@ export async function updateDat(testId, datStep, status) {
 export async function updateOet(testId, oetStep, status) {
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(objectToSnakeCase({ action: 'update_oet', oetStep: oetStep, status })),
@@ -360,7 +359,7 @@ export async function fetchTestById(testId) {
 
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
 
-  const resp = await fetch(url.toString(), {
+  const resp = await authFetch(url.toString(), {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
