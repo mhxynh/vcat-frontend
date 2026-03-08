@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import '../../styles/pages/views/Request.css';
 import { fetchRequests, mapRequestRowToUi } from '../../api/RequestsAPI';
 import {
@@ -29,6 +29,7 @@ export default function Requests({ refreshKey = 0 }) {
   const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+  const currentYear = new Date().getFullYear();
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -38,6 +39,7 @@ export default function Requests({ refreshKey = 0 }) {
   function closeRequestDetails() {
     setIsRequestDetailsOpen(false);
     setSelectedRequest(null);
+    refreshRequests();
   }
 
   function openAssignModal(req) {
@@ -110,7 +112,7 @@ export default function Requests({ refreshKey = 0 }) {
     }
   }
 
-  async function preloadAllTests(requestList) {
+  const preloadAllTests = useCallback(async (requestList) => {
     setTestsByRequestId((prev) => {
       const next = { ...prev };
 
@@ -157,35 +159,41 @@ export default function Requests({ refreshKey = 0 }) {
         }
       })
     );
-  }
+  }, []);
+  const refreshRequests = useCallback(async () => {
+    try {
+      const rows = await fetchRequests();
+      const ui = rows.map(mapRequestRowToUi);
+
+      setRequests(ui);
+
+      if (ui[0]?.id) setExpanded((prev) => (prev.size === 0 ? new Set([ui[0].id]) : prev));
+
+      await preloadAllTests(ui);
+    } catch (e) {
+      setError(e?.message || 'Failed to load requests');
+    }
+  }, [preloadAllTests]);
+
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await refreshRequests();
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshRequests]);
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
-        setLoading(true);
-        setError('');
-
-        const rows = await fetchRequests();
-        const ui = rows.map(mapRequestRowToUi);
-
-        if (cancelled) return;
-
-        setRequests(ui);
-
-        if (ui[0]?.id) setExpanded(new Set([ui[0].id]));
-
-        await preloadAllTests(ui);
+        await loadRequests();
       } catch (e) {
         if (!cancelled) {
           setError(e?.message || 'Failed to load requests');
-          setRequests([]);
-          setExpanded(new Set());
-          setTestsByRequestId({});
         }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     }
 
@@ -193,7 +201,7 @@ export default function Requests({ refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, refreshRequests, loadRequests]);
 
   function toggleExpand(req) {
     setExpanded((prev) => {
@@ -244,7 +252,7 @@ export default function Requests({ refreshKey = 0 }) {
     const total = (req.controls || []).length;
     if (total === 0) return { label: '0/0 Completed', pct: 0 };
 
-    const done = req.controls.filter((c) => String(c.status) === 'Completed').length;
+    const done = req.controls.filter((c) => String(c.status).toUpperCase() === 'COMPLETED').length;
     const pct = Math.round((done / total) * 100);
     return { label: `${done}/${total} Completed`, pct };
   }
@@ -278,7 +286,9 @@ export default function Requests({ refreshKey = 0 }) {
                 <div key={req.id} className="request-card">
                   <div className="request-row">
                     <div className="req-left">
-                      <div style={{ fontWeight: 800 }}>{req.id}</div>
+                      <div
+                        style={{ fontWeight: 800 }}
+                      >{`REQ-${currentYear}-${String(req.id).padStart(4, '0')}`}</div>
                       <div className={`badge badge-${String(req.priority || '').toLowerCase()}`}>
                         {req.priority}
                       </div>
@@ -336,7 +346,7 @@ export default function Requests({ refreshKey = 0 }) {
                             <div className="control-top">
                               <div className="control-id-wrap">
                                 <span
-                                  className={`status-dot ${String(c.status || '')
+                                  className={`status-dot ${String(c.statusLabel || c.status || '')
                                     .toLowerCase()
                                     .replace(/\s+/g, '-')}`}
                                 />
@@ -349,11 +359,11 @@ export default function Requests({ refreshKey = 0 }) {
                                 </span>
                               </div>
                               <span
-                                className={`status-pill ${String(c.status || '')
+                                className={`status-pill ${String(c.statusLabel || c.status || '')
                                   .toLowerCase()
                                   .replace(/\s+/g, '-')}`}
                               >
-                                {c.status}
+                                {c.statusLabel || c.status}
                               </span>
                             </div>
 
@@ -361,7 +371,6 @@ export default function Requests({ refreshKey = 0 }) {
 
                             <div className="control-meta">
                               <div className="control-meta-row control-meta-row--assignee">
-                                <span className="meta-icon">👤</span>
                                 <span>{c.assignee}</span>
                               </div>
 
@@ -392,6 +401,28 @@ export default function Requests({ refreshKey = 0 }) {
         isOpen={isRequestDetailsOpen}
         onClose={closeRequestDetails}
         request={selectedRequest}
+        onUpdated={(requestId, ui, items) => {
+          if (!requestId) return;
+
+          if (ui) {
+            setRequests((prev) =>
+              prev.map((r) => (r.requestId === requestId ? { ...r, ...ui } : r))
+            );
+          }
+
+          if (Array.isArray(items)) {
+            setTestsByRequestId((prev) => ({
+              ...prev,
+              [requestId]: { loading: false, error: '', items },
+            }));
+          }
+
+          setSelectedRequest((prev) =>
+            prev && prev.requestId === requestId
+              ? { ...prev, ...(ui || {}), controls: Array.isArray(items) ? items : prev.controls }
+              : prev
+          );
+        }}
         onArchived={(requestId) => {
           setRequests((prev) =>
             prev.map((r) =>
@@ -426,6 +457,7 @@ export default function Requests({ refreshKey = 0 }) {
           setIsRequestDetailsOpen(false);
         }}
       />
+
       <AssignRequestModal
         isOpen={isAssignOpen}
         onClose={closeAssignModal}

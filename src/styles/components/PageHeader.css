@@ -13,6 +13,9 @@
 .page-header__title {
   font-size: 18px;
   font-weight: inherit;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .page-header__actions {
