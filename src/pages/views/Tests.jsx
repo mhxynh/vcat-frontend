@@ -131,7 +131,7 @@ export default function Tests({
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, updateSelectedRows]);
 
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();

@@ -115,7 +115,7 @@ export default function DetailsRequestModal({
         if (!cancelled) {
           const filtered = (logs || []).filter((log) => {
             const entity = String(log?.entity_type || '').toUpperCase();
-            if (entity === 'REQUEST') return log.entity_id == request.requestId;
+            if (entity === 'REQUEST') return log.entity_id === request.requestId;
             if (entity === 'TEST')
               return (
                 testIdsForRequest.has(log.entity_id) ||
