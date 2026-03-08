@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { updateTest } from '../api/TestsAPI';
 import '../styles/components/EditTestModal.css';
+import '../styles/components/EditControlModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
@@ -143,7 +144,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
     const errs = {};
     if (!selectedControlId) errs.selectedControlId = 'VGCPID is required.';
-    if (!selectedRequestId) errs.selectedRequestId = 'Link to Request is required.';
     if (!testType) errs.testType = 'Test Type is required.';
     if (!dueDate) errs.dueDate = 'Due Date is required.';
     if (!description.trim()) errs.description = 'Test description is a required field';
@@ -158,12 +158,12 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     const payload = {
       action: 'update_details',
       vgcpid: selectedVgcpid,
-      requestId: Number(selectedRequestId),
       ...flags,
       dueDate: dueDate,
       description: description.trim() || ' ',
     };
 
+    if (selectedRequestId) payload.requestId = Number(selectedRequestId);
     if (etaDate) payload.estimatedDate = etaDate;
     if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
@@ -235,9 +235,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             </div>
 
             <div className="ctm-field">
-              <label className="ctm-label">
-                Link to Request <span className="ctm-req">*</span>
-              </label>
+              <label className="ctm-label">Link to Request</label>
               <select
                 className="ctm-select"
                 value={selectedRequestId}
@@ -343,7 +341,12 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
         </div>
 
         <div className="ctm-footer">
-          <button type="button" className="btn btn--white" onClick={onClose} disabled={submitting}>
+          <button
+            type="button"
+            className="ecm-btn ecm-btn--outline"
+            onClick={onClose}
+            disabled={submitting}
+          >
             Cancel
           </button>
 

@@ -4,8 +4,7 @@ html,
 body,
 #root {
   height: 100%;
-  font-family:
-    'Tenorite';
+  font-family: 'Tenorite';
   font-weight: 700;
 }
 
@@ -20,7 +19,14 @@ body {
 
 body,
 body * {
-  font-family: 'Tenorite', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-family:
+    'Tenorite',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
 }
 
 /* Buttons */
