@@ -8,6 +8,8 @@ import {
   mapTestRowToRequestControlCard,
   archiveTest,
 } from '../api/TestsAPI';
+import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
+import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 
 export default function DetailsRequestModal({
   isOpen,
@@ -36,6 +38,10 @@ export default function DetailsRequestModal({
   const openTestDetails = (testRow) => setActiveTest(testRow ?? null);
   const closeTestDetails = () => setActiveTest(null);
 
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -62,11 +68,91 @@ export default function DetailsRequestModal({
     setDeleting(false);
     setDeleteError('');
     setLocalStatus(null);
+    setHistoryLogs([]);
+    setHistoryError('');
   }, [isOpen, request]);
 
   const controls = useMemo(() => {
     return Array.isArray(localRequest?.controls) ? localRequest.controls : [];
   }, [localRequest?.controls]);
+
+  const contextTestIdToVgcpid = useMemo(() => {
+    const map = {};
+    for (const c of controls) {
+      if (c.testId != null && c.id) {
+        map[String(c.testId)] = c.id;
+        map[Number(c.testId)] = c.id;
+      }
+    }
+    return map;
+  }, [controls]);
+
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'History' || !request?.requestId) return;
+
+    const status = String(localStatus ?? request?.status ?? '').toUpperCase();
+    if (status !== 'IN_PROGRESS' && status !== 'COMPLETED') {
+      setHistoryLogs([]);
+      return;
+    }
+
+    const testIdsForRequest = new Set();
+    for (const c of controls) {
+      const tid = c.testId ?? c.test_id;
+      if (tid != null) {
+        testIdsForRequest.add(tid);
+        testIdsForRequest.add(String(tid));
+        testIdsForRequest.add(Number(tid));
+      }
+    }
+
+    let cancelled = false;
+    setHistoryLoading(true);
+    setHistoryError('');
+
+    fetchAuditLogsByRequestId({ requestId: request.requestId })
+      .then((logs) => {
+        if (!cancelled) {
+          const filtered = (logs || []).filter((log) => {
+            const entity = String(log?.entity_type || '').toUpperCase();
+            if (entity === 'REQUEST') return log.entity_id == request.requestId;
+            if (entity === 'TEST')
+              return (
+                testIdsForRequest.has(log.entity_id) ||
+                testIdsForRequest.has(Number(log.entity_id)) ||
+                testIdsForRequest.has(String(log.entity_id))
+              );
+            return true;
+          });
+          const enriched = filtered.map((log) => {
+            if (String(log?.entity_type || '').toUpperCase() === 'TEST' && !log.vgcpid) {
+              const vgcpid = getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
+              if (vgcpid) return { ...log, vgcpid };
+            }
+            return log;
+          });
+          setHistoryLogs(enriched);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isOpen,
+    activeTab,
+    request?.requestId,
+    request?.status,
+    localStatus,
+    controls,
+    contextTestIdToVgcpid,
+  ]);
 
   const progress = useMemo(() => {
     const total = controls.length;
@@ -79,6 +165,7 @@ export default function DetailsRequestModal({
   const requestTitle = localRequest?.id ?? 'Request Details';
   const backendStatus = localRequest?.status ?? 'Not Started';
   const status = localStatus ?? backendStatus;
+  const isCompleted = String(status || '').toUpperCase() === 'COMPLETED';
 
   const priority = localRequest?.priority ?? 'MEDIUM';
   const description = localRequest?.description ?? 'No description.';
@@ -368,7 +455,18 @@ export default function DetailsRequestModal({
               </div>
             ) : null}
 
-            {activeTab === 'History' ? <div className="drm-empty">No history found.</div> : null}
+            {activeTab === 'History' ? (
+              <AuditHistoryView
+                logs={historyLogs}
+                loading={historyLoading}
+                error={historyError}
+                overlayTitle={`Request History: ${requestTitle}`}
+                showContent={status === 'IN_PROGRESS' || status === 'COMPLETED'}
+                statusMessage="History is available when the request is in progress or completed."
+                contextRequestId={requestTitle}
+                contextTestIdToVgcpid={contextTestIdToVgcpid}
+              />
+            ) : null}
           </div>
         </section>
 
@@ -411,8 +509,14 @@ export default function DetailsRequestModal({
                 className="drm-btn drm-btn--outline"
                 type="button"
                 onClick={handleArchiveRequest}
-                disabled={archiving || deleting || requestId == null}
-                title={requestId == null ? 'No request selected' : 'Archive this request'}
+                disabled={archiving || deleting || requestId == null || isCompleted}
+                title={
+                  requestId == null
+                    ? 'No request selected'
+                    : isCompleted
+                      ? 'Cannot archive a completed request'
+                      : 'Archive this request'
+                }
               >
                 {archiving ? 'Archiving…' : 'Archive Request'}
               </button>
@@ -421,9 +525,13 @@ export default function DetailsRequestModal({
                 className="drm-btn drm-btn--outline"
                 type="button"
                 onClick={handleHardDeleteRequest}
-                disabled={deleting || archiving || requestId == null}
+                disabled={deleting || archiving || requestId == null || isCompleted}
                 title={
-                  requestId == null ? 'No request selected' : 'Permanently delete this request'
+                  requestId == null
+                    ? 'No request selected'
+                    : isCompleted
+                      ? 'Cannot delete a completed request'
+                      : 'Permanently delete this request'
                 }
               >
                 {deleting ? 'Deleting…' : 'Delete Request'}

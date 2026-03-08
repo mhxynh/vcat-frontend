@@ -6,6 +6,8 @@ import Kanban from './views/Kanban';
 import Calendar from './views/Calendar';
 import CreateTestModal from '../components/CreateTestModal';
 import CreateRequestModal from '../components/CreateRequestModal';
+import AssignTestModal from '../components/AssignTestModal';
+import { updateTest } from '../api/TestsAPI';
 import '../styles/pages/views/Tests.css';
 
 export default function ControlsTracker() {
@@ -14,6 +16,8 @@ export default function ControlsTracker() {
 
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
+  const [selectedTestRows, setSelectedTestRows] = useState([]);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
@@ -23,7 +27,13 @@ export default function ControlsTracker() {
   const renderActiveView = () => {
     switch (activeTab) {
       case 'Controls':
-        return <Tests refreshKey={controlsRefreshKey} />;
+        return (
+          <Tests
+            refreshKey={controlsRefreshKey}
+            selectedRows={selectedTestRows}
+            onSelectionChange={setSelectedTestRows}
+          />
+        );
       case 'Kanban':
         return <Kanban />;
       case 'Requests':
@@ -76,9 +86,56 @@ export default function ControlsTracker() {
         </div>
 
         {activeTab === 'Controls' && (
-          <button className="btn btn--new" type="button" onClick={() => setIsCreateTestOpen(true)}>
-            + Add Control Test
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {selectedTestRows.length > 0 ? (
+              <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    borderRadius: 4,
+                    backgroundColor: 'rgba(150,21,29,0.05)',
+                    padding: '4px 8px',
+                    color: '#96151d',
+                  }}
+                >
+                  <button
+                    aria-label="Clear selection"
+                    onClick={() => setSelectedTestRows([])}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#96151d',
+                      cursor: 'pointer',
+                      padding: 0,
+                      marginRight: 6,
+                      fontSize: 14,
+                      lineHeight: '14px',
+                    }}
+                  >
+                    ×
+                  </button>
+                  <span>{selectedTestRows.length} selected</span>
+                </div>
+                <button
+                  className="btn btn--new"
+                  type="button"
+                  onClick={() => setIsAssignOpen(true)}
+                >
+                  Bulk Assign
+                </button>
+              </div>
+            ) : null}
+
+            <button
+              className="btn btn--new"
+              type="button"
+              onClick={() => setIsCreateTestOpen(true)}
+            >
+              + Add Control Test
+            </button>
+          </div>
         )}
 
         {activeTab === 'Requests' && (
@@ -99,6 +156,30 @@ export default function ControlsTracker() {
         onClose={() => setIsCreateTestOpen(false)}
         onCreated={(created) => {
           setControlsRefreshKey((k) => k + 1);
+        }}
+      />
+
+      <AssignTestModal
+        isOpen={isAssignOpen}
+        onClose={() => setIsAssignOpen(false)}
+        testIds={selectedTestRows}
+        onAssign={async (testIds, userId, displayName, note) => {
+          if (!Array.isArray(testIds) || testIds.length === 0) return;
+          setIsAssignOpen(false);
+          setSelectedTestRows([]);
+
+          try {
+            await Promise.all(
+              testIds.map((id) =>
+                updateTest(id, { action: 'assign', assignedTesterId: String(userId) })
+              )
+            );
+
+            setControlsRefreshKey((k) => k + 1);
+          } catch (e) {
+            alert('Failed to assign tests: ' + (e?.message || e));
+            setControlsRefreshKey((k) => k + 1);
+          }
         }}
       />
 
