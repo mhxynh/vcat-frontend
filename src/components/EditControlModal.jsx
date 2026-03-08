@@ -216,11 +216,21 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
         </div>
 
         <div className="ecm-footer">
-          <button type="button" className="btn btn--white" onClick={onClose} disabled={submitting}>
+          <button
+            type="button"
+            className="ecm-btn ecm-btn--outline"
+            onClick={onClose}
+            disabled={submitting}
+          >
             Cancel
           </button>
 
-          <button type="button" className="btn btn--red" onClick={handleSave} disabled={submitting}>
+          <button
+            type="button"
+            className="ecm-btn ecm-btn--primary"
+            onClick={handleSave}
+            disabled={submitting}
+          >
             {submitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

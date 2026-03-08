@@ -1,8 +1,18 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
+import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
 import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
+
+function formatLastUpdated(date) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+}
 
 export default function Controls() {
   const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
@@ -15,6 +25,7 @@ export default function Controls() {
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -38,6 +49,7 @@ export default function Controls() {
       const uiControls = rows.map(mapControlRowToUi);
 
       setControls(uiControls);
+      setLastUpdatedAt(new Date());
       if (setFirstOpen) setOpenId(uiControls[0]?.id ?? null);
     } catch (e) {
       setError(e?.message || 'Failed to load controls');
@@ -49,9 +61,14 @@ export default function Controls() {
   }
 
   async function refreshControls() {
-    const rows = await fetchControls();
-    const uiControls = rows.map(mapControlRowToUi);
-    setControls(uiControls);
+    try {
+      const rows = await fetchControls();
+      const uiControls = rows.map(mapControlRowToUi);
+      setControls(uiControls);
+      setLastUpdatedAt(new Date());
+    } catch (e) {
+      setError(e?.message || 'Failed to load controls');
+    }
   }
 
   //I changed moved the loading controls function outside of UseEffect as its own function (loadControls). This way new controls will be loaded after creation without needing to refresh the page.
@@ -98,15 +115,23 @@ export default function Controls() {
     <div className="controls-page">
       {/* Header */}
       <PageHeader
-        title="Controls Catalog"
+        title={
+          <div className="dashboard-header-title">
+            <span>Controls Catalog</span>
+            <InfoTooltipIcon tooltip={`Last Updated ${formatLastUpdated(lastUpdatedAt)}`} />
+          </div>
+        }
         actions={
           <>
             <button className="btn btn--white" type="button">
               Export
             </button>
-            <button className="btn btn--blue" type="button" onClick={() => loadControls()}>
-              {' '}
-              {/*Added functionality to the refresh button*/}
+            <button
+              className="btn btn--blue"
+              type="button"
+              onClick={() => loadControls()}
+              disabled={loading}
+            >
               Refresh
             </button>
           </>

@@ -157,6 +157,34 @@
   min-height: 28px;
 }
 
+.calendar-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-filter-label {
+  font-size: 12px;
+  color: #6f6f6f;
+  white-space: nowrap;
+}
+
+.calendar-filter-select {
+  padding: 6px 10px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.calendar-filter-select:focus {
+  outline: none;
+  border-color: #8b0f17;
+}
+
 .legend-label {
   display: inline-flex;
   align-items: center;
@@ -227,6 +255,33 @@
 .detail-body {
   display: grid;
   gap: 4px;
+}
+
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-date-type-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.detail-date-type-badge--due_date {
+  background: rgba(139, 15, 23, 0.12);
+  color: #8b0f17;
+}
+
+.detail-date-type-badge--eta {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
 }
 
 .detail-title {

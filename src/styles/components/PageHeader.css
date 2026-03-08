@@ -8,6 +8,8 @@
   border: 1px solid #e8e8e8;
   border-radius: 10px;
   padding: 14px 16px;
+  min-height: 52px;
+  box-sizing: border-box;
 }
 
 .page-header__title {
@@ -16,9 +18,18 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.page-header__title > * {
+  display: flex;
+  align-items: center;
 }
 
 .page-header__actions {
   display: flex;
+  align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }

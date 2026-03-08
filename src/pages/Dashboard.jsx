@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
+import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
+import { fetchUsers } from '../api/UsersAPI';
 import DetailsTestModal from '../components/DetailsTestModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
@@ -173,15 +175,6 @@ const ICON_COMPONENTS = {
 function SummaryIcon({ kind }) {
   const IconComponent = ICON_COMPONENTS[kind];
   return IconComponent ? <IconComponent aria-hidden="true" /> : null;
-}
-
-function InfoTooltipIcon({ tooltip }) {
-  return (
-    <span className="dashboard-info-icon" title={tooltip}>
-      <span className="dashboard-info-icon__glyph">i</span>
-      <span className="dashboard-info-tooltip">{tooltip}</span>
-    </span>
-  );
 }
 
 function formatCapacityProgress(inProgressTests, assignedTests) {
@@ -357,6 +350,7 @@ function DonutChart({ title, total, series }) {
 
 export default function Dashboard() {
   const [controls, setControls] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
@@ -414,12 +408,20 @@ export default function Dashboard() {
     setLoadError('');
 
     try {
-      const testRows = await fetchTests();
+      const [testRows, allUsers] = await Promise.all([
+        fetchTests(),
+        fetchUsers({ isActive: true }),
+      ]);
       setControls(testRows.map(mapTestRowToDashboardRow));
+      const testers = Array.isArray(allUsers)
+        ? allUsers.filter((u) => String(u.role || '').toUpperCase() === 'TESTER')
+        : [];
+      setUsers(testers);
       setLastUpdatedAt(new Date());
     } catch (error) {
       setLoadError(error?.message || 'Failed to load dashboard data');
       setControls([]);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -518,7 +520,9 @@ export default function Dashboard() {
       return accumulator;
     }, new Map());
 
-    return Array.from(byTester.entries()).map(([name, counts], index) => {
+    const testerNames = users.map((u) => u.display_name || u.displayName || u.email || 'Unknown');
+    return testerNames.map((name, index) => {
+      const counts = byTester.get(name) || { assigned: 0, inProgress: 0 };
       const { progressPercent, progressLabel } = formatCapacityProgress(
         counts.inProgress,
         counts.assigned
@@ -533,7 +537,7 @@ export default function Dashboard() {
         color: getTeamColor(index),
       };
     });
-  }, [controls]);
+  }, [controls, users]);
 
   const header = (
     <PageHeader
@@ -684,28 +688,39 @@ export default function Dashboard() {
               <InfoTooltipIcon tooltip="In-Progress Test/Total Test Assigned" />
             </div>
             <div className="dashboard-capacity-list">
-              {teamCapacity.map((member) => (
-                <div key={member.name} className="dashboard-capacity-item">
-                  <span
-                    className="dashboard-capacity-item__avatar"
-                    style={{ backgroundColor: member.color }}
-                  >
-                    {member.initials}
+              {teamCapacity.length === 0 ? (
+                <div className="dashboard-capacity-item dashboard-capacity-item--empty">
+                  <span className="dashboard-capacity-item__name">
+                    No testers with assigned work
                   </span>
-                  <div className="dashboard-capacity-item__content">
-                    <div className="dashboard-capacity-item__name">{member.name}</div>
-                    <div className="dashboard-capacity-item__bar-track">
-                      <span
-                        className="dashboard-capacity-item__bar-fill"
-                        style={{ width: `${member.progress}%`, backgroundColor: member.color }}
-                      />
-                      <span className="dashboard-capacity-item__bar-tooltip">
-                        {member.progressLabel}
-                      </span>
+                </div>
+              ) : (
+                teamCapacity.map((member) => (
+                  <div key={member.name} className="dashboard-capacity-item">
+                    <span
+                      className="dashboard-capacity-item__avatar"
+                      style={{ backgroundColor: member.color }}
+                    >
+                      {member.initials}
+                    </span>
+                    <div className="dashboard-capacity-item__content">
+                      <div className="dashboard-capacity-item__name">{member.name}</div>
+                      <div className="dashboard-capacity-item__bar-track">
+                        <span
+                          className="dashboard-capacity-item__bar-fill"
+                          style={{
+                            width: `${member.progress}%`,
+                            backgroundColor: member.color,
+                          }}
+                        />
+                        <span className="dashboard-capacity-item__bar-tooltip">
+                          {member.progressLabel}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </article>
         </div>

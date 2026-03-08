@@ -4,7 +4,7 @@ import { fetchKanban, mapTestRowToCard } from '../../api/KanbanAPI';
 import { fetchRequests } from '../../api/RequestsAPI';
 import DetailsTestModal from '../../components/DetailsTestModal';
 
-const KanbanBoard = () => {
+const KanbanBoard = ({ refreshKey = 0 }) => {
   const statusColors = {
     notStarted: '#ef4444',
     inProgress: '#f59e0b',
@@ -54,7 +54,7 @@ const KanbanBoard = () => {
     }
 
     loadBoard();
-  }, []);
+  }, [refreshKey]);
 
   function openTestDetails(cardId) {
     const test = tests[cardId];

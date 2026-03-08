@@ -16,9 +16,10 @@ const TODAY = new Date();
 const MAX_BARS_PER_DAY = 4;
 
 function parseDateOnly(value) {
-  if (!value || typeof value !== 'string') return null;
-  const [year, month, day] = value.split('-').map(Number);
-  if (!year || !month || !day) return null;
+  if (!value) return null;
+  const str = typeof value === 'string' ? value.slice(0, 10) : String(value).slice(0, 10);
+  const [year, month, day] = str.split('-').map(Number);
+  if (!year || !month || !day || Number.isNaN(day)) return null;
   return new Date(year, month - 1, day);
 }
 
@@ -56,41 +57,68 @@ function getAssigneeInfo(test) {
   return { initials: initials || '--', fullName };
 }
 
-function buildEventsByDay(tests, month, year) {
+const DATE_FILTER_OPTIONS = [
+  { value: 'due_date', label: 'Due Date' },
+  { value: 'eta', label: 'ETA' },
+  { value: 'both', label: 'Both' },
+];
+
+function buildEventsByDay(tests, month, year, dateFilter) {
   return tests.reduce((acc, test) => {
+    const entriesToAdd = [];
     const dueDate = parseDateOnly(test.due_date);
-    if (!dueDate) return acc;
-    if (dueDate.getFullYear() !== year || dueDate.getMonth() !== month) return acc;
+    const etaDate = parseDateOnly(test.estimated_date);
 
-    const day = dueDate.getDate();
-    const status = mapApiStatusToCalendarStatus(test.status);
-    const assignee = getAssigneeInfo(test);
-    const item = {
-      id: test.test_id ?? `${test.vgcpid || 'TEST'}-${day}`,
-      displayId: test.vgcpid || `TEST-${test.test_id}`,
-      title: test.description || 'No description',
-      assigneeInitials: assignee.initials,
-      assigneeName: assignee.fullName,
-      status,
-      test,
-    };
-
-    if (!acc[day]) {
-      acc[day] = { badge: 0, bars: [], items: [] };
+    if (dateFilter === 'due_date' || dateFilter === 'both') {
+      if (dueDate) entriesToAdd.push({ date: dueDate, dateType: 'due_date' });
     }
 
-    acc[day].items.push(item);
-    acc[day].badge = acc[day].items.length;
-    acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
+    if (dateFilter === 'eta' || dateFilter === 'both') {
+      if (
+        etaDate &&
+        (dateFilter !== 'both' || !dueDate || etaDate.getTime() !== dueDate.getTime())
+      ) {
+        entriesToAdd.push({ date: etaDate, dateType: 'eta' });
+      }
+    }
+
+    const status = mapApiStatusToCalendarStatus(test.status);
+    const assignee = getAssigneeInfo(test);
+
+    for (const { date, dateType } of entriesToAdd) {
+      if (date.getFullYear() !== year || date.getMonth() !== month) continue;
+
+      const day = date.getDate();
+      const item = {
+        id: `${test.test_id ?? test.vgcpid}-${day}-${dateType}`,
+        displayId: test.vgcpid || `TEST-${test.test_id}`,
+        title: test.description || 'No description',
+        assigneeInitials: assignee.initials,
+        assigneeName: assignee.fullName,
+        status,
+        dateType,
+        test,
+      };
+
+      if (!acc[day]) {
+        acc[day] = { badge: 0, bars: [], items: [] };
+      }
+
+      acc[day].items.push(item);
+      acc[day].badge = acc[day].items.length;
+      acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
+    }
+
     return acc;
   }, {});
 }
 
-const CalendarView = () => {
+const CalendarView = ({ refreshKey = 0 }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
   );
+  const [dateFilter, setDateFilter] = useState('due_date');
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -126,11 +154,11 @@ const CalendarView = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshKey]);
 
   const eventsByDay = useMemo(
-    () => buildEventsByDay(tests, currentMonth, currentYear),
-    [currentMonth, currentYear, tests]
+    () => buildEventsByDay(tests, currentMonth, currentYear, dateFilter),
+    [currentMonth, currentYear, tests, dateFilter]
   );
 
   const selectedEvents = selectedDay ? (eventsByDay[selectedDay]?.items ?? []) : [];
@@ -257,6 +285,23 @@ const CalendarView = () => {
 
       <div className="calendar-detail">
         <div className="calendar-status-legend">
+          <div className="calendar-filter-row">
+            <label htmlFor="calendar-date-filter" className="calendar-filter-label">
+              Show by:
+            </label>
+            <select
+              id="calendar-date-filter"
+              className="calendar-filter-select"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            >
+              {DATE_FILTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <span className="legend-label">Status:</span>
           {Object.entries(STATUS_LABELS).map(([status, label]) => (
             <span key={status} className="legend-item">
@@ -283,14 +328,24 @@ const CalendarView = () => {
                     <div key={event.id} className="detail-item">
                       <div className={`detail-bar status-${event.status}`} />
                       <div className="detail-body">
-                        <button
-                          type="button"
-                          className="detail-title-btn"
-                          onClick={() => openTestDetails(event.test)}
-                          title="View test details"
-                        >
-                          <span className="detail-title">{event.displayId}</span>
-                        </button>
+                        <div className="detail-title-row">
+                          <button
+                            type="button"
+                            className="detail-title-btn"
+                            onClick={() => openTestDetails(event.test)}
+                            title="View test details"
+                          >
+                            <span className="detail-title">{event.displayId}</span>
+                          </button>
+                          {dateFilter === 'both' && (
+                            <span
+                              className={`detail-date-type-badge detail-date-type-badge--${event.dateType}`}
+                              title={event.dateType === 'due_date' ? 'Due date' : 'Estimated date'}
+                            >
+                              {event.dateType === 'due_date' ? 'Due' : 'ETA'}
+                            </span>
+                          )}
+                        </div>
                         <div className="detail-desc">{event.title}</div>
                         <div className="detail-meta">
                           <span className="detail-assignee-wrap">
