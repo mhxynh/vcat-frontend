@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
@@ -79,13 +79,16 @@ export default function Tests({
   const [localSelectedRows, setLocalSelectedRows] = useState([]);
   const selectedRows = propSelectedRows !== undefined ? propSelectedRows : localSelectedRows;
 
-  function updateSelectedRows(newRows) {
-    if (propSelectedRows !== undefined) {
-      onSelectionChange?.(newRows);
-    } else {
-      setLocalSelectedRows(newRows);
-    }
-  }
+  const updateSelectedRows = useCallback(
+    (newRows) => {
+      if (propSelectedRows !== undefined) {
+        onSelectionChange?.(newRows);
+      } else {
+        setLocalSelectedRows(newRows);
+      }
+    },
+    [propSelectedRows, onSelectionChange]
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -115,7 +118,6 @@ export default function Tests({
         if (cancelled) return;
 
         setTests(Array.isArray(data) ? data : []);
-        updateSelectedRows([]);
       } catch (e) {
         if (!cancelled) {
           setError(e?.message || 'Failed to load tests');

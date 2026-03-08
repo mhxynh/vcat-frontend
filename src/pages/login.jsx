@@ -1,4 +1,4 @@
-import { ThemeProvider, Theme } from '@aws-amplify/ui-react';
+import vanguardLogo from '../assets/images/vanguard.png';
 
 export const vcatTheme = {
   name: 'vcat-enterprise-theme',
@@ -33,13 +33,26 @@ export const vcatTheme = {
   },
 };
 
+export const formFields = {
+  signIn: {
+    username: {
+      label: 'Email Address',
+      placeholder: 'name@company.com',
+    },
+    password: {
+      label: 'Password',
+      placeholder: 'Enter your password',
+    },
+  },
+};
+
 export const components = {
   Header() {
     return (
       <div style={{ textAlign: 'center', padding: '2rem 1rem 0' }}>
         <img
           alt="Vanguard logo"
-          src="..\assets\images\vanguard.png"
+          src={vanguardLogo}
           style={{ height: '60px', marginBottom: '1rem' }}
         />
         <h2 style={{ color: '#921A1D', fontWeight: '700', margin: 0 }}>Control Testing</h2>
@@ -49,19 +62,27 @@ export const components = {
       </div>
     );
   },
+  SignIn: {
+    Footer() {
+      return (
+        <div style={{ textAlign: 'center', padding: '0 1rem 1rem' }}>
+          <p style={{ fontSize: '0.85rem' }}>
+            Don't have an account?{' '}
+            <a
+              href="mailto:admin@vanguard.com"
+              style={{ color: '#921A1D', fontWeight: 'bold', textDecoration: 'none' }}
+            >
+              Contact Admin
+            </a>
+          </p>
+        </div>
+      );
+    },
+  },
   Footer() {
     return (
       <div style={{ textAlign: 'center', padding: '1rem' }}>
-        <p style={{ fontSize: '0.85rem' }}>
-          Don't have an account?{' '}
-          <a
-            href="mailto:admin@vanguard.com"
-            style={{ color: '#921A1D', fontWeight: 'bold', textDecoration: 'none' }}
-          >
-            Contact Admin
-          </a>
-        </p>
-        <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '2rem' }}>
+        <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.5rem' }}>
           © 2026 Control Testing App. All rights reserved.
         </p>
       </div>
