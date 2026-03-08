@@ -18,8 +18,10 @@ function normalizeStatus(status) {
   switch (raw) {
     case 'NOT_STARTED':
       return { status: 'Not Started', statusType: 'not-started' };
-    case 'IN_PROGRESS':
-      return { status: 'In Progress', statusType: 'in-progress' };
+    case 'DAT_IN_PROGRESS':
+      return { status: 'DAT In Progress', statusType: 'in-progress' };
+    case 'OET_IN_PROGRESS':
+      return { status: 'OET In Progress', statusType: 'in-progress' };
     case 'IN_REVIEW':
       return { status: 'In Review', statusType: 'in-review' };
     case 'COMPLETED':
@@ -181,7 +183,8 @@ function mapTestStatusToUi(s) {
   const v = String(s || '').toUpperCase();
   if (v === 'COMPLETED') return 'Completed';
   if (v === 'IN_REVIEW') return 'In Review';
-  if (v === 'IN_PROGRESS') return 'In Progress';
+  if (v === 'DAT_IN_PROGRESS') return 'DAT In Progress';
+  if (v === 'OET_IN_PROGRESS') return 'OET In Progress';
   if (v === 'BLOCKED') return 'Blocked';
   if (v === 'ARCHIVED') return 'Archived';
   return 'Not Started';

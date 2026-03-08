@@ -362,7 +362,12 @@
   color: #166534;
 }
 
-.status-pill.in-progress {
+.status-pill.dat-in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-pill.oet-in-progress {
   background: #dbeafe;
   color: #1d4ed8;
 }

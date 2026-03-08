@@ -25,7 +25,8 @@ function statusToLabel(status) {
   return String(status || 'NOT_STARTED')
     .replaceAll('_', ' ')
     .toLowerCase()
-    .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+    .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
+    .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
 }
 
 function statusToBadgeType(status) {
@@ -130,7 +131,7 @@ export default function Tests({
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, updateSelectedRows]);
 
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();

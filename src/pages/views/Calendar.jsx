@@ -27,7 +27,8 @@ function mapApiStatusToCalendarStatus(status) {
   switch (status) {
     case 'NOT_STARTED':
       return 'notStarted';
-    case 'IN_PROGRESS':
+    case 'DAT_IN_PROGRESS':
+    case 'OET_IN_PROGRESS':
       return 'inProgress';
     case 'IN_REVIEW':
       return 'testing';
