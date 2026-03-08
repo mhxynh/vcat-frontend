@@ -146,7 +146,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     if (!selectedVgcpid) errs.selectedVgcpid = 'VGCPID is required.';
     if (!selectedRequestId) errs.selectedRequestId = 'Link to Request is required.';
     if (!testType) errs.testType = 'Test Type is required.';
-    if (!dueDate) errs.dueDate = 'Due Date is required.';
+    if (!dueDate) errs.dueDate = 'Due Date is required. Select a request first.';
     if (!description.trim()) errs.description = 'Test description is a required field';
 
     if (Object.keys(errs).length) {
