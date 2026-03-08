@@ -73,15 +73,28 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
           .filter((c) => Number.isFinite(c.id))
           .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
 
+        // Sanitize Requests (include dueDate for auto-matching test due date to request)
+        const toDateInput = (v) => {
+          if (!v) return '';
+          const s = typeof v === 'string' ? v.split('T')[0] : String(v).split('T')[0];
+          return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+        };
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => {
             const id = Number(r.id ?? r.requestId ?? r.request_id ?? r.RequestId);
-            const rid = id;
+            const dueDateRaw = r.due_date ?? r.dueDate;
+            const dueDateDisplay = dueDateRaw
+              ? new Date(dueDateRaw).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : '-';
             const requester = r.requestor ?? r.requester ?? r.requestedBy ?? '-';
-            const due = r.dueDate ?? r.due_date ?? '-';
             return {
-              id: rid,
-              label: `REQ-${String(rid).padStart(4, '0')} • ${requester} • ${due}`,
+              id,
+              label: `REQ-${String(id).padStart(4, '0')} • ${requester} • ${dueDateDisplay}`,
+              dueDate: toDateInput(dueDateRaw),
             };
           })
           .filter((r) => Number.isFinite(r.id))
@@ -118,6 +131,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
   }, [isOpen, defaultRequestId]);
 
+  // Auto-populate due date from selected request (test due date matches request)
+  useEffect(() => {
+    if (!selectedRequestId || !requests.length) return;
+    const req = requests.find((r) => String(r.id) === String(selectedRequestId));
+    if (req?.dueDate) setDueDate(req.dueDate);
+  }, [selectedRequestId, requests]);
+
   const handleSubmit = async () => {
     setSubmitError('');
     setFieldErrors({});
@@ -126,7 +146,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     if (!selectedVgcpid) errs.selectedVgcpid = 'VGCPID is required.';
     if (!selectedRequestId) errs.selectedRequestId = 'Link to Request is required.';
     if (!testType) errs.testType = 'Test Type is required.';
-    if (!dueDate) errs.dueDate = 'Due Date is required.';
+    if (!dueDate) errs.dueDate = 'Due Date is required. Select a request first.';
     if (!description.trim()) errs.description = 'Test description is a required field';
 
     if (Object.keys(errs).length) {
@@ -304,6 +324,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={!!loadError}
+                readOnly={!!selectedRequestId}
+                title={selectedRequestId ? 'Matches the selected request' : undefined}
                 aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
               />
               {fieldErrors.dueDate ? (

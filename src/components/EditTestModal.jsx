@@ -99,14 +99,26 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   }, [controls]);
 
   const requestOptions = useMemo(() => {
+    const toDateInput = (v) => {
+      if (!v) return '';
+      const s = typeof v === 'string' ? v.split('T')[0] : String(v).split('T')[0];
+      return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+    };
     return requests
       .map((r) => ({
         requestId: r.request_id,
         requestor: r.requestor,
-        dueDate: r.due_date,
+        dueDate: toDateInput(r.due_date ?? r.dueDate),
       }))
       .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
+
+  // Auto-update due date when request changes (test due date matches request)
+  useEffect(() => {
+    if (!selectedRequestId || !requestOptions.length) return;
+    const req = requestOptions.find((r) => String(r.requestId) === String(selectedRequestId));
+    if (req?.dueDate) setDueDate(req.dueDate);
+  }, [selectedRequestId, requestOptions]);
 
   const testerOptions = useMemo(() => {
     return users
@@ -294,6 +306,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                readOnly={!!selectedRequestId}
+                title={selectedRequestId ? 'Matches the selected request' : undefined}
                 aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
               />
               {fieldErrors.dueDate ? (
