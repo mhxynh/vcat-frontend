@@ -54,10 +54,23 @@ function normalizeText(v) {
   return String(v ?? '').toLowerCase();
 }
 
-export default function Tests({ refreshKey = 0 }) {
+export default function Tests({
+  refreshKey = 0,
+  selectedRows: propSelectedRows,
+  onSelectionChange,
+}) {
   const [search, setSearch] = useState('');
   const [tests, setTests] = useState([]);
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [localSelectedRows, setLocalSelectedRows] = useState([]);
+  const selectedRows = propSelectedRows !== undefined ? propSelectedRows : localSelectedRows;
+
+  function updateSelectedRows(newRows) {
+    if (propSelectedRows !== undefined) {
+      onSelectionChange?.(newRows);
+    } else {
+      setLocalSelectedRows(newRows);
+    }
+  }
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -87,12 +100,12 @@ export default function Tests({ refreshKey = 0 }) {
         if (cancelled) return;
 
         setTests(Array.isArray(data) ? data : []);
-        setSelectedRows([]);
+        updateSelectedRows([]);
       } catch (e) {
         if (!cancelled) {
           setError(e?.message || 'Failed to load tests');
           setTests([]);
-          setSelectedRows([]);
+          updateSelectedRows([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -150,11 +163,14 @@ export default function Tests({ refreshKey = 0 }) {
   const isAllSelected = rowIds.length > 0 && selectedRows.length === rowIds.length;
 
   const handleSelectAll = (e) => {
-    setSelectedRows(e.target.checked ? rowIds : []);
+    updateSelectedRows(e.target.checked ? rowIds : []);
   };
 
   const handleSelectRow = (id) => {
-    setSelectedRows((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    const next = selectedRows.includes(id)
+      ? selectedRows.filter((x) => x !== id)
+      : [...selectedRows, id];
+    updateSelectedRows(next);
   };
 
   return (
@@ -176,84 +192,86 @@ export default function Tests({ refreshKey = 0 }) {
       ) : filteredTests.length === 0 ? (
         <div className="no-results">No tests found.</div>
       ) : (
-        <table className="table">
-          <thead className="table__head">
-            <tr>
-              <th className="table__header-cell">
-                <input
-                  type="checkbox"
-                  className="table__checkbox"
-                  aria-label="Select all rows"
-                  checked={isAllSelected}
-                  onChange={handleSelectAll}
-                />
-              </th>
-              <th className="table__header-cell">VGCPID</th>
-              <th className="table__header-cell">Tester</th>
-              <th className="table__header-cell">Test Type</th>
-              <th className="table__header-cell">Status</th>
-              <th className="table__header-cell">In-Progress Step</th>
-              <th className="table__header-cell">Last Updated</th>
-              <th className="table__header-cell">Due Date</th>
-              <th className="table__header-cell">ETA Date</th>
-            </tr>
-          </thead>
+        <>
+          <table className="table">
+            <thead className="table__head">
+              <tr>
+                <th className="table__header-cell">
+                  <input
+                    type="checkbox"
+                    className="table__checkbox"
+                    aria-label="Select all rows"
+                    checked={isAllSelected}
+                    onChange={handleSelectAll}
+                  />
+                </th>
+                <th className="table__header-cell">VGCPID</th>
+                <th className="table__header-cell">Tester</th>
+                <th className="table__header-cell">Test Type</th>
+                <th className="table__header-cell">Status</th>
+                <th className="table__header-cell">In-Progress Step</th>
+                <th className="table__header-cell">Last Updated</th>
+                <th className="table__header-cell">Due Date</th>
+                <th className="table__header-cell">ETA Date</th>
+              </tr>
+            </thead>
 
-          <tbody className="table__body">
-            {filteredTests.map((t) => {
-              const id = t.test_id;
+            <tbody className="table__body">
+              {filteredTests.map((t) => {
+                const id = t.test_id;
 
-              const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '-';
-              const testerCell =
-                t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '-';
+                const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '-';
+                const testerCell =
+                  t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '-';
 
-              const testType = testTypeFromFlags(t);
-              const statusLabel = statusToLabel(t?.status);
-              const statusType = statusToBadgeType(t?.status);
-              const step = stepFromTracks(t);
+                const testType = testTypeFromFlags(t);
+                const statusLabel = statusToLabel(t?.status);
+                const statusType = statusToBadgeType(t?.status);
+                const step = stepFromTracks(t);
 
-              const lastUpdated = formatDate(t?.updated_at);
-              const dueDate = formatDate(t?.due_date);
-              const etaDate = formatDate(t?.estimated_date);
+                const lastUpdated = formatDate(t?.updated_at);
+                const dueDate = formatDate(t?.due_date);
+                const etaDate = formatDate(t?.estimated_date);
 
-              return (
-                <tr key={id} className="table__row">
-                  <td className="table__cell">
-                    <input
-                      type="checkbox"
-                      className="table__checkbox"
-                      aria-label={`Select ${String(vgcpidCell)}`}
-                      checked={selectedRows.includes(id)}
-                      onChange={() => handleSelectRow(id)}
-                    />
-                  </td>
+                return (
+                  <tr key={id} className="table__row">
+                    <td className="table__cell">
+                      <input
+                        type="checkbox"
+                        className="table__checkbox"
+                        aria-label={`Select ${String(vgcpidCell)}`}
+                        checked={selectedRows.includes(id)}
+                        onChange={() => handleSelectRow(id)}
+                      />
+                    </td>
 
-                  <td className="table__cell table__cell--vgcpid">
-                    <button
-                      type="button"
-                      className="vgcpid-link"
-                      onClick={() => openTestDetails(t)}
-                      title="Open test details"
-                    >
-                      {vgcpidCell}
-                    </button>
-                  </td>
-                  <td className="table__cell">{testerCell}</td>
-                  <td className="table__cell">{testType}</td>
+                    <td className="table__cell table__cell--vgcpid">
+                      <button
+                        type="button"
+                        className="vgcpid-link"
+                        onClick={() => openTestDetails(t)}
+                        title="Open test details"
+                      >
+                        {vgcpidCell}
+                      </button>
+                    </td>
+                    <td className="table__cell">{testerCell}</td>
+                    <td className="table__cell">{testType}</td>
 
-                  <td className="table__cell">
-                    <span className={`badge badge--${statusType}`}>{statusLabel}</span>
-                  </td>
+                    <td className="table__cell">
+                      <span className={`badge badge--${statusType}`}>{statusLabel}</span>
+                    </td>
 
-                  <td className="table__cell">{step}</td>
-                  <td className="table__cell">{lastUpdated}</td>
-                  <td className="table__cell table__cell--due-date">{dueDate}</td>
-                  <td className="table__cell">{etaDate}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <td className="table__cell">{step}</td>
+                    <td className="table__cell">{lastUpdated}</td>
+                    <td className="table__cell table__cell--due-date">{dueDate}</td>
+                    <td className="table__cell">{etaDate}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
       )}
       <DetailsTestModal
         isOpen={isTestDetailsOpen}
