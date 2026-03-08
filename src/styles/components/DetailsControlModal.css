@@ -128,9 +128,7 @@
 }
 
 .dcm-mono {
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+  font-family: inherit;
   font-weight: 700;
   color: #8b0f17;
 }
@@ -383,7 +381,7 @@
   font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
-  font-family: ui-monospace, monospace;
+  font-family: inherit;
 }
 
 .dcm-confirm-warning {

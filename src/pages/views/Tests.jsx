@@ -74,6 +74,13 @@ export default function Tests({
   selectedRows: propSelectedRows,
   onSelectionChange,
 }) {
+  const onSelectionChangeRef = React.useRef(onSelectionChange);
+  const propSelectedRowsRef = React.useRef(propSelectedRows);
+
+  React.useEffect(() => {
+    onSelectionChangeRef.current = onSelectionChange;
+    propSelectedRowsRef.current = propSelectedRows;
+  }, [onSelectionChange, propSelectedRows]);
   const [search, setSearch] = useState('');
   const [tests, setTests] = useState([]);
   const [localSelectedRows, setLocalSelectedRows] = useState([]);
@@ -122,7 +129,12 @@ export default function Tests({
         if (!cancelled) {
           setError(e?.message || 'Failed to load tests');
           setTests([]);
-          updateSelectedRows([]);
+          // Clear selection without changing this effect's dependencies
+          if (propSelectedRowsRef.current !== undefined) {
+            onSelectionChangeRef.current?.([]);
+          } else {
+            setLocalSelectedRows([]);
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -133,7 +145,8 @@ export default function Tests({
     return () => {
       cancelled = true;
     };
-  }, [refreshKey, updateSelectedRows]);
+    // Intentionally only depend on refreshKey so selecting rows doesn't re-fetch
+  }, [refreshKey]);
 
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();

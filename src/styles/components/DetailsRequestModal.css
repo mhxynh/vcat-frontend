@@ -239,7 +239,7 @@
 }
 
 .drm-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-family: inherit;
   font-weight: 800;
   color: #8b0f17;
 }

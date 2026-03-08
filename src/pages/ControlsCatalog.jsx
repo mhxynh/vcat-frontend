@@ -73,7 +73,7 @@ export default function Controls() {
 
   //I changed moved the loading controls function outside of UseEffect as its own function (loadControls). This way new controls will be loaded after creation without needing to refresh the page.
   useEffect(() => {
-    loadControls({ setFirstOpen: true });
+    loadControls();
   }, []);
 
   const filtered = useMemo(() => {
@@ -175,7 +175,7 @@ export default function Controls() {
         </div>
 
         <button className="btn btn--red" type="button" onClick={() => setIsCreateModalOpen(true)}>
-          New Control
+          + New Control
         </button>
       </div>
 
@@ -217,7 +217,9 @@ export default function Controls() {
 
                         <span className="badge badge--neutral">{control.testing}</span>
 
-                        <span className={`chev ${isOpen ? 'chev--open' : ''}`}>⌄</span>
+                        <span className={`chev ${isOpen ? 'chev--open' : ''}`}>
+                          {isOpen ? '▴' : '▾'}
+                        </span>
                       </div>
                     </button>
 

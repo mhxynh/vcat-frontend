@@ -76,6 +76,7 @@
   padding: 6px 8px;
   border: 1px solid #eaeaea;
   border-radius: 4px;
+  font-weight: 400;
 }
 .arm-textarea {
   min-height: 72px;
@@ -83,6 +84,7 @@
   border: 1px solid #eaeaea;
   border-radius: 4px;
   resize: vertical;
+  font-weight: 400;
 }
 
 .arm-footer {

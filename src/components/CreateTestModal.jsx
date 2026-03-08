@@ -144,9 +144,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
     const errs = {};
     if (!selectedVgcpid) errs.selectedVgcpid = 'VGCPID is required.';
-    if (!selectedRequestId) errs.selectedRequestId = 'Link to Request is required.';
     if (!testType) errs.testType = 'Test Type is required.';
-    if (!dueDate) errs.dueDate = 'Due Date is required. Select a request first.';
+    if (!dueDate) errs.dueDate = 'Due Date is required.';
     if (!description.trim()) errs.description = 'Test description is a required field';
 
     if (Object.keys(errs).length) {
@@ -169,12 +168,12 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     const payload = {
       vgcpid: selectedVgcpid,
       controlId: matchingControl.id,
-      requestId: Number(selectedRequestId),
       ...flags,
       dueDate: dueDate,
       description: description.trim() || ' ',
     };
 
+    if (selectedRequestId) payload.requestId = Number(selectedRequestId);
     if (etaDate) payload.estimatedDate = etaDate;
     if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
@@ -245,7 +244,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
             <div className="ctm-field">
               <label className="ctm-label" htmlFor="requestId">
-                Link to Request<span className="ctm-req">*</span>
+                Link to Request
               </label>
               <select
                 id="requestId"

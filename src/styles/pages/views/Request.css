@@ -235,7 +235,7 @@
   border: 1px solid #e5e7eb;
   padding: 8px 10px;
   border-radius: 10px;
-  font-weight: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -295,7 +295,7 @@
 }
 
 .control-title {
-  font-weight: 900;
+  font-weight: 600;
   font-size: 13px;
   color: #111827;
   min-height: 32px;
@@ -306,7 +306,7 @@
   gap: 6px;
   color: #6b7280;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .control-meta-row {

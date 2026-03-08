@@ -70,7 +70,7 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
   }
 
   if (loading) {
-    return <div className="kanban-board">Loading...</div>;
+    return <div className="no-results">Loading kanban...</div>;
   }
 
   if (error) {
