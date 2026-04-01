@@ -249,8 +249,8 @@ function formatFieldLabel(field) {
   /* eslint-disable camelcase -- API field names use snake_case */
   const labels = {
     status: 'Status',
-    dat_step: 'DAT step',
-    oet_step: 'OET step',
+    dat_step: 'DAT Step',
+    oet_step: 'OET Step',
     updated_at: 'Updated',
     due_date: 'Due date',
     estimated_date: 'ETA',
