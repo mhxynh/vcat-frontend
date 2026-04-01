@@ -19,6 +19,14 @@ function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
   return log.vgcpid ?? contextVgcpid ?? getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
 }
 
+/** Prefer API `actor_display_name` (from audit JOIN); fall back to numeric id. */
+function formatAuditActor(log) {
+  const name = log.actor_display_name != null ? String(log.actor_display_name).trim() : '';
+  if (name) return name;
+  if (log.actor_user_id != null) return `User ${log.actor_user_id}`;
+  return '';
+}
+
 /**
  * Shared audit history view: scrollable list, expand button, full overlay.
  * Used by DetailsRequestModal and DetailsTestModal.
@@ -66,6 +74,7 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
+        const actorLabel = formatAuditActor(log);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
@@ -74,9 +83,7 @@ export default function AuditHistoryView({
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
                 </span>
-                {log.actor_user_id != null && (
-                  <span className="ahv-actor"> · User {log.actor_user_id}</span>
-                )}
+                {actorLabel && <span className="ahv-actor"> · {actorLabel}</span>}
                 <span className="ahv-date">{formatDate(log.changed_at)}</span>
               </div>
             </div>
