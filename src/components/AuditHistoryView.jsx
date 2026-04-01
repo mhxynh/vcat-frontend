@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import '../styles/components/AuditHistoryView.css';
 
 const DATE_FORMAT = {
@@ -30,27 +31,64 @@ function logActorUserIdRaw(log) {
   return v;
 }
 
-/** Label from audit row only: API join `actor_display_name`, else `User {id}`. Never use assignee as actor. */
-function resolveActorLabel(log) {
+/** Decode Cognito ID token payload (browser). */
+function decodeJwtPayload(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+    const json = atob(b64 + pad);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function displayNameFromIdTokenPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  const name = payload.name || payload.given_name || payload.preferred_username;
+  if (name && String(name).trim()) return String(name).trim();
+  const email = payload.email;
+  if (email && typeof email === 'string') {
+    const local = email.split('@')[0];
+    if (local) return local;
+  }
+  return null;
+}
+
+/**
+ * Prefer API `actor_display_name` / `User {id}` from audit row.
+ * If the backend recorded no actor (common in local dev), fall back to the signed-in Cognito user
+ * so the person clicking still sees their name — not the assignee.
+ */
+function resolveActorLabel(log, sessionDisplayNameFallback) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
   if (uid != null) return `User ${uid}`;
+  if (sessionDisplayNameFallback) return sessionDisplayNameFallback;
   return '';
 }
 
-/** Same initials pattern as Dashboard capacity (up to two tokens). */
+/** Up to two characters: first letter of first two words, or first two letters of a single word (e.g. "MH"). */
 function historyAvatarInitials(name) {
-  return (name || '')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((token) => token[0]?.toUpperCase())
-    .join('');
+  const s = String(name || '').trim();
+  if (!s) return '';
+  const parts = s.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return parts
+      .slice(0, 2)
+      .map((token) => token[0]?.toUpperCase())
+      .join('');
+  }
+  const one = parts[0] || '';
+  if (one.length >= 2) return one.slice(0, 2).toUpperCase();
+  return one.slice(0, 1).toUpperCase();
 }
 
-function auditEntryAvatarInitial(log) {
-  const label = resolveActorLabel(log);
+function auditEntryAvatarInitial(log, sessionDisplayNameFallback) {
+  const label = resolveActorLabel(log, sessionDisplayNameFallback);
   if (label) {
     const badge = historyAvatarInitials(label);
     if (badge) return badge;
@@ -85,6 +123,26 @@ export default function AuditHistoryView({
   contextTestIdToVgcpid = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
+  const [sessionDisplayName, setSessionDisplayName] = useState(null);
+
+  useEffect(() => {
+    if (!showContent) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const session = await fetchAuthSession();
+        const token = session?.tokens?.idToken?.toString();
+        const payload = token ? decodeJwtPayload(token) : null;
+        const name = displayNameFromIdTokenPayload(payload);
+        if (!cancelled) setSessionDisplayName(name);
+      } catch {
+        if (!cancelled) setSessionDisplayName(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showContent]);
 
   useEffect(() => {
     if (!showExpanded) return;
@@ -105,11 +163,11 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log);
+        const actorLabel = resolveActorLabel(log, sessionDisplayName);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{auditEntryAvatarInitial(log)}</div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log, sessionDisplayName)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
