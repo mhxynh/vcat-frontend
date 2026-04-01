@@ -33,10 +33,11 @@ function logActorUserIdRaw(log) {
 }
 
 /**
- * Label for audit actor: API join, then /users directory (same display rules as Dashboard),
- * then numeric fallback.
+ * Label for audit actor: API join, /users directory, numeric id, then optional UI fallback
+ * (e.g. current test assignee when the audit row has no actor_user_id — common if the change
+ * was recorded without a resolved JWT user).
  */
-function resolveActorLabel(log, userIdToDisplayName) {
+function resolveActorLabel(log, userIdToDisplayName, actorFallback) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
@@ -45,19 +46,26 @@ function resolveActorLabel(log, userIdToDisplayName) {
     if (fromDirectory) return fromDirectory;
     return `User ${uid}`;
   }
+  if (actorFallback) {
+    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
+    if (fn && fn !== '-') return fn;
+    const fuid = actorFallback.userId;
+    if (fuid != null && fuid !== '') {
+      const fromDirectory = userIdToDisplayName?.get(String(fuid));
+      if (fromDirectory) return fromDirectory;
+    }
+  }
   return '';
 }
 
-/** Badge text: Dashboard `toInitials` on resolved label, else action letter. */
-function auditEntryAvatarInitial(log, userIdToDisplayName) {
-  const label = resolveActorLabel(log, userIdToDisplayName);
+/** Badge: Dashboard initials, or "?" — never the first letter of UPDATE (misread as "user"). */
+function auditEntryAvatarInitial(log, userIdToDisplayName, actorFallback) {
+  const label = resolveActorLabel(log, userIdToDisplayName, actorFallback);
   if (label) {
     const badge = toInitials(label);
     if (badge) return badge;
   }
-  return String(log.action || '?')
-    .slice(0, 1)
-    .toUpperCase();
+  return '?';
 }
 
 /**
@@ -74,6 +82,7 @@ function auditEntryAvatarInitial(log, userIdToDisplayName) {
  * @param {string} [props.contextVgcpid] - VGCP ID of the current test (when viewing single test history). Shown with each "Test updated" entry.
  * @param {string} [props.contextRequestId] - Request display ID (e.g. "REQ-0001") when viewing request history. Shown with each "Request updated" entry.
  * @param {Object} [props.contextTestIdToVgcpid] - Map of test_id -> vgcpid for tests under a request. Used when viewing request history to show "Test: VGCP-xxx Updated" for each test.
+ * @param {Object} [props.actorFallback] - When audit row has no actor: `{ displayName?, userId? }` (e.g. current test assignee).
  */
 export default function AuditHistoryView({
   logs,
@@ -85,6 +94,7 @@ export default function AuditHistoryView({
   contextVgcpid = null,
   contextRequestId = null,
   contextTestIdToVgcpid = null,
+  actorFallback = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
   const [userRecords, setUserRecords] = useState([]);
@@ -92,7 +102,7 @@ export default function AuditHistoryView({
   useEffect(() => {
     if (!showContent) return;
     let cancelled = false;
-    fetchUsers({ isActive: true })
+    fetchUsers()
       .then((list) => {
         if (!cancelled) setUserRecords(Array.isArray(list) ? list : []);
       })
@@ -134,11 +144,13 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log, userIdToDisplayName);
+        const actorLabel = resolveActorLabel(log, userIdToDisplayName, actorFallback);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{auditEntryAvatarInitial(log, userIdToDisplayName)}</div>
+              <div className="ahv-avatar">
+                {auditEntryAvatarInitial(log, userIdToDisplayName, actorFallback)}
+              </div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
