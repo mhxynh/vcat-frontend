@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchUsers } from '../api/UsersAPI';
+import { userCapacityDisplayName, toInitials } from '../utils/userDisplay';
 import '../styles/components/AuditHistoryView.css';
 
 const DATE_FORMAT = {
@@ -30,41 +32,28 @@ function logActorUserIdRaw(log) {
   return v;
 }
 
-/** Prefer API `actor_display_name` (from audit JOIN); fall back to numeric id. */
-function formatAuditActor(log) {
-  const name = logActorDisplayNameRaw(log);
-  if (name) return name;
+/**
+ * Label for audit actor: API join, then /users directory (same display rules as Dashboard),
+ * then numeric fallback.
+ */
+function resolveActorLabel(log, userIdToDisplayName) {
+  const fromApi = logActorDisplayNameRaw(log);
+  if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
-  if (uid != null) return `User ${uid}`;
+  if (uid != null) {
+    const fromDirectory = userIdToDisplayName?.get(String(uid));
+    if (fromDirectory) return fromDirectory;
+    return `User ${uid}`;
+  }
   return '';
 }
 
-/**
- * Same idea as DetailsTestModal `initials` (e.g. "Tester 1" → "T1").
- */
-function initialsFromDisplayName(name) {
-  const s = String(name || '').trim();
-  if (!s) return '';
-  const parts = s.split(/\s+/).filter(Boolean);
-  const a = parts[0]?.[0] || '';
-  const b = parts[1]?.[0] || '';
-  return (a + b).toUpperCase();
-}
-
-/**
- * Badge text: initials from display name, else first char of user id (never "User …" → U),
- * else first letter of action (UPDATE → U).
- */
-function auditEntryAvatarInitial(log) {
-  const name = logActorDisplayNameRaw(log);
-  if (name) {
-    const badge = initialsFromDisplayName(name);
+/** Badge text: Dashboard `toInitials` on resolved label, else action letter. */
+function auditEntryAvatarInitial(log, userIdToDisplayName) {
+  const label = resolveActorLabel(log, userIdToDisplayName);
+  if (label) {
+    const badge = toInitials(label);
     if (badge) return badge;
-  }
-  const uid = logActorUserIdRaw(log);
-  if (uid != null) {
-    const s = String(uid).trim();
-    if (s) return s[0].toUpperCase();
   }
   return String(log.action || '?')
     .slice(0, 1)
@@ -98,6 +87,33 @@ export default function AuditHistoryView({
   contextTestIdToVgcpid = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
+  const [userRecords, setUserRecords] = useState([]);
+
+  useEffect(() => {
+    if (!showContent) return;
+    let cancelled = false;
+    fetchUsers({ isActive: true })
+      .then((list) => {
+        if (!cancelled) setUserRecords(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {
+        if (!cancelled) setUserRecords([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showContent]);
+
+  const userIdToDisplayName = useMemo(() => {
+    const m = new Map();
+    for (const u of userRecords) {
+      const id = u.user_id ?? u.userId;
+      if (id == null || id === '') continue;
+      const label = userCapacityDisplayName(u);
+      if (label && label !== 'Unknown') m.set(String(id), label);
+    }
+    return m;
+  }, [userRecords]);
 
   useEffect(() => {
     if (!showExpanded) return;
@@ -118,11 +134,11 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = formatAuditActor(log);
+        const actorLabel = resolveActorLabel(log, userIdToDisplayName);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{auditEntryAvatarInitial(log)}</div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log, userIdToDisplayName)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
