@@ -19,20 +19,52 @@ function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
   return log.vgcpid ?? contextVgcpid ?? getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
 }
 
+function logActorDisplayNameRaw(log) {
+  const v = log.actor_display_name ?? log.actorDisplayName;
+  return v != null ? String(v).trim() : '';
+}
+
+function logActorUserIdRaw(log) {
+  const v = log.actor_user_id ?? log.actorUserId;
+  if (v === null || v === undefined || v === '') return null;
+  return v;
+}
+
 /** Prefer API `actor_display_name` (from audit JOIN); fall back to numeric id. */
 function formatAuditActor(log) {
-  const name = log.actor_display_name != null ? String(log.actor_display_name).trim() : '';
+  const name = logActorDisplayNameRaw(log);
   if (name) return name;
-  if (log.actor_user_id != null) return `User ${log.actor_user_id}`;
+  const uid = logActorUserIdRaw(log);
+  if (uid != null) return `User ${uid}`;
   return '';
 }
 
-/** Avatar initial: first letter of actor name when known, else first letter of action (UPDATE → U). */
+/**
+ * Same idea as DetailsTestModal `initials` (e.g. "Tester 1" → "T1").
+ */
+function initialsFromDisplayName(name) {
+  const s = String(name || '').trim();
+  if (!s) return '';
+  const parts = s.split(/\s+/).filter(Boolean);
+  const a = parts[0]?.[0] || '';
+  const b = parts[1]?.[0] || '';
+  return (a + b).toUpperCase();
+}
+
+/**
+ * Badge text: initials from display name, else first char of user id (never "User …" → U),
+ * else first letter of action (UPDATE → U).
+ */
 function auditEntryAvatarInitial(log) {
-  const actor = formatAuditActor(log);
-  if (actor) {
-    const letter = actor.replace(/\s+/g, '').match(/[A-Za-z0-9]/);
-    if (letter) return letter[0].toUpperCase();
+  const name = logActorDisplayNameRaw(log);
+  if (name) {
+    const badge = initialsFromDisplayName(name);
+    if (badge) return badge;
+  }
+  const uid = logActorUserIdRaw(log);
+  if (uid != null) {
+    const s = String(uid).trim();
+    if (s) return s[0].toUpperCase();
   }
   return String(log.action || '?')
     .slice(0, 1)
