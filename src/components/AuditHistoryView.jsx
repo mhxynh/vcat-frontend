@@ -34,7 +34,9 @@ function auditEntryAvatarInitial(log) {
     const letter = actor.replace(/\s+/g, '').match(/[A-Za-z0-9]/);
     if (letter) return letter[0].toUpperCase();
   }
-  return String(log.action || '?').slice(0, 1).toUpperCase();
+  return String(log.action || '?')
+    .slice(0, 1)
+    .toUpperCase();
 }
 
 /**
