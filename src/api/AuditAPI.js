@@ -1,30 +1,5 @@
 import { authFetch, API_BASE } from './apiClient';
 
-function findKeyIgnoreCase(obj, targetLower) {
-  if (!obj || typeof obj !== 'object') return undefined;
-  const key = Object.keys(obj).find((k) => k.toLowerCase() === targetLower);
-  return key != null ? obj[key] : undefined;
-}
-
-/** Normalize actor fields (some gateways/clients vary casing). */
-export function normalizeAuditLogEntry(raw) {
-  if (!raw || typeof raw !== 'object') return raw;
-  /* eslint-disable camelcase -- mirrors REST audit log JSON */
-  const actorUserId =
-    raw.actor_user_id ?? raw.actorUserId ?? findKeyIgnoreCase(raw, 'actor_user_id');
-  const actorDisplayName =
-    raw.actor_display_name ?? raw.actorDisplayName ?? findKeyIgnoreCase(raw, 'actor_display_name');
-  const out = { ...raw };
-  if (actorUserId != null && actorUserId !== '') {
-    out.actor_user_id = actorUserId;
-  }
-  if (actorDisplayName != null && String(actorDisplayName).trim() !== '') {
-    out.actor_display_name = String(actorDisplayName).trim();
-  }
-  /* eslint-enable camelcase */
-  return out;
-}
-
 async function fetchAuditLogs(params) {
   const search = new URLSearchParams(params);
   const resp = await authFetch(`${API_BASE}/audit?${search}`, {
@@ -42,8 +17,7 @@ async function fetchAuditLogs(params) {
     }
   }
   const data = await resp.json();
-  const rows = Array.isArray(data?.data) ? data.data : [];
-  return rows.map(normalizeAuditLogEntry);
+  return Array.isArray(data?.data) ? data.data : [];
 }
 
 /**

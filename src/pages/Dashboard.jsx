@@ -3,7 +3,6 @@ import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
-import { userCapacityDisplayName, toInitials } from '../utils/userDisplay';
 import DetailsTestModal from '../components/DetailsTestModal';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
@@ -84,6 +83,20 @@ const WEEKDAY_LABELS = [
 ];
 const TEAM_CAPACITY_COLORS = ['#a6131f', '#139a47', '#1d4ed8', '#ea580c', '#7c3aed'];
 const TEAM_CAPACITY_ROLES = new Set(['TESTER', 'MANAGER']);
+
+function userCapacityDisplayName(user) {
+  if (!user) return 'Unknown';
+  return user.display_name || user.displayName || user.email || 'Unknown';
+}
+
+function toInitials(name) {
+  return (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0]?.toUpperCase())
+    .join('');
+}
 
 function statusBucketFromStep(stepValue, allowedStatusKeys) {
   const step = (stepValue || '').toUpperCase();

@@ -1,6 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { fetchUsers } from '../api/UsersAPI';
-import { userCapacityDisplayName, toInitials } from '../utils/userDisplay';
+import React, { useEffect, useState } from 'react';
 import '../styles/components/AuditHistoryView.css';
 
 const DATE_FORMAT = {
@@ -32,37 +30,35 @@ function logActorUserIdRaw(log) {
   return v;
 }
 
-/**
- * Label for audit actor: API join, /users directory, numeric id, then optional UI fallback
- * (e.g. current test assignee when the audit row has no actor_user_id — common if the change
- * was recorded without a resolved JWT user).
- */
-function resolveActorLabel(log, userIdToDisplayName, actorFallback) {
+/** Label: API `actor_display_name`, else `User {id}`, else optional assignee fallback (test details). */
+function resolveActorLabel(log, actorFallback) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
-  if (uid != null) {
-    const fromDirectory = userIdToDisplayName?.get(String(uid));
-    if (fromDirectory) return fromDirectory;
-    return `User ${uid}`;
-  }
+  if (uid != null) return `User ${uid}`;
   if (actorFallback) {
     const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
     if (fn && fn !== '-') return fn;
     const fuid = actorFallback.userId;
-    if (fuid != null && fuid !== '') {
-      const fromDirectory = userIdToDisplayName?.get(String(fuid));
-      if (fromDirectory) return fromDirectory;
-    }
+    if (fuid != null && fuid !== '') return `User ${fuid}`;
   }
   return '';
 }
 
-/** Badge: Dashboard initials, or "?" — never the first letter of UPDATE (misread as "user"). */
-function auditEntryAvatarInitial(log, userIdToDisplayName, actorFallback) {
-  const label = resolveActorLabel(log, userIdToDisplayName, actorFallback);
+/** Same initials pattern as Dashboard capacity (up to two tokens). */
+function historyAvatarInitials(name) {
+  return (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0]?.toUpperCase())
+    .join('');
+}
+
+function auditEntryAvatarInitial(log, actorFallback) {
+  const label = resolveActorLabel(log, actorFallback);
   if (label) {
-    const badge = toInitials(label);
+    const badge = historyAvatarInitials(label);
     if (badge) return badge;
   }
   return '?';
@@ -97,33 +93,6 @@ export default function AuditHistoryView({
   actorFallback = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
-  const [userRecords, setUserRecords] = useState([]);
-
-  useEffect(() => {
-    if (!showContent) return;
-    let cancelled = false;
-    fetchUsers()
-      .then((list) => {
-        if (!cancelled) setUserRecords(Array.isArray(list) ? list : []);
-      })
-      .catch(() => {
-        if (!cancelled) setUserRecords([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [showContent]);
-
-  const userIdToDisplayName = useMemo(() => {
-    const m = new Map();
-    for (const u of userRecords) {
-      const id = u.user_id ?? u.userId;
-      if (id == null || id === '') continue;
-      const label = userCapacityDisplayName(u);
-      if (label && label !== 'Unknown') m.set(String(id), label);
-    }
-    return m;
-  }, [userRecords]);
 
   useEffect(() => {
     if (!showExpanded) return;
@@ -144,13 +113,11 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log, userIdToDisplayName, actorFallback);
+        const actorLabel = resolveActorLabel(log, actorFallback);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">
-                {auditEntryAvatarInitial(log, userIdToDisplayName, actorFallback)}
-              </div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log, actorFallback)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
