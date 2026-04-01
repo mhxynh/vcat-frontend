@@ -236,7 +236,7 @@ function getAuditChanges(log) {
       {
         field: 'status',
         label: 'Status',
-        fromStr: formatStatusValue(before.status),
+        fromStr: formatTestRowStatusLabel(before.status),
         toStr: 'Archived',
       },
     ];
@@ -280,19 +280,54 @@ function formatDate(value) {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, DATE_FORMAT);
 }
 
+/**
+ * Title-case each token (matches `humanStep` in DetailsTestModal) — e.g. TESTING_READY → Testing Ready.
+ */
+function formatScreamingSnakeLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  return String(value)
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Test/request row status — matches TestsAPI.normalizeStatus labels shown in the app.
+ */
+function formatTestRowStatusLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).toUpperCase();
+  const map = {
+    NOT_STARTED: 'Not Started',
+    DAT_IN_PROGRESS: 'DAT In Progress',
+    OET_IN_PROGRESS: 'OET In Progress',
+    IN_REVIEW: 'In Review',
+    COMPLETED: 'Completed',
+    BLOCKED: 'Blocked',
+    ARCHIVED: 'Archived',
+  };
+  if (map[raw]) return map[raw];
+  return formatScreamingSnakeLabel(value);
+}
+
+function formatPriorityLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).toUpperCase();
+  if (raw === 'CRITICAL') return 'Critical Priority';
+  if (raw === 'HIGH') return 'High Priority';
+  if (raw === 'MEDIUM') return 'Medium Priority';
+  if (raw === 'LOW') return 'Low Priority';
+  return formatScreamingSnakeLabel(value);
+}
+
 function formatAuditValue(field, value) {
   if (value === null || value === undefined) return '—';
-  if (field === 'status') return formatStatusValue(value);
+  if (field === 'status') return formatTestRowStatusLabel(value);
+  if (field === 'dat_step' || field === 'oet_step') return formatScreamingSnakeLabel(value);
+  if (field === 'priority') return formatPriorityLabel(value);
   if (DATE_FIELDS.includes(field)) {
     const d = new Date(value);
     return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(undefined, DATE_FORMAT);
   }
   return String(value);
-}
-
-function formatStatusValue(v) {
-  const s = String(v || '')
-    .replace(/_/g, ' ')
-    .toLowerCase();
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
 }
