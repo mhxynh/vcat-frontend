@@ -30,18 +30,12 @@ function logActorUserIdRaw(log) {
   return v;
 }
 
-/** Label: API `actor_display_name`, else `User {id}`, else optional assignee fallback (test details). */
-function resolveActorLabel(log, actorFallback) {
+/** Label from audit row only: API join `actor_display_name`, else `User {id}`. Never use assignee as actor. */
+function resolveActorLabel(log) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
   if (uid != null) return `User ${uid}`;
-  if (actorFallback) {
-    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
-    if (fn && fn !== '-') return fn;
-    const fuid = actorFallback.userId;
-    if (fuid != null && fuid !== '') return `User ${fuid}`;
-  }
   return '';
 }
 
@@ -55,8 +49,8 @@ function historyAvatarInitials(name) {
     .join('');
 }
 
-function auditEntryAvatarInitial(log, actorFallback) {
-  const label = resolveActorLabel(log, actorFallback);
+function auditEntryAvatarInitial(log) {
+  const label = resolveActorLabel(log);
   if (label) {
     const badge = historyAvatarInitials(label);
     if (badge) return badge;
@@ -78,7 +72,6 @@ function auditEntryAvatarInitial(log, actorFallback) {
  * @param {string} [props.contextVgcpid] - VGCP ID of the current test (when viewing single test history). Shown with each "Test updated" entry.
  * @param {string} [props.contextRequestId] - Request display ID (e.g. "REQ-0001") when viewing request history. Shown with each "Request updated" entry.
  * @param {Object} [props.contextTestIdToVgcpid] - Map of test_id -> vgcpid for tests under a request. Used when viewing request history to show "Test: VGCP-xxx Updated" for each test.
- * @param {Object} [props.actorFallback] - When audit row has no actor: `{ displayName?, userId? }` (e.g. current test assignee).
  */
 export default function AuditHistoryView({
   logs,
@@ -90,7 +83,6 @@ export default function AuditHistoryView({
   contextVgcpid = null,
   contextRequestId = null,
   contextTestIdToVgcpid = null,
-  actorFallback = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
 
@@ -113,11 +105,11 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log, actorFallback);
+        const actorLabel = resolveActorLabel(log);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{auditEntryAvatarInitial(log, actorFallback)}</div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
