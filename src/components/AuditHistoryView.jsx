@@ -27,6 +27,16 @@ function formatAuditActor(log) {
   return '';
 }
 
+/** Avatar initial: first letter of actor name when known, else first letter of action (UPDATE → U). */
+function auditEntryAvatarInitial(log) {
+  const actor = formatAuditActor(log);
+  if (actor) {
+    const letter = actor.replace(/\s+/g, '').match(/[A-Za-z0-9]/);
+    if (letter) return letter[0].toUpperCase();
+  }
+  return String(log.action || '?').slice(0, 1).toUpperCase();
+}
+
 /**
  * Shared audit history view: scrollable list, expand button, full overlay.
  * Used by DetailsRequestModal and DetailsTestModal.
@@ -78,7 +88,7 @@ export default function AuditHistoryView({
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{String(log.action || '?').slice(0, 1)}</div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
