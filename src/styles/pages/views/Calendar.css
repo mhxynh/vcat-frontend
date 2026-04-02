@@ -51,8 +51,8 @@
   border-radius: 6px;
   padding: 8px 0;
   text-align: center;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #6f6f6f;
   background: #fafafa;
 }
@@ -87,7 +87,7 @@
 
 .calendar-day-cell--selected .calendar-day-number {
   color: #343434;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .calendar-day-cell--selected .calendar-day-badge {
@@ -99,17 +99,18 @@
   position: absolute;
   top: 7px;
   left: 7px;
-  font-size: 11px;
+  font-size: 18px;
+  font-weight: 700;
   color: #343434;
   line-height: 1;
 }
 
 .calendar-day-badge {
   position: absolute;
-  top: 7px;
+  top: 6px;
   right: 7px;
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #96151d;
   color: #ffffff;
@@ -117,12 +118,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
 }
 
 .calendar-day-badge-text {
-  font-size: 9px;
+  font-size: 10px;
+  font-weight: 700;
   line-height: 1;
-  transform: translateY(1px);
 }
 
 .calendar-day-bars {
@@ -151,10 +153,23 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 12px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 400;
   line-height: 1;
   color: #7a7a7a;
   min-height: 28px;
+}
+
+.calendar-status-legend .calendar-filter-label,
+.calendar-status-legend .calendar-filter-select {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.calendar-status-legend .legend-label,
+.calendar-status-legend .legend-item {
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .calendar-filter-row {
