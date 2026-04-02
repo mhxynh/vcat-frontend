@@ -19,6 +19,51 @@ function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
   return log.vgcpid ?? contextVgcpid ?? getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
 }
 
+function logActorDisplayNameRaw(log) {
+  const v = log.actor_display_name ?? log.actorDisplayName;
+  return v != null ? String(v).trim() : '';
+}
+
+function logActorUserIdRaw(log) {
+  const v = log.actor_user_id ?? log.actorUserId;
+  if (v === null || v === undefined || v === '') return null;
+  return v;
+}
+
+/** Label: API `actor_display_name`, else `User {id}`, else optional assignee fallback (test details). */
+function resolveActorLabel(log, actorFallback) {
+  const fromApi = logActorDisplayNameRaw(log);
+  if (fromApi) return fromApi;
+  const uid = logActorUserIdRaw(log);
+  if (uid != null) return `User ${uid}`;
+  if (actorFallback) {
+    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
+    if (fn && fn !== '-') return fn;
+    const fuid = actorFallback.userId;
+    if (fuid != null && fuid !== '') return `User ${fuid}`;
+  }
+  return '';
+}
+
+/** Same initials pattern as Dashboard capacity (up to two tokens). */
+function historyAvatarInitials(name) {
+  return (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0]?.toUpperCase())
+    .join('');
+}
+
+function auditEntryAvatarInitial(log, actorFallback) {
+  const label = resolveActorLabel(log, actorFallback);
+  if (label) {
+    const badge = historyAvatarInitials(label);
+    if (badge) return badge;
+  }
+  return '?';
+}
+
 /**
  * Shared audit history view: scrollable list, expand button, full overlay.
  * Used by DetailsRequestModal and DetailsTestModal.
@@ -33,6 +78,7 @@ function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
  * @param {string} [props.contextVgcpid] - VGCP ID of the current test (when viewing single test history). Shown with each "Test updated" entry.
  * @param {string} [props.contextRequestId] - Request display ID (e.g. "REQ-0001") when viewing request history. Shown with each "Request updated" entry.
  * @param {Object} [props.contextTestIdToVgcpid] - Map of test_id -> vgcpid for tests under a request. Used when viewing request history to show "Test: VGCP-xxx Updated" for each test.
+ * @param {Object} [props.actorFallback] - When audit row has no actor: `{ displayName?, userId? }` (e.g. current test assignee).
  */
 export default function AuditHistoryView({
   logs,
@@ -44,6 +90,7 @@ export default function AuditHistoryView({
   contextVgcpid = null,
   contextRequestId = null,
   contextTestIdToVgcpid = null,
+  actorFallback = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
 
@@ -66,17 +113,16 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
+        const actorLabel = resolveActorLabel(log, actorFallback);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{String(log.action || '?').slice(0, 1)}</div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log, actorFallback)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
                 </span>
-                {log.actor_user_id != null && (
-                  <span className="ahv-actor"> · User {log.actor_user_id}</span>
-                )}
+                {actorLabel && <span className="ahv-actor"> · {actorLabel}</span>}
                 <span className="ahv-date">{formatDate(log.changed_at)}</span>
               </div>
             </div>
