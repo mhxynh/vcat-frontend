@@ -239,7 +239,7 @@
   border: 1px solid #e5e5e5;
   border-radius: 6px;
   height: 420px;
-  background: #ffffff;
+  background: #fafafa;
   padding: 14px;
   overflow: hidden;
 }
@@ -273,6 +273,7 @@
   display: block;
   border: 1px solid #ececec;
   border-radius: 8px;
+  background: #ffffff;
   /* Room for thin rail + gap; rail is position:absolute at padding edge */
   padding: 8px 10px 8px 18px;
   overflow: hidden;
