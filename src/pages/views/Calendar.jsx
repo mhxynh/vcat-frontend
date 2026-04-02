@@ -303,13 +303,15 @@ const CalendarView = ({ refreshKey = 0 }) => {
               ))}
             </select>
           </div>
-          <span className="legend-label">Status:</span>
-          {Object.entries(STATUS_LABELS).map(([status, label]) => (
-            <span key={status} className="legend-item">
-              <span className={`legend-dot status-${status}`} />
-              {label}
-            </span>
-          ))}
+          <div className="calendar-legend-status-group">
+            <span className="legend-label">Status:</span>
+            {Object.entries(STATUS_LABELS).map(([status, label]) => (
+              <span key={status} className="legend-item">
+                <span className={`legend-dot status-${status}`} />
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="calendar-detail-card">

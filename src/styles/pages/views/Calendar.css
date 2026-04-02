@@ -151,19 +151,33 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
   font-size: 13px;
   font-weight: 400;
   line-height: 1;
   color: #7a7a7a;
   min-height: 28px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.calendar-legend-status-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .calendar-status-legend .calendar-filter-label,
 .calendar-status-legend .calendar-filter-select {
   font-size: 13px;
   font-weight: 400;
+}
+
+.calendar-status-legend .calendar-filter-row {
+  flex-shrink: 0;
 }
 
 .calendar-status-legend .legend-label,
