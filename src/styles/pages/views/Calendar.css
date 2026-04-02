@@ -274,20 +274,19 @@
   border: 1px solid #ececec;
   border-radius: 8px;
   /* Room for thin rail + gap; rail is position:absolute at padding edge */
-  padding: 8px 10px 8px 20px;
+  padding: 8px 10px 8px 18px;
   overflow: hidden;
 }
 
 /*
- * Thin vertical pill flush to inner left: full height + parent's 8px radius clips the
- * rail so its outer edge follows the card corners (Figma / reference screenshot).
+ * Thin vertical pill flush to inner left; stretch past vertical padding so it reads longer.
  */
 .detail-bar {
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
+  top: -18px;
+  bottom: -18px;
+  width: 3px;
   box-sizing: border-box;
   border-radius: 999px;
   pointer-events: none;
