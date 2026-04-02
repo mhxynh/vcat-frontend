@@ -269,21 +269,34 @@
 }
 
 .detail-item {
-  display: grid;
-  grid-template-columns: 4px 1fr;
-  gap: 8px;
+  position: relative;
+  display: block;
   border: 1px solid #ececec;
   border-radius: 8px;
-  padding: 8px;
+  /* Room for thin rail + gap; rail is position:absolute at padding edge */
+  padding: 8px 10px 8px 20px;
+  overflow: hidden;
 }
 
+/*
+ * Thin vertical pill flush to inner left: full height + parent's 8px radius clips the
+ * rail so its outer edge follows the card corners (Figma / reference screenshot).
+ */
 .detail-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  box-sizing: border-box;
   border-radius: 999px;
+  pointer-events: none;
 }
 
 .detail-body {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .detail-title-row {
