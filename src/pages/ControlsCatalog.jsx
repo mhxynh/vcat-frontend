@@ -14,6 +14,31 @@ function formatLastUpdated(date) {
   }).format(date);
 }
 
+function formatDisplayDate(value) {
+  if (!value || value === '-') return value ?? '-';
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return new Intl.DateTimeFormat('en-US').format(value);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    const isoLikeMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/);
+    if (isoLikeMatch) {
+      const [, year, month, day] = isoLikeMatch;
+      return `${month}/${day}/${year}`;
+    }
+
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return new Intl.DateTimeFormat('en-US').format(parsed);
+    }
+  }
+
+  return value;
+}
+
 export default function Controls() {
   const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
   const [openId, setOpenId] = useState(null);
@@ -215,7 +240,11 @@ export default function Controls() {
                           {control.status}
                         </span>
 
-                        <span className="badge badge--neutral">{control.testing}</span>
+                        <span className="badge badge--neutral">
+                          {control.testing && control.testing !== 'Not Tested Yet'
+                            ? `Last Tested ${formatDisplayDate(control.testing)}`
+                            : (control.testing ?? 'Not Tested Yet')}
+                        </span>
 
                         <span className={`chev ${isOpen ? 'chev--open' : ''}`}>
                           {isOpen ? '▴' : '▾'}
@@ -239,11 +268,15 @@ export default function Controls() {
                             <div className="acc-details">
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Date Created</div>
-                                <div className="acc-details__v">{control.dateCreated ?? '-'}</div>
+                                <div className="acc-details__v">
+                                  {formatDisplayDate(control.dateCreated ?? '-')}
+                                </div>
                               </div>
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Last Tested</div>
-                                <div className="acc-details__v">{control.lastTested ?? '-'}</div>
+                                <div className="acc-details__v">
+                                  {formatDisplayDate(control.lastTested ?? '-')}
+                                </div>
                               </div>
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Control Owner</div>

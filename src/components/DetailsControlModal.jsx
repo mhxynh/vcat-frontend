@@ -3,6 +3,31 @@ import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import EditControlModal from './EditControlModal';
 
+function formatDisplayDate(value) {
+  if (!value || value === '-') return value ?? '-';
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return new Intl.DateTimeFormat('en-US').format(value);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    const isoLikeMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/);
+    if (isoLikeMatch) {
+      const [, year, month, day] = isoLikeMatch;
+      return `${month}/${day}/${year}`;
+    }
+
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return new Intl.DateTimeFormat('en-US').format(parsed);
+    }
+  }
+
+  return value;
+}
+
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -46,13 +71,15 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   const id = control?.id ?? '';
   const status = control?.status ?? 'Active';
-  const testing = control?.testing ?? 'Not Tested Yet';
+  const testing =
+    control?.testing && control.testing !== 'Not Tested Yet'
+      ? `Last Tested ${formatDisplayDate(control.testing)}`
+      : (control?.testing ?? 'Not Tested Yet');
   const description = control?.description ?? 'No description yet.';
-
   const owner = control?.owner;
   const sme = control?.sme ?? '-';
-  const dateCreated = control?.dateCreated ?? '-';
-  const lastTested = control?.lastTested ?? '-';
+  const dateCreated = formatDisplayDate(control?.dateCreated ?? '-');
+  const lastTested = formatDisplayDate(control?.lastTested ?? '-');
   const escalationRequired = control?.escalationRequired ?? '-';
 
   const requestHistory = Array.isArray(control?.requestHistory) ? control.requestHistory : [];
@@ -173,7 +200,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       {requestHistory.map((r) => (
                         <tr key={r.requestId}>
                           <td className="dcm-mono">{r.requestId}</td>
-                          <td>{r.date ?? '-'}</td>
+                          <td>{formatDisplayDate(r.date ?? '-')}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span
@@ -216,7 +243,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       <div className="dcm-log-content">
                         <div className="dcm-log-top">
                           <div className="dcm-log-title">{log.title}</div>
-                          <div className="dcm-log-date">{log.date ?? ''}</div>
+                          <div className="dcm-log-date">{formatDisplayDate(log.date ?? '')}</div>
                         </div>
                         {log.subtitle && <div className="dcm-log-subtitle">{log.subtitle}</div>}
                         {log.actor && <div className="dcm-log-actor">by {log.actor}</div>}
