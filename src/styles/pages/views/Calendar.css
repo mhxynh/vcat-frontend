@@ -72,12 +72,23 @@
   text-align: left;
   padding: 7px 7px 6px;
   cursor: pointer;
+  transition:
+    background-color 0.22s ease-out,
+    border-color 0.22s ease-out,
+    border-width 0.22s ease-out,
+    box-shadow 0.28s ease-out,
+    transform 0.14s ease-out;
+}
+
+.calendar-day-cell:not(.calendar-day-cell--blank):active {
+  transform: scale(0.985);
 }
 
 .calendar-day-cell--blank {
   border: none;
   background: transparent;
   cursor: default;
+  transition: none;
 }
 
 .calendar-day-cell--selected {
@@ -121,6 +132,7 @@
   place-items: center;
   line-height: 0;
   box-sizing: border-box;
+  transition: background-color 0.22s ease-out, color 0.22s ease-out;
 }
 
 .calendar-day-badge-text {
@@ -444,6 +456,20 @@
 
 .status-completed {
   background-color: #8fd392;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-day-cell {
+    transition-duration: 0.01ms;
+  }
+
+  .calendar-day-cell:not(.calendar-day-cell--blank):active {
+    transform: none;
+  }
+
+  .calendar-day-badge {
+    transition-duration: 0.01ms;
+  }
 }
 
 @media (max-width: 1200px) {
