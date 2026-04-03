@@ -115,16 +115,18 @@
   background: #96151d;
   color: #ffffff;
   padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+  box-sizing: border-box;
 }
 
 .calendar-day-badge-text {
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform: translateY(1.1px);
 }
 
 .calendar-day-bars {
