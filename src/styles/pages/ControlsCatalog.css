@@ -90,9 +90,9 @@
 
 /* Accordion body */
 .acc-body {
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid #eaeaea;
   padding: 14px 16px 16px;
-  background: #fcfcfc;
+  background: #ffffff;
 }
 
 .acc-grid {
@@ -106,6 +106,10 @@
   border: 1px solid #eaeaea;
   border-radius: 10px;
   padding: 12px;
+}
+
+.acc-body .acc-card {
+  border: 1px solid #ffffff;
 }
 
 .acc-card__label {
