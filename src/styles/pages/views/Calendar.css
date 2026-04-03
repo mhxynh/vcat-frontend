@@ -184,7 +184,11 @@
   flex-shrink: 0;
 }
 
-.calendar-status-legend .legend-label,
+.calendar-status-legend .legend-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .calendar-status-legend .legend-item {
   font-size: 13px;
   font-weight: 400;
