@@ -26,7 +26,7 @@
     </defs>
   </symbol>
 
-  <symbol id="icon-deco-description" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <symbol id="icon-deco-documents" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M4 14.667a1.333 1.333 0 0 1-1.333-1.334V2.667A1.333 1.333 0 0 1 4 1.333h5.334a1.6 1.6 0 0 1 1.136.471l2.392 2.392a1.601 1.601 0 0 1 .472 1.137v8A1.333 1.333 0 0 1 12 14.667H4Z"/>
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M9.333 1.333v3.334a.667.667 0 0 0 .667.666h3.333M6.666 6H5.333m5.333 2.667H5.333m5.333 2.666H5.333"/>
   </symbol>
@@ -35,7 +35,7 @@
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 12.833A5.833 5.833 0 1 0 7 1.167a5.833 5.833 0 0 0 0 11.666Zm0-8.166V7m0 2.333h.006"/>
   </symbol>
 
-  <symbol id="icon-deco-history" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <symbol id="icon-deco-history" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M2.5 10A7.5 7.5 0 1 0 10 2.5a8.125 8.125 0 0 0-5.617 2.283L2.5 6.667"/>
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M2.5 2.5v4.167h4.167M10 5.833V10l3.333 1.667"/>
   </symbol>

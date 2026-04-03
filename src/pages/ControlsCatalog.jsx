@@ -229,7 +229,7 @@ export default function Controls() {
                         <div className="acc-grid">
                           <div className="acc-card">
                             <div className="acc-card__label">
-                              <Icon name="description" category="deco" />
+                              <Icon name="documents" category="deco" />
                               Description
                             </div>
                             <div className="acc-card__text">
