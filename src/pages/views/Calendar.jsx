@@ -224,7 +224,16 @@ const CalendarView = ({ refreshKey = 0 }) => {
             aria-label="Previous month"
             onClick={() => goToMonth(-1)}
           >
-            ‹
+            <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 6l-6 6 6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
           <h3 className="calendar-month-title">{monthLabel}</h3>
           <button
@@ -233,7 +242,16 @@ const CalendarView = ({ refreshKey = 0 }) => {
             aria-label="Next month"
             onClick={() => goToMonth(1)}
           >
-            ›
+            <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M9 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         </div>
 
