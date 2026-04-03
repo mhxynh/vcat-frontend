@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+
+  <!-- Action Icons -->
+  <symbol id="icon-action-redirect" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M10 2h4v4M6.667 9.333 14 2m-2 6.667v4A1.334 1.334 0 0 1 10.667 14H3.333A1.334 1.334 0 0 1 2 12.667V5.333A1.333 1.333 0 0 1 3.333 4h4"/>
+  </symbol>
+
+  <!-- Decorative icons -->
+  <symbol id="icon-deco-calendar" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M4.667 1.167V3.5m4.666-2.333V3.5m1.75-1.167H2.917c-.645 0-1.167.523-1.167 1.167v8.167c0 .644.522 1.166 1.167 1.166h8.166c.645 0 1.167-.522 1.167-1.166V3.5c0-.644-.522-1.167-1.167-1.167Zm-9.333 3.5h10.5"/>
+  </symbol>
+
+  <symbol id="icon-deco-clock" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 3.5V7l2.333 1.167"/>
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 12.833A5.833 5.833 0 1 0 7 1.167a5.833 5.833 0 0 0 0 11.666Z"/>
+  </symbol>
+
+  <symbol id="icon-deco-control-details" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <g clip-path="url(#a)">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M14.666 8h-1.653a1.333 1.333 0 0 0-1.287.973l-1.566 5.574a.167.167 0 0 1-.32 0L6.16 1.453a.167.167 0 0 0-.32 0L4.273 7.027A1.333 1.333 0 0 1 2.993 8h-1.66"/>
+    </g>
+    <defs>
+      <clipPath id="a">
+        <path fill="#fff" d="M0 0h16v16H0z"/>
+      </clipPath>
+    </defs>
+  </symbol>
+
+  <symbol id="icon-deco-description" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M4 14.667a1.333 1.333 0 0 1-1.333-1.334V2.667A1.333 1.333 0 0 1 4 1.333h5.334a1.6 1.6 0 0 1 1.136.471l2.392 2.392a1.601 1.601 0 0 1 .472 1.137v8A1.333 1.333 0 0 1 12 14.667H4Z"/>
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M9.333 1.333v3.334a.667.667 0 0 0 .667.666h3.333M6.666 6H5.333m5.333 2.667H5.333m5.333 2.666H5.333"/>
+  </symbol>
+
+  <symbol id="icon-deco-exclamation" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 12.833A5.833 5.833 0 1 0 7 1.167a5.833 5.833 0 0 0 0 11.666Zm0-8.166V7m0 2.333h.006"/>
+  </symbol>
+
+  <symbol id="icon-deco-history" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M2.5 10A7.5 7.5 0 1 0 10 2.5a8.125 8.125 0 0 0-5.617 2.283L2.5 6.667"/>
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M2.5 2.5v4.167h4.167M10 5.833V10l3.333 1.667"/>
+  </symbol>
+
+  <symbol id="icon-deco-user" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M11.084 12.25v-1.167A2.333 2.333 0 0 0 8.75 8.75h-3.5a2.333 2.333 0 0 0-2.333 2.333v1.167M7 6.417A2.333 2.333 0 1 0 7 1.75a2.333 2.333 0 0 0 0 4.667Z"/>
+  </symbol>
+
+</svg>

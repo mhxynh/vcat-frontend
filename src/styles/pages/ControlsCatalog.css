@@ -109,6 +109,9 @@
 }
 
 .acc-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
   font-weight: inherit;
   letter-spacing: 0.06em;
@@ -137,8 +140,16 @@
 }
 
 .acc-details__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #666;
   font-size: 13px;
+}
+
+.acc-card__label .ui-icon,
+.acc-details__k .ui-icon {
+  flex-shrink: 0;
 }
 
 .acc-details__v {
