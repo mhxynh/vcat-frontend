@@ -82,7 +82,9 @@
 
 .calendar-day-cell--selected {
   background: rgba(150, 21, 29, 0.08);
+  border-width: 1.75px;
   border-color: #8b0f17;
+  box-shadow: 0 2px 8px rgba(139, 15, 23, 0.12), 0 1px 3px rgba(139, 15, 23, 0.08);
 }
 
 .calendar-day-cell--selected .calendar-day-number {
