@@ -169,9 +169,16 @@
 }
 
 .linklike {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   border: 0;
   background: transparent;
   color: #8b0f17;
   font-weight: inherit;
   cursor: pointer;
+}
+
+.linklike .ui-icon {
+  flex-shrink: 0;
 }

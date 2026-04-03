@@ -288,7 +288,8 @@ export default function Controls() {
                                 className="linklike"
                                 onClick={() => openDetails(control)}
                               >
-                                View More Details ↗
+                                View More Details
+                                <Icon name="redirect" category="actions" size="s" />
                               </button>
                             </div>
                           </div>
