@@ -167,29 +167,39 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .kanban-avatar {
+  position: relative;
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  box-sizing: border-box;
   border-radius: 50%;
   color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0;
-  text-align: center;
+  flex: 0 0 30px;
   flex-shrink: 0;
   overflow: hidden;
-  /* Optical vertical center: font metrics leave caps sitting high in the box */
 }
 
 .kanban-avatar__initials {
-  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Center in circle; slight Y nudge for optical alignment with caps */
+  transform: translate(-50%, calc(-50% + 1.5px));
   line-height: 1;
-  transform: translateY(2px);
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* Date chip: light gray fill, border, red icon + gray text */
