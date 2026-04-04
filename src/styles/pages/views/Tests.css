@@ -258,3 +258,16 @@ body {
 .selection-count {
   line-height: 16px;
 }
+
+.due-date-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.due-date-overdue-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #c20029;
+}
