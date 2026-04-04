@@ -727,7 +727,7 @@ function initials(name) {
 function testTypeFromFlags(t) {
   const dat = !!t?.requires_dat;
   const oet = !!t?.requires_oet;
-  if (dat && oet) return 'DAT + OET';
+  if (dat && oet) return 'DAT & OET';
   if (dat) return 'DAT Only';
   if (oet) return 'OET Only';
   return '-';
