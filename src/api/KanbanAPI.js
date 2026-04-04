@@ -1,5 +1,28 @@
 import { authFetch, API_BASE } from './apiClient';
 
+/** Maps API priority to a CSS suffix; colors are `var(--priority-*)` in Kanban.css / Tests.css */
+function priorityVariant(priorityRaw) {
+  const v = String(priorityRaw || '')
+    .toUpperCase()
+    .trim();
+  if (v === 'CRITICAL') return 'critical';
+  if (v === 'HIGH') return 'high';
+  if (v === 'MEDIUM') return 'medium';
+  if (v === 'LOW') return 'low';
+  return 'medium';
+}
+
+function priorityLabel(priorityRaw) {
+  const v = String(priorityRaw || '')
+    .toUpperCase()
+    .trim();
+  if (v === 'CRITICAL') return 'Critical';
+  if (v === 'HIGH') return 'High';
+  if (v === 'MEDIUM') return 'Medium';
+  if (v === 'LOW') return 'Low';
+  return 'Medium';
+}
+
 export async function fetchKanban({ requestId, controlId, details } = {}) {
   const buildUrl = ({ requestId, controlId, details } = {}) => {
     const u = new URL(`${API_BASE}/tests`);
@@ -31,7 +54,7 @@ export async function fetchKanban({ requestId, controlId, details } = {}) {
   return data;
 }
 
-export function mapTestRowToCard(test) {
+export function mapTestRowToCard(test, options = {}) {
   const statusRaw = test.status || '';
   const statusKey = normalizeStatus(statusRaw);
 
@@ -46,13 +69,18 @@ export function mapTestRowToCard(test) {
       });
     } catch {}
   }
+
+  const priorityRaw =
+    options.requestPriority ?? test.request_priority ?? test.priority_request ?? '';
+
   return {
     id,
     desc: test.control_description || test.description || '',
     assignee: test.assigned_tester_name || test.tester_name || test.assigned_tester_id || '',
     due: dueDate,
     status: statusKey,
-    dot: statusColor(statusKey),
+    priorityVariant: priorityVariant(priorityRaw),
+    priorityLabel: priorityLabel(priorityRaw),
   };
 }
 
@@ -60,20 +88,4 @@ function normalizeStatus(str) {
   return String(str || '')
     .toLowerCase()
     .replace(/\s+/g, '_');
-}
-
-function statusColor(statusKey) {
-  switch (statusKey) {
-    case 'not_started':
-      return '#c62828';
-    case 'dat_in_progress':
-    case 'oet_in_progress':
-      return '#eab308';
-    case 'in_review':
-      return '#14b8a6';
-    case 'completed':
-      return '#2e7d32';
-    default:
-      return '#9ca3af';
-  }
 }

@@ -89,13 +89,27 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
 
       try {
         const requests = await fetchRequests();
-        const responses = await Promise.all(
-          requests.map((r) => fetchKanban({ requestId: r.request_id, details: true }))
+        const pairs = await Promise.all(
+          requests.map(async (req) => ({
+            request: req,
+            tests: await fetchKanban({ requestId: req.request_id, details: true }),
+          }))
         );
-        const allTests = responses.flat();
-        const mapped = allTests.map(mapTestRowToCard);
+
+        const allTests = [];
+        pairs.forEach(({ request, tests }) => {
+          const list = Array.isArray(tests) ? tests : [];
+          const requestPriority = request?.priority;
+          list.forEach((test) => {
+            allTests.push({ test, requestPriority });
+          });
+        });
+
+        const mapped = allTests.map(({ test, requestPriority }) =>
+          mapTestRowToCard(test, { requestPriority })
+        );
         const testsMap = {};
-        allTests.forEach((test) => {
+        allTests.forEach(({ test }) => {
           const id = test.vgcpid || test.test_id || String(test.control_id || '');
           testsMap[id] = test;
         });
@@ -186,9 +200,8 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
                           {card.id}
                         </button>
                         <span
-                          className="kanban-card-dot"
-                          style={{ backgroundColor: card.dot }}
-                          title="Status"
+                          className={`kanban-card-dot kanban-card-dot--${card.priorityVariant}`}
+                          title={`Priority: ${card.priorityLabel}`}
                         />
                       </div>
 

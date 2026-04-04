@@ -157,6 +157,23 @@
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
+  background-color: var(--priority-medium);
+}
+
+.kanban-card-dot--low {
+  background-color: var(--priority-low);
+}
+
+.kanban-card-dot--medium {
+  background-color: var(--priority-medium);
+}
+
+.kanban-card-dot--high {
+  background-color: var(--priority-high);
+}
+
+.kanban-card-dot--critical {
+  background-color: var(--priority-critical);
 }
 
 .kanban-desc {
