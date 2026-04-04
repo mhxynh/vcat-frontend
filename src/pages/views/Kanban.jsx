@@ -197,7 +197,9 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
                         style={{ backgroundColor: avatarBackground(card.assignee || card.id) }}
                         title={String(card.assignee || '')}
                       >
-                        {getAssigneeInitials(card.assignee)}
+                        <span className="kanban-avatar__initials">
+                          {getAssigneeInitials(card.assignee)}
+                        </span>
                       </div>
                       <div className="kanban-due">
                         <CalendarGlyph className="kanban-due-icon" />
