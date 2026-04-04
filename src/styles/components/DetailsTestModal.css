@@ -304,3 +304,16 @@
   background: #b21d1d;
   color: #fff;
 }
+
+.dtm-date-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dtm-overdue-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #C20029;
+}
