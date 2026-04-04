@@ -165,7 +165,9 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
                   />
                   <span className="kanban-column-title">{column.title}</span>
                 </div>
-                <span className="kanban-count">{columnCards.length}</span>
+                <span className="kanban-count">
+                  <span className="kanban-count__value">{columnCards.length}</span>
+                </span>
               </div>
 
               <div className="kanban-column-well">

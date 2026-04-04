@@ -78,17 +78,25 @@
 }
 
 .kanban-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
+  place-content: center;
   min-width: 26px;
-  padding: 3px 9px;
+  min-height: 22px;
+  padding: 0 9px;
+  box-sizing: border-box;
   border-radius: 999px;
   background-color: #e3e5e8;
   color: var(--color-text-main, #333333);
   font-size: 13px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kanban-count__value {
+  display: block;
+  transform: translateY(1px);
 }
 
 .kanban-column-cards {
