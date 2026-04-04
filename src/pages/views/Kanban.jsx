@@ -168,46 +168,48 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
                 <span className="kanban-count">{columnCards.length}</span>
               </div>
 
-              <div className="kanban-column-cards">
-                {cards.length === 0 && column.key === 'not_started' ? (
-                  <p className="kanban-empty-hint">No items to display.</p>
-                ) : null}
-                {columnCards.map((card) => (
-                  <div key={card.id} className="kanban-card">
-                    <div className="kanban-card-top">
-                      <button
-                        type="button"
-                        className="kanban-code"
-                        onClick={() => openTestDetails(card.id)}
-                      >
-                        {card.id}
-                      </button>
-                      <span
-                        className="kanban-card-dot"
-                        style={{ backgroundColor: card.dot }}
-                        title="Status"
-                      />
-                    </div>
-
-                    <p className="kanban-desc">{card.desc}</p>
-
-                    <div className="kanban-card-bottom">
-                      <div
-                        className="kanban-avatar"
-                        style={{ backgroundColor: avatarBackground(card.assignee || card.id) }}
-                        title={String(card.assignee || '')}
-                      >
-                        <span className="kanban-avatar__initials">
-                          {getAssigneeInitials(card.assignee)}
-                        </span>
+              <div className="kanban-column-well">
+                <div className="kanban-column-cards">
+                  {cards.length === 0 && column.key === 'not_started' ? (
+                    <p className="kanban-empty-hint">No items to display.</p>
+                  ) : null}
+                  {columnCards.map((card) => (
+                    <div key={card.id} className="kanban-card">
+                      <div className="kanban-card-top">
+                        <button
+                          type="button"
+                          className="kanban-code"
+                          onClick={() => openTestDetails(card.id)}
+                        >
+                          {card.id}
+                        </button>
+                        <span
+                          className="kanban-card-dot"
+                          style={{ backgroundColor: card.dot }}
+                          title="Status"
+                        />
                       </div>
-                      <div className="kanban-due">
-                        <CalendarGlyph className="kanban-due-icon" />
-                        <span>{card.due || '—'}</span>
+
+                      <p className="kanban-desc">{card.desc}</p>
+
+                      <div className="kanban-card-bottom">
+                        <div
+                          className="kanban-avatar"
+                          style={{ backgroundColor: avatarBackground(card.assignee || card.id) }}
+                          title={String(card.assignee || '')}
+                        >
+                          <span className="kanban-avatar__initials">
+                            {getAssigneeInitials(card.assignee)}
+                          </span>
+                        </div>
+                        <div className="kanban-due">
+                          <CalendarGlyph className="kanban-due-icon" />
+                          <span>{card.due || '—'}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           );

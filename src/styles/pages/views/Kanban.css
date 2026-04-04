@@ -23,19 +23,33 @@
   align-items: start;
 }
 
+/* Column: header sits on app background; cards live in .kanban-column-well below */
 .kanban-column {
-  background-color: #eceef1;
-  border-radius: var(--radius-md, 10px);
-  padding: 12px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-width: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .kanban-column-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
   padding: 0 2px;
+  flex-shrink: 0;
+}
+
+/* White “bucket” for task cards only (Figma: separate from title row) */
+.kanban-column-well {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--border-subtle, #e0e0e0);
+  border-radius: var(--radius-md, 10px);
+  padding: 10px;
+  min-height: 48px;
+  flex: 1;
+  min-width: 0;
 }
 
 .kanban-title-with-status {
@@ -81,11 +95,11 @@
 }
 
 .kanban-empty-hint {
-  margin: 8px 4px 0;
+  margin: 0;
+  padding: 12px 8px;
   font-size: 14px;
   color: var(--color-text-muted, #666666);
   text-align: center;
-  grid-column: 1 / -1;
 }
 
 .kanban-card {
