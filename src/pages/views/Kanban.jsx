@@ -8,15 +8,15 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 function columnLaneDotColor(statusKey) {
   switch (statusKey) {
     case 'not_started':
-      return '#9ca3af';
+      return '#d1d1d1';
     case 'in_progress':
-      return '#1967d2';
+      return '#1447e6';
     case 'in_review':
-      return '#0d9488';
+      return '#00bda3';
     case 'completed':
-      return '#2e7d32';
+      return '#008236';
     default:
-      return '#9ca3af';
+      return '#d1d1d1';
   }
 }
 
