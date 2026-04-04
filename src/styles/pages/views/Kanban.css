@@ -55,21 +55,24 @@
 .kanban-title-with-status {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 
 .kanban-status-dot {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  display: inline-block;
   flex-shrink: 0;
+  align-self: center;
+  /* Optical vertical center with title (caps read high vs. dot) */
+  transform: translateY(-2px);
 }
 
 .kanban-column-title {
   font-size: 15px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--color-text-main, #333333);
   letter-spacing: -0.01em;
 }
