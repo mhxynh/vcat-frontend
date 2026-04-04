@@ -38,7 +38,7 @@ function statusToBadgeType(status) {
 function testTypeFromFlags(t) {
   const dat = !!t?.requires_dat;
   const oet = !!t?.requires_oet;
-  if (dat && oet) return 'DAT + OET';
+  if (dat && oet) return 'DAT & OET';
   if (dat) return 'DAT';
   if (oet) return 'OET';
   return '-';
