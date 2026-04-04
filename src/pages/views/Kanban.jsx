@@ -56,8 +56,8 @@ function CalendarGlyph({ className }) {
   return (
     <svg
       className={className}
-      width="14"
-      height="14"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -204,7 +204,7 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
                         </div>
                         <div className="kanban-due">
                           <CalendarGlyph className="kanban-due-icon" />
-                          <span>{card.due || '—'}</span>
+                          <span className="kanban-due__text">{card.due || '—'}</span>
                         </div>
                       </div>
                     </div>

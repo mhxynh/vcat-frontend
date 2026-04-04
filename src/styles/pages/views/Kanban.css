@@ -192,18 +192,33 @@
   transform: translateY(2px);
 }
 
+/* Date pill (Figma: white fill, light gray border, red icon + gray text) */
 .kanban-due {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  color: #9ca3af;
+  justify-content: center;
+  gap: 6px;
   flex-shrink: 0;
+  padding: 5px 12px;
+  background-color: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1.2;
+  min-height: 28px;
+  box-sizing: border-box;
 }
 
 .kanban-due-icon {
-  color: #9ca3af;
   flex-shrink: 0;
+  color: var(--color-brand-red, #96151d);
+  display: block;
+}
+
+.kanban-due__text {
+  color: #5c5c5c;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {
