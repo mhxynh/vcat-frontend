@@ -69,6 +69,14 @@ body {
   gap: 12px;
 }
 
+.tracker-header-btn {
+  gap: 8px;
+}
+
+.tracker-header-btn__icon {
+  flex-shrink: 0;
+}
+
 /* Buttons */
 .btn {
   font-size: 16px;
@@ -128,7 +136,8 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   cursor: pointer;
-  background: var(--color-surface);
+  background: #f0f1f3;
+  color: var(--color-text-main);
   text-align: center;
 }
 

@@ -43,14 +43,13 @@ export function mapTestRowToCard(test) {
       dueDate = new Date(dueDate).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
       });
     } catch {}
   }
   return {
     id,
     desc: test.control_description || test.description || '',
-    assignee: test.tester_name || test.assigned_tester_id || '',
+    assignee: test.assigned_tester_name || test.tester_name || test.assigned_tester_id || '',
     due: dueDate,
     status: statusKey,
     dot: statusColor(statusKey),
@@ -66,16 +65,15 @@ function normalizeStatus(str) {
 function statusColor(statusKey) {
   switch (statusKey) {
     case 'not_started':
-      return '#ef4444';
+      return '#c62828';
     case 'dat_in_progress':
-      return '#f59e0b';
     case 'oet_in_progress':
-      return '#f59e0b';
+      return '#eab308';
     case 'in_review':
-      return '#a78bfa';
+      return '#14b8a6';
     case 'completed':
-      return '#22c55e';
+      return '#2e7d32';
     default:
-      return '#6b7280';
+      return '#9ca3af';
   }
 }
