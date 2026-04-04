@@ -14,6 +14,19 @@ function formatLastUpdated(date) {
   }).format(date);
 }
 
+function formatDisplayDate(value) {
+  if (!value || value === '-') return '-';
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}
+
 export default function Controls() {
   const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
   const [openId, setOpenId] = useState(null);
@@ -239,11 +252,15 @@ export default function Controls() {
                             <div className="acc-details">
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Date Created</div>
-                                <div className="acc-details__v">{control.dateCreated ?? '-'}</div>
+                                <div className="acc-details__v">
+                                  {formatDisplayDate(control.dateCreated)}
+                                </div>
                               </div>
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Last Tested</div>
-                                <div className="acc-details__v">{control.lastTested ?? '-'}</div>
+                                <div className="acc-details__v">
+                                  {formatDisplayDate(control.lastTested)}
+                                </div>
                               </div>
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Control Owner</div>
