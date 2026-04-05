@@ -289,7 +289,7 @@ export default function Controls() {
                                 onClick={() => openDetails(control)}
                               >
                                 View More Details
-                                <Icon name="redirect" category="actions" size="s" />
+                                <Icon name="redirect" category="actions" />
                               </button>
                             </div>
                           </div>
