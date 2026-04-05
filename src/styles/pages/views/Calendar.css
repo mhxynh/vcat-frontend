@@ -276,9 +276,19 @@
   transform: translateY(-2px);
 }
 
-.calendar-detail-card {
+/* Slot in grid; abspos card so list length does not grow row height (matches calendar column). */
+.calendar-detail-slot {
   grid-column: 2;
   grid-row: 2;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.calendar-detail-card {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -319,7 +329,12 @@
 
 .detail-item {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 102px;
+  min-height: 102px;
+  max-height: 102px;
   border: 1px solid #ececec;
   border-radius: 8px;
   background: #ffffff;
@@ -329,13 +344,13 @@
 }
 
 /*
- * Thin vertical pill flush to inner left; stretch past vertical padding so it reads longer.
+ * Thin vertical pill along the left edge of the card.
  */
 .detail-bar {
   position: absolute;
   left: 0;
-  top: -18px;
-  bottom: -18px;
+  top: 0;
+  bottom: 0;
   width: 3px;
   box-sizing: border-box;
   border-radius: 999px;
@@ -343,16 +358,21 @@
 }
 
 .detail-body {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 4px;
   min-width: 0;
+  min-height: 0;
+  flex: 1;
 }
 
 .detail-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .detail-date-type-badge {
@@ -375,18 +395,25 @@
   color: #4f46e5;
 }
 
-.detail-title {
-  font-size: 15px;
-  color: #8b0f17;
-}
-
 .detail-title-btn {
   border: none;
   background: transparent;
   padding: 0;
   margin: 0;
-  width: fit-content;
+  min-width: 0;
+  flex: 1 1 auto;
   cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+}
+
+.detail-title {
+  font-size: 15px;
+  color: #8b0f17;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .detail-title-btn:hover .detail-title {
@@ -395,19 +422,34 @@
 
 .detail-desc {
   font-size: 13px;
+  line-height: 1.35;
   color: #424242;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .detail-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: auto;
+  min-width: 0;
 }
 
 .detail-assignee-wrap {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .detail-assignee {
@@ -425,6 +467,9 @@
 .detail-assignee-name {
   font-size: 10px;
   color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .detail-status {
@@ -433,6 +478,7 @@
   background: #efefef;
   border-radius: 999px;
   padding: 3px 8px;
+  flex-shrink: 0;
 }
 
 .detail-empty,
@@ -511,12 +557,24 @@
   .calendar-month-row,
   .calendar-status-legend,
   .calendar-left-body,
-  .calendar-detail-card {
+  .calendar-detail-slot {
     grid-column: 1 / -1;
     grid-row: auto;
   }
 
+  .calendar-detail-slot {
+    position: static;
+    align-self: stretch;
+    min-height: min(55vh, 520px);
+    max-height: min(55vh, 520px);
+    display: flex;
+    flex-direction: column;
+  }
+
   .calendar-detail-card {
+    position: static;
+    flex: 1 1 auto;
     min-width: 0;
+    min-height: 0;
   }
 }
