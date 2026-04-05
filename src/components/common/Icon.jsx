@@ -25,11 +25,11 @@ const Icon = ({
       height={dimension}
       stroke={color}
       fill="none"
-      className={`ui-icon icon-${category}-${name}`}
+      className={`ui-icon icon-${category}-${name} ${className}`}
       aria-hidden="true"
       {...props}
     >
-      <use xlinkHref={`icons.svg#icon-${category}-${name}`} />
+      <use href={`${process.env.PUBLIC_URL || ''}/icons.svg#icon-${category}-${name}`} />
     </svg>
   );
 };
