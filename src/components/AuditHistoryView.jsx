@@ -201,7 +201,9 @@ export default function AuditHistoryView({
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
               <div className="ahv-avatar">
-                {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup)}
+                <span className="ahv-avatar-text">
+                  {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup)}
+                </span>
               </div>
               <div className="ahv-meta">
                 <span className="ahv-action">
