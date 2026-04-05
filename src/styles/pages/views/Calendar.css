@@ -112,7 +112,9 @@
   background: rgba(150, 21, 29, 0.08);
   border-width: 1.75px;
   border-color: #8b0f17;
-  box-shadow: 0 2px 8px rgba(139, 15, 23, 0.12), 0 1px 3px rgba(139, 15, 23, 0.08);
+  box-shadow:
+    0 2px 8px rgba(139, 15, 23, 0.12),
+    0 1px 3px rgba(139, 15, 23, 0.08);
 }
 
 .calendar-day-cell--selected .calendar-day-number {
@@ -149,7 +151,9 @@
   place-items: center;
   line-height: 0;
   box-sizing: border-box;
-  transition: background-color 0.22s ease-out, color 0.22s ease-out;
+  transition:
+    background-color 0.22s ease-out,
+    color 0.22s ease-out;
 }
 
 .calendar-day-badge-text {
@@ -189,14 +193,13 @@
   font-weight: 400;
   line-height: 1;
   color: #7a7a7a;
-  /* Fixed height: legend row does not grow; use horizontal scroll if needed */
   flex: 0 0 auto;
   height: 44px;
-  min-height: 44px;
-  max-height: 44px;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #c4c4c4 transparent;
 }
 
 .calendar-legend-status-group {
@@ -207,24 +210,17 @@
   flex-shrink: 0;
 }
 
-.calendar-status-legend .calendar-filter-label,
-.calendar-status-legend .calendar-filter-select {
-  font-size: 13px;
-  font-weight: 400;
-}
-
 .calendar-status-legend .calendar-filter-row {
   flex-shrink: 0;
 }
 
-.calendar-status-legend .legend-label {
+.calendar-status-legend .calendar-filter-label,
+.calendar-status-legend .calendar-filter-select {
   font-size: 13px;
-  font-weight: 700;
 }
 
-.calendar-status-legend .legend-item {
-  font-size: 13px;
-  font-weight: 400;
+.calendar-status-legend .legend-label {
+  font-weight: 700;
 }
 
 .calendar-filter-row {
@@ -276,14 +272,12 @@
   transform: translateY(-2px);
 }
 
-/* Slot in grid; abspos card so list length does not grow row height (matches calendar column). */
 .calendar-detail-slot {
   grid-column: 2;
   grid-row: 2;
   position: relative;
   min-width: 0;
   min-height: 0;
-  align-self: stretch;
 }
 
 .calendar-detail-card {
@@ -325,6 +319,38 @@
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #c4c4c4 transparent;
+}
+
+.detail-list::-webkit-scrollbar-button,
+.calendar-status-legend::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.detail-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calendar-status-legend::-webkit-scrollbar {
+  height: 6px;
+}
+
+.detail-list::-webkit-scrollbar-track,
+.calendar-status-legend::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.detail-list::-webkit-scrollbar-thumb,
+.calendar-status-legend::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 4px;
+}
+
+.detail-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .detail-item {
@@ -333,19 +359,13 @@
   flex-direction: column;
   box-sizing: border-box;
   height: 102px;
-  min-height: 102px;
-  max-height: 102px;
   border: 1px solid #ececec;
   border-radius: 8px;
   background: #ffffff;
-  /* Room for thin rail + gap; rail is position:absolute at padding edge */
   padding: 8px 10px 8px 18px;
   overflow: hidden;
 }
 
-/*
- * Thin vertical pill along the left edge of the card.
- */
 .detail-bar {
   position: absolute;
   left: 0;
@@ -556,24 +576,23 @@
 
   .calendar-month-row,
   .calendar-status-legend,
-  .calendar-left-body,
-  .calendar-detail-slot {
+  .calendar-left-body {
     grid-column: 1 / -1;
     grid-row: auto;
   }
 
   .calendar-detail-slot {
+    grid-column: 1 / -1;
+    grid-row: auto;
     position: static;
-    align-self: stretch;
-    min-height: min(55vh, 520px);
-    max-height: min(55vh, 520px);
+    height: min(55vh, 520px);
     display: flex;
     flex-direction: column;
   }
 
   .calendar-detail-card {
     position: static;
-    flex: 1 1 auto;
+    flex: 1;
     min-width: 0;
     min-height: 0;
   }

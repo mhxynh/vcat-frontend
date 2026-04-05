@@ -64,6 +64,22 @@ const DATE_FILTER_OPTIONS = [
   { value: 'both', label: 'Both' },
 ];
 
+function CalendarNavChevron({ direction }) {
+  const d = direction === 'prev' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6';
+  return (
+    <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function buildEventsByDay(tests, month, year, dateFilter) {
   return tests.reduce((acc, test) => {
     const entriesToAdd = [];
@@ -174,9 +190,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
     }).format(new Date(currentYear, currentMonth, selectedDay));
   }, [currentMonth, currentYear, selectedDay]);
 
-  const monthLabel = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate);
-  }, [currentDate]);
+  const monthLabel = useMemo(
+    () => new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate),
+    [currentDate]
+  );
 
   const dayCells = useMemo(() => {
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -223,16 +240,7 @@ const CalendarView = ({ refreshKey = 0 }) => {
           aria-label="Previous month"
           onClick={() => goToMonth(-1)}
         >
-          <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M15 6l-6 6 6 6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CalendarNavChevron direction="prev" />
         </button>
         <h3 className="calendar-month-title">{monthLabel}</h3>
         <button
@@ -241,16 +249,7 @@ const CalendarView = ({ refreshKey = 0 }) => {
           aria-label="Next month"
           onClick={() => goToMonth(1)}
         >
-          <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M9 6l6 6-6 6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CalendarNavChevron direction="next" />
         </button>
       </div>
 
