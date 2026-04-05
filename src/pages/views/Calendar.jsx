@@ -297,11 +297,19 @@ const CalendarView = ({ refreshKey = 0 }) => {
             const dayData = day ? eventsByDay[day] : null;
             const isSelected = day && selectedDay === day;
 
+            const dayCellClass = [
+              'calendar-day-cell',
+              !day && 'calendar-day-cell--blank',
+              isSelected && 'calendar-day-cell--selected',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
             return (
               <button
                 key={`${day ?? 'empty'}-${index}`}
                 type="button"
-                className={`calendar-day-cell ${day ? '' : 'calendar-day-cell--blank'} ${isSelected ? 'calendar-day-cell--selected' : ''}`}
+                className={dayCellClass}
                 onClick={() => day && setSelectedDay(day)}
                 disabled={!day}
               >
@@ -384,7 +392,7 @@ const CalendarView = ({ refreshKey = 0 }) => {
           ) : (
             <div className="detail-empty-state">
               <div className="detail-empty-icon" aria-hidden="true">
-                <CalendarGlyph className="detail-empty-calendar-icon" />
+                <CalendarGlyph />
               </div>
               <div className="detail-empty-title">Select a Date</div>
               <div className="detail-empty-sub">

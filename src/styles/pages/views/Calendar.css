@@ -1,5 +1,8 @@
 /* Calendar page styles */
 .calendar-shell {
+  --calendar-scrollbar-thumb: #c4c4c4;
+  --calendar-scrollbar-thumb-hover: #a8a8a8;
+
   background: #ffffff;
   border: 1px solid #e8e8e8;
   border-radius: 6px;
@@ -199,7 +202,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
-  scrollbar-color: #c4c4c4 transparent;
+  scrollbar-color: var(--calendar-scrollbar-thumb) transparent;
 }
 
 .calendar-legend-status-group {
@@ -320,7 +323,7 @@
   overflow-y: auto;
   padding-right: 4px;
   scrollbar-width: thin;
-  scrollbar-color: #c4c4c4 transparent;
+  scrollbar-color: var(--calendar-scrollbar-thumb) transparent;
 }
 
 .detail-list::-webkit-scrollbar-button,
@@ -345,12 +348,12 @@
 
 .detail-list::-webkit-scrollbar-thumb,
 .calendar-status-legend::-webkit-scrollbar-thumb {
-  background: #c4c4c4;
+  background: var(--calendar-scrollbar-thumb);
   border-radius: 4px;
 }
 
 .detail-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--calendar-scrollbar-thumb-hover);
 }
 
 .detail-item {
@@ -518,7 +521,7 @@
   color: var(--color-brand-red, #8a1a23);
 }
 
-.detail-empty-calendar-icon {
+.detail-empty-icon svg {
   width: 40px;
   height: 40px;
   display: block;
