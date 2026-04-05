@@ -6,21 +6,29 @@
   padding: 10px;
   display: grid;
   grid-template-columns: minmax(540px, 1.15fr) minmax(420px, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.calendar-left-panel {
-  display: grid;
-  gap: 8px;
+  grid-template-rows: auto 1fr;
+  gap: 10px 12px;
+  align-items: stretch;
 }
 
 .calendar-month-row {
+  grid-column: 1;
+  grid-row: 1;
   display: grid;
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
+  min-width: 0;
+}
+
+.calendar-left-body {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 0;
+  min-width: 0;
 }
 
 .calendar-month-title {
@@ -167,24 +175,28 @@
   width: 100%;
 }
 
-.calendar-detail {
-  display: grid;
-  gap: 8px;
-}
-
 .calendar-status-legend {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: nowrap;
   gap: 12px;
+  box-sizing: border-box;
   font-size: 13px;
   font-weight: 400;
   line-height: 1;
   color: #7a7a7a;
-  min-height: 28px;
+  /* Fixed height: legend row does not grow; use horizontal scroll if needed */
+  flex: 0 0 auto;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
   min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .calendar-legend-status-group {
@@ -265,9 +277,14 @@
 }
 
 .calendar-detail-card {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
   border: 1px solid #e5e5e5;
   border-radius: 6px;
-  height: 420px;
   background: #fafafa;
   padding: 14px;
   overflow: hidden;
@@ -277,6 +294,7 @@
   display: grid;
   gap: 4px;
   margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .detail-date {
@@ -293,7 +311,8 @@
 .detail-list {
   display: grid;
   gap: 8px;
-  max-height: 350px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -418,7 +437,8 @@
 
 .detail-empty,
 .detail-empty-state {
-  min-height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   place-content: center;
   text-align: center;
@@ -485,9 +505,18 @@
 @media (max-width: 1200px) {
   .calendar-shell {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
   }
 
-  .calendar-detail {
+  .calendar-month-row,
+  .calendar-status-legend,
+  .calendar-left-body,
+  .calendar-detail-card {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .calendar-detail-card {
     min-width: 0;
   }
 }

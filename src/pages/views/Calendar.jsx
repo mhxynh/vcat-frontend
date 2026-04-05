@@ -216,45 +216,74 @@ const CalendarView = ({ refreshKey = 0 }) => {
 
   return (
     <div className="calendar-shell">
-      <div className="calendar-left-panel">
-        <div className="calendar-month-row">
-          <button
-            className="calendar-nav-btn"
-            type="button"
-            aria-label="Previous month"
-            onClick={() => goToMonth(-1)}
-          >
-            <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M15 6l-6 6 6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <h3 className="calendar-month-title">{monthLabel}</h3>
-          <button
-            className="calendar-nav-btn"
-            type="button"
-            aria-label="Next month"
-            onClick={() => goToMonth(1)}
-          >
-            <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M9 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
+      <div className="calendar-month-row">
+        <button
+          className="calendar-nav-btn"
+          type="button"
+          aria-label="Previous month"
+          onClick={() => goToMonth(-1)}
+        >
+          <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M15 6l-6 6 6 6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <h3 className="calendar-month-title">{monthLabel}</h3>
+        <button
+          className="calendar-nav-btn"
+          type="button"
+          aria-label="Next month"
+          onClick={() => goToMonth(1)}
+        >
+          <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 6l6 6-6 6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
 
+      <div className="calendar-status-legend">
+        <div className="calendar-filter-row">
+          <label htmlFor="calendar-date-filter" className="calendar-filter-label">
+            Show by:
+          </label>
+          <select
+            id="calendar-date-filter"
+            className="calendar-filter-select"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          >
+            {DATE_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="calendar-legend-status-group">
+          <span className="legend-label">Status:</span>
+          {Object.entries(STATUS_LABELS).map(([status, label]) => (
+            <span key={status} className="legend-item">
+              <span className={`legend-dot status-${status}`} />
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="calendar-left-body">
         <div className="calendar-weekday-row">
           {WEEK_DAYS.map((dayLabel) => (
             <div key={dayLabel} className="calendar-weekday-cell">
@@ -302,95 +331,64 @@ const CalendarView = ({ refreshKey = 0 }) => {
         </div>
       </div>
 
-      <div className="calendar-detail">
-        <div className="calendar-status-legend">
-          <div className="calendar-filter-row">
-            <label htmlFor="calendar-date-filter" className="calendar-filter-label">
-              Show by:
-            </label>
-            <select
-              id="calendar-date-filter"
-              className="calendar-filter-select"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-            >
-              {DATE_FILTER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="calendar-legend-status-group">
-            <span className="legend-label">Status:</span>
-            {Object.entries(STATUS_LABELS).map(([status, label]) => (
-              <span key={status} className="legend-item">
-                <span className={`legend-dot status-${status}`} />
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
+      <div className="calendar-detail-card">
+        {error ? <div className="detail-empty">{error}</div> : null}
+        {selectedDay ? (
+          <>
+            <div className="detail-header">
+              <div className="detail-date">{selectedDateLabel}</div>
+              <div className="detail-sub">{selectedEvents.length} scheduled control tests</div>
+            </div>
 
-        <div className="calendar-detail-card">
-          {error ? <div className="detail-empty">{error}</div> : null}
-          {selectedDay ? (
-            <>
-              <div className="detail-header">
-                <div className="detail-date">{selectedDateLabel}</div>
-                <div className="detail-sub">{selectedEvents.length} scheduled control tests</div>
-              </div>
-
-              {selectedEvents.length === 0 ? (
-                <div className="detail-empty">No control tests due.</div>
-              ) : (
-                <div className="detail-list">
-                  {selectedEvents.map((event) => (
-                    <div key={event.id} className="detail-item">
-                      <div className={`detail-bar status-${event.status}`} />
-                      <div className="detail-body">
-                        <div className="detail-title-row">
-                          <button
-                            type="button"
-                            className="detail-title-btn"
-                            onClick={() => openTestDetails(event.test)}
-                            title="View test details"
+            {selectedEvents.length === 0 ? (
+              <div className="detail-empty">No control tests due.</div>
+            ) : (
+              <div className="detail-list">
+                {selectedEvents.map((event) => (
+                  <div key={event.id} className="detail-item">
+                    <div className={`detail-bar status-${event.status}`} />
+                    <div className="detail-body">
+                      <div className="detail-title-row">
+                        <button
+                          type="button"
+                          className="detail-title-btn"
+                          onClick={() => openTestDetails(event.test)}
+                          title="View test details"
+                        >
+                          <span className="detail-title">{event.displayId}</span>
+                        </button>
+                        {dateFilter === 'both' && (
+                          <span
+                            className={`detail-date-type-badge detail-date-type-badge--${event.dateType}`}
+                            title={event.dateType === 'due_date' ? 'Due date' : 'Estimated date'}
                           >
-                            <span className="detail-title">{event.displayId}</span>
-                          </button>
-                          {dateFilter === 'both' && (
-                            <span
-                              className={`detail-date-type-badge detail-date-type-badge--${event.dateType}`}
-                              title={event.dateType === 'due_date' ? 'Due date' : 'Estimated date'}
-                            >
-                              {event.dateType === 'due_date' ? 'Due' : 'ETA'}
-                            </span>
-                          )}
-                        </div>
-                        <div className="detail-desc">{event.title}</div>
-                        <div className="detail-meta">
-                          <span className="detail-assignee-wrap">
-                            <span className="detail-assignee">{event.assigneeInitials}</span>
-                            <span className="detail-assignee-name">{event.assigneeName}</span>
+                            {event.dateType === 'due_date' ? 'Due' : 'ETA'}
                           </span>
-                          <span className="detail-status">{STATUS_LABELS[event.status]}</span>
-                        </div>
+                        )}
+                      </div>
+                      <div className="detail-desc">{event.title}</div>
+                      <div className="detail-meta">
+                        <span className="detail-assignee-wrap">
+                          <span className="detail-assignee">{event.assigneeInitials}</span>
+                          <span className="detail-assignee-name">{event.assigneeName}</span>
+                        </span>
+                        <span className="detail-status">{STATUS_LABELS[event.status]}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="detail-empty-state">
-              <div className="detail-empty-icon">🗓</div>
-              <div className="detail-empty-title">Select a Date</div>
-              <div className="detail-empty-sub">
-                Click on any date to view scheduled control tests
+                  </div>
+                ))}
               </div>
+            )}
+          </>
+        ) : (
+          <div className="detail-empty-state">
+            <div className="detail-empty-icon">🗓</div>
+            <div className="detail-empty-title">Select a Date</div>
+            <div className="detail-empty-sub">
+              Click on any date to view scheduled control tests
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <DetailsTestModal
