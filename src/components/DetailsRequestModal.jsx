@@ -297,17 +297,13 @@ export default function DetailsRequestModal({
         {/* status bar */}
         <section className="drm-section-statusbar">
           <div className="drm-statusbar">
-            <div className="drm-statusbar-left">
-              <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
-                {formatPriority(priority)}
-              </span>
-              <span className="drm-divider-vertical">|</span>
-              <div className="drm-statusbar-mid">
-                <span className="drm-status-label">Status:</span>
-                <span className={`drm-pill ${statusBadgeClass(status)}`}>
-                  {formatStatus(status)}
-                </span>
-              </div>
+            <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
+              {formatPriority(priority)}
+            </span>
+
+            <div className="drm-statusbar-mid">
+              <span className="drm-status-label">Status:</span>
+              <span className={`drm-pill ${statusBadgeClass(status)}`}>{formatStatus(status)}</span>
             </div>
 
             <div className="drm-statusbar-right">
@@ -609,8 +605,9 @@ function formatPriority(p) {
 function statusBadgeClass(status) {
   const v = String(status || '').toUpperCase();
   if (v === 'COMPLETED') return 'drm-pill--good';
+  if (v === 'DAT_IN_PROGRESS') return 'drm-pill--info';
+  if (v === 'OET_IN_PROGRESS') return 'drm-pill--info';
   if (v === 'BLOCKED') return 'drm-pill--bad';
-  if (v.includes('PROGRESS')) return 'drm-pill--info';
   if (v === 'ARCHIVED') return 'drm-pill--neutral';
   return 'drm-pill--neutral';
 }

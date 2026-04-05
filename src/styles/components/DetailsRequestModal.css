@@ -67,18 +67,6 @@
   flex-wrap: wrap;
 }
 
-.drm-statusbar-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.drm-divider-vertical {
-  color: #ddd;
-  font-size: 12px;
-  margin: 2px;
-}
-
 .drm-statusbar-mid {
   display: inline-flex;
   align-items: center;
@@ -123,8 +111,8 @@
 }
 
 .drm-pill--info {
-  background: #dbeafe;
-  color: #1447e6;
+  background: #e8f1ff;
+  color: #1b4db3;
   border-color: #cfe0ff;
 }
 
@@ -200,7 +188,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  background: #fafafa;
 }
 
 .drm-detail-label {
@@ -243,9 +230,8 @@
 
 .drm-table tbody td {
   padding: 10px 12px;
-  border-top: 1px solid #eaeaea;
+  border-bottom: 1px solid #f0f0f0;
   vertical-align: middle;
-  background: #ffffff;
 }
 
 .drm-table tbody tr:last-child td {
