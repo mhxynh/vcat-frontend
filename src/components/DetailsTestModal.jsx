@@ -645,6 +645,10 @@ export default function DetailsTestModal({
                 overlayTitle={`Test History: ${vgcpid}`}
                 showContent={true}
                 contextVgcpid={vgcpid}
+                actorFallback={{
+                  displayName: assignedName && assignedName !== '-' ? assignedName : null,
+                  userId: t?.assigned_tester_id ?? null,
+                }}
               />
             ) : (
               <div className="dtm-empty">This view is not implemented yet.</div>
@@ -723,7 +727,7 @@ function initials(name) {
 function testTypeFromFlags(t) {
   const dat = !!t?.requires_dat;
   const oet = !!t?.requires_oet;
-  if (dat && oet) return 'DAT + OET';
+  if (dat && oet) return 'DAT & OET';
   if (dat) return 'DAT Only';
   if (oet) return 'OET Only';
   return '-';

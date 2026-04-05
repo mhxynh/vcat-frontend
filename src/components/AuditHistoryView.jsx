@@ -19,6 +19,51 @@ function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
   return log.vgcpid ?? contextVgcpid ?? getVgcpidFromMap(contextTestIdToVgcpid, log.entity_id);
 }
 
+function logActorDisplayNameRaw(log) {
+  const v = log.actor_display_name ?? log.actorDisplayName;
+  return v != null ? String(v).trim() : '';
+}
+
+function logActorUserIdRaw(log) {
+  const v = log.actor_user_id ?? log.actorUserId;
+  if (v === null || v === undefined || v === '') return null;
+  return v;
+}
+
+/** Label: API `actor_display_name`, else `User {id}`, else optional assignee fallback (test details). */
+function resolveActorLabel(log, actorFallback) {
+  const fromApi = logActorDisplayNameRaw(log);
+  if (fromApi) return fromApi;
+  const uid = logActorUserIdRaw(log);
+  if (uid != null) return `User ${uid}`;
+  if (actorFallback) {
+    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
+    if (fn && fn !== '-') return fn;
+    const fuid = actorFallback.userId;
+    if (fuid != null && fuid !== '') return `User ${fuid}`;
+  }
+  return '';
+}
+
+/** Same initials pattern as Dashboard capacity (up to two tokens). */
+function historyAvatarInitials(name) {
+  return (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0]?.toUpperCase())
+    .join('');
+}
+
+function auditEntryAvatarInitial(log, actorFallback) {
+  const label = resolveActorLabel(log, actorFallback);
+  if (label) {
+    const badge = historyAvatarInitials(label);
+    if (badge) return badge;
+  }
+  return '?';
+}
+
 /**
  * Shared audit history view: scrollable list, expand button, full overlay.
  * Used by DetailsRequestModal and DetailsTestModal.
@@ -33,6 +78,7 @@ function resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid) {
  * @param {string} [props.contextVgcpid] - VGCP ID of the current test (when viewing single test history). Shown with each "Test updated" entry.
  * @param {string} [props.contextRequestId] - Request display ID (e.g. "REQ-0001") when viewing request history. Shown with each "Request updated" entry.
  * @param {Object} [props.contextTestIdToVgcpid] - Map of test_id -> vgcpid for tests under a request. Used when viewing request history to show "Test: VGCP-xxx Updated" for each test.
+ * @param {Object} [props.actorFallback] - When audit row has no actor: `{ displayName?, userId? }` (e.g. current test assignee).
  */
 export default function AuditHistoryView({
   logs,
@@ -44,6 +90,7 @@ export default function AuditHistoryView({
   contextVgcpid = null,
   contextRequestId = null,
   contextTestIdToVgcpid = null,
+  actorFallback = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
 
@@ -66,17 +113,16 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
+        const actorLabel = resolveActorLabel(log, actorFallback);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{String(log.action || '?').slice(0, 1)}</div>
+              <div className="ahv-avatar">{auditEntryAvatarInitial(log, actorFallback)}</div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
                 </span>
-                {log.actor_user_id != null && (
-                  <span className="ahv-actor"> · User {log.actor_user_id}</span>
-                )}
+                {actorLabel && <span className="ahv-actor"> · {actorLabel}</span>}
                 <span className="ahv-date">{formatDate(log.changed_at)}</span>
               </div>
             </div>
@@ -190,7 +236,7 @@ function getAuditChanges(log) {
       {
         field: 'status',
         label: 'Status',
-        fromStr: formatStatusValue(before.status),
+        fromStr: formatTestRowStatusLabel(before.status),
         toStr: 'Archived',
       },
     ];
@@ -203,8 +249,8 @@ function formatFieldLabel(field) {
   /* eslint-disable camelcase -- API field names use snake_case */
   const labels = {
     status: 'Status',
-    dat_step: 'DAT step',
-    oet_step: 'OET step',
+    dat_step: 'DAT Step',
+    oet_step: 'OET Step',
     updated_at: 'Updated',
     due_date: 'Due date',
     estimated_date: 'ETA',
@@ -234,19 +280,54 @@ function formatDate(value) {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, DATE_FORMAT);
 }
 
+/**
+ * Title-case each token (matches `humanStep` in DetailsTestModal) — e.g. TESTING_READY → Testing Ready.
+ */
+function formatScreamingSnakeLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  return String(value)
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Test/request row status — matches TestsAPI.normalizeStatus labels shown in the app.
+ */
+function formatTestRowStatusLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).toUpperCase();
+  const map = {
+    NOT_STARTED: 'Not Started',
+    DAT_IN_PROGRESS: 'DAT In Progress',
+    OET_IN_PROGRESS: 'OET In Progress',
+    IN_REVIEW: 'In Review',
+    COMPLETED: 'Completed',
+    BLOCKED: 'Blocked',
+    ARCHIVED: 'Archived',
+  };
+  if (map[raw]) return map[raw];
+  return formatScreamingSnakeLabel(value);
+}
+
+function formatPriorityLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).toUpperCase();
+  if (raw === 'CRITICAL') return 'Critical Priority';
+  if (raw === 'HIGH') return 'High Priority';
+  if (raw === 'MEDIUM') return 'Medium Priority';
+  if (raw === 'LOW') return 'Low Priority';
+  return formatScreamingSnakeLabel(value);
+}
+
 function formatAuditValue(field, value) {
   if (value === null || value === undefined) return '—';
-  if (field === 'status') return formatStatusValue(value);
+  if (field === 'status') return formatTestRowStatusLabel(value);
+  if (field === 'dat_step' || field === 'oet_step') return formatScreamingSnakeLabel(value);
+  if (field === 'priority') return formatPriorityLabel(value);
   if (DATE_FIELDS.includes(field)) {
     const d = new Date(value);
     return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(undefined, DATE_FORMAT);
   }
   return String(value);
-}
-
-function formatStatusValue(v) {
-  const s = String(v || '')
-    .replace(/_/g, ' ')
-    .toLowerCase();
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
 }
