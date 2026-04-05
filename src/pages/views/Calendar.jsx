@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTests } from '../../api/TestsAPI';
 import DetailsTestModal from '../../components/DetailsTestModal';
+import CalendarGlyph from '../../components/CalendarGlyph';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -382,7 +383,9 @@ const CalendarView = ({ refreshKey = 0 }) => {
             </>
           ) : (
             <div className="detail-empty-state">
-              <div className="detail-empty-icon">🗓</div>
+              <div className="detail-empty-icon" aria-hidden="true">
+                <CalendarGlyph className="detail-empty-calendar-icon" />
+              </div>
               <div className="detail-empty-title">Select a Date</div>
               <div className="detail-empty-sub">
                 Click on any date to view scheduled control tests

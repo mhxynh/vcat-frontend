@@ -512,26 +512,30 @@
 }
 
 .detail-empty-icon {
-  width: 30px;
-  height: 30px;
-  margin: 0 auto 8px;
-  border: 1px solid #e2e2e2;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  opacity: 0.75;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 12px;
+  color: var(--color-brand-red, #8a1a23);
+}
+
+.detail-empty-calendar-icon {
+  width: 40px;
+  height: 40px;
+  display: block;
 }
 
 .detail-empty-title {
-  font-size: 12px;
-  color: #666;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #343434;
 }
 
 .detail-empty-sub {
-  margin-top: 6px;
-  font-size: 10px;
-  color: #9a9a9a;
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #8a8a8a;
 }
 
 .status-notStarted {
