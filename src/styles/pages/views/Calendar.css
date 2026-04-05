@@ -281,11 +281,12 @@
 
 .detail-date {
   color: #343434;
-  font-size: 13px;
+  font-size: 20px;
+  line-height: 1.2;
 }
 
 .detail-sub {
-  font-size: 11px;
+  font-size: 14px;
   color: #777;
 }
 
@@ -356,7 +357,7 @@
 }
 
 .detail-title {
-  font-size: 12px;
+  font-size: 15px;
   color: #8b0f17;
 }
 
@@ -374,7 +375,7 @@
 }
 
 .detail-desc {
-  font-size: 11px;
+  font-size: 13px;
   color: #424242;
 }
 
@@ -408,7 +409,7 @@
 }
 
 .detail-status {
-  font-size: 10px;
+  font-size: 12px;
   color: #8a8a8a;
   background: #efefef;
   border-radius: 999px;
