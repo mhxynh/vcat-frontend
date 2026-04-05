@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { fetchUsers } from '../api/UsersAPI';
 import '../styles/components/AuditHistoryView.css';
 
 const DATE_FORMAT = {
@@ -31,6 +32,19 @@ function logActorUserIdRaw(log) {
   return v;
 }
 
+/** Map user_id -> display label from GET /users (same source as assignee modals). */
+function buildActorDisplayNameLookup(users) {
+  const map = Object.create(null);
+  for (const u of users || []) {
+    const id = u.user_id ?? u.userId ?? u.id;
+    if (id == null) continue;
+    const raw = u.display_name ?? u.displayName ?? u.email ?? '';
+    const name = String(raw).trim();
+    if (name) map[String(id)] = name;
+  }
+  return map;
+}
+
 /** Decode Cognito ID token payload (browser). */
 function decodeJwtPayload(token) {
   try {
@@ -58,14 +72,17 @@ function displayNameFromIdTokenPayload(payload) {
 }
 
 /**
- * Prefer API `actor_display_name` / `User {id}` from audit row.
+ * Prefer API `actor_display_name`, then /users lookup by `actor_user_id`, then `User {id}`.
  * If the backend recorded no actor (common in local dev), fall back to the signed-in Cognito user
  * so the person clicking still sees their name — not the assignee.
  */
-function resolveActorLabel(log, sessionDisplayNameFallback) {
+function resolveActorLabel(log, sessionDisplayNameFallback, actorLookup) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
+  if (uid != null && actorLookup && actorLookup[String(uid)]) {
+    return actorLookup[String(uid)];
+  }
   if (uid != null) return `User ${uid}`;
   if (sessionDisplayNameFallback) return sessionDisplayNameFallback;
   return '';
@@ -87,8 +104,8 @@ function historyAvatarInitials(name) {
   return one.slice(0, 1).toUpperCase();
 }
 
-function auditEntryAvatarInitial(log, sessionDisplayNameFallback) {
-  const label = resolveActorLabel(log, sessionDisplayNameFallback);
+function auditEntryAvatarInitial(log, sessionDisplayNameFallback, actorLookup) {
+  const label = resolveActorLabel(log, sessionDisplayNameFallback, actorLookup);
   if (label) {
     const badge = historyAvatarInitials(label);
     if (badge) return badge;
@@ -124,6 +141,7 @@ export default function AuditHistoryView({
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
   const [sessionDisplayName, setSessionDisplayName] = useState(null);
+  const [actorLookup, setActorLookup] = useState(() => Object.create(null));
 
   useEffect(() => {
     if (!showContent) return;
@@ -139,6 +157,21 @@ export default function AuditHistoryView({
         if (!cancelled) setSessionDisplayName(null);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showContent]);
+
+  useEffect(() => {
+    if (!showContent) return;
+    let cancelled = false;
+    fetchUsers()
+      .then((users) => {
+        if (!cancelled) setActorLookup(buildActorDisplayNameLookup(users));
+      })
+      .catch(() => {
+        if (!cancelled) setActorLookup(Object.create(null));
+      });
     return () => {
       cancelled = true;
     };
@@ -163,11 +196,13 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log, sessionDisplayName);
+        const actorLabel = resolveActorLabel(log, sessionDisplayName, actorLookup);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{auditEntryAvatarInitial(log, sessionDisplayName)}</div>
+              <div className="ahv-avatar">
+                {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup)}
+              </div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
