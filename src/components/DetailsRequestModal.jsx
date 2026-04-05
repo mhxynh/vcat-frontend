@@ -10,6 +10,13 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
+import {
+  fetchCommentsByRequestId,
+  createRequestComment,
+  mapCommentRowsToUi,
+} from '../api/CommentsAPI';
+import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
+import { fetchUserAttributes } from 'aws-amplify/auth';
 
 export default function DetailsRequestModal({
   isOpen,
@@ -42,6 +49,12 @@ export default function DetailsRequestModal({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [usersById, setUsersById] = useState({});
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -63,13 +76,16 @@ export default function DetailsRequestModal({
     setActiveTab('Comments');
     setCommentText('');
     setLocalRequest(request || null);
-    setLocalComments(Array.isArray(request?.comments) ? request.comments : []);
     setArchiving(false);
     setDeleting(false);
     setDeleteError('');
     setLocalStatus(null);
     setHistoryLogs([]);
     setHistoryError('');
+    setCommentsError('');
+
+    const rid = request?.requestId ?? request?.request_id ?? null;
+    void loadCommentsAndUsers(rid);
   }, [isOpen, request]);
 
   const controls = useMemo(() => {
@@ -177,19 +193,37 @@ export default function DetailsRequestModal({
 
   const stop = (e) => e.stopPropagation();
 
-  function handleAddComment() {
+  async function handleAddComment() {
     const text = commentText.trim();
-    if (!text) return;
+    if (!text || requestId == null || commentSaving) return;
 
-    const newComment = {
-      id: `local-${Date.now()}`,
-      author: 'You',
-      text,
-      date: new Date().toLocaleString(),
-    };
+    if (!currentUser?.user_id) {
+      setCommentsError('Could not identify the logged-in user.');
+      return;
+    }
 
-    setLocalComments((prev) => [newComment, ...prev]);
-    setCommentText('');
+    try {
+      setCommentSaving(true);
+      setCommentsError('');
+
+      const created = await createRequestComment({
+        requestId,
+        authorUserId: currentUser.user_id,
+        commentText: text,
+      });
+
+      const createdUi = mapCommentRowsToUi([created], {
+        ...usersById,
+        [String(currentUser.user_id)]: currentUser,
+      })[0];
+
+      setLocalComments((prev) => [createdUi, ...prev]);
+      setCommentText('');
+    } catch (e) {
+      setCommentsError(e?.message || 'Failed to add comment');
+    } finally {
+      setCommentSaving(false);
+    }
   }
 
   async function handleArchiveRequest() {
@@ -276,6 +310,62 @@ export default function DetailsRequestModal({
       }
     } catch (e) {
       console.warn('Failed to refresh request', requestId, e);
+    }
+  }
+
+  function buildUsersById(users) {
+    const map = {};
+    for (const u of Array.isArray(users) ? users : []) {
+      const id = u?.user_id;
+      if (id != null) map[String(id)] = u;
+    }
+    return map;
+  }
+
+  async function getCurrentUserEmail() {
+    try {
+      const attrs = await fetchUserAttributes();
+      return attrs?.email || '';
+    } catch {
+      return '';
+    }
+  }
+
+  async function loadCommentsAndUsers(rid) {
+    if (rid == null) {
+      setLocalComments([]);
+      return;
+    }
+
+    setCommentsLoading(true);
+    setCommentsError('');
+
+    try {
+      const [commentRows, activeUsers] = await Promise.all([
+        fetchCommentsByRequestId(rid),
+        fetchUsers({ isActive: true }),
+      ]);
+
+      const userMap = buildUsersById(activeUsers);
+      setUsersById(userMap);
+
+      const uiComments = mapCommentRowsToUi(commentRows, userMap);
+      setLocalComments(uiComments);
+
+      const email = await getCurrentUserEmail();
+      if (email) {
+        try {
+          const me = await fetchUserByEmail(email);
+          setCurrentUser(me || null);
+        } catch (e) {
+          console.warn('Failed to resolve current user by email', e);
+        }
+      }
+    } catch (e) {
+      setCommentsError(e?.message || 'Failed to load comments');
+      setLocalComments([]);
+    } finally {
+      setCommentsLoading(false);
     }
   }
 
@@ -428,7 +518,11 @@ export default function DetailsRequestModal({
           <div className="drm-tab-content">
             {activeTab === 'Comments' ? (
               <div className="drm-comments">
-                {localComments.length === 0 ? (
+                {commentsLoading ? (
+                  <div className="drm-empty">Loading comments...</div>
+                ) : commentsError ? (
+                  <div className="drm-empty">Error: {commentsError}</div>
+                ) : localComments.length === 0 ? (
                   <div className="drm-empty">No comments found.</div>
                 ) : (
                   localComments.map((c) => (
@@ -492,8 +586,9 @@ export default function DetailsRequestModal({
                 type="button"
                 onClick={handleAddComment}
                 aria-label="Send"
+                disabled={commentSaving || !commentText.trim()}
               >
-                ➤
+                {commentSaving ? '...' : '➤'}
               </button>
             </div>
           </section>
