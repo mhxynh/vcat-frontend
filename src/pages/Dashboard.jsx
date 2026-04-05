@@ -82,6 +82,12 @@ const WEEKDAY_LABELS = [
   'Saturday',
 ];
 const TEAM_CAPACITY_COLORS = ['#a6131f', '#139a47', '#1d4ed8', '#ea580c', '#7c3aed'];
+const TEAM_CAPACITY_ROLES = new Set(['TESTER', 'MANAGER']);
+
+function userCapacityDisplayName(user) {
+  if (!user) return 'Unknown';
+  return user.display_name || user.displayName || user.email || 'Unknown';
+}
 
 function toInitials(name) {
   return (name || '')
@@ -413,10 +419,10 @@ export default function Dashboard() {
         fetchUsers({ isActive: true }),
       ]);
       setControls(testRows.map(mapTestRowToDashboardRow));
-      const testers = Array.isArray(allUsers)
-        ? allUsers.filter((u) => String(u.role || '').toUpperCase() === 'TESTER')
+      const capacityUsers = Array.isArray(allUsers)
+        ? allUsers.filter((u) => TEAM_CAPACITY_ROLES.has(String(u.role || '').toUpperCase()))
         : [];
-      setUsers(testers);
+      setUsers(capacityUsers);
       setLastUpdatedAt(new Date());
     } catch (error) {
       setLoadError(error?.message || 'Failed to load dashboard data');
@@ -520,8 +526,19 @@ export default function Dashboard() {
       return accumulator;
     }, new Map());
 
-    const testerNames = users.map((u) => u.display_name || u.displayName || u.email || 'Unknown');
-    return testerNames.map((name, index) => {
+    const knownNames = new Set(users.map(userCapacityDisplayName));
+    const extraFromAssignees = [];
+    for (const control of controls) {
+      const assigned = control.tester;
+      if (!assigned || assigned === 'Unassigned') continue;
+      if (!knownNames.has(assigned)) extraFromAssignees.push(assigned);
+    }
+    const extraAssigneeNamesSorted = [...new Set(extraFromAssignees)].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+    const capacityRowNames = [...users.map(userCapacityDisplayName), ...extraAssigneeNamesSorted];
+
+    return capacityRowNames.map((name, index) => {
       const counts = byTester.get(name) || { assigned: 0, inProgress: 0 };
       const { progressPercent, progressLabel } = formatCapacityProgress(
         counts.inProgress,
