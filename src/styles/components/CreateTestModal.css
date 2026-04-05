@@ -120,6 +120,20 @@
   box-sizing: border-box;
 }
 
+.ctm-input::placeholder,
+.ctm-textarea::placeholder {
+  color: #a0aec0;
+}
+
+.ctm-select option {
+  color: #111827;
+}
+
+.ctm-select option:first-child,
+.ctm-select option[value=""] {
+  color: #a0aec0;
+}
+
 .ctm-input:focus,
 .ctm-textarea:focus,
 .ctm-select:focus {
