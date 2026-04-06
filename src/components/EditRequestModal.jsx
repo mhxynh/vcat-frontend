@@ -28,13 +28,15 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
   useEffect(() => {
     if (!showSearchResults) return;
+
     const handleClickOutside = (e) => {
       if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
         setShowSearchResults(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, [showSearchResults]);
 
   useEffect(() => {
@@ -112,8 +114,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   const filteredTests = useMemo(() => associatedTests, [associatedTests]);
 
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
+
+    if (!q) return allTests;
 
     return allTests.filter((t) => {
       return (
@@ -357,12 +360,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                           setShowSearchResults(true);
                         }}
                         onFocus={() => {
-                          if (searchQuery.trim()) setShowSearchResults(true);
+                          setShowSearchResults(true);
                         }}
                         disabled={saving}
                       />
                     </div>
-                    {showSearchResults && searchQuery.trim() && (
+                    {showSearchResults && (
                       <div className="erm-search-dropdown">
                         {searchResults.length === 0 ? (
                           <div className="erm-search-empty">No matching controls found.</div>
