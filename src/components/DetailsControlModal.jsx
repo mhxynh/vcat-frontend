@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import EditControlModal from './EditControlModal';
+import Icon from './common/Icon';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -162,9 +163,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon" aria-hidden="true">
-                  🧾
-                </span>
+                <Icon name="documents" category="deco" />
                 Request History
               </div>
 
@@ -213,10 +212,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-logs">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon" aria-hidden="true">
-                  🕘
-                </span>
-                Logs
+                <Icon name="history" category="deco" />
+                History & Logs
               </div>
 
               {logs.length === 0 ? (
