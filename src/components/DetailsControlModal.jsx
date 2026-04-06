@@ -4,28 +4,16 @@ import { deleteControl } from '../api/ControlsAPI';
 import EditControlModal from './EditControlModal';
 
 function formatDisplayDate(value) {
-  if (!value || value === '-') return value ?? '-';
+  if (!value || value === '-') return '-';
 
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return new Intl.DateTimeFormat('en-US').format(value);
-  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
 
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-
-    const isoLikeMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/);
-    if (isoLikeMatch) {
-      const [, year, month, day] = isoLikeMatch;
-      return `${month}/${day}/${year}`;
-    }
-
-    const parsed = new Date(trimmed);
-    if (!Number.isNaN(parsed.getTime())) {
-      return new Intl.DateTimeFormat('en-US').format(parsed);
-    }
-  }
-
-  return value;
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
 }
 
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
@@ -78,8 +66,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const description = control?.description ?? 'No description yet.';
   const owner = control?.owner;
   const sme = control?.sme ?? '-';
-  const dateCreated = formatDisplayDate(control?.dateCreated ?? '-');
-  const lastTested = formatDisplayDate(control?.lastTested ?? '-');
+  const dateCreated = formatDisplayDate(control?.dateCreated);
+  const lastTested = formatDisplayDate(control?.lastTested);
   const escalationRequired = control?.escalationRequired ?? '-';
 
   const requestHistory = Array.isArray(control?.requestHistory) ? control.requestHistory : [];

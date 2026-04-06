@@ -15,28 +15,16 @@ function formatLastUpdated(date) {
 }
 
 function formatDisplayDate(value) {
-  if (!value || value === '-') return value ?? '-';
+  if (!value || value === '-') return '-';
 
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return new Intl.DateTimeFormat('en-US').format(value);
-  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
 
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-
-    const isoLikeMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/);
-    if (isoLikeMatch) {
-      const [, year, month, day] = isoLikeMatch;
-      return `${month}/${day}/${year}`;
-    }
-
-    const parsed = new Date(trimmed);
-    if (!Number.isNaN(parsed.getTime())) {
-      return new Intl.DateTimeFormat('en-US').format(parsed);
-    }
-  }
-
-  return value;
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
 }
 
 export default function Controls() {
@@ -269,13 +257,13 @@ export default function Controls() {
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Date Created</div>
                                 <div className="acc-details__v">
-                                  {formatDisplayDate(control.dateCreated ?? '-')}
+                                  {formatDisplayDate(control.dateCreated)}
                                 </div>
                               </div>
                               <div className="acc-details__row">
                                 <div className="acc-details__k">Last Tested</div>
                                 <div className="acc-details__v">
-                                  {formatDisplayDate(control.lastTested ?? '-')}
+                                  {formatDisplayDate(control.lastTested)}
                                 </div>
                               </div>
                               <div className="acc-details__row">
