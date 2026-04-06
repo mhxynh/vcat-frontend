@@ -3,6 +3,19 @@ import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import EditControlModal from './EditControlModal';
 
+function formatDisplayDate(value) {
+  if (!value || value === '-') return '-';
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}
+
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -51,8 +64,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   const owner = control?.owner;
   const sme = control?.sme ?? '-';
-  const dateCreated = control?.dateCreated ?? '-';
-  const lastTested = control?.lastTested ?? '-';
+  const dateCreated = formatDisplayDate(control?.dateCreated);
+  const lastTested = formatDisplayDate(control?.lastTested);
   const escalationRequired = control?.escalationRequired ?? '-';
 
   const requestHistory = Array.isArray(control?.requestHistory) ? control.requestHistory : [];
