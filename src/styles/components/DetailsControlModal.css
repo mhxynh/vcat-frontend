@@ -90,6 +90,7 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
+  transform: translateY(-2.75px);
 }
 
 .dcm-icon--doc svg {
