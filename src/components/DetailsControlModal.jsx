@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import {
   buildRequestHistoryForControl,
   fetchRequestById,
+  fetchRequestsByIds,
   mapRequestRowToUi,
 } from '../api/RequestsAPI';
 import {
@@ -61,6 +62,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [isRequestDetailsOpen, setIsRequestDetailsOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestDetailsError, setRequestDetailsError] = useState('');
+  const requestDetailsSeq = useRef(0);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -70,6 +72,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   useEffect(() => {
     if (!isOpen) {
+      requestDetailsSeq.current += 1;
       setIsEditOpen(false);
       setIsDeleteConfirmOpen(false);
       setIsRequestDetailsOpen(false);
@@ -110,7 +113,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           return;
         }
 
-        const requests = await Promise.all(ids.map((rid) => fetchRequestById(rid)));
+        const requests = await fetchRequestsByIds(ids);
         if (cancelled) return;
         setFetchedRequestHistory(buildRequestHistoryForControl(tests, requests));
       } catch (e) {
@@ -166,10 +169,13 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       const requestId = Number(rid);
       if (Number.isNaN(requestId)) throw new Error('Invalid request id');
 
+      const seq = (requestDetailsSeq.current += 1);
       const [rawRequest, rawTests] = await Promise.all([
         fetchRequestById(requestId),
         fetchTestsByRequestId(requestId, { details: true }),
       ]);
+
+      if (seq !== requestDetailsSeq.current || !isOpen) return;
 
       const ui = mapRequestRowToUi(rawRequest || {});
       const controls = Array.isArray(rawTests) ? rawTests.map(mapTestRowToRequestControlCard) : [];

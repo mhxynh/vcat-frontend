@@ -94,6 +94,8 @@ export function formatRequestStatusLabel(status) {
     NOT_STARTED: 'Not Started',
     IN_PROGRESS: 'In Progress',
     IN_REVIEW: 'In Review',
+    DAT_IN_PROGRESS: 'DAT In Progress',
+    OET_IN_PROGRESS: 'OET In Progress',
     COMPLETED: 'Completed',
     BLOCKED: 'Blocked',
     ARCHIVED: 'Archived',
@@ -105,6 +107,37 @@ export function formatRequestStatusLabel(status) {
     .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
+}
+
+/**
+ * Best-effort batch fetch for request rows by ID.
+ * Falls back to per-id fetches if backend doesn't support `ids` query.
+ * @param {number[]} ids
+ */
+export async function fetchRequestsByIds(ids) {
+  const unique = Array.from(
+    new Set((ids || []).map((n) => Number(n)).filter((n) => !Number.isNaN(n)))
+  );
+  if (unique.length === 0) return [];
+
+  try {
+    const url = new URL(`${API_BASE}/requests`);
+    url.searchParams.set('ids', unique.join(','));
+
+    const resp = await authFetch(url.toString(), {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    if (resp.ok) {
+      const data = await resp.json().catch(() => []);
+      return Array.isArray(data) ? data : [];
+    }
+  } catch {
+    // ignore and fall back
+  }
+
+  return await Promise.all(unique.map((rid) => fetchRequestById(rid)));
 }
 
 /**
