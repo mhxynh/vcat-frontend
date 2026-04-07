@@ -229,7 +229,11 @@ export default function Controls() {
                           {control.status}
                         </span>
 
-                        <span className="badge badge--neutral">{control.testing}</span>
+                        <span className="badge badge--neutral">
+                          {control.testing && control.testing !== 'Not Tested Yet'
+                            ? `Last Tested ${formatDisplayDate(control.testing)}`
+                            : (control.testing ?? 'Not Tested Yet')}
+                        </span>
 
                         <span className={`chev ${isOpen ? 'chev--open' : ''}`}>
                           {isOpen ? '▴' : '▾'}

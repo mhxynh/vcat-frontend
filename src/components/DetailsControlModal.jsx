@@ -60,9 +60,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   const id = control?.id ?? '';
   const status = control?.status ?? 'Active';
-  const testing = control?.testing ?? 'Not Tested Yet';
+  const testing =
+    control?.testing && control.testing !== 'Not Tested Yet'
+      ? `Last Tested ${formatDisplayDate(control.testing)}`
+      : (control?.testing ?? 'Not Tested Yet');
   const description = control?.description ?? 'No description yet.';
-
   const owner = control?.owner;
   const sme = control?.sme ?? '-';
   const dateCreated = formatDisplayDate(control?.dateCreated);
@@ -185,7 +187,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       {requestHistory.map((r) => (
                         <tr key={r.requestId}>
                           <td className="dcm-mono">{r.requestId}</td>
-                          <td>{r.date ?? '-'}</td>
+                          <td>{formatDisplayDate(r.date ?? '-')}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span
@@ -226,7 +228,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       <div className="dcm-log-content">
                         <div className="dcm-log-top">
                           <div className="dcm-log-title">{log.title}</div>
-                          <div className="dcm-log-date">{log.date ?? ''}</div>
+                          <div className="dcm-log-date">{formatDisplayDate(log.date ?? '')}</div>
                         </div>
                         {log.subtitle && <div className="dcm-log-subtitle">{log.subtitle}</div>}
                         {log.actor && <div className="dcm-log-actor">by {log.actor}</div>}
