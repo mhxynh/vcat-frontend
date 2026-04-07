@@ -145,10 +145,18 @@ function formatTestRowStatusLabel(value) {
     DAT_IN_PROGRESS: 'DAT In Progress',
     OET_IN_PROGRESS: 'OET In Progress',
     IN_REVIEW: 'In Review',
+    BLOCKED: 'Blocked',
     COMPLETED: 'Completed',
     ARCHIVED: 'Archived',
   };
-  return map[raw] || raw;
+  return (
+    map[raw] ||
+    raw
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+  );
 }
 
 export default function DetailsTestModal({
