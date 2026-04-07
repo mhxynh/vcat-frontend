@@ -48,18 +48,24 @@ function buildActorDisplayNameLookup(users) {
 /** Session cache so reopening history does not refetch GET /users. */
 let actorLookupCache = null;
 let actorLookupInFlight = null;
+let actorLookupLastFailureAt = 0;
 
 function loadActorLookupMap() {
   if (actorLookupCache) return Promise.resolve(actorLookupCache);
   if (actorLookupInFlight) return actorLookupInFlight;
+  // Avoid hot-looping retries if the request is failing (auth/network/etc.).
+  if (Date.now() - actorLookupLastFailureAt < 10_000) {
+    return Promise.resolve(Object.create(null));
+  }
   actorLookupInFlight = fetchUsers()
     .then((users) => {
       actorLookupCache = buildActorDisplayNameLookup(users);
       return actorLookupCache;
     })
     .catch(() => {
-      actorLookupCache = Object.create(null);
-      return actorLookupCache;
+      // Do not permanently cache failure; allow recovery on a later attempt.
+      actorLookupLastFailureAt = Date.now();
+      return Object.create(null);
     })
     .finally(() => {
       actorLookupInFlight = null;
@@ -130,6 +136,7 @@ function historyAvatarInitials(name) {
 
 function auditEntryAvatarInitial(log, sessionDisplayNameFallback, actorLookup, isDev) {
   const label = resolveActorLabel(log, sessionDisplayNameFallback, actorLookup, isDev);
+  if (label === 'Unknown') return '?';
   if (label) {
     const badge = historyAvatarInitials(label);
     if (badge) return badge;
