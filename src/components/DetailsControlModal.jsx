@@ -313,7 +313,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                               {r.requestId}
                             </button>
                           </td>
-                          <td>{r.date ?? '-'}</td>
+                          <td>{formatDisplayDate(r.date ?? '-')}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span

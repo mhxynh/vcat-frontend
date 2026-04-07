@@ -85,16 +85,11 @@
   font-size: 18px;
 }
 
+/* className is on the Icon root <svg>, not a wrapper */
 .dcm-icon--doc {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   line-height: 0;
   transform: translateY(-2.75px);
-}
-
-.dcm-icon--doc svg {
-  display: block;
 }
 
 /* description */
