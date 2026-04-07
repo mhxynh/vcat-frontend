@@ -29,6 +29,25 @@ function formatDisplayDate(value) {
   }).format(parsed);
 }
 
+/** Numeric backend request_id for API calls; supports rows from fetch path or `control.requestHistory` fallback. */
+function getHistoryRowRequestId(historyRow) {
+  const keyValue = historyRow?.key;
+  if (keyValue != null) {
+    const numericKey = Number(keyValue);
+    if (!Number.isNaN(numericKey)) return numericKey;
+  }
+
+  const requestIdValue = historyRow?.requestId;
+  if (requestIdValue == null) return null;
+
+  const normalized =
+    typeof requestIdValue === 'string'
+      ? requestIdValue.replace(/^REQ-/i, '').trim()
+      : requestIdValue;
+  const numericRequestId = Number(normalized);
+  return Number.isNaN(numericRequestId) ? null : numericRequestId;
+}
+
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -161,13 +180,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const stop = (e) => e.stopPropagation();
 
   async function openRequestDetails(historyRow) {
-    const rid = historyRow?.key ?? null;
-    if (rid == null) return;
+    const requestId = getHistoryRowRequestId(historyRow);
+    if (requestId == null) return;
 
     try {
       setRequestDetailsError('');
-      const requestId = Number(rid);
-      if (Number.isNaN(requestId)) throw new Error('Invalid request id');
 
       const seq = (requestDetailsSeq.current += 1);
       const [rawRequest, rawTests] = await Promise.all([
@@ -304,14 +321,18 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       {requestHistory.map((r) => (
                         <tr key={r.key ?? r.requestId}>
                           <td className="dcm-request-id">
-                            <button
-                              type="button"
-                              className="dcm-link"
-                              onClick={() => openRequestDetails(r)}
-                              title="Open request details"
-                            >
-                              {r.requestId}
-                            </button>
+                            {getHistoryRowRequestId(r) != null ? (
+                              <button
+                                type="button"
+                                className="dcm-link"
+                                onClick={() => openRequestDetails(r)}
+                                title="Open request details"
+                              >
+                                {r.requestId}
+                              </button>
+                            ) : (
+                              <span>{r.requestId}</span>
+                            )}
                           </td>
                           <td>{formatDisplayDate(r.date ?? '-')}</td>
                           <td>{r.requester ?? '-'}</td>
