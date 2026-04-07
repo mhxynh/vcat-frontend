@@ -84,6 +84,7 @@
 }
 
 .calendar-day-cell {
+  box-sizing: border-box;
   border-radius: 6px;
   border: 1px solid #e5e5e5;
   background: #ffffff;
@@ -95,7 +96,6 @@
   transition:
     background-color 0.22s ease-out,
     border-color 0.22s ease-out,
-    border-width 0.22s ease-out,
     box-shadow 0.28s ease-out,
     transform 0.14s ease-out;
 }
@@ -113,7 +113,6 @@
 
 .calendar-day-cell--selected {
   background: rgba(150, 21, 29, 0.08);
-  border-width: 1.75px;
   border-color: #8b0f17;
   box-shadow:
     0 2px 8px rgba(139, 15, 23, 0.12),
