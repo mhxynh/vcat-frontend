@@ -23,6 +23,19 @@ function priorityLabel(priorityRaw) {
   return 'Medium';
 }
 
+/** Same semantics as TestsAPI / RequestsAPI — avoids UTC off-by-one for `YYYY-MM-DD` strings */
+function parseLocalDate(value) {
+  if (!value) return null;
+
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
 export async function fetchKanban({ requestId, controlId, details } = {}) {
   const buildUrl = ({ requestId, controlId, details } = {}) => {
     const u = new URL(`${API_BASE}/tests`);
@@ -62,12 +75,13 @@ export function mapTestRowToCard(test, options = {}) {
 
   let dueDate = test.due_date || test.due || test.dueDate || '';
   if (dueDate) {
-    try {
-      dueDate = new Date(dueDate).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {}
+    const d = parseLocalDate(dueDate);
+    dueDate = d
+      ? d.toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+        })
+      : '';
   }
 
   const priorityRaw =
