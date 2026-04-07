@@ -14,6 +14,7 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+import Icon from './common/Icon';
 
 const DATE_FORMAT = {
   month: 'short',
@@ -159,7 +160,6 @@ function formatTestRowStatusLabel(value) {
       .join(' ')
   );
 }
-import Icon from './common/Icon';
 
 export default function DetailsTestModal({
   isOpen,
