@@ -406,6 +406,9 @@
   font-size: 12px;
   color: #8a8f98;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Footer */

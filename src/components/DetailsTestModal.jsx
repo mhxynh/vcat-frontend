@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
+import Icon from './common/Icon';
 import EditTestModal from './EditTestModal';
 import {
   archiveTest,
@@ -850,7 +851,12 @@ export default function DetailsTestModal({
                               <span>{statusBadge}</span>
                             </div>
                           )}
-                          {actorLabel && <div className="dtm-timeline-actor">by {actorLabel}</div>}
+                          {actorLabel && (
+                            <div className="dtm-timeline-actor">
+                              <Icon name="user" category="deco" size="xs" color="#8a8f98" />
+                              <span>by {actorLabel}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -859,9 +865,7 @@ export default function DetailsTestModal({
               </div>
             ) : activeTab === 'Attachments' ? (
               <div className="dtm-empty">This view is not implemented yet.</div>
-            ) : (
-              <div className="dtm-empty">Unknown tab selected.</div>
-            )}
+            ) : null}
           </section>
 
           <div className="dtm-divider" />
