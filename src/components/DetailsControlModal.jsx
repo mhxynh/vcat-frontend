@@ -2,6 +2,20 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import EditControlModal from './EditControlModal';
+import Icon from './common/Icon';
+
+function formatDisplayDate(value) {
+  if (!value || value === '-') return '-';
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}
 
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -51,8 +65,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   const owner = control?.owner;
   const sme = control?.sme ?? '-';
-  const dateCreated = control?.dateCreated ?? '-';
-  const lastTested = control?.lastTested ?? '-';
+  const dateCreated = formatDisplayDate(control?.dateCreated);
+  const lastTested = formatDisplayDate(control?.lastTested);
   const escalationRequired = control?.escalationRequired ?? '-';
 
   const requestHistory = Array.isArray(control?.requestHistory) ? control.requestHistory : [];
@@ -149,9 +163,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon" aria-hidden="true">
-                  🧾
-                </span>
+                <Icon name="documents" category="deco" />
                 Request History
               </div>
 
@@ -200,10 +212,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-logs">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon" aria-hidden="true">
-                  🕘
-                </span>
-                Logs
+                <Icon name="history" category="deco" />
+                History & Logs
               </div>
 
               {logs.length === 0 ? (

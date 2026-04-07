@@ -663,6 +663,10 @@ export default function DetailsTestModal({
                 overlayTitle={`Test History: ${vgcpid}`}
                 showContent={true}
                 contextVgcpid={vgcpid}
+                actorFallback={{
+                  displayName: assignedName && assignedName !== '-' ? assignedName : null,
+                  userId: t?.assigned_tester_id ?? null,
+                }}
               />
             ) : (
               <div className="dtm-empty">This view is not implemented yet.</div>

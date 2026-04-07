@@ -76,8 +76,9 @@
 
 .dcm-section-title--withicon {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  line-height: 1;
 }
 
 .dcm-icon {
