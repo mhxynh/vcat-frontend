@@ -4,6 +4,7 @@ import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
 import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
+import Icon from '../components/common/Icon';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -228,7 +229,11 @@ export default function Controls() {
                           {control.status}
                         </span>
 
-                        <span className="badge badge--neutral">{control.testing}</span>
+                        <span className="badge badge--neutral">
+                          {control.testing && control.testing !== 'Not Tested Yet'
+                            ? `Last Tested ${formatDisplayDate(control.testing)}`
+                            : (control.testing ?? 'Not Tested Yet')}
+                        </span>
 
                         <span className={`chev ${isOpen ? 'chev--open' : ''}`}>
                           {isOpen ? '▴' : '▾'}
@@ -240,38 +245,58 @@ export default function Controls() {
                       <div className="acc-body">
                         <div className="acc-grid">
                           <div className="acc-card">
-                            <div className="acc-card__label">Description</div>
+                            <div className="acc-card__label">
+                              <Icon name="documents" category="deco" />
+                              Description
+                            </div>
                             <div className="acc-card__text">
                               {control.description ?? 'No description yet.'}
                             </div>
                           </div>
 
                           <div className="acc-card">
-                            <div className="acc-card__label">Control Details</div>
-
+                            <div className="acc-card__label">
+                              <Icon name="control-details" category="deco" />
+                              Control Details
+                            </div>
                             <div className="acc-details">
                               <div className="acc-details__row">
-                                <div className="acc-details__k">Date Created</div>
+                                <div className="acc-details__k">
+                                  <Icon name="calendar" category="deco" />
+                                  Date Created
+                                </div>
                                 <div className="acc-details__v">
                                   {formatDisplayDate(control.dateCreated)}
                                 </div>
                               </div>
                               <div className="acc-details__row">
-                                <div className="acc-details__k">Last Tested</div>
+                                <div className="acc-details__k">
+                                  <Icon name="clock" category="deco" />
+                                  Last Tested
+                                </div>
                                 <div className="acc-details__v">
                                   {formatDisplayDate(control.lastTested)}
                                 </div>
                               </div>
                               <div className="acc-details__row">
-                                <div className="acc-details__k">Control Owner</div>
+                                <div className="acc-details__k">
+                                  <Icon name="user" category="deco" />
+                                  Control Owner
+                                </div>
                                 <div className="acc-details__v">{control.owner ?? '-'}</div>
                               </div>
                               <div className="acc-details__row">
-                                <div className="acc-details__k">Control SME</div>
+                                <div className="acc-details__k">
+                                  <Icon name="user" category="deco" />
+                                  Control SME
+                                </div>
                                 <div className="acc-details__v">{control.sme ?? '-'}</div>
                               </div>
                               <div className="acc-details__row">
-                                <div className="acc-details__k">Escalation Required</div>
+                                <div className="acc-details__k">
+                                  <Icon name="exclamation" category="deco" color="#00A63E" />
+                                  Escalation Required
+                                </div>
                                 <div className="acc-details__v">
                                   {control.escalationRequired ?? '-'}
                                 </div>
@@ -284,7 +309,8 @@ export default function Controls() {
                                 className="linklike"
                                 onClick={() => openDetails(control)}
                               >
-                                View More Details ↗
+                                View More Details
+                                <Icon name="redirect" category="actions" />
                               </button>
                             </div>
                           </div>
