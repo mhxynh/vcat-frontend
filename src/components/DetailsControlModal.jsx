@@ -202,8 +202,33 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon" aria-hidden="true">
-                  🧾
+                <span className="dcm-icon dcm-icon--doc" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7 3.75h7.25L18.25 7.75V20.25c0 .966-.784 1.75-1.75 1.75H7c-.966 0-1.75-.784-1.75-1.75V5.5c0-.966.784-1.75 1.75-1.75Z"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M14.25 3.75V7c0 .966.784 1.75 1.75 1.75h2.25"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M8.25 11h7.5M8.25 14.5h7.5M8.25 18h5.25"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                 </span>
                 Request History
               </div>
@@ -229,7 +254,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                     <tbody>
                       {requestHistory.map((r) => (
                         <tr key={r.key ?? r.requestId}>
-                          <td className="dcm-mono">{r.requestId}</td>
+                          <td className="dcm-request-id">{r.requestId}</td>
                           <td>{r.date ?? '-'}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
