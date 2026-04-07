@@ -137,7 +137,11 @@ export async function fetchRequestsByIds(ids) {
     // ignore and fall back
   }
 
-  return await Promise.all(unique.map((rid) => fetchRequestById(rid)));
+  const results = await Promise.allSettled(unique.map((rid) => fetchRequestById(rid)));
+  return results
+    .filter((r) => r.status === 'fulfilled')
+    .map((r) => r.value)
+    .filter(Boolean);
 }
 
 /**

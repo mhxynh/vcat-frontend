@@ -57,20 +57,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
   const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (isDeleteConfirmOpen) closeDeleteConfirm();
-        else onClose?.();
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen]);
-
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
@@ -82,6 +68,29 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestDetailsError, setRequestDetailsError] = useState('');
   const requestDetailsSeq = useRef(0);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+      if (isDeleteConfirmOpen) {
+        closeDeleteConfirm();
+        return;
+      }
+      if (isRequestDetailsOpen) {
+        setIsRequestDetailsOpen(false);
+        setSelectedRequest(null);
+        setRequestDetailsError('');
+        requestDetailsSeq.current += 1;
+        return;
+      }
+      onClose?.();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose, isDeleteConfirmOpen, isRequestDetailsOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -183,16 +192,16 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     const requestId = getHistoryRowRequestId(historyRow);
     if (requestId == null) return;
 
+    const seq = (requestDetailsSeq.current += 1);
     try {
       setRequestDetailsError('');
 
-      const seq = (requestDetailsSeq.current += 1);
       const [rawRequest, rawTests] = await Promise.all([
         fetchRequestById(requestId),
         fetchTestsByRequestId(requestId, { details: true }),
       ]);
 
-      if (seq !== requestDetailsSeq.current || !isOpen) return;
+      if (seq !== requestDetailsSeq.current) return;
 
       const ui = mapRequestRowToUi(rawRequest || {});
       const controls = Array.isArray(rawTests) ? rawTests.map(mapTestRowToRequestControlCard) : [];
@@ -200,13 +209,17 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       setSelectedRequest({ ...ui, controls });
       setIsRequestDetailsOpen(true);
     } catch (e) {
-      setRequestDetailsError(e?.message || 'Failed to open request details');
+      if (seq === requestDetailsSeq.current) {
+        setRequestDetailsError(e?.message || 'Failed to open request details');
+      }
     }
   }
 
   function closeRequestDetails() {
+    requestDetailsSeq.current += 1;
     setIsRequestDetailsOpen(false);
     setSelectedRequest(null);
+    setRequestDetailsError('');
   }
 
   async function handleDelete() {
