@@ -1,10 +1,9 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import {
   buildRequestHistoryForControl,
   fetchRequestById,
-  fetchRequests,
   mapRequestRowToUi,
 } from '../api/RequestsAPI';
 import {
@@ -79,12 +78,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     }
   }, [isOpen]);
 
-  useLayoutEffect(() => {
-    if (isOpen && control?.controlId != null) {
-      setRequestHistoryLoading(true);
-    }
-  }, [isOpen, control?.controlId]);
-
   useEffect(() => {
     if (!isOpen || control?.controlId == null) {
       setFetchedRequestHistory([]);
@@ -99,10 +92,25 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       setRequestHistoryLoading(true);
       setRequestHistoryError('');
       try {
-        const [tests, requests] = await Promise.all([
-          fetchTestsByControlId(control.controlId),
-          fetchRequests(),
-        ]);
+        const tests = await fetchTestsByControlId(control.controlId);
+        if (cancelled) return;
+
+        const ids = Array.from(
+          new Set(
+            (Array.isArray(tests) ? tests : [])
+              .map((t) => t?.request_id)
+              .filter((x) => x != null)
+              .map((x) => Number(x))
+              .filter((n) => !Number.isNaN(n))
+          )
+        );
+
+        if (ids.length === 0) {
+          setFetchedRequestHistory([]);
+          return;
+        }
+
+        const requests = await Promise.all(ids.map((rid) => fetchRequestById(rid)));
         if (cancelled) return;
         setFetchedRequestHistory(buildRequestHistoryForControl(tests, requests));
       } catch (e) {
@@ -264,7 +272,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <Icon name="documents" category="deco" />
+                <Icon name="documents" category="deco" className="dcm-icon--doc" />
                 Request History
               </div>
 
@@ -299,7 +307,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                               {r.requestId}
                             </button>
                           </td>
-                          <td>{formatDisplayDate(r.date ?? '-')}</td>
+                          <td>{r.date ?? '-'}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span
