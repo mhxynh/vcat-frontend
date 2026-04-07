@@ -13,7 +13,7 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { ReactComponent as ImportantIcon } from '../assets/images/tracker-icons/important.svg';
+import Icon from './common/Icon';
 
 export default function DetailsTestModal({
   isOpen,
@@ -608,13 +608,7 @@ export default function DetailsTestModal({
                     value={
                       <span className="dtm-date-with-icon">
                         <span>{dueDate}</span>
-                        {overdue && (
-                          <ImportantIcon
-                            className="dtm-overdue-icon"
-                            aria-label="Overdue"
-                            role="img"
-                          />
-                        )}
+                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
                       </span>
                     }
                   />

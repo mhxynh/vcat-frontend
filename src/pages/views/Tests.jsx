@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
-import { ReactComponent as ImportantIcon } from '../../assets/images/tracker-icons/important.svg';
+import Icon from '../../components/common/Icon';
 
 function parseLocalDate(value) {
   if (!value) return null;
@@ -312,13 +312,7 @@ export default function Tests({
                     <td className="table__cell table__cell--due-date">
                       <span className="due-date-content">
                         <span>{dueDate}</span>
-                        {overdue && (
-                          <ImportantIcon
-                            className="due-date-overdue-icon"
-                            aria-label="Overdue"
-                            role="img"
-                          />
-                        )}
+                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
                       </span>
                     </td>
                     <td className="table__cell">{etaDate}</td>
