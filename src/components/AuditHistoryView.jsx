@@ -202,7 +202,9 @@ export default function AuditHistoryView({
 
   useEffect(() => {
     if (!needsActorLookup) {
-      setActorLookup(Object.create(null));
+      setActorLookup((currentLookup) =>
+        Object.keys(currentLookup).length > 0 ? Object.create(null) : currentLookup,
+      );
       return;
     }
     let cancelled = false;
