@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTests } from '../../api/TestsAPI';
 import DetailsTestModal from '../../components/DetailsTestModal';
-import CalendarGlyph from '../../components/CalendarGlyph';
+import Icon from '../../components/common/Icon';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -255,31 +255,33 @@ const CalendarView = ({ refreshKey = 0 }) => {
       </div>
 
       <div className="calendar-status-legend">
-        <div className="calendar-filter-row">
-          <label htmlFor="calendar-date-filter" className="calendar-filter-label">
-            Show by:
-          </label>
-          <select
-            id="calendar-date-filter"
-            className="calendar-filter-select"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-          >
-            {DATE_FILTER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+        <div className="calendar-status-legend-inner">
+          <div className="calendar-filter-row">
+            <label htmlFor="calendar-date-filter" className="calendar-filter-label">
+              Show by:
+            </label>
+            <select
+              id="calendar-date-filter"
+              className="calendar-filter-select"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            >
+              {DATE_FILTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="calendar-legend-status-group">
+            <span className="legend-label">Status:</span>
+            {Object.entries(STATUS_LABELS).map(([status, label]) => (
+              <span key={status} className="legend-item">
+                <span className={`legend-dot status-${status}`} />
+                {label}
+              </span>
             ))}
-          </select>
-        </div>
-        <div className="calendar-legend-status-group">
-          <span className="legend-label">Status:</span>
-          {Object.entries(STATUS_LABELS).map(([status, label]) => (
-            <span key={status} className="legend-item">
-              <span className={`legend-dot status-${status}`} />
-              {label}
-            </span>
-          ))}
+          </div>
         </div>
       </div>
 
@@ -392,7 +394,13 @@ const CalendarView = ({ refreshKey = 0 }) => {
           ) : (
             <div className="detail-empty-state">
               <div className="detail-empty-icon" aria-hidden="true">
-                <CalendarGlyph />
+                <Icon
+                  name="calendar"
+                  category="deco"
+                  color="var(--color-brand-red, #8a1a23)"
+                  width={40}
+                  height={40}
+                />
               </div>
               <div className="detail-empty-title">Select a Date</div>
               <div className="detail-empty-sub">
