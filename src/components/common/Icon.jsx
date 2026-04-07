@@ -31,7 +31,7 @@ const Icon = ({
       fill="none"
       className={`ui-icon icon-${category}-${name} ${className}`}
       aria-hidden="true"
-      preserveAspectRatio="xMidYMid meet"
+      {...(viewBox ? { preserveAspectRatio: 'xMidYMid meet' } : {})}
       {...props}
       width={w}
       height={h}

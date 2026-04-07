@@ -200,11 +200,8 @@
   color: #7a7a7a;
   min-height: 36px;
   padding: 4px 0;
-  background: #ffffff;
   overflow-x: hidden;
   overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--calendar-scrollbar-thumb) transparent;
 }
 
 .calendar-status-legend-inner {
@@ -234,11 +231,6 @@
 .calendar-status-legend .calendar-filter-row {
   flex-shrink: 0;
   gap: 6px;
-}
-
-.calendar-status-legend .calendar-filter-label,
-.calendar-status-legend .calendar-filter-select {
-  font-size: 15px;
 }
 
 .calendar-status-legend .calendar-filter-select {
@@ -352,7 +344,6 @@
 }
 
 .detail-list::-webkit-scrollbar-button,
-.calendar-status-legend::-webkit-scrollbar-button,
 .calendar-legend-status-group::-webkit-scrollbar-button {
   display: none;
   width: 0;
@@ -363,13 +354,11 @@
   width: 8px;
 }
 
-.calendar-status-legend::-webkit-scrollbar,
 .calendar-legend-status-group::-webkit-scrollbar {
   height: 4px;
 }
 
 .detail-list::-webkit-scrollbar-track,
-.calendar-status-legend::-webkit-scrollbar-track,
 .calendar-legend-status-group::-webkit-scrollbar-track {
   background: transparent;
 }
@@ -379,7 +368,6 @@
   border-radius: 4px;
 }
 
-.calendar-status-legend::-webkit-scrollbar-thumb,
 .calendar-legend-status-group::-webkit-scrollbar-thumb {
   background: var(--calendar-scrollbar-thumb);
   border-radius: 999px;
@@ -580,11 +568,8 @@
 .detail-empty-icon svg {
   width: 36px;
   height: 36px;
-  max-width: 36px;
-  max-height: 36px;
   display: block;
   flex-shrink: 0;
-  box-sizing: border-box;
 }
 
 .detail-empty-title {
