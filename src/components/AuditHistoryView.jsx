@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { fetchUsers } from '../api/UsersAPI';
 import '../styles/components/AuditHistoryView.css';
@@ -45,14 +45,38 @@ function buildActorDisplayNameLookup(users) {
   return map;
 }
 
-/** Decode Cognito ID token payload (browser). */
+/** Session cache so reopening history does not refetch GET /users. */
+let actorLookupCache = null;
+let actorLookupInFlight = null;
+
+function loadActorLookupMap() {
+  if (actorLookupCache) return Promise.resolve(actorLookupCache);
+  if (actorLookupInFlight) return actorLookupInFlight;
+  actorLookupInFlight = fetchUsers()
+    .then((users) => {
+      actorLookupCache = buildActorDisplayNameLookup(users);
+      return actorLookupCache;
+    })
+    .catch(() => {
+      actorLookupCache = Object.create(null);
+      return actorLookupCache;
+    })
+    .finally(() => {
+      actorLookupInFlight = null;
+    });
+  return actorLookupInFlight;
+}
+
+/** Decode Cognito ID token payload (browser); UTF-8 safe for Unicode claims. */
 function decodeJwtPayload(token) {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
     const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-    const json = atob(b64 + pad);
+    const binary = atob(b64 + pad);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const json = new TextDecoder('utf-8').decode(bytes);
     return JSON.parse(json);
   } catch {
     return null;
@@ -73,10 +97,10 @@ function displayNameFromIdTokenPayload(payload) {
 
 /**
  * Prefer API `actor_display_name`, then /users lookup by `actor_user_id`, then `User {id}`.
- * If the backend recorded no actor (common in local dev), fall back to the signed-in Cognito user
- * so the person clicking still sees their name — not the assignee.
+ * With no `actor_user_id`, production shows "Unknown" so viewers are not misattributed.
+ * In development only, fall back to the signed-in Cognito user when the backend omits actor (local).
  */
-function resolveActorLabel(log, sessionDisplayNameFallback, actorLookup) {
+function resolveActorLabel(log, sessionDisplayNameFallback, actorLookup, isDev) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
@@ -84,8 +108,8 @@ function resolveActorLabel(log, sessionDisplayNameFallback, actorLookup) {
     return actorLookup[String(uid)];
   }
   if (uid != null) return `User ${uid}`;
-  if (sessionDisplayNameFallback) return sessionDisplayNameFallback;
-  return '';
+  if (isDev && sessionDisplayNameFallback) return sessionDisplayNameFallback;
+  return 'Unknown';
 }
 
 /** Up to two characters: first letter of first two words, or first two letters of a single word (e.g. "MH"). */
@@ -104,8 +128,8 @@ function historyAvatarInitials(name) {
   return one.slice(0, 1).toUpperCase();
 }
 
-function auditEntryAvatarInitial(log, sessionDisplayNameFallback, actorLookup) {
-  const label = resolveActorLabel(log, sessionDisplayNameFallback, actorLookup);
+function auditEntryAvatarInitial(log, sessionDisplayNameFallback, actorLookup, isDev) {
+  const label = resolveActorLabel(log, sessionDisplayNameFallback, actorLookup, isDev);
   if (label) {
     const badge = historyAvatarInitials(label);
     if (badge) return badge;
@@ -143,8 +167,15 @@ export default function AuditHistoryView({
   const [sessionDisplayName, setSessionDisplayName] = useState(null);
   const [actorLookup, setActorLookup] = useState(() => Object.create(null));
 
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const needsActorLookup = useMemo(() => {
+    if (!showContent || !logs?.length) return false;
+    return logs.some((log) => logActorUserIdRaw(log) != null && !logActorDisplayNameRaw(log));
+  }, [showContent, logs]);
+
   useEffect(() => {
-    if (!showContent) return;
+    if (!showContent || !isDev) return;
     let cancelled = false;
     (async () => {
       try {
@@ -160,22 +191,21 @@ export default function AuditHistoryView({
     return () => {
       cancelled = true;
     };
-  }, [showContent]);
+  }, [showContent, isDev]);
 
   useEffect(() => {
-    if (!showContent) return;
+    if (!needsActorLookup) {
+      setActorLookup(Object.create(null));
+      return;
+    }
     let cancelled = false;
-    fetchUsers()
-      .then((users) => {
-        if (!cancelled) setActorLookup(buildActorDisplayNameLookup(users));
-      })
-      .catch(() => {
-        if (!cancelled) setActorLookup(Object.create(null));
-      });
+    loadActorLookupMap().then((map) => {
+      if (!cancelled) setActorLookup(map);
+    });
     return () => {
       cancelled = true;
     };
-  }, [showContent]);
+  }, [needsActorLookup]);
 
   useEffect(() => {
     if (!showExpanded) return;
@@ -196,13 +226,13 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log, sessionDisplayName, actorLookup);
+        const actorLabel = resolveActorLabel(log, sessionDisplayName, actorLookup, isDev);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
               <div className="ahv-avatar">
                 <span className="ahv-avatar-text">
-                  {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup)}
+                  {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup, isDev)}
                 </span>
               </div>
               <div className="ahv-meta">
