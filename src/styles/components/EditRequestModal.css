@@ -189,7 +189,7 @@
   flex: 1;
 }
 
-.erm-search-wrapper .erm-search {
+.erm-search-input-wrap .erm-search {
   padding-left: 34px;
 }
 
@@ -267,8 +267,8 @@
 }
 
 .erm-test-item {
-  border: 1px solid #eee;
-  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  background: #fff;
   padding: 14px 16px;
   border-radius: 8px;
   display: flex;
@@ -356,4 +356,99 @@
 
 .erm-btn--primary:hover:not(:disabled) {
   background: #7a161b;
+}
+
+.erm-section--associated-controls {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.erm-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.erm-search-icon {
+  position: absolute;
+  left: 12px;
+  color: #6b7280;
+  font-size: 14px;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.erm-create-control-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.erm-create-control-link {
+  color: #9b1c22;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.erm-create-control-link:hover {
+  color: #7a161b;
+  text-decoration: underline;
+}
+
+.erm-create-control-link--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.erm-test-meta .status-pill {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+}
+
+.erm-test-meta .status-pill.completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.erm-test-meta .status-pill.dat-in-progress,
+.erm-test-meta .status-pill.oet-in-progress,
+.erm-test-meta .status-pill.in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.erm-test-meta .status-pill.in-review {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.erm-test-meta .status-pill.not-started {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.erm-test-meta .status-pill.blocked,
+.erm-test-meta .status-pill.failed,
+.erm-test-meta .status-pill.rejected {
+  background: #fdecec;
+  color: #8b0f17;
+}
+
+.erm-test-meta .status-pill.pending {
+  background: #fff4dd;
+  color: #8a5a00;
+}
+
+.erm-status-pill {
+  margin-left: 12px;
 }
