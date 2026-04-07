@@ -397,9 +397,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
                 <Icon
                   name="calendar"
                   category="deco"
+                  viewBox="0 0 14 14"
                   color="var(--color-brand-red, #8a1a23)"
-                  width={40}
-                  height={40}
+                  width={36}
+                  height={36}
                 />
               </div>
               <div className="detail-empty-title">Select a Date</div>
