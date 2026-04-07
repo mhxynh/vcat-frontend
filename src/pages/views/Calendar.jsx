@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTests } from '../../api/TestsAPI';
 import DetailsTestModal from '../../components/DetailsTestModal';
+import Icon from '../../components/common/Icon';
 import '../../styles/pages/views/Calendar.css';
 
 const STATUS_LABELS = {
@@ -63,6 +64,22 @@ const DATE_FILTER_OPTIONS = [
   { value: 'eta', label: 'ETA' },
   { value: 'both', label: 'Both' },
 ];
+
+function CalendarNavChevron({ direction }) {
+  const d = direction === 'prev' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6';
+  return (
+    <svg className="calendar-nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function buildEventsByDay(tests, month, year, dateFilter) {
   return tests.reduce((acc, test) => {
@@ -174,9 +191,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
     }).format(new Date(currentYear, currentMonth, selectedDay));
   }, [currentMonth, currentYear, selectedDay]);
 
-  const monthLabel = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate);
-  }, [currentDate]);
+  const monthLabel = useMemo(
+    () => new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate),
+    [currentDate]
+  );
 
   const dayCells = useMemo(() => {
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -216,27 +234,58 @@ const CalendarView = ({ refreshKey = 0 }) => {
 
   return (
     <div className="calendar-shell">
-      <div className="calendar-left-panel">
-        <div className="calendar-month-row">
-          <button
-            className="calendar-nav-btn"
-            type="button"
-            aria-label="Previous month"
-            onClick={() => goToMonth(-1)}
-          >
-            ‹
-          </button>
-          <h3 className="calendar-month-title">{monthLabel}</h3>
-          <button
-            className="calendar-nav-btn"
-            type="button"
-            aria-label="Next month"
-            onClick={() => goToMonth(1)}
-          >
-            ›
-          </button>
-        </div>
+      <div className="calendar-month-row">
+        <button
+          className="calendar-nav-btn"
+          type="button"
+          aria-label="Previous month"
+          onClick={() => goToMonth(-1)}
+        >
+          <CalendarNavChevron direction="prev" />
+        </button>
+        <h3 className="calendar-month-title">{monthLabel}</h3>
+        <button
+          className="calendar-nav-btn"
+          type="button"
+          aria-label="Next month"
+          onClick={() => goToMonth(1)}
+        >
+          <CalendarNavChevron direction="next" />
+        </button>
+      </div>
 
+      <div className="calendar-status-legend">
+        <div className="calendar-status-legend-inner">
+          <div className="calendar-filter-row">
+            <label htmlFor="calendar-date-filter" className="calendar-filter-label">
+              Show by:
+            </label>
+            <select
+              id="calendar-date-filter"
+              className="calendar-filter-select"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            >
+              {DATE_FILTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="calendar-legend-status-group">
+            <span className="legend-label">Status:</span>
+            {Object.entries(STATUS_LABELS).map(([status, label]) => (
+              <span key={status} className="legend-item">
+                <span className={`legend-dot status-${status}`} />
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="calendar-left-body">
         <div className="calendar-weekday-row">
           {WEEK_DAYS.map((dayLabel) => (
             <div key={dayLabel} className="calendar-weekday-cell">
@@ -250,11 +299,19 @@ const CalendarView = ({ refreshKey = 0 }) => {
             const dayData = day ? eventsByDay[day] : null;
             const isSelected = day && selectedDay === day;
 
+            const dayCellClass = [
+              'calendar-day-cell',
+              !day && 'calendar-day-cell--blank',
+              isSelected && 'calendar-day-cell--selected',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
             return (
               <button
                 key={`${day ?? 'empty'}-${index}`}
                 type="button"
-                className={`calendar-day-cell ${day ? '' : 'calendar-day-cell--blank'} ${isSelected ? 'calendar-day-cell--selected' : ''}`}
+                className={dayCellClass}
                 onClick={() => day && setSelectedDay(day)}
                 disabled={!day}
               >
@@ -284,34 +341,7 @@ const CalendarView = ({ refreshKey = 0 }) => {
         </div>
       </div>
 
-      <div className="calendar-detail">
-        <div className="calendar-status-legend">
-          <div className="calendar-filter-row">
-            <label htmlFor="calendar-date-filter" className="calendar-filter-label">
-              Show by:
-            </label>
-            <select
-              id="calendar-date-filter"
-              className="calendar-filter-select"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-            >
-              {DATE_FILTER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <span className="legend-label">Status:</span>
-          {Object.entries(STATUS_LABELS).map(([status, label]) => (
-            <span key={status} className="legend-item">
-              <span className={`legend-dot status-${status}`} />
-              {label}
-            </span>
-          ))}
-        </div>
-
+      <div className="calendar-detail-slot">
         <div className="calendar-detail-card">
           {error ? <div className="detail-empty">{error}</div> : null}
           {selectedDay ? (
@@ -363,7 +393,14 @@ const CalendarView = ({ refreshKey = 0 }) => {
             </>
           ) : (
             <div className="detail-empty-state">
-              <div className="detail-empty-icon">🗓</div>
+              <div className="detail-empty-icon" aria-hidden="true">
+                <Icon
+                  name="calendar"
+                  category="deco"
+                  viewBox="0 0 14 14"
+                  color="var(--color-brand-red, #8a1a23)"
+                />
+              </div>
               <div className="detail-empty-title">Select a Date</div>
               <div className="detail-empty-sub">
                 Click on any date to view scheduled control tests

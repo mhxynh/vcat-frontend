@@ -7,6 +7,9 @@ const Icon = ({
   size = 'sm',
   className = '',
   color = '#96151D',
+  viewBox,
+  width,
+  height,
   ...props
 }) => {
   const sizeMap = {
@@ -18,16 +21,20 @@ const Icon = ({
   };
 
   const dimension = sizeMap[size] || sizeMap.md;
+  const w = width ?? dimension;
+  const h = height ?? dimension;
 
   return (
     <svg
-      width={dimension}
-      height={dimension}
+      viewBox={viewBox}
       stroke={color}
       fill="none"
       className={`ui-icon icon-${category}-${name} ${className}`}
       aria-hidden="true"
+      {...(viewBox ? { preserveAspectRatio: 'xMidYMid meet' } : {})}
       {...props}
+      width={w}
+      height={h}
     >
       <use href={`${process.env.PUBLIC_URL || ''}/icons.svg#icon-${category}-${name}`} />
     </svg>
@@ -40,6 +47,9 @@ Icon.propTypes = {
   size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl']),
   color: PropTypes.string,
   className: PropTypes.string,
+  viewBox: PropTypes.string,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 };
 
 export default Icon;

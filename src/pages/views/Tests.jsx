@@ -3,11 +3,23 @@ import { fetchAllTests } from '../../api/TestsAPI';
 import { parseLocalDate } from '../../utils/date';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
+import Icon from '../../components/common/Icon';
 
 function formatDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
   return d.toLocaleDateString();
+}
+
+function isOverdue(value) {
+  const due = parseLocalDate(value);
+  if (!due) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  return due < today;
 }
 
 function statusToLabel(status) {
@@ -250,6 +262,9 @@ export default function Tests({
 
                 const lastUpdated = formatDate(t?.updated_at);
                 const dueDate = formatDate(t?.due_date);
+                const overdue =
+                  isOverdue(t?.due_date) &&
+                  !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
                 const etaDate = formatDate(t?.estimated_date);
 
                 return (
@@ -283,7 +298,12 @@ export default function Tests({
 
                     <td className="table__cell">{step}</td>
                     <td className="table__cell">{lastUpdated}</td>
-                    <td className="table__cell table__cell--due-date">{dueDate}</td>
+                    <td className="table__cell table__cell--due-date">
+                      <span className="due-date-content">
+                        <span>{dueDate}</span>
+                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
+                      </span>
+                    </td>
                     <td className="table__cell">{etaDate}</td>
                   </tr>
                 );
