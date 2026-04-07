@@ -1,9 +1,19 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
-import { buildRequestHistoryForControl, fetchRequests } from '../api/RequestsAPI';
-import { fetchTestsByControlId } from '../api/TestsAPI';
+import {
+  buildRequestHistoryForControl,
+  fetchRequestById,
+  fetchRequests,
+  mapRequestRowToUi,
+} from '../api/RequestsAPI';
+import {
+  fetchTestsByControlId,
+  fetchTestsByRequestId,
+  mapTestRowToRequestControlCard,
+} from '../api/TestsAPI';
 import EditControlModal from './EditControlModal';
+import DetailsRequestModal from './DetailsRequestModal';
 
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -35,6 +45,10 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [requestHistoryLoading, setRequestHistoryLoading] = useState(false);
   const [requestHistoryError, setRequestHistoryError] = useState('');
 
+  const [isRequestDetailsOpen, setIsRequestDetailsOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [requestDetailsError, setRequestDetailsError] = useState('');
+
   useEffect(() => {
     if (!isOpen) return;
     setDeleting(false);
@@ -45,6 +59,9 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     if (!isOpen) {
       setIsEditOpen(false);
       setIsDeleteConfirmOpen(false);
+      setIsRequestDetailsOpen(false);
+      setSelectedRequest(null);
+      setRequestDetailsError('');
     }
   }, [isOpen]);
 
@@ -115,6 +132,35 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     [];
 
   const stop = (e) => e.stopPropagation();
+
+  async function openRequestDetails(historyRow) {
+    const rid = historyRow?.key ?? null;
+    if (rid == null) return;
+
+    try {
+      setRequestDetailsError('');
+      const requestId = Number(rid);
+      if (Number.isNaN(requestId)) throw new Error('Invalid request id');
+
+      const [rawRequest, rawTests] = await Promise.all([
+        fetchRequestById(requestId),
+        fetchTestsByRequestId(requestId, { details: true }),
+      ]);
+
+      const ui = mapRequestRowToUi(rawRequest || {});
+      const controls = Array.isArray(rawTests) ? rawTests.map(mapTestRowToRequestControlCard) : [];
+
+      setSelectedRequest({ ...ui, controls });
+      setIsRequestDetailsOpen(true);
+    } catch (e) {
+      setRequestDetailsError(e?.message || 'Failed to open request details');
+    }
+  }
+
+  function closeRequestDetails() {
+    setIsRequestDetailsOpen(false);
+    setSelectedRequest(null);
+  }
 
   async function handleDelete() {
     if (!id) return;
@@ -254,7 +300,16 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                     <tbody>
                       {requestHistory.map((r) => (
                         <tr key={r.key ?? r.requestId}>
-                          <td className="dcm-request-id">{r.requestId}</td>
+                          <td className="dcm-request-id">
+                            <button
+                              type="button"
+                              className="dcm-link"
+                              onClick={() => openRequestDetails(r)}
+                              title="Open request details"
+                            >
+                              {r.requestId}
+                            </button>
+                          </td>
                           <td>{r.date ?? '-'}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
@@ -273,6 +328,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                   </table>
                 )}
               </div>
+              {requestDetailsError ? (
+                <div className="dcm-empty" style={{ paddingLeft: 0, paddingRight: 0 }}>
+                  {requestDetailsError}
+                </div>
+              ) : null}
             </div>
           </section>
 
@@ -401,6 +461,15 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           await onUpdated?.();
           closeEdit();
           onClose?.();
+        }}
+      />
+
+      <DetailsRequestModal
+        isOpen={isRequestDetailsOpen}
+        onClose={closeRequestDetails}
+        request={selectedRequest}
+        onUpdated={() => {
+          // keep as no-op for now; request modal self-refreshes on edits
         }}
       />
     </>
