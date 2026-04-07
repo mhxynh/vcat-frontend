@@ -130,7 +130,7 @@
 }
 
 .ctm-select option:first-child,
-.ctm-select option[value=""] {
+.ctm-select option[value=''] {
   color: #a0aec0;
 }
 

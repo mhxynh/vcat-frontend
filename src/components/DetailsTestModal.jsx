@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
 import EditTestModal from './EditTestModal';
-import AuditHistoryView from './AuditHistoryView';
 import {
   archiveTest,
   hardDeleteTest,
@@ -13,6 +12,143 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+
+const DATE_FORMAT = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+function formatDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, DATE_FORMAT);
+}
+
+function logActorDisplayNameRaw(log) {
+  const v = log.actor_display_name ?? log.actorDisplayName;
+  return v != null ? String(v).trim() : '';
+}
+
+function logActorUserIdRaw(log) {
+  const v = log.actor_user_id ?? log.actorUserId;
+  if (v === null || v === undefined || v === '') return null;
+  return v;
+}
+
+function resolveActorLabel(log, actorFallback) {
+  const fromApi = logActorDisplayNameRaw(log);
+  if (fromApi) return fromApi;
+  const uid = logActorUserIdRaw(log);
+  if (uid != null) return `User ${uid}`;
+  if (actorFallback) {
+    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
+    if (fn && fn !== '-') return fn;
+    const fuid = actorFallback.userId;
+    if (fuid != null && fuid !== '') return `User ${fuid}`;
+  }
+  return '';
+}
+
+function getAuditChanges(log) {
+  const action = String(log.action || '').toUpperCase();
+  const after = log.after_snapshot || {};
+  const before = log.before_snapshot || {};
+  const changed = log.changed_fields || [];
+
+  if (action === 'UPDATE') {
+    const diff = after.changed || {};
+    return changed
+      .filter((field) => {
+        const entry = diff[field];
+        if (!entry) return false;
+        if (field === 'updated_at') return false;
+        if (entry.from === entry.to) return false;
+        return true;
+      })
+      .map((field) => {
+        const entry = diff[field];
+        const label = formatFieldLabel(field);
+        const fromStr = formatAuditValue(field, entry?.from);
+        const toStr = formatAuditValue(field, entry?.to);
+        return { field, label, fromStr, toStr };
+      });
+  }
+
+  if (action === 'DELETE' && before.status) {
+    return [
+      {
+        field: 'status',
+        label: 'Status',
+        fromStr: formatTestRowStatusLabel(before.status),
+        toStr: 'Archived',
+      },
+    ];
+  }
+
+  return [];
+}
+
+function formatFieldLabel(field) {
+  const labels = {
+    status: 'Status',
+    dat_step: 'DAT Step',
+    oet_step: 'OET Step',
+    updated_at: 'Updated',
+    due_date: 'Due date',
+    estimated_date: 'ETA',
+    start_date: 'Start date',
+    complete_date: 'Complete date',
+    description: 'Description',
+    priority: 'Priority',
+    requestor: 'Requestor',
+    assigned_tester_id: 'Assignee',
+  };
+  return labels[field] || field.replace(/_/g, ' ');
+}
+
+function formatAuditValue(field, value) {
+  if (value === null || value === undefined || value === '') return '—';
+
+  const dateFields = [
+    'updated_at',
+    'due_date',
+    'estimated_date',
+    'start_date',
+    'complete_date',
+    'created_at',
+  ];
+  if (dateFields.includes(field)) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+  }
+
+  if (field === 'status') {
+    return formatTestRowStatusLabel(value);
+  }
+
+  if (field === 'dat_step' || field === 'oet_step') {
+    return humanStep(value);
+  }
+
+  return String(value);
+}
+
+function formatTestRowStatusLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).toUpperCase();
+  const map = {
+    NOT_STARTED: 'Not Started',
+    DAT_IN_PROGRESS: 'DAT In Progress',
+    OET_IN_PROGRESS: 'OET In Progress',
+    IN_REVIEW: 'In Review',
+    COMPLETED: 'Completed',
+    ARCHIVED: 'Archived',
+  };
+  return map[raw] || raw;
+}
 
 export default function DetailsTestModal({
   isOpen,
@@ -638,20 +774,93 @@ export default function DetailsTestModal({
                 </div>
               </>
             ) : activeTab === 'History' ? (
-              <AuditHistoryView
-                logs={historyLogs}
-                loading={historyLoading}
-                error={historyError}
-                overlayTitle={`Test History: ${vgcpid}`}
-                showContent={true}
-                contextVgcpid={vgcpid}
-                actorFallback={{
-                  displayName: assignedName && assignedName !== '-' ? assignedName : null,
-                  userId: t?.assigned_tester_id ?? null,
-                }}
-              />
-            ) : (
+              <div className="dtm-timeline">
+                {historyLoading ? (
+                  <div className="dtm-timeline-empty">Loading history…</div>
+                ) : historyError ? (
+                  <div className="dtm-timeline-empty dtm-timeline-error">Error: {historyError}</div>
+                ) : !historyLogs?.length ? (
+                  <div className="dtm-timeline-empty">No history found.</div>
+                ) : (
+                  historyLogs.map((log, index) => {
+                    const action = String(log.action || '').toUpperCase();
+                    const entity = String(log.entity_type || '').toUpperCase();
+                    const actorLabel = resolveActorLabel(log, {
+                      displayName: assignedName && assignedName !== '-' ? assignedName : null,
+                      userId: t?.assigned_tester_id ?? null,
+                    });
+                    const timestamp = formatDate(log.changed_at);
+                    const changes = getAuditChanges(log);
+                    const hasStatusChange = changes.some((c) => c.field === 'status');
+                    const hasStepChange = changes.some(
+                      (c) => c.field === 'dat_step' || c.field === 'oet_step'
+                    );
+
+                    let statusBadge = null;
+                    if (hasStatusChange) {
+                      const statusChange = changes.find((c) => c.field === 'status');
+                      statusBadge = `${statusChange.fromStr} → ${statusChange.toStr}`;
+                    } else if (hasStepChange) {
+                      const stepChange = changes.find(
+                        (c) => c.field === 'dat_step' || c.field === 'oet_step'
+                      );
+                      if (stepChange) {
+                        const stepType = stepChange.field === 'dat_step' ? 'DAT' : 'OET';
+                        statusBadge = `${stepType}: ${stepChange.fromStr} → ${stepChange.toStr}`;
+                      }
+                    }
+
+                    let eventTitle = '';
+                    let affectedId = '';
+
+                    if (entity === 'REQUEST') {
+                      affectedId = `Request`;
+                      if (action === 'CREATE') eventTitle = 'Request Created';
+                      else if (action === 'UPDATE') eventTitle = 'Request Updated';
+                      else if (action === 'DELETE') eventTitle = 'Request Archived';
+                      else eventTitle = `Request ${action}`;
+                    } else if (entity === 'TEST') {
+                      affectedId = vgcpid;
+                      if (action === 'CREATE') eventTitle = 'Control Test Created';
+                      else if (action === 'UPDATE') eventTitle = 'Control Test Updated';
+                      else if (action === 'DELETE') eventTitle = 'Control Test Archived';
+                      else eventTitle = `Control Test ${action}`;
+                    } else {
+                      eventTitle = `${entity} ${action}`;
+                    }
+
+                    return (
+                      <div className="dtm-timeline-item" key={log.audit_id || index}>
+                        <div className="dtm-timeline-line">
+                          <div className="dtm-timeline-dot"></div>
+                          {index < historyLogs.length - 1 && (
+                            <div className="dtm-timeline-connector"></div>
+                          )}
+                        </div>
+                        <div className="dtm-timeline-content">
+                          <div className="dtm-timeline-header">
+                            <span className="dtm-timeline-title">{eventTitle}</span>
+                            <span className="dtm-timeline-time">{timestamp}</span>
+                          </div>
+                          <div className="dtm-timeline-meta">
+                            <span className="dtm-timeline-id">{affectedId}</span>
+                          </div>
+                          {statusBadge && (
+                            <div className="dtm-timeline-transition">
+                              <span>{statusBadge}</span>
+                            </div>
+                          )}
+                          {actorLabel && <div className="dtm-timeline-actor">by {actorLabel}</div>}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : activeTab === 'Attachments' ? (
               <div className="dtm-empty">This view is not implemented yet.</div>
+            ) : (
+              <div className="dtm-empty">Unknown tab selected.</div>
             )}
           </section>
 
