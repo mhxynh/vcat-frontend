@@ -203,7 +203,7 @@ export default function AuditHistoryView({
   useEffect(() => {
     if (!needsActorLookup) {
       setActorLookup((currentLookup) =>
-        Object.keys(currentLookup).length > 0 ? Object.create(null) : currentLookup,
+        Object.keys(currentLookup).length > 0 ? Object.create(null) : currentLookup
       );
       return;
     }
