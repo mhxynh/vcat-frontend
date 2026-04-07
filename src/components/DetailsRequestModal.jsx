@@ -73,6 +73,8 @@ export default function DetailsRequestModal({
   useEffect(() => {
     if (!isOpen) return;
 
+    let cancelled = false;
+
     setActiveTab('Comments');
     setCommentText('');
     setLocalRequest(request || null);
@@ -83,9 +85,15 @@ export default function DetailsRequestModal({
     setHistoryLogs([]);
     setHistoryError('');
     setCommentsError('');
+    setCurrentUser(null);
+    setUsersById({});
 
     const rid = request?.requestId ?? request?.request_id ?? null;
-    void loadCommentsAndUsers(rid);
+    void loadCommentsAndUsers(rid, () => cancelled);
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, request]);
 
   const controls = useMemo(() => {
@@ -197,7 +205,7 @@ export default function DetailsRequestModal({
     const text = commentText.trim();
     if (!text || requestId == null || commentSaving) return;
 
-    if (!currentUser?.user_id) {
+    if (!currentUser?.['user_id']) {
       setCommentsError('Could not identify the logged-in user.');
       return;
     }
@@ -208,13 +216,13 @@ export default function DetailsRequestModal({
 
       const created = await createRequestComment({
         requestId,
-        authorUserId: currentUser.user_id,
+        authorUserId: currentUser['user_id'],
         commentText: text,
       });
 
       const createdUi = mapCommentRowsToUi([created], {
         ...usersById,
-        [String(currentUser.user_id)]: currentUser,
+        [String(currentUser['user_id'])]: currentUser,
       })[0];
 
       setLocalComments((prev) => [createdUi, ...prev]);
@@ -301,7 +309,7 @@ export default function DetailsRequestModal({
       }
 
       setLocalRequest({ ...ui, controls: items });
-      setLocalComments(Array.isArray(ui.comments) ? ui.comments : []);
+      await loadCommentsAndUsers(rid);
 
       try {
         onUpdated?.(rid, ui, items);
@@ -316,7 +324,7 @@ export default function DetailsRequestModal({
   function buildUsersById(users) {
     const map = {};
     for (const u of Array.isArray(users) ? users : []) {
-      const id = u?.user_id;
+      const id = u?.['user_id'];
       if (id != null) map[String(id)] = u;
     }
     return map;
@@ -331,20 +339,24 @@ export default function DetailsRequestModal({
     }
   }
 
-  async function loadCommentsAndUsers(rid) {
+  async function loadCommentsAndUsers(rid, isCancelled = () => false) {
     if (rid == null) {
-      setLocalComments([]);
+      if (!isCancelled()) setLocalComments([]);
       return;
     }
 
-    setCommentsLoading(true);
-    setCommentsError('');
+    if (!isCancelled()) {
+      setCommentsLoading(true);
+      setCommentsError('');
+    }
 
     try {
       const [commentRows, activeUsers] = await Promise.all([
         fetchCommentsByRequestId(rid),
         fetchUsers({ isActive: true }),
       ]);
+
+      if (isCancelled()) return;
 
       const userMap = buildUsersById(activeUsers);
       setUsersById(userMap);
@@ -353,19 +365,26 @@ export default function DetailsRequestModal({
       setLocalComments(uiComments);
 
       const email = await getCurrentUserEmail();
+      if (isCancelled()) return;
+
       if (email) {
         try {
           const me = await fetchUserByEmail(email);
-          setCurrentUser(me || null);
+          if (!isCancelled()) setCurrentUser(me || null);
         } catch (e) {
           console.warn('Failed to resolve current user by email', e);
         }
+      } else if (!isCancelled()) {
+        setCurrentUser(null);
       }
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to load comments');
-      setLocalComments([]);
+      if (!isCancelled()) {
+        setCommentsError(e?.message || 'Failed to load comments');
+        setLocalComments([]);
+        setCurrentUser(null);
+      }
     } finally {
-      setCommentsLoading(false);
+      if (!isCancelled()) setCommentsLoading(false);
     }
   }
 
@@ -577,6 +596,7 @@ export default function DetailsRequestModal({
                 placeholder="Write a comment…"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
+                disabled={commentSaving || commentsLoading || !currentUser}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleAddComment();
                 }}
@@ -586,7 +606,7 @@ export default function DetailsRequestModal({
                 type="button"
                 onClick={handleAddComment}
                 aria-label="Send"
-                disabled={commentSaving || !commentText.trim()}
+                disabled={commentSaving || commentsLoading || !currentUser || !commentText.trim()}
               >
                 {commentSaving ? '...' : '➤'}
               </button>

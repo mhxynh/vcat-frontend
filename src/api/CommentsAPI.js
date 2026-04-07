@@ -1,25 +1,26 @@
 import { authFetch, API_BASE } from './apiClient';
+import { objectToCamelCase, objectToSnakeCase } from '../utils/transformer';
 
 function toUiComment(row, usersById = {}) {
-  const authorId = row?.author_user_id ?? null;
+  const authorId = row?.authorUserId ?? null;
   const authorUser = authorId != null ? usersById[String(authorId)] : null;
 
   const author =
-    authorUser?.full_name ||
+    authorUser?.fullName ||
     authorUser?.name ||
-    authorUser?.display_name ||
+    authorUser?.displayName ||
     authorUser?.email ||
     `User ${authorId ?? ''}`.trim();
 
   return {
-    id: row?.comment_id ?? row?.id,
+    id: row?.commentId ?? row?.id,
     authorUserId: authorId,
     author,
-    text: row?.comment_text ?? '',
-    date: formatCommentDate(row?.posted_at),
-    postedAt: row?.posted_at ?? null,
-    requestId: row?.request_id ?? null,
-    testId: row?.test_id ?? null,
+    text: row?.commentText ?? '',
+    date: formatCommentDate(row?.postedAt),
+    postedAt: row?.postedAt ?? null,
+    requestId: row?.requestId ?? null,
+    testId: row?.testId ?? null,
   };
 }
 
@@ -51,7 +52,8 @@ export async function fetchCommentsByRequestId(requestId) {
   }
 
   const data = await resp.json();
-  return Array.isArray(data) ? data : [];
+  const camelData = objectToCamelCase(data);
+  return Array.isArray(camelData) ? camelData : [];
 }
 
 export async function createRequestComment({ requestId, authorUserId, commentText }) {
@@ -62,11 +64,13 @@ export async function createRequestComment({ requestId, authorUserId, commentTex
   const resp = await authFetch(`${API_BASE}/comments`, {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      request_id: requestId,
-      author_user_id: authorUserId,
-      comment_text: String(commentText).trim(),
-    }),
+    body: JSON.stringify(
+      objectToSnakeCase({
+        requestId,
+        authorUserId,
+        commentText: String(commentText).trim(),
+      })
+    ),
   });
 
   if (!resp.ok) {
@@ -78,15 +82,20 @@ export async function createRequestComment({ requestId, authorUserId, commentTex
     throw new Error(msg);
   }
 
-  return await resp.json();
+  const data = await resp.json();
+  return objectToCamelCase(data);
 }
 
 export function mapCommentRowsToUi(rows, usersById = {}) {
   return (Array.isArray(rows) ? rows : [])
     .map((row) => toUiComment(row, usersById))
     .sort((a, b) => {
-      const ta = a.postedAt ? new Date(a.postedAt).getTime() : 0;
-      const tb = b.postedAt ? new Date(b.postedAt).getTime() : 0;
+      const rawA = a.postedAt ? new Date(a.postedAt).getTime() : 0;
+      const rawB = b.postedAt ? new Date(b.postedAt).getTime() : 0;
+
+      const ta = Number.isNaN(rawA) ? 0 : rawA;
+      const tb = Number.isNaN(rawB) ? 0 : rawB;
+
       return tb - ta;
     });
 }
