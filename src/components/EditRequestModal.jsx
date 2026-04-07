@@ -26,6 +26,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   const searchWrapperRef = useRef(null);
   const currentYear = new Date().getFullYear();
 
+  const normalizeTests = (tests) => (Array.isArray(tests) ? objectToCamelCase(tests) : []);
+
   useEffect(() => {
     if (!showSearchResults) return;
 
@@ -47,20 +49,20 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       setError('');
       setFieldErrors({});
       try {
-        const reqData = await fetchRequestById(requestId);
+        const reqData = objectToCamelCase(await fetchRequestById(requestId));
 
         setPriority(reqData.priority || 'MEDIUM');
         setRequestedBy(reqData.requestor);
-        setRequestDate(formatISOToDate(reqData.created_at) || '');
-        setDueDate(formatISOToDate(reqData.due_date) || '');
+        setRequestDate(formatISOToDate(reqData.createdAt) || '');
+        setDueDate(formatISOToDate(reqData.dueDate) || '');
         setDescription(reqData.description);
 
         const [testsData, allTestsData] = await Promise.all([
           fetchTestsByRequestId(requestId, { details: true }),
           fetchTests(),
         ]);
-        setAssociatedTests(Array.isArray(testsData) ? testsData : []);
-        setAllTests(Array.isArray(allTestsData) ? objectToCamelCase(allTestsData) : []);
+        setAssociatedTests(normalizeTests(testsData));
+        setAllTests(normalizeTests(allTestsData));
       } catch (e) {
         setError(e?.message || 'Failed to load request details.');
       } finally {
@@ -126,10 +128,10 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         String(t.controlDescription || t.description || '')
           .toLowerCase()
           .includes(q) ||
-        String(t.tester_name || t.assigned_tester_name || t.assignedTesterName || '')
+        String(t.testerName || t.assignedTesterName || '')
           .toLowerCase()
           .includes(q) ||
-        String(t.requestId || t.request_id || '')
+        String(t.requestId || '')
           .toLowerCase()
           .includes(q)
       );
@@ -137,35 +139,31 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   }, [allTests, searchQuery]);
 
   const handleAddTest = async (test) => {
-    const testId = test.testId ?? test.test_id ?? test.id;
+    const testId = test.testId ?? test.id;
     try {
       await updateTest(testId, {
         action: 'update_details',
         requestId: requestId,
         vgcpid: test.vgcpid,
-        assignedTesterId: test.assignedTesterId ?? test.assigned_tester_id ?? null,
-        requiresDat: test.requiresDat ?? test.requires_dat ?? false,
-        requiresOet: test.requiresOet ?? test.requires_oet ?? false,
-        dueDate: test.dueDate ?? test.due_date ?? null,
-        estimatedDate: test.estimatedDate ?? test.estimated_date ?? null,
-        description: test.description ?? test.controlDescription ?? test.control_description ?? '',
+        assignedTesterId: test.assignedTesterId ?? null,
+        requiresDat: test.requiresDat ?? false,
+        requiresOet: test.requiresOet ?? false,
+        dueDate: test.dueDate ?? null,
+        estimatedDate: test.estimatedDate ?? null,
+        description: test.description ?? test.controlDescription ?? '',
       });
 
       setAssociatedTests((prev) => {
-        const normalizedTest = { ...test, requestId, request_id: requestId };
-        const testIdToMatch = test.testId ?? test.test_id ?? test.id;
+        const normalizedTest = { ...test, requestId };
+        const testIdToMatch = test.testId ?? test.id;
 
-        const withoutOld = prev.filter((t) => (t.testId ?? t.test_id ?? t.id) !== testIdToMatch);
+        const withoutOld = prev.filter((t) => (t.testId ?? t.id) !== testIdToMatch);
 
         return [normalizedTest, ...withoutOld];
       });
 
       setAllTests((prev) =>
-        prev.map((t) =>
-          (t.testId ?? t.test_id ?? t.id) === testId
-            ? { ...t, requestId: requestId, request_id: requestId }
-            : t
-        )
+        prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: requestId } : t))
       );
 
       setSearchQuery('');
@@ -177,24 +175,22 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   };
 
   const handleRemoveTest = async (test) => {
-    const testId = test.testId ?? test.test_id ?? test.id;
+    const testId = test.testId ?? test.id;
     try {
       await updateTest(testId, {
         action: 'update_details',
         requestId: null,
         vgcpid: test.vgcpid,
-        assignedTesterId: test.assignedTesterId ?? test.assigned_tester_id ?? null,
-        requiresDat: test.requiresDat ?? test.requires_dat ?? false,
-        requiresOet: test.requiresOet ?? test.requires_oet ?? false,
-        dueDate: test.dueDate ?? test.due_date ?? null,
-        estimatedDate: test.estimatedDate ?? test.estimated_date ?? null,
-        description: test.description ?? test.controlDescription ?? test.control_description ?? '',
+        assignedTesterId: test.assignedTesterId ?? null,
+        requiresDat: test.requiresDat ?? false,
+        requiresOet: test.requiresOet ?? false,
+        dueDate: test.dueDate ?? null,
+        estimatedDate: test.estimatedDate ?? null,
+        description: test.description ?? test.controlDescription ?? '',
       });
-      setAssociatedTests((prev) => prev.filter((t) => (t.test_id ?? t.id) !== testId));
+      setAssociatedTests((prev) => prev.filter((t) => (t.testId ?? t.id) !== testId));
       setAllTests((prev) =>
-        prev.map((t) =>
-          (t.testId ?? t.test_id ?? t.id) === testId ? { ...t, requestId: null } : t
-        )
+        prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: null } : t))
       );
       if (onUpdated) await onUpdated();
     } catch (e) {
@@ -371,7 +367,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                           <div className="erm-search-empty">No matching controls found.</div>
                         ) : (
                           searchResults.map((test) => {
-                            const id = test.testId ?? test.test_id ?? test.id;
+                            const id = test.testId ?? test.id;
                             return (
                               <div key={id} className="erm-search-result-item">
                                 <div className="erm-search-result-info">
@@ -379,21 +375,18 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                     {test.vgcpid || id}:{' '}
                                     {test.controlDescription ||
                                       test.description ||
-                                      test.control_description ||
                                       'No Description'}
                                   </div>
                                   <div className="erm-search-result-meta">
                                     Tester:{' '}
-                                    {test.tester_name ||
-                                      test.assigned_tester_name ||
-                                      test.assignedTesterName ||
-                                      'Unassigned'}
+                                    {test.testerName || test.assignedTesterName || 'Unassigned'}
                                     {' • '}
                                     Request:{' '}
-                                    {test.requestId || test.request_id
-                                      ? `REQ-${currentYear}-${String(
-                                          test.requestId || test.request_id
-                                        ).padStart(4, '0')}`
+                                    {test.requestId
+                                      ? `REQ-${currentYear}-${String(test.requestId).padStart(
+                                          4,
+                                          '0'
+                                        )}`
                                       : 'Unlinked'}
                                   </div>
                                 </div>
@@ -435,15 +428,14 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                         .replaceAll('_', '-')
                         .replace(/\s+/g, '-');
                       return (
-                        <div key={test.id || test.test_id} className="erm-test-item">
+                        <div key={test.id || test.testId} className="erm-test-item">
                           <div className="erm-test-main">
                             <div className="erm-test-title">
                               {test.vgcpid || test.id}: {test.description || 'No Description'}
                             </div>
                             <div className="erm-test-meta">
                               {test.assignee ||
-                                test.tester_name ||
-                                test.assigned_tester_name ||
+                                test.testerName ||
                                 test.assignedTesterName ||
                                 'Unassigned'}
                               <span className={`status-pill erm-status-pill ${statusClass}`}>
@@ -515,14 +507,15 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         defaultRequestId={requestId}
         onCreated={async (created) => {
           const refreshedTests = await fetchTestsByRequestId(requestId, { details: true });
-          setAssociatedTests(Array.isArray(refreshedTests) ? refreshedTests : []);
+          setAssociatedTests(normalizeTests(refreshedTests));
 
           if (onUpdated) await onUpdated(created, true);
           setIsCreateTestOpen(false);
         }}
         onUpdated={async (updated) => {
+          const updatedTest = objectToCamelCase(updated);
           setAssociatedTests((prev) =>
-            prev.map((t) => (t.test_id === updated.test_id ? { ...t, ...updated } : t))
+            prev.map((t) => (t.testId === updatedTest.testId ? { ...t, ...updatedTest } : t))
           );
           if (onUpdated) await onUpdated(updated);
         }}
