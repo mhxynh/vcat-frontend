@@ -159,6 +159,7 @@ function formatTestRowStatusLabel(value) {
       .join(' ')
   );
 }
+import Icon from './common/Icon';
 
 export default function DetailsTestModal({
   isOpen,
@@ -274,6 +275,9 @@ export default function DetailsTestModal({
 
   const updatedAt = formatLongDate(t?.updatedAt);
   const dueDate = formatLongDate(t?.dueDate);
+  const overdue =
+    isOverdue(t?.due_date) &&
+    !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
   const etaDate = formatLongDate(t?.estimatedDate);
 
   const description = t?.description ?? 'No description.';
@@ -749,7 +753,15 @@ export default function DetailsTestModal({
               <>
                 <div className="dtm-details-grid">
                   <DetailItem label="DATE UPDATED" value={updatedAt} />
-                  <DetailItem label="DUE DATE" value={dueDate} />
+                  <DetailItem
+                    label="DUE DATE"
+                    value={
+                      <span className="dtm-date-with-icon">
+                        <span>{dueDate}</span>
+                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
+                      </span>
+                    }
+                  />
                   <DetailItem label="CURRENT STEP" value={currentStepLabel} />
                   <DetailItem label="ETA" value={etaDate} />
                 </div>
@@ -1046,4 +1058,15 @@ function parseLocalDate(value) {
 
   const dt = new Date(value);
   return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function isOverdue(value) {
+  const due = parseLocalDate(value);
+  if (!due) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  return due < today;
 }
