@@ -92,13 +92,13 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
         const pairs = await Promise.all(
           requests.map(async (req) => ({
             request: req,
-            tests: await fetchKanban({ requestId: req.request_id, details: true }),
+            kanbanTests: await fetchKanban({ requestId: req.request_id, details: true }),
           }))
         );
 
         const allTests = [];
-        pairs.forEach(({ request, tests }) => {
-          const list = Array.isArray(tests) ? tests : [];
+        pairs.forEach(({ request, kanbanTests }) => {
+          const list = Array.isArray(kanbanTests) ? kanbanTests : [];
           const requestPriority = request?.priority;
           list.forEach((test) => {
             allTests.push({ test, requestPriority });
@@ -201,6 +201,8 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
                         </button>
                         <span
                           className={`kanban-card-dot kanban-card-dot--${card.priorityVariant}`}
+                          role="img"
+                          aria-label={`Priority: ${card.priorityLabel}`}
                           title={`Priority: ${card.priorityLabel}`}
                         />
                       </div>

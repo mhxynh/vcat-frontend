@@ -1,6 +1,6 @@
 import { authFetch, API_BASE } from './apiClient';
 
-/** Maps API priority to a CSS suffix; colors are `var(--priority-*)` in Kanban.css / Tests.css */
+/** Maps API priority to a CSS suffix; colors are `var(--priority-*)` in base.css (global) */
 function priorityVariant(priorityRaw) {
   const v = String(priorityRaw || '')
     .toUpperCase()
