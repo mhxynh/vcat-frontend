@@ -26,15 +26,19 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   const searchWrapperRef = useRef(null);
   const currentYear = new Date().getFullYear();
 
+  const normalizeTests = (tests) => (Array.isArray(tests) ? objectToCamelCase(tests) : []);
+
   useEffect(() => {
     if (!showSearchResults) return;
+
     const handleClickOutside = (e) => {
       if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
         setShowSearchResults(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, [showSearchResults]);
 
   useEffect(() => {
@@ -45,20 +49,20 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       setError('');
       setFieldErrors({});
       try {
-        const reqData = await fetchRequestById(requestId);
+        const reqData = objectToCamelCase(await fetchRequestById(requestId));
 
         setPriority(reqData.priority || 'MEDIUM');
         setRequestedBy(reqData.requestor);
-        setRequestDate(formatISOToDate(reqData.created_at) || '');
-        setDueDate(formatISOToDate(reqData.due_date) || '');
+        setRequestDate(formatISOToDate(reqData.createdAt) || '');
+        setDueDate(formatISOToDate(reqData.dueDate) || '');
         setDescription(reqData.description);
 
         const [testsData, allTestsData] = await Promise.all([
           fetchTestsByRequestId(requestId, { details: true }),
           fetchTests(),
         ]);
-        setAssociatedTests(Array.isArray(testsData) ? testsData : []);
-        setAllTests(Array.isArray(allTestsData) ? objectToCamelCase(allTestsData) : []);
+        setAssociatedTests(normalizeTests(testsData));
+        setAllTests(normalizeTests(allTestsData));
       } catch (e) {
         setError(e?.message || 'Failed to load request details.');
       } finally {
@@ -109,25 +113,14 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
     (t) => String(t.status).toUpperCase() === 'COMPLETED'
   ).length;
 
-  const filteredTests = useMemo(() => {
-    if (!searchQuery.trim()) return associatedTests;
-    const q = searchQuery.toLowerCase();
-    return associatedTests.filter(
-      (t) =>
-        String(t.vgcpid || t.id || '')
-          .toLowerCase()
-          .includes(q) ||
-        String(t.description || '')
-          .toLowerCase()
-          .includes(q)
-    );
-  }, [associatedTests, searchQuery]);
+  const filteredTests = useMemo(() => associatedTests, [associatedTests]);
 
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
+
+    if (!q) return allTests;
+
     return allTests.filter((t) => {
-      if (t.requestId != null) return false;
       return (
         String(t.vgcpid || t.id || '')
           .toLowerCase()
@@ -135,7 +128,10 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         String(t.controlDescription || t.description || '')
           .toLowerCase()
           .includes(q) ||
-        String(t.assignedTesterName || '')
+        String(t.testerName || t.assignedTesterName || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(t.requestId || '')
           .toLowerCase()
           .includes(q)
       );
@@ -156,10 +152,20 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         estimatedDate: test.estimatedDate ?? null,
         description: test.description ?? test.controlDescription ?? '',
       });
-      setAssociatedTests((prev) => [test, ...prev]);
+
+      setAssociatedTests((prev) => {
+        const normalizedTest = { ...test, requestId };
+        const testIdToMatch = test.testId ?? test.id;
+
+        const withoutOld = prev.filter((t) => (t.testId ?? t.id) !== testIdToMatch);
+
+        return [normalizedTest, ...withoutOld];
+      });
+
       setAllTests((prev) =>
         prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: requestId } : t))
       );
+
       setSearchQuery('');
       setShowSearchResults(false);
       if (onUpdated) await onUpdated();
@@ -169,20 +175,20 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   };
 
   const handleRemoveTest = async (test) => {
-    const testId = test.testId ?? test.test_id ?? test.id;
+    const testId = test.testId ?? test.id;
     try {
       await updateTest(testId, {
         action: 'update_details',
         requestId: null,
         vgcpid: test.vgcpid,
-        assignedTesterId: test.assignedTesterId ?? test.assigned_tester_id ?? null,
-        requiresDat: test.requiresDat ?? test.requires_dat ?? false,
-        requiresOet: test.requiresOet ?? test.requires_oet ?? false,
-        dueDate: test.dueDate ?? test.due_date ?? null,
-        estimatedDate: test.estimatedDate ?? test.estimated_date ?? null,
-        description: test.description ?? test.controlDescription ?? test.control_description ?? '',
+        assignedTesterId: test.assignedTesterId ?? null,
+        requiresDat: test.requiresDat ?? false,
+        requiresOet: test.requiresOet ?? false,
+        dueDate: test.dueDate ?? null,
+        estimatedDate: test.estimatedDate ?? null,
+        description: test.description ?? test.controlDescription ?? '',
       });
-      setAssociatedTests((prev) => prev.filter((t) => (t.test_id ?? t.id) !== testId));
+      setAssociatedTests((prev) => prev.filter((t) => (t.testId ?? t.id) !== testId));
       setAllTests((prev) =>
         prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: null } : t))
       );
@@ -333,24 +339,29 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
               <div className="erm-divider" />
 
-              <div className="erm-section">
+              <div className="erm-section erm-section--associated-controls">
                 <h3 className="erm-section-title">Associated Controls*</h3>
                 <div className="erm-search-row">
                   <div className="erm-search-wrapper" ref={searchWrapperRef}>
-                    <input
-                      className="erm-search"
-                      placeholder="Search controls..."
-                      value={searchQuery || ''}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setShowSearchResults(true);
-                      }}
-                      onFocus={() => {
-                        if (searchQuery.trim()) setShowSearchResults(true);
-                      }}
-                      disabled={saving}
-                    />
-                    {showSearchResults && searchQuery.trim() && (
+                    <div className="erm-search-input-wrap">
+                      <span className="erm-search-icon" aria-hidden="true">
+                        🔍
+                      </span>
+                      <input
+                        className="erm-search"
+                        placeholder="Search Controls to add..."
+                        value={searchQuery || ''}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setShowSearchResults(true);
+                        }}
+                        onFocus={() => {
+                          setShowSearchResults(true);
+                        }}
+                        disabled={saving}
+                      />
+                    </div>
+                    {showSearchResults && (
                       <div className="erm-search-dropdown">
                         {searchResults.length === 0 ? (
                           <div className="erm-search-empty">No matching controls found.</div>
@@ -367,14 +378,23 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                       'No Description'}
                                   </div>
                                   <div className="erm-search-result-meta">
-                                    Tester: {test.assignedTesterName || 'Unassigned'}
+                                    Tester:{' '}
+                                    {test.testerName || test.assignedTesterName || 'Unassigned'}
+                                    {' • '}
+                                    Request:{' '}
+                                    {test.requestId
+                                      ? `REQ-${currentYear}-${String(test.requestId).padStart(
+                                          4,
+                                          '0'
+                                        )}`
+                                      : 'Unlinked'}
                                   </div>
                                 </div>
                                 <button
                                   type="button"
                                   className="erm-add-btn"
                                   onClick={() => handleAddTest(test)}
-                                  title="Add to request"
+                                  title="Link to this request"
                                 >
                                   +
                                 </button>
@@ -385,13 +405,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       </div>
                     )}
                   </div>
-                  <span
-                    onClick={() => setIsCreateTestOpen(true)}
-                    disabled={saving}
-                    style={{ marginLeft: '8px' }}
-                  >
-                    + Create New Control for this Request
-                  </span>
                 </div>
 
                 <div className="erm-test-list">
@@ -410,21 +423,22 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                     </div>
                   ) : (
                     filteredTests.map((test) => {
-                      const statusClass = String(test.status || 'Not Started')
+                      const statusClass = String(test.status || 'NOT_STARTED')
                         .toLowerCase()
+                        .replaceAll('_', '-')
                         .replace(/\s+/g, '-');
                       return (
-                        <div key={test.id || test.test_id} className="erm-test-item">
+                        <div key={test.id || test.testId} className="erm-test-item">
                           <div className="erm-test-main">
                             <div className="erm-test-title">
                               {test.vgcpid || test.id}: {test.description || 'No Description'}
                             </div>
                             <div className="erm-test-meta">
-                              {test.assignee || test.tester_name || 'Unassigned'}
-                              <span
-                                className={`status-pill ${statusClass}`}
-                                style={{ marginLeft: '12px', padding: '2px 8px', fontSize: '11px' }}
-                              >
+                              {test.assignee ||
+                                test.testerName ||
+                                test.assignedTesterName ||
+                                'Unassigned'}
+                              <span className={`status-pill erm-status-pill ${statusClass}`}>
                                 {formatStatus(test.status) || 'Not Started'}
                               </span>
                             </div>
@@ -442,6 +456,25 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       );
                     })
                   )}
+                  <div className="erm-create-control-row">
+                    <span
+                      className={`erm-create-control-link ${saving ? 'erm-create-control-link--disabled' : ''}`}
+                      onClick={() => {
+                        if (!saving) setIsCreateTestOpen(true);
+                      }}
+                      role="button"
+                      tabIndex={saving ? -1 : 0}
+                      onKeyDown={(e) => {
+                        if (saving) return;
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setIsCreateTestOpen(true);
+                        }
+                      }}
+                    >
+                      + Create New Control for this Request
+                    </span>
+                  </div>
                 </div>
               </div>
             </>
@@ -473,13 +506,16 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         onClose={() => setIsCreateTestOpen(false)}
         defaultRequestId={requestId}
         onCreated={async (created) => {
-          setAssociatedTests((prev) => [created, ...prev]);
+          const refreshedTests = await fetchTestsByRequestId(requestId, { details: true });
+          setAssociatedTests(normalizeTests(refreshedTests));
+
           if (onUpdated) await onUpdated(created, true);
           setIsCreateTestOpen(false);
         }}
         onUpdated={async (updated) => {
+          const updatedTest = objectToCamelCase(updated);
           setAssociatedTests((prev) =>
-            prev.map((t) => (t.test_id === updated.test_id ? { ...t, ...updated } : t))
+            prev.map((t) => (t.testId === updatedTest.testId ? { ...t, ...updatedTest } : t))
           );
           if (onUpdated) await onUpdated(updated);
         }}
@@ -491,6 +527,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 function formatStatus(s) {
   const v = String(s || '')
     .replaceAll('_', ' ')
-    .toLowerCase();
-  return v ? v.charAt(0).toUpperCase() + v.slice(1) : '-';
+    .toLowerCase()
+    .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
+    .replace(/\b(Dat|Oet|Oat)\b/g, (m) => m.toUpperCase());
+
+  return v || '-';
 }

@@ -14,6 +14,20 @@ import {
 } from '../api/TestsAPI';
 import EditControlModal from './EditControlModal';
 import DetailsRequestModal from './DetailsRequestModal';
+import Icon from './common/Icon';
+
+function formatDisplayDate(value) {
+  if (!value || value === '-') return '-';
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}
 
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -111,13 +125,15 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   const id = control?.id ?? '';
   const status = control?.status ?? 'Active';
-  const testing = control?.testing ?? 'Not Tested Yet';
+  const testing =
+    control?.testing && control.testing !== 'Not Tested Yet'
+      ? `Last Tested ${formatDisplayDate(control.testing)}`
+      : (control?.testing ?? 'Not Tested Yet');
   const description = control?.description ?? 'No description yet.';
-
   const owner = control?.owner;
   const sme = control?.sme ?? '-';
-  const dateCreated = control?.dateCreated ?? '-';
-  const lastTested = control?.lastTested ?? '-';
+  const dateCreated = formatDisplayDate(control?.dateCreated);
+  const lastTested = formatDisplayDate(control?.lastTested);
   const escalationRequired = control?.escalationRequired ?? '-';
 
   const requestHistory =
@@ -248,34 +264,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon dcm-icon--doc" aria-hidden="true">
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="18"
-                    height="18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7 3.75h7.25L18.25 7.75V20.25c0 .966-.784 1.75-1.75 1.75H7c-.966 0-1.75-.784-1.75-1.75V5.5c0-.966.784-1.75 1.75-1.75Z"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M14.25 3.75V7c0 .966.784 1.75 1.75 1.75h2.25"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M8.25 11h7.5M8.25 14.5h7.5M8.25 18h5.25"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </span>
+                <Icon name="documents" category="deco" />
                 Request History
               </div>
 
@@ -310,7 +299,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                               {r.requestId}
                             </button>
                           </td>
-                          <td>{r.date ?? '-'}</td>
+                          <td>{formatDisplayDate(r.date ?? '-')}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span
@@ -342,10 +331,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-logs">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <span className="dcm-icon" aria-hidden="true">
-                  🕘
-                </span>
-                Logs
+                <Icon name="history" category="deco" />
+                History & Logs
               </div>
 
               {logs.length === 0 ? (
@@ -358,7 +345,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       <div className="dcm-log-content">
                         <div className="dcm-log-top">
                           <div className="dcm-log-title">{log.title}</div>
-                          <div className="dcm-log-date">{log.date ?? ''}</div>
+                          <div className="dcm-log-date">{formatDisplayDate(log.date ?? '')}</div>
                         </div>
                         {log.subtitle && <div className="dcm-log-subtitle">{log.subtitle}</div>}
                         {log.actor && <div className="dcm-log-actor">by {log.actor}</div>}
