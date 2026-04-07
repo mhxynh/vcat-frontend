@@ -69,14 +69,6 @@ body {
   gap: 12px;
 }
 
-.tracker-header-btn {
-  gap: 8px;
-}
-
-.tracker-header-btn__icon {
-  flex-shrink: 0;
-}
-
 /* Buttons */
 .btn {
   font-size: 16px;

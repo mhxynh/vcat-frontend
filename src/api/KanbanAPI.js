@@ -1,3 +1,4 @@
+import { parseLocalDate } from '../utils/date';
 import { authFetch, API_BASE } from './apiClient';
 
 /** Maps API priority to a CSS suffix; colors are `var(--priority-*)` in base.css (global) */
@@ -21,19 +22,6 @@ function priorityLabel(priorityRaw) {
   if (v === 'MEDIUM') return 'Medium';
   if (v === 'LOW') return 'Low';
   return 'Medium';
-}
-
-/** Same semantics as TestsAPI / RequestsAPI — avoids UTC off-by-one for `YYYY-MM-DD` strings */
-function parseLocalDate(value) {
-  if (!value) return null;
-
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const dt = new Date(value);
-  return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
 export async function fetchKanban({ requestId, controlId, details } = {}) {

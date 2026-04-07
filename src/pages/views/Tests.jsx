@@ -1,19 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
+import { parseLocalDate } from '../../utils/date';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
-
-function parseLocalDate(value) {
-  if (!value) return null;
-
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const dt = new Date(value);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
 
 function formatDate(value) {
   const d = parseLocalDate(value);
