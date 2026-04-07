@@ -89,6 +89,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
+}
+
+.dcm-icon--doc svg {
+  display: block;
 }
 
 /* description */
@@ -162,6 +167,7 @@
   padding: 14px 16px;
   background: #fafafa;
   border-bottom: 1px solid #ededed;
+  vertical-align: middle;
 }
 
 .dcm-request-table tbody td {
@@ -169,8 +175,9 @@
   border-bottom: 1px solid #f0f0f0;
   color: #333;
   font-size: 13px;
-  vertical-align: top;
+  vertical-align: middle;
   font-weight: 400;
+  line-height: 1.35;
 }
 
 .dcm-request-table tbody tr:last-child td {
