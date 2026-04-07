@@ -14,7 +14,6 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import Icon from './common/Icon';
 
 const DATE_FORMAT = {
   month: 'short',
