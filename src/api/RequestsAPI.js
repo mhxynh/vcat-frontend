@@ -87,6 +87,64 @@ export function mapRequestRowToUi(row) {
   };
 }
 
+/** Request-level status for display (requests table / control request history). */
+export function formatRequestStatusLabel(status) {
+  const s = String(status || 'NOT_STARTED').toUpperCase();
+  const labels = {
+    NOT_STARTED: 'Not Started',
+    IN_PROGRESS: 'In Progress',
+    IN_REVIEW: 'In Review',
+    COMPLETED: 'Completed',
+    BLOCKED: 'Blocked',
+    ARCHIVED: 'Archived',
+  };
+  if (labels[s]) return labels[s];
+  return s
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+/**
+ * Unique requests for a control from tests, joined to request rows (one row per request even if multiple tests).
+ * @param {Array<{ request_id?: number }>} tests
+ * @param {Array<{ request_id?: number, requestor?: string, status?: string, description?: string, start_date?: string, created_at?: string }>} requestRows
+ */
+export function buildRequestHistoryForControl(tests, requestRows) {
+  const seen = new Set();
+  const ids = [];
+  for (const t of tests) {
+    const rid = t?.request_id;
+    if (rid == null) continue;
+    const n = Number(rid);
+    if (Number.isNaN(n) || seen.has(n)) continue;
+    seen.add(n);
+    ids.push(n);
+  }
+  ids.sort((a, b) => b - a);
+
+  const byId = new Map();
+  for (const row of requestRows) {
+    const id = row?.request_id;
+    if (id != null) byId.set(Number(id), row);
+  }
+
+  return ids.map((rid) => {
+    const row = byId.get(rid);
+    const ui = row ? mapRequestRowToUi(row) : null;
+    return {
+      key: String(rid),
+      requestId: `REQ-${String(rid).padStart(4, '0')}`,
+      date: ui?.requestDate ?? '-',
+      requester: ui?.requestedBy ?? (row?.requestor ? String(row.requestor) : '-'),
+      status: formatRequestStatusLabel(ui?.status ?? row?.status),
+      description: String(ui?.description ?? row?.description ?? '').trim() || '-',
+    };
+  });
+}
+
 function isOverdue(dueDate, status) {
   const s = String(status || '').toUpperCase();
   if (s === 'COMPLETED' || s === 'ARCHIVED') return false;

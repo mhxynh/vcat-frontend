@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
+import { buildRequestHistoryForControl, fetchRequests } from '../api/RequestsAPI';
+import { fetchTestsByControlId } from '../api/TestsAPI';
 import EditControlModal from './EditControlModal';
 
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
@@ -29,6 +31,10 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  const [fetchedRequestHistory, setFetchedRequestHistory] = useState([]);
+  const [requestHistoryLoading, setRequestHistoryLoading] = useState(false);
+  const [requestHistoryError, setRequestHistoryError] = useState('');
+
   useEffect(() => {
     if (!isOpen) return;
     setDeleting(false);
@@ -41,6 +47,48 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       setIsDeleteConfirmOpen(false);
     }
   }, [isOpen]);
+
+  useLayoutEffect(() => {
+    if (isOpen && control?.controlId != null) {
+      setRequestHistoryLoading(true);
+    }
+  }, [isOpen, control?.controlId]);
+
+  useEffect(() => {
+    if (!isOpen || control?.controlId == null) {
+      setFetchedRequestHistory([]);
+      setRequestHistoryLoading(false);
+      setRequestHistoryError('');
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRequestHistory() {
+      setRequestHistoryLoading(true);
+      setRequestHistoryError('');
+      try {
+        const [tests, requests] = await Promise.all([
+          fetchTestsByControlId(control.controlId),
+          fetchRequests(),
+        ]);
+        if (cancelled) return;
+        setFetchedRequestHistory(buildRequestHistoryForControl(tests, requests));
+      } catch (e) {
+        if (!cancelled) {
+          setFetchedRequestHistory([]);
+          setRequestHistoryError(e?.message || 'Failed to load request history');
+        }
+      } finally {
+        if (!cancelled) setRequestHistoryLoading(false);
+      }
+    }
+
+    loadRequestHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, control?.controlId]);
 
   if (!isOpen) return null;
 
@@ -55,7 +103,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const lastTested = control?.lastTested ?? '-';
   const escalationRequired = control?.escalationRequired ?? '-';
 
-  const requestHistory = Array.isArray(control?.requestHistory) ? control.requestHistory : [];
+  const requestHistory =
+    control?.controlId != null
+      ? fetchedRequestHistory
+      : Array.isArray(control?.requestHistory)
+        ? control.requestHistory
+        : [];
   const logs =
     (Array.isArray(control?.logs) && control.logs) ||
     (Array.isArray(control?.historyLogs) && control.historyLogs) ||
@@ -156,7 +209,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </div>
 
               <div className="dcm-request-table-wrap">
-                {requestHistory.length === 0 ? (
+                {requestHistoryError ? (
+                  <div className="dcm-empty">{requestHistoryError}</div>
+                ) : requestHistoryLoading ? (
+                  <div className="dcm-empty">Loading request history…</div>
+                ) : requestHistory.length === 0 ? (
                   <div className="dcm-empty">No request history found.</div>
                 ) : (
                   <table className="dcm-request-table">
@@ -171,7 +228,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                     </thead>
                     <tbody>
                       {requestHistory.map((r) => (
-                        <tr key={r.requestId}>
+                        <tr key={r.key ?? r.requestId}>
                           <td className="dcm-mono">{r.requestId}</td>
                           <td>{r.date ?? '-'}</td>
                           <td>{r.requester ?? '-'}</td>
