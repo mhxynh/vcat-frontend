@@ -46,42 +46,6 @@ function buildActorDisplayNameLookup(users) {
   return map;
 }
 
-/** Session cache so reopening history does not refetch GET /users. */
-let actorLookupCache = null;
-let actorLookupInFlight = null;
-let actorLookupLastFailureAt = 0;
-
-function resetActorLookupModuleCache() {
-  actorLookupCache = null;
-  actorLookupInFlight = null;
-  actorLookupLastFailureAt = 0;
-}
-
-function loadActorLookupMap() {
-  if (actorLookupCache) return Promise.resolve(actorLookupCache);
-  if (actorLookupInFlight) return actorLookupInFlight;
-  // Avoid hot-looping retries if the request is failing (auth/network/etc.).
-  if (Date.now() - actorLookupLastFailureAt < 10_000) {
-    return Promise.resolve(Object.create(null));
-  }
-  // Full org list: needed to resolve historical actor_user_ids. A future API could return
-  // display names on audit rows or accept a set of user ids to narrow this call.
-  actorLookupInFlight = fetchUsers()
-    .then((users) => {
-      actorLookupCache = buildActorDisplayNameLookup(users);
-      return actorLookupCache;
-    })
-    .catch(() => {
-      // Do not permanently cache failure; allow recovery on a later attempt.
-      actorLookupLastFailureAt = Date.now();
-      return Object.create(null);
-    })
-    .finally(() => {
-      actorLookupInFlight = null;
-    });
-  return actorLookupInFlight;
-}
-
 /** Decode Cognito ID token payload (browser); UTF-8 safe for Unicode claims. */
 function decodeJwtPayload(token) {
   try {
@@ -96,6 +60,58 @@ function decodeJwtPayload(token) {
   } catch {
     return null;
   }
+}
+
+async function getActorLookupSessionKey() {
+  try {
+    const session = await fetchAuthSession();
+    const token = session?.tokens?.idToken?.toString();
+    const payload = token ? decodeJwtPayload(token) : null;
+    const userKey = payload?.sub ?? payload?.['cognito:username'] ?? null;
+    return userKey != null && userKey !== '' ? String(userKey) : 'anonymous';
+  } catch {
+    return 'anonymous';
+  }
+}
+
+/** Per signed-in user: avoids cross-session reuse of GET /users within the same tab. */
+let actorLookupCacheBySession = Object.create(null);
+let actorLookupInFlightBySession = Object.create(null);
+let actorLookupLastFailureAtBySession = Object.create(null);
+
+function resetActorLookupModuleCache() {
+  actorLookupCacheBySession = Object.create(null);
+  actorLookupInFlightBySession = Object.create(null);
+  actorLookupLastFailureAtBySession = Object.create(null);
+}
+
+function loadActorLookupMap() {
+  return getActorLookupSessionKey().then((sessionKey) => {
+    if (actorLookupCacheBySession[sessionKey]) {
+      return Promise.resolve(actorLookupCacheBySession[sessionKey]);
+    }
+    if (actorLookupInFlightBySession[sessionKey]) {
+      return actorLookupInFlightBySession[sessionKey];
+    }
+    if (Date.now() - (actorLookupLastFailureAtBySession[sessionKey] ?? 0) < 10_000) {
+      return Promise.resolve(Object.create(null));
+    }
+    // Full org list: needed to resolve historical actor_user_ids. A future API could return
+    // display names on audit rows or accept a set of user ids to narrow this call.
+    actorLookupInFlightBySession[sessionKey] = fetchUsers()
+      .then((users) => {
+        actorLookupCacheBySession[sessionKey] = buildActorDisplayNameLookup(users);
+        return actorLookupCacheBySession[sessionKey];
+      })
+      .catch(() => {
+        actorLookupLastFailureAtBySession[sessionKey] = Date.now();
+        return Object.create(null);
+      })
+      .finally(() => {
+        delete actorLookupInFlightBySession[sessionKey];
+      });
+    return actorLookupInFlightBySession[sessionKey];
+  });
 }
 
 function displayNameFromIdTokenPayload(payload) {
@@ -190,8 +206,17 @@ export default function AuditHistoryView({
     return logs.some((log) => logActorUserIdRaw(log) != null && !logActorDisplayNameRaw(log));
   }, [showContent, logs]);
 
+  /** Dev fallback when backend omits actor_user_id + actor_display_name — only then read Cognito. */
+  const needsDevSessionFallback = useMemo(() => {
+    if (!isDev || !showContent || !logs?.length) return false;
+    return logs.some((log) => !logActorDisplayNameRaw(log) && logActorUserIdRaw(log) == null);
+  }, [isDev, showContent, logs]);
+
   useEffect(() => {
-    if (!showContent || !isDev) return;
+    if (!needsDevSessionFallback) {
+      setSessionDisplayName(null);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -207,7 +232,7 @@ export default function AuditHistoryView({
     return () => {
       cancelled = true;
     };
-  }, [showContent, isDev]);
+  }, [needsDevSessionFallback]);
 
   useEffect(() => {
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
