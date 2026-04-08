@@ -19,6 +19,8 @@ export const ACTIONS = {
   VIEW_TESTS: 'VIEW_TESTS',
   UPDATE_TEST: 'UPDATE_TEST',
   ASSIGN_TESTER: 'ASSIGN_TESTER',
+  /** Re-linking a test to a different control (VGCPID) */
+  CHANGE_TEST_CONTROL_VGCPID: 'CHANGE_TEST_CONTROL_VGCPID',
   BULK_ASSIGN_TESTERS: 'BULK_ASSIGN_TESTERS',
   ASSIGN_TESTER_TO_REQUEST: 'ASSIGN_TESTER_TO_REQUEST',
   VIEW_SUMMARY: 'VIEW_SUMMARY',
@@ -41,6 +43,7 @@ const MANAGER_ONLY = new Set([
   ACTIONS.DELETE_CONTROL_TEST,
   ACTIONS.ARCHIVE_CONTROL_TEST,
   ACTIONS.ASSIGN_TESTER,
+  ACTIONS.CHANGE_TEST_CONTROL_VGCPID,
   ACTIONS.BULK_ASSIGN_TESTERS,
   ACTIONS.ASSIGN_TESTER_TO_REQUEST,
   ACTIONS.VERSION_RESTORE,
@@ -64,6 +67,8 @@ export const ACTION_MESSAGES = {
   [ACTIONS.ARCHIVE_CONTROL_TEST]:
     'Only managers can archive control tests. Contact a manager for assistance.',
   [ACTIONS.ASSIGN_TESTER]: 'Only managers can assign testers.',
+  [ACTIONS.CHANGE_TEST_CONTROL_VGCPID]:
+    'Only managers can change which control (VGCPID) a test is linked to. Contact a manager for assistance.',
   [ACTIONS.BULK_ASSIGN_TESTERS]: 'Only managers can assign testers.',
   [ACTIONS.ASSIGN_TESTER_TO_REQUEST]: 'Only managers can assign testers to requests.',
   [ACTIONS.VERSION_RESTORE]: 'Only managers can restore previous versions.',
