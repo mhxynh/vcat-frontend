@@ -137,11 +137,17 @@ export async function fetchRequestsByIds(ids) {
     // ignore and fall back
   }
 
-  const results = await Promise.allSettled(unique.map((rid) => fetchRequestById(rid)));
-  return results
-    .filter((r) => r.status === 'fulfilled')
-    .map((r) => r.value)
-    .filter(Boolean);
+  /** Limit concurrent per-id calls to avoid bursting the network when many request_ids exist. */
+  const CHUNK = 6;
+  const rows = [];
+  for (let i = 0; i < unique.length; i += CHUNK) {
+    const chunk = unique.slice(i, i + CHUNK);
+    const results = await Promise.allSettled(chunk.map((rid) => fetchRequestById(rid)));
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) rows.push(r.value);
+    }
+  }
+  return rows;
 }
 
 /**
@@ -171,10 +177,17 @@ export function buildRequestHistoryForControl(tests, requestRows) {
   return ids.map((rid) => {
     const row = byId.get(rid);
     const ui = row ? mapRequestRowToUi(row) : null;
+    const dateRaw =
+      row && (row.start_date != null || row.created_at != null)
+        ? (row.start_date ?? row.created_at)
+        : null;
     return {
       key: String(rid),
       requestId: `REQ-${String(rid).padStart(4, '0')}`,
+      /** Localized display string (e.g. Requests table); prefer `dateRaw` + one format pass in UI. */
       date: ui?.requestDate ?? '-',
+      /** ISO-ish raw value safe for `new Date()` / `formatDisplayDate` in the control modal */
+      dateRaw,
       requester: ui?.requestedBy ?? (row?.requestor ? String(row.requestor) : '-'),
       status: formatRequestStatusLabel(ui?.status ?? row?.status),
       description: String(ui?.description ?? row?.description ?? '').trim() || '-',

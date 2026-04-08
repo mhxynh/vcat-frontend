@@ -29,6 +29,15 @@ function formatDisplayDate(value) {
   }).format(parsed);
 }
 
+/** Request history: format once from raw API date; avoid reparsing localized `date` strings. */
+function formatRequestHistoryTableDate(row) {
+  if (row?.dateRaw != null && row.dateRaw !== '') {
+    return formatDisplayDate(row.dateRaw);
+  }
+  if (!row?.date || row.date === '-') return '-';
+  return row.date;
+}
+
 /** Numeric backend request_id for API calls; supports rows from fetch path or `control.requestHistory` fallback. */
 function getHistoryRowRequestId(historyRow) {
   const keyValue = historyRow?.key;
@@ -347,7 +356,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                               <span>{r.requestId}</span>
                             )}
                           </td>
-                          <td>{formatDisplayDate(r.date ?? '-')}</td>
+                          <td>{formatRequestHistoryTableDate(r)}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span
