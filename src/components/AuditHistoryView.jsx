@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
 import { fetchUsers } from '../api/UsersAPI';
 import '../styles/components/AuditHistoryView.css';
 
@@ -50,6 +51,12 @@ let actorLookupCache = null;
 let actorLookupInFlight = null;
 let actorLookupLastFailureAt = 0;
 
+function resetActorLookupModuleCache() {
+  actorLookupCache = null;
+  actorLookupInFlight = null;
+  actorLookupLastFailureAt = 0;
+}
+
 function loadActorLookupMap() {
   if (actorLookupCache) return Promise.resolve(actorLookupCache);
   if (actorLookupInFlight) return actorLookupInFlight;
@@ -57,6 +64,8 @@ function loadActorLookupMap() {
   if (Date.now() - actorLookupLastFailureAt < 10_000) {
     return Promise.resolve(Object.create(null));
   }
+  // Full org list: needed to resolve historical actor_user_ids. A future API could return
+  // display names on audit rows or accept a set of user ids to narrow this call.
   actorLookupInFlight = fetchUsers()
     .then((users) => {
       actorLookupCache = buildActorDisplayNameLookup(users);
@@ -201,6 +210,15 @@ export default function AuditHistoryView({
   }, [showContent, isDev]);
 
   useEffect(() => {
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      if (payload?.event === 'signedOut') {
+        resetActorLookupModuleCache();
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
     if (!needsActorLookup) {
       setActorLookup((currentLookup) =>
         Object.keys(currentLookup).length > 0 ? Object.create(null) : currentLookup
@@ -239,7 +257,7 @@ export default function AuditHistoryView({
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">
+              <div className="ahv-avatar" aria-hidden="true">
                 <span className="ahv-avatar-text">
                   {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup, isDev)}
                 </span>
