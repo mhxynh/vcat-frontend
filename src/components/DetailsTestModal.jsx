@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
-import EditTestModal from './EditTestModal';
+import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
+import EditTestModal from './EditTestModal';
+import { objectToCamelCase } from '../utils/transformer';
 import {
   archiveTest,
   hardDeleteTest,
@@ -13,7 +15,6 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import Icon from './common/Icon';
 
 export default function DetailsTestModal({
   isOpen,
@@ -39,6 +40,11 @@ export default function DetailsTestModal({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
+  const normalizedTest = useMemo(
+    () => objectToCamelCase(localTest ?? test ?? null),
+    [localTest, test]
+  );
+
   useEffect(() => {
     if (!isOpen) setIsEditOpen(false);
   }, [isOpen]);
@@ -61,7 +67,7 @@ export default function DetailsTestModal({
     setHistoryLogs([]);
     setHistoryError('');
 
-    setLocalTest(test ?? null);
+    setLocalTest(objectToCamelCase(test ?? null));
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
@@ -71,7 +77,7 @@ export default function DetailsTestModal({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, test, onClose]);
 
-  const currentTestId = (localTest ?? test)?.test_id ?? null;
+  const currentTestId = normalizedTest?.testId ?? null;
 
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !currentTestId) return;
@@ -82,7 +88,7 @@ export default function DetailsTestModal({
 
     fetchAuditLogsByTestId({ testId: currentTestId })
       .then((logs) => {
-        if (!cancelled) setHistoryLogs(logs);
+        if (!cancelled) setHistoryLogs(Array.isArray(logs) ? logs : []);
       })
       .catch((e) => {
         if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
@@ -97,37 +103,37 @@ export default function DetailsTestModal({
   }, [isOpen, activeTab, currentTestId]);
 
   async function refreshTest() {
-    const testId = (localTest ?? test)?.test_id ?? null;
+    const testId = normalizedTest?.testId ?? null;
     if (testId == null) return null;
 
     const fresh = await fetchTestById(testId);
-    setLocalTest(fresh);
-    onEdit?.(fresh);
-    return fresh;
+    const normalized = objectToCamelCase(fresh);
+    setLocalTest(normalized);
+    onEdit?.(normalized);
+    return normalized;
   }
 
   const stop = (e) => e.stopPropagation();
 
-  const t = useMemo(() => localTest ?? test ?? {}, [localTest, test]);
+  const t = useMemo(() => normalizedTest ?? {}, [normalizedTest]);
 
   const { currentStepLabel, nextStepLabel } = useMemo(() => computeStepLabels(t), [t]);
 
   if (!isOpen) return null;
 
   const testId = currentTestId;
-  const vgcpid = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? 'Unknown';
-  const assignedName =
-    t?.assigned_tester_name ?? t?.tester_name ?? String(t?.assigned_tester_id ?? '-');
+  const vgcpid = t?.vgcpid ?? t?.controlVgcpid ?? t?.controlId ?? 'Unknown';
+  const assignedName = t?.assignedTesterName ?? t?.testerName ?? String(t?.assignedTesterId ?? '-');
 
   const status = t?.status ?? 'NOT_STARTED';
   const typeLabel = testTypeFromFlags(t);
 
-  const updatedAt = formatLongDate(t?.updated_at);
-  const dueDate = formatLongDate(t?.due_date);
+  const updatedAt = formatLongDate(t?.updatedAt);
+  const dueDate = formatLongDate(t?.dueDate);
   const overdue =
     isOverdue(t?.due_date) &&
     !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
-  const etaDate = formatLongDate(t?.estimated_date);
+  const etaDate = formatLongDate(t?.estimatedDate);
 
   const description = t?.description ?? 'No description.';
 
@@ -165,11 +171,11 @@ export default function DetailsTestModal({
   }
 
   function getActiveTrack(testRow) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
-    const datStep = String(testRow?.['dat_step'] || '');
-    const oetStep = String(testRow?.['oet_step'] || '');
+    const datStep = String(testRow?.datStep || '');
+    const oetStep = String(testRow?.oetStep || '');
 
     if (requiresDat && datStep !== 'COMPLETED') return 'DAT';
 
@@ -181,8 +187,8 @@ export default function DetailsTestModal({
   }
 
   function getFlowSteps(testRow, track) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
     if (requiresDat && requiresOet) {
       if (track === 'DAT') {
@@ -220,8 +226,7 @@ export default function DetailsTestModal({
   }
 
   function getTrackStep(testRow, track) {
-    const raw =
-      track === 'DAT' ? String(testRow?.['dat_step'] || '') : String(testRow?.['oet_step'] || '');
+    const raw = track === 'DAT' ? String(testRow?.datStep || '') : String(testRow?.oetStep || '');
     return raw;
   }
 
@@ -232,11 +237,11 @@ export default function DetailsTestModal({
   }
 
   function isFinalTestingComplete(testRow) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
-    const datStep = String(testRow?.['dat_step'] || '');
-    const oetStep = String(testRow?.['oet_step'] || '');
+    const datStep = String(testRow?.datStep || '');
+    const oetStep = String(testRow?.oetStep || '');
 
     const datReady = datStep === 'COMPLETED' || datStep === 'ADDRESSING_COMMENTS';
     const oetReady = oetStep === 'COMPLETED' || oetStep === 'ADDRESSING_COMMENTS';
@@ -276,8 +281,8 @@ export default function DetailsTestModal({
       await runBusy('Starting work...', async () => {
         await startTest(testId);
 
-        const requiresDat = !!t?.requires_dat;
-        const requiresOet = !!t?.requires_oet;
+        const requiresDat = !!t?.requiresDat;
+        const requiresOet = !!t?.requiresOet;
 
         if (requiresDat) {
           await updateDat(testId, 'TESTING_READY', 'DAT_IN_PROGRESS');
@@ -346,11 +351,11 @@ export default function DetailsTestModal({
   }
 
   function getRevertTrack(testRow) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
-    const datStep = String(testRow?.['dat_step'] || '');
-    const oetStep = String(testRow?.['oet_step'] || '');
+    const datStep = String(testRow?.datStep || '');
+    const oetStep = String(testRow?.oetStep || '');
 
     const active = getActiveTrack(testRow);
 
@@ -370,7 +375,7 @@ export default function DetailsTestModal({
 
     try {
       if (statusUpper === 'IN_REVIEW') {
-        const track = getActiveTrack(t) || (t?.requires_oet ? 'OET' : 'DAT');
+        const track = getActiveTrack(t) || (t?.requiresOet ? 'OET' : 'DAT');
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, 'COMPLETED', statusForTrack(track));
@@ -393,9 +398,9 @@ export default function DetailsTestModal({
 
         const willBeNotStarted =
           prev === '' &&
-          ((!!t?.requires_dat && !t?.requires_oet) ||
-            (!t?.requires_dat && !!t?.requires_oet) ||
-            (!!t?.requires_dat && !!t?.requires_oet && String(otherStep || '') === ''));
+          ((!!t?.requiresDat && !t?.requiresOet) ||
+            (!t?.requiresDat && !!t?.requiresOet) ||
+            (!!t?.requiresDat && !!t?.requiresOet && String(otherStep || '') === ''));
 
         const statusValue = willBeNotStarted ? 'NOT_STARTED' : statusForTrack(track);
 
@@ -422,7 +427,7 @@ export default function DetailsTestModal({
 
     try {
       await runBusy('Rejecting...', async () => {
-        const finalTrack = t?.requires_oet ? 'OET' : 'DAT';
+        const finalTrack = t?.requiresOet ? 'OET' : 'DAT';
         await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', statusForTrack(finalTrack));
         await refreshTest();
       });
@@ -658,9 +663,9 @@ export default function DetailsTestModal({
                 showContent={true}
                 contextVgcpid={vgcpid}
               />
-            ) : (
+            ) : activeTab === 'Attachments' ? (
               <div className="dtm-empty">This view is not implemented yet.</div>
-            )}
+            ) : null}
           </section>
 
           <div className="dtm-divider" />
@@ -733,8 +738,8 @@ function initials(name) {
 }
 
 function testTypeFromFlags(t) {
-  const dat = !!t?.requires_dat;
-  const oet = !!t?.requires_oet;
+  const dat = !!t?.requiresDat;
+  const oet = !!t?.requiresOet;
   if (dat && oet) return 'DAT & OET';
   if (dat) return 'DAT Only';
   if (oet) return 'OET Only';
@@ -750,11 +755,11 @@ function humanStep(s) {
 }
 
 function computeStepLabels(test) {
-  const requiresDat = !!test?.requires_dat;
-  const requiresOet = !!test?.requires_oet;
+  const requiresDat = !!test?.requiresDat;
+  const requiresOet = !!test?.requiresOet;
 
-  const datStep = String(test?.['dat_step'] || '');
-  const oetStep = String(test?.['oet_step'] || '');
+  const datStep = String(test?.datStep || '');
+  const oetStep = String(test?.oetStep || '');
 
   const datDone = datStep === 'COMPLETED';
   const oetDone = oetStep === 'COMPLETED';
