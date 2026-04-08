@@ -116,7 +116,6 @@ const KanbanBoard = ({ refreshKey = 0 }) => {
         setCards(mapped);
         setTests(testsMap);
       } catch (e) {
-        console.error('Kanban API error', e);
         setError(e.message || 'Failed to load kanban data');
       } finally {
         setLoading(false);
