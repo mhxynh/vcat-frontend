@@ -6,6 +6,8 @@ export const ACTIONS = {
   RETIRE_CONTROL: 'RETIRE_CONTROL',
   DELETE_CONTROL_HARD: 'DELETE_CONTROL_HARD',
   UPDATE_CONTROL: 'UPDATE_CONTROL',
+  /** Renaming control ID (VGCPID) in catalog edit */
+  CHANGE_CATALOG_CONTROL_ID: 'CHANGE_CATALOG_CONTROL_ID',
   IMPORT_CONTROLS: 'IMPORT_CONTROLS',
   VIEW_CONTROLS: 'VIEW_CONTROLS',
   CREATE_REQUEST: 'CREATE_REQUEST',
@@ -33,6 +35,7 @@ export const ACTIONS = {
 const MANAGER_ONLY = new Set([
   ACTIONS.CREATE_CONTROL,
   ACTIONS.RETIRE_CONTROL,
+  ACTIONS.CHANGE_CATALOG_CONTROL_ID,
   ACTIONS.DELETE_CONTROL_HARD,
   ACTIONS.IMPORT_CONTROLS,
   ACTIONS.CREATE_REQUEST,
@@ -54,6 +57,8 @@ export const ACTION_MESSAGES = {
   [ACTIONS.RETIRE_CONTROL]: 'Only managers can retire controls. Contact a manager for assistance.',
   [ACTIONS.DELETE_CONTROL_HARD]:
     'Only managers can remove controls. Contact a manager for assistance.',
+  [ACTIONS.CHANGE_CATALOG_CONTROL_ID]:
+    'Only managers can change the control ID. Contact a manager for assistance.',
   [ACTIONS.IMPORT_CONTROLS]: 'Only managers can import controls. Contact a manager for access.',
   [ACTIONS.CREATE_REQUEST]: 'Only managers can create requests.',
   [ACTIONS.UPDATE_REQUEST]: 'Only managers can update requests.',
