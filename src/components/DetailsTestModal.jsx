@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
+import Icon from './common/Icon';
 import EditTestModal from './EditTestModal';
-import AuditHistoryView from './AuditHistoryView';
+import { objectToCamelCase } from '../utils/transformer';
 import {
   archiveTest,
   hardDeleteTest,
@@ -13,6 +14,151 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+
+const DATE_FORMAT = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+function formatDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, DATE_FORMAT);
+}
+
+function logActorDisplayNameRaw(log) {
+  const v = log.actorDisplayName;
+  return v != null ? String(v).trim() : '';
+}
+
+function logActorUserIdRaw(log) {
+  const v = log.actorUserId;
+  if (v === null || v === undefined || v === '') return null;
+  return v;
+}
+
+function resolveActorLabel(log, actorFallback) {
+  const fromApi = logActorDisplayNameRaw(log);
+  if (fromApi) return fromApi;
+  const uid = logActorUserIdRaw(log);
+  if (uid != null) return `User ${uid}`;
+  if (actorFallback) {
+    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
+    if (fn && fn !== '-') return fn;
+    const fuid = actorFallback.userId;
+    if (fuid != null && fuid !== '') return `User ${fuid}`;
+  }
+  return '';
+}
+
+function getAuditChanges(log) {
+  const action = String(log.action || '').toUpperCase();
+  const after = log.afterSnapshot || {};
+  const before = log.beforeSnapshot || {};
+  const changed = log.changedFields || [];
+
+  if (action === 'UPDATE') {
+    const diff = after.changed || {};
+    return changed
+      .filter((field) => {
+        const entry = diff[field];
+        if (!entry) return false;
+        if (field === 'updatedAt') return false;
+        if (entry.from === entry.to) return false;
+        return true;
+      })
+      .map((field) => {
+        const entry = diff[field];
+        const label = formatFieldLabel(field);
+        const fromStr = formatAuditValue(field, entry?.from);
+        const toStr = formatAuditValue(field, entry?.to);
+        return { field, label, fromStr, toStr };
+      });
+  }
+
+  if (action === 'DELETE' && before.status) {
+    return [
+      {
+        field: 'status',
+        label: 'Status',
+        fromStr: formatTestRowStatusLabel(before.status),
+        toStr: 'Archived',
+      },
+    ];
+  }
+
+  return [];
+}
+
+function formatFieldLabel(field) {
+  const labels = {
+    status: 'Status',
+    datStep: 'DAT Step',
+    oetStep: 'OET Step',
+    updatedAt: 'Updated',
+    dueDate: 'Due date',
+    estimatedDate: 'ETA',
+    startDate: 'Start date',
+    completeDate: 'Complete date',
+    description: 'Description',
+    priority: 'Priority',
+    requestor: 'Requestor',
+    assignedTesterId: 'Assignee',
+  };
+  return labels[field] || field.replace(/_/g, ' ');
+}
+
+function formatAuditValue(field, value) {
+  if (value === null || value === undefined || value === '') return '—';
+
+  const dateFields = [
+    'updatedAt',
+    'dueDate',
+    'estimatedDate',
+    'startDate',
+    'completeDate',
+    'createdAt',
+  ];
+  if (dateFields.includes(field)) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+  }
+
+  if (field === 'status') {
+    return formatTestRowStatusLabel(value);
+  }
+
+  if (field === 'datStep' || field === 'oetStep') {
+    return humanStep(value);
+  }
+
+  return String(value);
+}
+
+function formatTestRowStatusLabel(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).toUpperCase();
+  const map = {
+    NOT_STARTED: 'Not Started',
+    DAT_IN_PROGRESS: 'DAT In Progress',
+    OET_IN_PROGRESS: 'OET In Progress',
+    IN_REVIEW: 'In Review',
+    BLOCKED: 'Blocked',
+    COMPLETED: 'Completed',
+    ARCHIVED: 'Archived',
+  };
+  return (
+    map[raw] ||
+    raw
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+  );
+}
 
 export default function DetailsTestModal({
   isOpen,
@@ -38,6 +184,11 @@ export default function DetailsTestModal({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
+  const normalizedTest = useMemo(
+    () => objectToCamelCase(localTest ?? test ?? null),
+    [localTest, test]
+  );
+
   useEffect(() => {
     if (!isOpen) setIsEditOpen(false);
   }, [isOpen]);
@@ -60,7 +211,7 @@ export default function DetailsTestModal({
     setHistoryLogs([]);
     setHistoryError('');
 
-    setLocalTest(test ?? null);
+    setLocalTest(objectToCamelCase(test ?? null));
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
@@ -70,7 +221,7 @@ export default function DetailsTestModal({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, test, onClose]);
 
-  const currentTestId = (localTest ?? test)?.test_id ?? null;
+  const currentTestId = normalizedTest?.testId ?? null;
 
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !currentTestId) return;
@@ -81,7 +232,7 @@ export default function DetailsTestModal({
 
     fetchAuditLogsByTestId({ testId: currentTestId })
       .then((logs) => {
-        if (!cancelled) setHistoryLogs(logs);
+        if (!cancelled) setHistoryLogs(objectToCamelCase(logs));
       })
       .catch((e) => {
         if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
@@ -96,34 +247,37 @@ export default function DetailsTestModal({
   }, [isOpen, activeTab, currentTestId]);
 
   async function refreshTest() {
-    const testId = (localTest ?? test)?.test_id ?? null;
+    const testId = normalizedTest?.testId ?? null;
     if (testId == null) return null;
 
     const fresh = await fetchTestById(testId);
-    setLocalTest(fresh);
-    onEdit?.(fresh);
-    return fresh;
+    const normalized = objectToCamelCase(fresh);
+    setLocalTest(normalized);
+    onEdit?.(normalized);
+    return normalized;
   }
 
   const stop = (e) => e.stopPropagation();
 
-  const t = useMemo(() => localTest ?? test ?? {}, [localTest, test]);
+  const t = useMemo(() => normalizedTest ?? {}, [normalizedTest]);
 
   const { currentStepLabel, nextStepLabel } = useMemo(() => computeStepLabels(t), [t]);
 
   if (!isOpen) return null;
 
   const testId = currentTestId;
-  const vgcpid = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? 'Unknown';
-  const assignedName =
-    t?.assigned_tester_name ?? t?.tester_name ?? String(t?.assigned_tester_id ?? '-');
+  const vgcpid = t?.vgcpid ?? t?.controlVgcpid ?? t?.controlId ?? 'Unknown';
+  const assignedName = t?.assignedTesterName ?? t?.testerName ?? String(t?.assignedTesterId ?? '-');
 
   const status = t?.status ?? 'NOT_STARTED';
   const typeLabel = testTypeFromFlags(t);
 
-  const updatedAt = formatLongDate(t?.updated_at);
-  const dueDate = formatLongDate(t?.due_date);
-  const etaDate = formatLongDate(t?.estimated_date);
+  const updatedAt = formatLongDate(t?.updatedAt);
+  const dueDate = formatLongDate(t?.dueDate);
+  const overdue =
+    isOverdue(t?.due_date) &&
+    !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
+  const etaDate = formatLongDate(t?.estimatedDate);
 
   const description = t?.description ?? 'No description.';
 
@@ -161,11 +315,11 @@ export default function DetailsTestModal({
   }
 
   function getActiveTrack(testRow) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
-    const datStep = String(testRow?.['dat_step'] || '');
-    const oetStep = String(testRow?.['oet_step'] || '');
+    const datStep = String(testRow?.datStep || '');
+    const oetStep = String(testRow?.oetStep || '');
 
     if (requiresDat && datStep !== 'COMPLETED') return 'DAT';
 
@@ -177,8 +331,8 @@ export default function DetailsTestModal({
   }
 
   function getFlowSteps(testRow, track) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
     if (requiresDat && requiresOet) {
       if (track === 'DAT') {
@@ -216,8 +370,7 @@ export default function DetailsTestModal({
   }
 
   function getTrackStep(testRow, track) {
-    const raw =
-      track === 'DAT' ? String(testRow?.['dat_step'] || '') : String(testRow?.['oet_step'] || '');
+    const raw = track === 'DAT' ? String(testRow?.datStep || '') : String(testRow?.oetStep || '');
     return raw;
   }
 
@@ -228,11 +381,11 @@ export default function DetailsTestModal({
   }
 
   function isFinalTestingComplete(testRow) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
-    const datStep = String(testRow?.['dat_step'] || '');
-    const oetStep = String(testRow?.['oet_step'] || '');
+    const datStep = String(testRow?.datStep || '');
+    const oetStep = String(testRow?.oetStep || '');
 
     const datReady = datStep === 'COMPLETED' || datStep === 'ADDRESSING_COMMENTS';
     const oetReady = oetStep === 'COMPLETED' || oetStep === 'ADDRESSING_COMMENTS';
@@ -272,8 +425,8 @@ export default function DetailsTestModal({
       await runBusy('Starting work...', async () => {
         await startTest(testId);
 
-        const requiresDat = !!t?.requires_dat;
-        const requiresOet = !!t?.requires_oet;
+        const requiresDat = !!t?.requiresDat;
+        const requiresOet = !!t?.requiresOet;
 
         if (requiresDat) {
           await updateDat(testId, 'TESTING_READY', 'DAT_IN_PROGRESS');
@@ -342,11 +495,11 @@ export default function DetailsTestModal({
   }
 
   function getRevertTrack(testRow) {
-    const requiresDat = !!testRow?.requires_dat;
-    const requiresOet = !!testRow?.requires_oet;
+    const requiresDat = !!testRow?.requiresDat;
+    const requiresOet = !!testRow?.requiresOet;
 
-    const datStep = String(testRow?.['dat_step'] || '');
-    const oetStep = String(testRow?.['oet_step'] || '');
+    const datStep = String(testRow?.datStep || '');
+    const oetStep = String(testRow?.oetStep || '');
 
     const active = getActiveTrack(testRow);
 
@@ -366,7 +519,7 @@ export default function DetailsTestModal({
 
     try {
       if (statusUpper === 'IN_REVIEW') {
-        const track = getActiveTrack(t) || (t?.requires_oet ? 'OET' : 'DAT');
+        const track = getActiveTrack(t) || (t?.requiresOet ? 'OET' : 'DAT');
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, 'COMPLETED', statusForTrack(track));
@@ -389,9 +542,9 @@ export default function DetailsTestModal({
 
         const willBeNotStarted =
           prev === '' &&
-          ((!!t?.requires_dat && !t?.requires_oet) ||
-            (!t?.requires_dat && !!t?.requires_oet) ||
-            (!!t?.requires_dat && !!t?.requires_oet && String(otherStep || '') === ''));
+          ((!!t?.requiresDat && !t?.requiresOet) ||
+            (!t?.requiresDat && !!t?.requiresOet) ||
+            (!!t?.requiresDat && !!t?.requiresOet && String(otherStep || '') === ''));
 
         const statusValue = willBeNotStarted ? 'NOT_STARTED' : statusForTrack(track);
 
@@ -418,7 +571,7 @@ export default function DetailsTestModal({
 
     try {
       await runBusy('Rejecting...', async () => {
-        const finalTrack = t?.requires_oet ? 'OET' : 'DAT';
+        const finalTrack = t?.requiresOet ? 'OET' : 'DAT';
         await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', statusForTrack(finalTrack));
         await refreshTest();
       });
@@ -599,7 +752,15 @@ export default function DetailsTestModal({
               <>
                 <div className="dtm-details-grid">
                   <DetailItem label="DATE UPDATED" value={updatedAt} />
-                  <DetailItem label="DUE DATE" value={dueDate} />
+                  <DetailItem
+                    label="DUE DATE"
+                    value={
+                      <span className="dtm-date-with-icon">
+                        <span>{dueDate}</span>
+                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
+                      </span>
+                    }
+                  />
                   <DetailItem label="CURRENT STEP" value={currentStepLabel} />
                   <DetailItem label="ETA" value={etaDate} />
                 </div>
@@ -638,21 +799,97 @@ export default function DetailsTestModal({
                 </div>
               </>
             ) : activeTab === 'History' ? (
-              <AuditHistoryView
-                logs={historyLogs}
-                loading={historyLoading}
-                error={historyError}
-                overlayTitle={`Test History: ${vgcpid}`}
-                showContent={true}
-                contextVgcpid={vgcpid}
-                actorFallback={{
-                  displayName: assignedName && assignedName !== '-' ? assignedName : null,
-                  userId: t?.assigned_tester_id ?? null,
-                }}
-              />
-            ) : (
+              <div className="dtm-timeline">
+                {historyLoading ? (
+                  <div className="dtm-timeline-empty">Loading history…</div>
+                ) : historyError ? (
+                  <div className="dtm-timeline-empty dtm-timeline-error">Error: {historyError}</div>
+                ) : !historyLogs?.length ? (
+                  <div className="dtm-timeline-empty">No history found.</div>
+                ) : (
+                  historyLogs.map((log, index) => {
+                    const action = String(log.action || '').toUpperCase();
+                    const entity = String(log.entityType || '').toUpperCase();
+                    const actorLabel = resolveActorLabel(log, {
+                      displayName: assignedName && assignedName !== '-' ? assignedName : null,
+                      userId: t?.assignedTesterId ?? null,
+                    });
+                    const timestamp = formatDate(log.changedAt);
+                    const changes = getAuditChanges(log);
+                    const hasStatusChange = changes.some((c) => c.field === 'status');
+                    const hasStepChange = changes.some(
+                      (c) => c.field === 'datStep' || c.field === 'oetStep'
+                    );
+
+                    let statusBadge = null;
+                    if (hasStatusChange) {
+                      const statusChange = changes.find((c) => c.field === 'status');
+                      statusBadge = `${statusChange.fromStr} → ${statusChange.toStr}`;
+                    } else if (hasStepChange) {
+                      const stepChange = changes.find(
+                        (c) => c.field === 'datStep' || c.field === 'oetStep'
+                      );
+                      if (stepChange) {
+                        const stepType = stepChange.field === 'datStep' ? 'DAT' : 'OET';
+                        statusBadge = `${stepType}: ${stepChange.fromStr} → ${stepChange.toStr}`;
+                      }
+                    }
+
+                    let eventTitle = '';
+                    let affectedId = '';
+
+                    if (entity === 'REQUEST') {
+                      affectedId = `Request`;
+                      if (action === 'CREATE') eventTitle = 'Request Created';
+                      else if (action === 'UPDATE') eventTitle = 'Request Updated';
+                      else if (action === 'DELETE') eventTitle = 'Request Archived';
+                      else eventTitle = `Request ${action}`;
+                    } else if (entity === 'TEST') {
+                      affectedId = vgcpid;
+                      if (action === 'CREATE') eventTitle = 'Control Test Created';
+                      else if (action === 'UPDATE') eventTitle = 'Control Test Updated';
+                      else if (action === 'DELETE') eventTitle = 'Control Test Archived';
+                      else eventTitle = `Control Test ${action}`;
+                    } else {
+                      eventTitle = `${entity} ${action}`;
+                    }
+
+                    return (
+                      <div className="dtm-timeline-item" key={log.auditId || index}>
+                        <div className="dtm-timeline-line">
+                          <div className="dtm-timeline-dot"></div>
+                          {index < historyLogs.length - 1 && (
+                            <div className="dtm-timeline-connector"></div>
+                          )}
+                        </div>
+                        <div className="dtm-timeline-content">
+                          <div className="dtm-timeline-header">
+                            <span className="dtm-timeline-title">{eventTitle}</span>
+                            <span className="dtm-timeline-time">{timestamp}</span>
+                          </div>
+                          <div className="dtm-timeline-meta">
+                            <span className="dtm-timeline-id">{affectedId}</span>
+                          </div>
+                          {statusBadge && (
+                            <div className="dtm-timeline-transition">
+                              <span>{statusBadge}</span>
+                            </div>
+                          )}
+                          {actorLabel && (
+                            <div className="dtm-timeline-actor">
+                              <Icon name="user" category="deco" size="xs" color="#8a8f98" />
+                              <span>by {actorLabel}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : activeTab === 'Attachments' ? (
               <div className="dtm-empty">This view is not implemented yet.</div>
-            )}
+            ) : null}
           </section>
 
           <div className="dtm-divider" />
@@ -725,8 +962,8 @@ function initials(name) {
 }
 
 function testTypeFromFlags(t) {
-  const dat = !!t?.requires_dat;
-  const oet = !!t?.requires_oet;
+  const dat = !!t?.requiresDat;
+  const oet = !!t?.requiresOet;
   if (dat && oet) return 'DAT & OET';
   if (dat) return 'DAT Only';
   if (oet) return 'OET Only';
@@ -742,11 +979,11 @@ function humanStep(s) {
 }
 
 function computeStepLabels(test) {
-  const requiresDat = !!test?.requires_dat;
-  const requiresOet = !!test?.requires_oet;
+  const requiresDat = !!test?.requiresDat;
+  const requiresOet = !!test?.requiresOet;
 
-  const datStep = String(test?.['dat_step'] || '');
-  const oetStep = String(test?.['oet_step'] || '');
+  const datStep = String(test?.datStep || '');
+  const oetStep = String(test?.oetStep || '');
 
   const datDone = datStep === 'COMPLETED';
   const oetDone = oetStep === 'COMPLETED';
@@ -820,4 +1057,15 @@ function parseLocalDate(value) {
 
   const dt = new Date(value);
   return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function isOverdue(value) {
+  const due = parseLocalDate(value);
+  if (!due) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  return due < today;
 }
