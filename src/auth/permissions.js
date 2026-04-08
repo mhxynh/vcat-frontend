@@ -10,6 +10,7 @@ export const ACTIONS = {
   VIEW_CONTROLS: 'VIEW_CONTROLS',
   CREATE_REQUEST: 'CREATE_REQUEST',
   UPDATE_REQUEST: 'UPDATE_REQUEST',
+  ARCHIVE_REQUEST: 'ARCHIVE_REQUEST',
   REMOVE_REQUEST: 'REMOVE_REQUEST',
   COMMENT: 'COMMENT',
   CREATE_TEST: 'CREATE_TEST',
@@ -34,6 +35,7 @@ const MANAGER_ONLY = new Set([
   ACTIONS.IMPORT_CONTROLS,
   ACTIONS.CREATE_REQUEST,
   ACTIONS.UPDATE_REQUEST,
+  ACTIONS.ARCHIVE_REQUEST,
   ACTIONS.REMOVE_REQUEST,
   ACTIONS.CREATE_TEST,
   ACTIONS.DELETE_CONTROL_TEST,
@@ -52,6 +54,8 @@ export const ACTION_MESSAGES = {
   [ACTIONS.IMPORT_CONTROLS]: 'Only managers can import controls. Contact a manager for access.',
   [ACTIONS.CREATE_REQUEST]: 'Only managers can create requests.',
   [ACTIONS.UPDATE_REQUEST]: 'Only managers can update requests.',
+  [ACTIONS.ARCHIVE_REQUEST]:
+    'Only managers can archive requests. Contact a manager for assistance.',
   [ACTIONS.REMOVE_REQUEST]: 'Only managers can remove requests.',
   [ACTIONS.CREATE_TEST]:
     'Only managers can create new control tests. Contact a manager for access.',

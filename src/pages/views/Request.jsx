@@ -9,6 +9,8 @@ import {
 import DetailsRequestModal from '../../components/DetailsRequestModal';
 import AssignRequestModal from '../../components/AssignRequestModal';
 import DetailsTestModal from '../../components/DetailsTestModal';
+import RestrictedAction from '../../components/RestrictedAction';
+import { ACTIONS } from '../../auth';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
@@ -331,9 +333,11 @@ export default function Requests({ refreshKey = 0 }) {
                       <button className="btn-outline" onClick={() => openRequestDetails(req)}>
                         Details
                       </button>
-                      <button className="btn-outline" onClick={() => openAssignModal(req)}>
-                        Assign
-                      </button>
+                      <RestrictedAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
+                        <button className="btn-outline" onClick={() => openAssignModal(req)}>
+                          Assign
+                        </button>
+                      </RestrictedAction>
 
                       <button className="btn-chev" onClick={() => toggleExpand(req)}>
                         {isOpen ? '▴' : '▾'}
