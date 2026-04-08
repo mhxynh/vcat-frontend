@@ -13,6 +13,8 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS } from '../auth';
 
 export default function DetailsTestModal({
   isOpen,
@@ -663,22 +665,26 @@ export default function DetailsTestModal({
             </button>
 
             <div className="dtm-footer-right">
-              <button
-                className="dtm-btn dtm-btn--danger"
-                type="button"
-                onClick={handleDelete}
-                disabled={isBusy}
-              >
-                Delete Control Test
-              </button>
-              <button
-                className="dtm-btn dtm-btn--outline"
-                type="button"
-                onClick={handleArchive}
-                disabled={isBusy}
-              >
-                Archive Control Test
-              </button>
+              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                <button
+                  className="dtm-btn dtm-btn--danger"
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isBusy}
+                >
+                  Delete Control Test
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                <button
+                  className="dtm-btn dtm-btn--outline"
+                  type="button"
+                  onClick={handleArchive}
+                  disabled={isBusy}
+                >
+                  Archive Control Test
+                </button>
+              </RestrictedAction>
               <button
                 className="dtm-btn dtm-btn--primary"
                 type="button"

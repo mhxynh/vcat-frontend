@@ -13,6 +13,8 @@ export const ACTIONS = {
   REMOVE_REQUEST: 'REMOVE_REQUEST',
   COMMENT: 'COMMENT',
   CREATE_TEST: 'CREATE_TEST',
+  DELETE_CONTROL_TEST: 'DELETE_CONTROL_TEST',
+  ARCHIVE_CONTROL_TEST: 'ARCHIVE_CONTROL_TEST',
   VIEW_TESTS: 'VIEW_TESTS',
   UPDATE_TEST: 'UPDATE_TEST',
   ASSIGN_TESTER: 'ASSIGN_TESTER',
@@ -34,6 +36,8 @@ const MANAGER_ONLY = new Set([
   ACTIONS.UPDATE_REQUEST,
   ACTIONS.REMOVE_REQUEST,
   ACTIONS.CREATE_TEST,
+  ACTIONS.DELETE_CONTROL_TEST,
+  ACTIONS.ARCHIVE_CONTROL_TEST,
   ACTIONS.ASSIGN_TESTER,
   ACTIONS.BULK_ASSIGN_TESTERS,
   ACTIONS.ASSIGN_TESTER_TO_REQUEST,
@@ -51,6 +55,10 @@ export const ACTION_MESSAGES = {
   [ACTIONS.REMOVE_REQUEST]: 'Only managers can remove requests.',
   [ACTIONS.CREATE_TEST]:
     'Only managers can create new control tests. Contact a manager for access.',
+  [ACTIONS.DELETE_CONTROL_TEST]:
+    'Only managers can delete control tests. Contact a manager for assistance.',
+  [ACTIONS.ARCHIVE_CONTROL_TEST]:
+    'Only managers can archive control tests. Contact a manager for assistance.',
   [ACTIONS.ASSIGN_TESTER]: 'Only managers can assign testers.',
   [ACTIONS.BULK_ASSIGN_TESTERS]: 'Only managers can assign testers.',
   [ACTIONS.ASSIGN_TESTER_TO_REQUEST]: 'Only managers can assign testers to requests.',
