@@ -14,7 +14,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       controlOwner: control?.owner ?? '',
       controlSme: control?.sme ?? '',
       escalation: (control?.escalationRequired ?? '').toLowerCase() === 'yes',
-      lastTested: control?.lastTested && control?.lastTested !== '-' ? control.lastTested : '',
       status: control?.status ?? 'Active',
     };
   }, [control]);
@@ -24,7 +23,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   const [controlOwner, setControlOwner] = useState('');
   const [controlSme, setControlSme] = useState('');
   const [escalation, setEscalation] = useState(false);
-  const [lastTested, setLastTested] = useState('');
   const [status, setStatus] = useState('Active');
 
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +37,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     setControlOwner(initial.controlOwner);
     setControlSme(initial.controlSme);
     setEscalation(initial.escalation);
-    setLastTested(initial.lastTested);
     setStatus(initial.status);
 
     setError('');
