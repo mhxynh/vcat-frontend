@@ -552,6 +552,10 @@
   padding: 10px 12px;
 }
 
+.drm-addcomment--top {
+  margin-bottom: 12px;
+}
+
 .drm-comment-input {
   border: 0;
   outline: none;
