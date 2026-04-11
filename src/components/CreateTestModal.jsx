@@ -4,6 +4,7 @@ import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { createTest } from '../api/TestsAPI';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -73,12 +74,12 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
           .filter((c) => Number.isFinite(c.id))
           .sort((a, b) => String(a.vgcpid).localeCompare(String(b.vgcpid)));
 
-        // Sanitize Requests (include dueDate for auto-matching test due date to request)
         const toDateInput = (v) => {
           if (!v) return '';
           const s = typeof v === 'string' ? v.split('T')[0] : String(v).split('T')[0];
           return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
         };
+
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => {
             const id = Number(r.id ?? r.requestId ?? r.request_id ?? r.RequestId);
@@ -110,7 +111,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
         setControls(cleanControls);
         setRequests(cleanRequests);
-        // If a defaultRequestId was provided, preselect it after requests are loaded
         if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
         setTesters(cleanTesters);
       } catch (e) {
@@ -125,13 +125,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose, defaultRequestId]);
 
-  // also ensure default request is pre-selected when the modal opens
   useEffect(() => {
     if (!isOpen) return;
     if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
   }, [isOpen, defaultRequestId]);
 
-  // Auto-populate due date from selected request (test due date matches request)
   useEffect(() => {
     if (!selectedRequestId || !requests.length) return;
     const req = requests.find((r) => String(r.id) === String(selectedRequestId));
@@ -180,10 +178,23 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     try {
       setSubmitting(true);
       const created = await createTest(payload);
-      onCreated?.(created);
+
+      await onCreated?.(created);
+
+      showSuccessToast({
+        title: 'Control Test Created',
+        message: `${selectedVgcpid} test has been created successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setSubmitError(e?.message || 'Failed to create test.');
+      const errorMessage = e?.message || 'Failed to create test.';
+      setSubmitError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Test Create Failed',
+        message: `An error occurred while creating the control test: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }

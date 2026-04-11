@@ -3,6 +3,7 @@ import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import EditControlModal from './EditControlModal';
 import Icon from './common/Icon';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -88,10 +89,22 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
       await deleteControl(id, { hard: true });
 
-      onDeleted?.(id);
+      await onDeleted?.(id);
+
+      showSuccessToast({
+        title: 'Control Deleted',
+        message: `${id} has been deleted successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setDeleteError(e?.message || 'Failed to delete control');
+      const errorMessage = e?.message || 'Failed to delete control';
+      setDeleteError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Delete Failed',
+        message: `An error occurred while deleting the control: ${errorMessage}`,
+      });
     } finally {
       setDeleting(false);
     }
@@ -101,7 +114,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     <>
       <div className="dcm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
         <div className="dcm-modal" onMouseDown={stop}>
-          {/* header */}
           <section className="dcm-section-header">
             <div className="dcm-header">
               <div className="dcm-title">{id}</div>
@@ -121,7 +133,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
           <div className="dcm-divider" />
 
-          {/* descriptions */}
           <section className="dcm-section-description">
             <div className="dcm-section">
               <div className="dcm-section-title">Description</div>
@@ -129,7 +140,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             </div>
           </section>
 
-          {/* details */}
           <section className="dcm-section-details">
             <div className="dcm-details-card">
               <div className="dcm-detail-item">
@@ -161,7 +171,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
           <div className="dcm-divider" />
 
-          {/* request history */}
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
@@ -210,7 +219,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
           <div className="dcm-divider" />
 
-          {/* logs */}
           <section className="dcm-section-logs">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
@@ -240,7 +248,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             </div>
           </section>
 
-          {/* footer buttons */}
           <section className="dcm-section-footer">
             <div className="dcm-footer">
               <button className="dcm-btn dcm-btn--ghost" type="button" onClick={onClose}>
@@ -274,7 +281,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         </div>
       </div>
 
-      {/* Delete confirmation modal */}
       {isDeleteConfirmOpen && (
         <div
           className="dcm-confirm-overlay"
@@ -322,7 +328,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         </div>
       )}
 
-      {/* Edit modal is mounted by details modal */}
       <EditControlModal
         isOpen={isEditOpen}
         onClose={closeEdit}

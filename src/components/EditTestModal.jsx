@@ -5,6 +5,7 @@ import '../styles/components/EditControlModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -114,7 +115,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       .sort((a, b) => Number(b.requestId) - Number(a.requestId));
   }, [requests]);
 
-  // Auto-update due date when request changes (test due date matches request)
   useEffect(() => {
     if (!selectedRequestId || !requestOptions.length) return;
     const req = requestOptions.find((r) => String(r.requestId) === String(selectedRequestId));
@@ -170,10 +170,23 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     try {
       setSubmitting(true);
       await updateTest(originalTestId, payload);
-      if (onUpdated) await onUpdated();
+
+      await onUpdated?.();
+
+      showSuccessToast({
+        title: 'Control Test Saved',
+        message: `${selectedVgcpid} has been saved successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setError(e?.message || 'Failed to update test.');
+      const errorMessage = e?.message || 'Failed to update test.';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Test Save Failed',
+        message: `An error occurred while saving the control test: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }

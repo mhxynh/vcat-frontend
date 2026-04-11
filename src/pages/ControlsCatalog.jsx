@@ -358,8 +358,8 @@ export default function Controls() {
         onClose={closeDetails}
         control={selectedControl}
         onUpdated={refreshControls}
-        onDeleted={() => {
-          window.location.reload();
+        onDeleted={async () => {
+          await refreshControls();
         }}
       />
 

@@ -4,6 +4,7 @@ import { fetchRequestById, updateRequest } from '../api/RequestsAPI';
 import { fetchTestsByRequestId, fetchTests, updateTest } from '../api/TestsAPI';
 import CreateTestModal from './CreateTestModal';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const [priority, setPriority] = useState('');
@@ -97,10 +98,22 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         description: description.trim(),
       });
 
-      if (onUpdated) await onUpdated();
+      await onUpdated?.();
+
+      showSuccessToast({
+        title: 'Request Saved',
+        message: `REQ-${currentYear}-${String(requestId).padStart(4, '0')} has been saved successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setError(e?.message || 'Failed to update request.');
+      const errorMessage = e?.message || 'Failed to update request.';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Save Failed',
+        message: `An error occurred while saving the request: ${errorMessage}`,
+      });
     } finally {
       setSaving(false);
     }
@@ -168,9 +181,20 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
       setSearchQuery('');
       setShowSearchResults(false);
-      if (onUpdated) await onUpdated();
+      await onUpdated?.();
+
+      showSuccessToast({
+        title: 'Control Test Added to Request',
+        message: `${test.vgcpid || testId} has been linked to ${formattedReqId} successfully.`,
+      });
     } catch (e) {
-      setError(e?.message || 'Failed to add control test.');
+      const errorMessage = e?.message || 'Failed to add control test.';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Test Add to Request Failed',
+        message: `An error occurred while adding the control test to the request: ${errorMessage}`,
+      });
     }
   };
 

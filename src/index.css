@@ -14,3 +14,73 @@ code {
     Arial,
     sans-serif;
 }
+
+:root {
+  --toastify-container-width: 400px;
+}
+
+.Toastify__toast-container,
+.Toastify__toast-container--top-right {
+  width: 400px !important;
+  max-width: 400px !important;
+  padding: 0;
+}
+
+.Toastify__toast {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: unset !important;
+  border-radius: 16px !important;
+  margin-bottom: 16px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.Toastify__close-button {
+  color: #8f8f8f !important;
+  opacity: 1 !important;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  z-index: 3;
+}
+
+.Toastify__close-button:hover {
+  color: #5f5f5f !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+.Toastify__progress-bar--success {
+  background: #22c55e !important;
+}
+
+.Toastify__progress-bar--error {
+  background: #f43f5e !important;
+}
+
+.Toastify__progress-bar--warning {
+  background: #f59e0b !important;
+}
+
+.Toastify__progress-bar--info {
+  background: #3b82f6 !important;
+}

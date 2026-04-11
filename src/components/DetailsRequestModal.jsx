@@ -10,6 +10,7 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 export default function DetailsRequestModal({
   isOpen,
@@ -219,10 +220,22 @@ export default function DetailsRequestModal({
 
       setLocalStatus('ARCHIVED');
 
-      onArchived?.(requestId);
+      await onArchived?.(requestId);
+
+      showSuccessToast({
+        title: 'Request Archived',
+        message: `${requestTitle} has been archived successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setDeleteError(e?.message || 'Failed to archive request and associated tests');
+      const errorMessage = e?.message || 'Failed to archive request and associated tests';
+      setDeleteError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Archive Failed',
+        message: `An error occurred while archiving the request: ${errorMessage}`,
+      });
     } finally {
       setArchiving(false);
     }
@@ -242,10 +255,22 @@ export default function DetailsRequestModal({
 
       await deleteRequest(requestId, { hard: true });
 
-      onDeleted?.(requestId);
+      await onDeleted?.(requestId);
+
+      showSuccessToast({
+        title: 'Request Deleted',
+        message: `${requestTitle} has been deleted successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setDeleteError(e?.message || 'Failed to delete request');
+      const errorMessage = e?.message || 'Failed to delete request';
+      setDeleteError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Delete Failed',
+        message: `An error occurred while deleting the request: ${errorMessage}`,
+      });
     } finally {
       setDeleting(false);
     }
@@ -282,7 +307,6 @@ export default function DetailsRequestModal({
   return (
     <div className="drm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
       <div className="drm-modal" onMouseDown={stop}>
-        {/* header */}
         <section className="drm-section-header">
           <div className="drm-header">
             <div className="drm-title">Request Details: {requestTitle}</div>
@@ -294,7 +318,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* status bar */}
         <section className="drm-section-statusbar">
           <div className="drm-statusbar">
             <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
@@ -317,7 +340,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* description + details */}
         <section className="drm-section-description-details">
           <div className="drm-section">
             <div className="drm-section-title">Description</div>
@@ -349,7 +371,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* associated controls/tests */}
         <section className="drm-section-associated">
           <div className="drm-section">
             <div className="drm-section-title drm-section-title--withicon">
@@ -406,7 +427,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* comments/history tabs */}
         <section className="drm-section-tabs">
           <div className="drm-tabs">
             <button
@@ -474,7 +494,6 @@ export default function DetailsRequestModal({
           </div>
         </section>
 
-        {/* add comment */}
         {activeTab === 'Comments' ? (
           <section className="drm-section-addcomment">
             <div className="drm-addcomment">
@@ -501,7 +520,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* footer */}
         <section className="drm-section-footer">
           <div className="drm-footer">
             <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>

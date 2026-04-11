@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { updateControl, retireControl } from '../api/ControlsAPI';
 import '../styles/components/EditControlModal.css';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
   const originalVgcpid = control?.id ?? '';
@@ -71,14 +72,15 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     }
 
     setSubmitting(true);
+
     try {
-      // If user selected Retired, do soft delete (sets is_active=false)
+      const trimmedId = vgcpid.trim();
+
       if (status === 'Retired') {
         await retireControl(originalVgcpid);
       } else {
-        // Normal updates via PUT
         const payload = {
-          vgcpid: vgcpid.trim(),
+          vgcpid: trimmedId,
           description: description.trim(),
           controlOwner: controlOwner.trim(),
           controlSme: controlSme.trim(),
@@ -89,9 +91,21 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       }
 
       if (onUpdated) await onUpdated();
+
+      showSuccessToast({
+        title: 'Control Saved',
+        message: `${trimmedId} has been saved successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setError(e?.message || 'Failed to update control');
+      const errorMessage = e?.message || 'Failed to update control';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Saved Failed',
+        message: `An error occurred while saving the control: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }

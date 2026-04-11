@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/components/CreateRequestModal.css';
 import { createRequest } from '../api/RequestsAPI';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 function todayIso() {
   const d = new Date();
@@ -71,10 +72,22 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
         createdBy: DUMMY_CURRENT_USER_ID,
       });
 
-      onCreated?.(createdReq);
+      await onCreated?.(createdReq);
+
+      showSuccessToast({
+        title: 'Request Created',
+        message: 'The request has been created successfully.',
+      });
+
       onClose?.();
     } catch (e) {
-      setError(e?.message || 'Failed to create request.');
+      const errorMessage = e?.message || 'Failed to create request.';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Create Failed',
+        message: `An error occurred while creating the request: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }
