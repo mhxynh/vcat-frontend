@@ -16,13 +16,13 @@ code {
 }
 
 :root {
-  --toastify-container-width: 400px;
+  --toastify-container-width: min(400px, 100vw);
 }
 
 .Toastify__toast-container,
 .Toastify__toast-container--top-right {
-  width: 400px !important;
-  max-width: 400px !important;
+  width: var(--toastify-container-width);
+  max-width: var(--toastify-container-width);
   padding: 0;
 }
 
