@@ -6,7 +6,7 @@ const commonOptions = {
   autoClose: 5000,
   hideProgressBar: false,
   closeOnClick: false,
-  pauseOnHover: true,
+  pauseOnHover: false,
   draggable: false,
   closeButton: true,
   icon: false,

@@ -36,7 +36,7 @@ export default function App() {
                       autoClose={5000}
                       newestOnTop
                       closeOnClick={false}
-                      pauseOnHover
+                      pauseOnHover={false}
                       draggable={false}
                       hideProgressBar={false}
                       theme="light"

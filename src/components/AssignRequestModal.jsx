@@ -4,6 +4,22 @@ import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 
+function getRequestYear(req) {
+  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
+  if (!raw) return new Date().getFullYear();
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
+
+  return parsed.getFullYear();
+}
+
+function formatRequestDisplayId(req) {
+  const id = req?.requestId ?? req?.request_id ?? req?.id;
+  if (id == null || id === '') return '';
+  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
+}
+
 export default function AssignRequestModal({ isOpen, onClose, request, onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
   const [note, setNote] = useState('');
@@ -51,6 +67,7 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
   if (!isOpen) return null;
 
   const controlsCount = Array.isArray(request?.controls) ? request.controls.length : 0;
+  const requestTitle = formatRequestDisplayId(request) || 'Request';
 
   function stop(e) {
     e.stopPropagation();
@@ -78,7 +95,7 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
 
       showSuccessToast({
         title: 'Request Bulk Assigned',
-        message: `${request?.id ?? request?.requestId ?? 'Request'} has been assigned successfully.`,
+        message: `${requestTitle} has been assigned successfully.`,
       });
 
       onClose?.();
@@ -98,7 +115,7 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
     <div className="arm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
       <div className="arm-modal" onMouseDown={stop}>
         <header className="arm-header">
-          <h3>Assign Request: {request?.id ?? request?.requestId ?? ''}</h3>
+          <h3>Assign Request: {requestTitle}</h3>
           <button className="arm-close" onClick={onClose} aria-label="Close">
             ×
           </button>

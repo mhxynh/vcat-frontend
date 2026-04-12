@@ -12,6 +12,22 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
+function getRequestYear(req) {
+  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
+  if (!raw) return new Date().getFullYear();
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
+
+  return parsed.getFullYear();
+}
+
+function formatRequestDisplayId(req) {
+  const id = req?.requestId ?? req?.id;
+  if (id == null || id === '') return '';
+  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
+}
+
 export default function Requests({ refreshKey = 0 }) {
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState(() => new Set());
@@ -29,7 +45,6 @@ export default function Requests({ refreshKey = 0 }) {
   const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
-  const currentYear = new Date().getFullYear();
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -68,7 +83,6 @@ export default function Requests({ refreshKey = 0 }) {
   async function handleAssign(requestId, userId, displayName, note) {
     if (!requestId) return;
 
-    // optimistic UI update: update testsByRequestId so UI reflects new assignee
     setTestsByRequestId((prev) => {
       const next = { ...prev };
       const bucket = next[requestId];
@@ -82,7 +96,6 @@ export default function Requests({ refreshKey = 0 }) {
     });
 
     try {
-      // fetch raw tests for this request so we have test IDs
       const raw = await fetchTestsByRequestId(requestId, { details: true });
       if (!Array.isArray(raw)) return;
 
@@ -91,7 +104,6 @@ export default function Requests({ refreshKey = 0 }) {
           const id = t?.test_id ?? t?.id ?? t?.testId ?? null;
           if (id == null) return;
 
-          // backend expects an action + assigned_tester_id in the body
           await updateTest(id, {
             action: 'assign',
             assignedTesterId: String(userId),
@@ -99,13 +111,11 @@ export default function Requests({ refreshKey = 0 }) {
         })
       );
     } catch (e) {
-      // on error, revert UI and set an error marker
       setTestsByRequestId((prev) => {
         const next = { ...prev };
         const bucket = next[requestId];
         if (!bucket || !Array.isArray(bucket.items)) return prev;
 
-        // mark error on bucket
         next[requestId] = { ...bucket, error: e?.message || 'Failed to assign testers' };
         return next;
       });
@@ -160,6 +170,7 @@ export default function Requests({ refreshKey = 0 }) {
       })
     );
   }, []);
+
   const refreshRequests = useCallback(async () => {
     try {
       const rows = await fetchRequests();
@@ -225,7 +236,6 @@ export default function Requests({ refreshKey = 0 }) {
     });
   }, [requests, testsByRequestId]);
 
-  // Keep selectedRequest in sync with enriched data (e.g. when controls load)
   useEffect(() => {
     if (!selectedRequest || !isRequestDetailsOpen) return;
     const enriched = enrichedRequests.find((r) => r.requestId === selectedRequest.requestId);
@@ -295,9 +305,7 @@ export default function Requests({ refreshKey = 0 }) {
                 <div key={req.id} className="request-card">
                   <div className="request-row">
                     <div className="req-left">
-                      <div
-                        style={{ fontWeight: 800 }}
-                      >{`REQ-${currentYear}-${String(req.id).padStart(4, '0')}`}</div>
+                      <div style={{ fontWeight: 800 }}>{formatRequestDisplayId(req)}</div>
                       <div className={`badge badge-${String(req.priority || '').toLowerCase()}`}>
                         {req.priority}
                       </div>

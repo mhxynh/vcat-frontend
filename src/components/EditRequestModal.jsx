@@ -6,12 +6,27 @@ import CreateTestModal from './CreateTestModal';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 
+function getRequestYearFromValue(value) {
+  if (!value) return new Date().getFullYear();
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
+
+  return parsed.getFullYear();
+}
+
+function formatRequestDisplayId(requestId, yearSource) {
+  if (requestId == null || requestId === '') return '';
+  return `REQ-${getRequestYearFromValue(yearSource)}-${String(requestId).padStart(4, '0')}`;
+}
+
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const [priority, setPriority] = useState('');
   const [requestedBy, setRequestedBy] = useState('');
   const [requestDate, setRequestDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [description, setDescription] = useState('');
+  const [createdAtRaw, setCreatedAtRaw] = useState('');
 
   const [associatedTests, setAssociatedTests] = useState([]);
   const [allTests, setAllTests] = useState([]);
@@ -25,7 +40,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   const [fieldErrors, setFieldErrors] = useState({});
 
   const searchWrapperRef = useRef(null);
-  const currentYear = new Date().getFullYear();
 
   const normalizeTests = (tests) => (Array.isArray(tests) ? objectToCamelCase(tests) : []);
 
@@ -54,6 +68,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
         setPriority(reqData.priority || 'MEDIUM');
         setRequestedBy(reqData.requestor);
+        setCreatedAtRaw(reqData.createdAt || '');
         setRequestDate(formatISOToDate(reqData.createdAt) || '');
         setDueDate(formatISOToDate(reqData.dueDate) || '');
         setDescription(reqData.description);
@@ -102,7 +117,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
       showSuccessToast({
         title: 'Request Saved',
-        message: `REQ-${currentYear}-${String(requestId).padStart(4, '0')} has been saved successfully.`,
+        message: `${formattedReqId} has been saved successfully.`,
       });
 
       onClose?.();
@@ -119,9 +134,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
     }
   };
 
-  const formattedReqId = requestId
-    ? `REQ-${currentYear}-${String(requestId).padStart(4, '0')}`
-    : '';
+  const formattedReqId = formatRequestDisplayId(requestId, createdAtRaw || requestDate);
+
   const completedCount = associatedTests.filter(
     (t) => String(t.status).toUpperCase() === 'COMPLETED'
   ).length;
@@ -407,10 +421,14 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                     {' • '}
                                     Request:{' '}
                                     {test.requestId
-                                      ? `REQ-${currentYear}-${String(test.requestId).padStart(
-                                          4,
-                                          '0'
-                                        )}`
+                                      ? formatRequestDisplayId(
+                                          test.requestId,
+                                          (test.requestCreatedAt ??
+                                            test.requestDate ??
+                                            test.createdAt ??
+                                            createdAtRaw) ||
+                                            requestDate
+                                        )
                                       : 'Unlinked'}
                                   </div>
                                 </div>
