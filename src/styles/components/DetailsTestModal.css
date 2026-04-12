@@ -469,3 +469,54 @@
   align-items: center;
   gap: 8px;
 }
+
+/* comments */
+
+.dtm-addcomment--top {
+  margin-bottom: 12px;
+}
+
+.dtm-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dtm-comment {
+  display: flex;
+  gap: 10px;
+}
+
+.dtm-comment-left {
+  flex-shrink: 0;
+}
+
+.dtm-comment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.dtm-comment-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dtm-comment-author {
+  font-size: 12px;
+  font-weight: 800;
+  color: #111;
+}
+
+.dtm-comment-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.dtm-comment-text {
+  font-weight: 400;
+  color: #333;
+  font-size: 12px;
+  margin-top: 4px;
+}
