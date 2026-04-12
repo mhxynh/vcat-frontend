@@ -1,3 +1,4 @@
+import { parseLocalDate } from '../utils/date';
 import { objectToSnakeCase } from '../utils/transformer';
 import { authFetch, API_BASE } from './apiClient';
 
@@ -216,18 +217,6 @@ function formatPriority(p) {
   if (v === 'MEDIUM') return 'Medium';
   if (v === 'LOW') return 'Low';
   return String(p || 'Medium');
-}
-
-function parseLocalDate(value) {
-  if (!value) return null;
-
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const dt = new Date(value);
-  return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
 function formatDate(value) {

@@ -130,25 +130,25 @@
 
 .drm-pill--low {
   background: #e6f7ea;
-  color: #0f6a2b;
+  color: var(--priority-low);
   border: 1px solid #ccefd6;
 }
 
 .drm-pill--medium {
   background: #fff4dd;
-  color: #8a5a00;
+  color: var(--priority-medium);
   border: 1px solid #ffe2a8;
 }
 
 .drm-pill--high {
   background: #fdecec;
-  color: #8b0f17;
+  color: var(--priority-high);
   border: 1px solid #f7caca;
 }
 
 .drm-pill--critical {
   background: #f3e8ff;
-  color: #5b21b6;
+  color: var(--priority-critical);
   border: 1px solid #e0ccff;
 }
 
@@ -550,6 +550,10 @@
   border: 1px solid #ededed;
   border-radius: 12px;
   padding: 10px 12px;
+}
+
+.drm-addcomment--top {
+  margin-bottom: 12px;
 }
 
 .drm-comment-input {

@@ -1,4 +1,28 @@
+import { parseLocalDate } from '../utils/date';
 import { authFetch, API_BASE } from './apiClient';
+
+/** Maps API priority to a CSS suffix; colors are `var(--priority-*)` in base.css (global) */
+function priorityVariant(priorityRaw) {
+  const v = String(priorityRaw || '')
+    .toUpperCase()
+    .trim();
+  if (v === 'CRITICAL') return 'critical';
+  if (v === 'HIGH') return 'high';
+  if (v === 'MEDIUM') return 'medium';
+  if (v === 'LOW') return 'low';
+  return 'medium';
+}
+
+function priorityLabel(priorityRaw) {
+  const v = String(priorityRaw || '')
+    .toUpperCase()
+    .trim();
+  if (v === 'CRITICAL') return 'Critical';
+  if (v === 'HIGH') return 'High';
+  if (v === 'MEDIUM') return 'Medium';
+  if (v === 'LOW') return 'Low';
+  return 'Medium';
+}
 
 export async function fetchKanban({ requestId, controlId, details } = {}) {
   const buildUrl = ({ requestId, controlId, details } = {}) => {
@@ -31,7 +55,7 @@ export async function fetchKanban({ requestId, controlId, details } = {}) {
   return data;
 }
 
-export function mapTestRowToCard(test) {
+export function mapTestRowToCard(test, options = {}) {
   const statusRaw = test.status || '';
   const statusKey = normalizeStatus(statusRaw);
 
@@ -39,21 +63,26 @@ export function mapTestRowToCard(test) {
 
   let dueDate = test.due_date || test.due || test.dueDate || '';
   if (dueDate) {
-    try {
-      dueDate = new Date(dueDate).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {}
+    const d = parseLocalDate(dueDate);
+    dueDate = d
+      ? d.toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+        })
+      : '';
   }
+
+  const priorityRaw =
+    options.requestPriority ?? test.request_priority ?? test.priority_request ?? '';
+
   return {
     id,
     desc: test.control_description || test.description || '',
-    assignee: test.tester_name || test.assigned_tester_id || '',
+    assignee: test.assigned_tester_name || test.tester_name || test.assigned_tester_id || '',
     due: dueDate,
     status: statusKey,
-    dot: statusColor(statusKey),
+    priorityVariant: priorityVariant(priorityRaw),
+    priorityLabel: priorityLabel(priorityRaw),
   };
 }
 
@@ -61,21 +90,4 @@ function normalizeStatus(str) {
   return String(str || '')
     .toLowerCase()
     .replace(/\s+/g, '_');
-}
-
-function statusColor(statusKey) {
-  switch (statusKey) {
-    case 'not_started':
-      return '#ef4444';
-    case 'dat_in_progress':
-      return '#f59e0b';
-    case 'oet_in_progress':
-      return '#f59e0b';
-    case 'in_review':
-      return '#a78bfa';
-    case 'completed':
-      return '#22c55e';
-    default:
-      return '#6b7280';
-  }
 }
