@@ -12,3 +12,14 @@ export function parseLocalDate(value) {
   const dt = new Date(value);
   return Number.isNaN(dt.getTime()) ? null : dt;
 }
+
+export function isOverdue(value) {
+  const due = parseLocalDate(value);
+  if (!due) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  return due < today;
+}
