@@ -33,11 +33,11 @@ export default function App() {
 
                     <ToastContainer
                       position="top-right"
-                      autoClose={4000}
+                      autoClose={5000}
                       newestOnTop
                       closeOnClick={false}
                       pauseOnHover
-                      draggable
+                      draggable={false}
                       hideProgressBar={false}
                       theme="light"
                       toastStyle={{
