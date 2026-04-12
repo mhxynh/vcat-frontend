@@ -104,7 +104,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       setError(errorMessage);
 
       showErrorToast({
-        title: 'Control Saved Failed',
+        title: 'Control Save Failed',
         message: `An error occurred while saving the control: ${errorMessage}`,
       });
     } finally {
