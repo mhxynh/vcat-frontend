@@ -137,25 +137,25 @@
 
 .badge-low {
   background: #e6f7ea;
-  color: #0f6a2b;
+  color: var(--priority-low);
   border-color: #ccefd6;
 }
 
 .badge-medium {
   background: #fff4dd;
-  color: #8a5a00;
+  color: var(--priority-medium);
   border-color: #ffe2a8;
 }
 
 .badge-high {
   background: #fdecec;
-  color: #8b0f17;
+  color: var(--priority-high);
   border-color: #f7caca;
 }
 
 .badge-critical {
   background: #f3e8ff;
-  color: #5b21b6;
+  color: var(--priority-critical);
   border-color: #e0ccff;
 }
 

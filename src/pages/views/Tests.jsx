@@ -3,7 +3,7 @@ import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
-import { isOverdue, parseLocalDate } from '../../utils/dates';
+import { isOverdue, parseLocalDate } from '../../utils/date.js';
 
 function formatDate(value) {
   const d = parseLocalDate(value);

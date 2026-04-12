@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
 import DetailsTestModal from './DetailsTestModal';
 import EditRequestModal from './EditRequestModal';
@@ -10,6 +10,13 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
+import {
+  fetchCommentsByRequestId,
+  createRequestComment,
+  mapCommentRowsToUi,
+} from '../api/CommentsAPI';
+import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
+import { fetchUserAttributes } from 'aws-amplify/auth';
 
 export default function DetailsRequestModal({
   isOpen,
@@ -42,6 +49,82 @@ export default function DetailsRequestModal({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [usersById, setUsersById] = useState({});
+
+  const buildUsersById = useCallback((users) => {
+    const map = {};
+    for (const u of Array.isArray(users) ? users : []) {
+      const id = u?.['user_id'];
+      if (id != null) map[String(id)] = u;
+    }
+    return map;
+  }, []);
+
+  const getCurrentUserEmail = useCallback(async () => {
+    try {
+      const attrs = await fetchUserAttributes();
+      return attrs?.email || '';
+    } catch {
+      return '';
+    }
+  }, []);
+
+  const loadCommentsAndUsers = useCallback(
+    async (rid, isCancelled = () => false) => {
+      if (rid == null) {
+        if (!isCancelled()) setLocalComments([]);
+        return;
+      }
+
+      if (!isCancelled()) {
+        setCommentsLoading(true);
+        setCommentsError('');
+      }
+
+      try {
+        const [commentRows, activeUsers] = await Promise.all([
+          fetchCommentsByRequestId(rid),
+          fetchUsers({ isActive: true }),
+        ]);
+
+        if (isCancelled()) return;
+
+        const userMap = buildUsersById(activeUsers);
+        setUsersById(userMap);
+
+        const uiComments = mapCommentRowsToUi(commentRows, userMap);
+        setLocalComments(uiComments);
+
+        const email = await getCurrentUserEmail();
+        if (isCancelled()) return;
+
+        if (email) {
+          try {
+            const me = await fetchUserByEmail(email);
+            if (!isCancelled()) setCurrentUser(me || null);
+          } catch (e) {
+            console.warn('Failed to resolve current user by email', e);
+          }
+        } else if (!isCancelled()) {
+          setCurrentUser(null);
+        }
+      } catch (e) {
+        if (!isCancelled()) {
+          setCommentsError(e?.message || 'Failed to load comments');
+          setLocalComments([]);
+          setCurrentUser(null);
+        }
+      } finally {
+        if (!isCancelled()) setCommentsLoading(false);
+      }
+    },
+    [buildUsersById, getCurrentUserEmail]
+  );
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -60,17 +143,28 @@ export default function DetailsRequestModal({
   useEffect(() => {
     if (!isOpen) return;
 
+    let cancelled = false;
+
     setActiveTab('Comments');
     setCommentText('');
     setLocalRequest(request || null);
-    setLocalComments(Array.isArray(request?.comments) ? request.comments : []);
     setArchiving(false);
     setDeleting(false);
     setDeleteError('');
     setLocalStatus(null);
     setHistoryLogs([]);
     setHistoryError('');
-  }, [isOpen, request]);
+    setCommentsError('');
+    setCurrentUser(null);
+    setUsersById({});
+
+    const rid = request?.requestId ?? request?.request_id ?? null;
+    void loadCommentsAndUsers(rid, () => cancelled);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, request, loadCommentsAndUsers]);
 
   const controls = useMemo(() => {
     return Array.isArray(localRequest?.controls) ? localRequest.controls : [];
@@ -177,19 +271,37 @@ export default function DetailsRequestModal({
 
   const stop = (e) => e.stopPropagation();
 
-  function handleAddComment() {
+  async function handleAddComment() {
     const text = commentText.trim();
-    if (!text) return;
+    if (!text || requestId == null || commentSaving) return;
 
-    const newComment = {
-      id: `local-${Date.now()}`,
-      author: 'You',
-      text,
-      date: new Date().toLocaleString(),
-    };
+    if (!currentUser?.['user_id']) {
+      setCommentsError('Could not identify the logged-in user.');
+      return;
+    }
 
-    setLocalComments((prev) => [newComment, ...prev]);
-    setCommentText('');
+    try {
+      setCommentSaving(true);
+      setCommentsError('');
+
+      const created = await createRequestComment({
+        requestId,
+        authorUserId: currentUser['user_id'],
+        commentText: text,
+      });
+
+      const createdUi = mapCommentRowsToUi([created], {
+        ...usersById,
+        [String(currentUser['user_id'])]: currentUser,
+      })[0];
+
+      setLocalComments((prev) => [createdUi, ...prev]);
+      setCommentText('');
+    } catch (e) {
+      setCommentsError(e?.message || 'Failed to add comment');
+    } finally {
+      setCommentSaving(false);
+    }
   }
 
   async function handleArchiveRequest() {
@@ -267,7 +379,7 @@ export default function DetailsRequestModal({
       }
 
       setLocalRequest({ ...ui, controls: items });
-      setLocalComments(Array.isArray(ui.comments) ? ui.comments : []);
+      await loadCommentsAndUsers(rid);
 
       try {
         onUpdated?.(rid, ui, items);
@@ -427,32 +539,62 @@ export default function DetailsRequestModal({
 
           <div className="drm-tab-content">
             {activeTab === 'Comments' ? (
-              <div className="drm-comments">
-                {localComments.length === 0 ? (
-                  <div className="drm-empty">No comments found.</div>
-                ) : (
-                  localComments.map((c) => (
-                    <div className="drm-comment" key={c.id}>
-                      <div className="drm-comment-left">
-                        <div className="drm-avatar" aria-hidden="true">
-                          {String(c.author || '?')
-                            .trim()
-                            .slice(0, 1)
-                            .toUpperCase()}
-                        </div>
-                      </div>
+              <>
+                <div className="drm-addcomment drm-addcomment--top">
+                  <input
+                    className="drm-comment-input"
+                    placeholder="Write a comment…"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    disabled={commentSaving || commentsLoading || !currentUser}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleAddComment();
+                    }}
+                  />
+                  <button
+                    className="drm-send"
+                    type="button"
+                    onClick={handleAddComment}
+                    aria-label="Send"
+                    disabled={
+                      commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                    }
+                  >
+                    {commentSaving ? '...' : '➤'}
+                  </button>
+                </div>
 
-                      <div className="drm-comment-main">
-                        <div className="drm-comment-top">
-                          <div className="drm-comment-author">{c.author ?? '-'}</div>
-                          <div className="drm-comment-date">{c.date ?? ''}</div>
+                <div className="drm-comments">
+                  {commentsLoading ? (
+                    <div className="drm-empty">Loading comments...</div>
+                  ) : commentsError ? (
+                    <div className="drm-empty">Error: {commentsError}</div>
+                  ) : localComments.length === 0 ? (
+                    <div className="drm-empty">No comments found.</div>
+                  ) : (
+                    localComments.map((c) => (
+                      <div className="drm-comment" key={c.id}>
+                        <div className="drm-comment-left">
+                          <div className="drm-avatar" aria-hidden="true">
+                            {String(c.author || '?')
+                              .trim()
+                              .slice(0, 1)
+                              .toUpperCase()}
+                          </div>
                         </div>
-                        <div className="drm-comment-text">{c.text ?? ''}</div>
+
+                        <div className="drm-comment-main">
+                          <div className="drm-comment-top">
+                            <div className="drm-comment-author">{c.author ?? '-'}</div>
+                            <div className="drm-comment-date">{c.date ?? ''}</div>
+                          </div>
+                          <div className="drm-comment-text">{c.text ?? ''}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    ))
+                  )}
+                </div>
+              </>
             ) : null}
 
             {activeTab === 'History' ? (
@@ -473,31 +615,6 @@ export default function DetailsRequestModal({
             ) : null}
           </div>
         </section>
-
-        {/* add comment */}
-        {activeTab === 'Comments' ? (
-          <section className="drm-section-addcomment">
-            <div className="drm-addcomment">
-              <input
-                className="drm-comment-input"
-                placeholder="Write a comment…"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddComment();
-                }}
-              />
-              <button
-                className="drm-send"
-                type="button"
-                onClick={handleAddComment}
-                aria-label="Send"
-              >
-                ➤
-              </button>
-            </div>
-          </section>
-        ) : null}
 
         <div className="drm-divider" />
 

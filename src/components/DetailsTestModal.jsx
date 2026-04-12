@@ -14,7 +14,7 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { isOverdue, parseLocalDate } from '../utils/dates';
+import { isOverdue, parseLocalDate } from '../utils/date.js';
 
 const DATE_FORMAT = {
   month: 'short',
