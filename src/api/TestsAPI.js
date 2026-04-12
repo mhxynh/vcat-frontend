@@ -134,6 +134,31 @@ export async function fetchTestsByRequestId(requestId, { details = true } = {}) 
   return Array.isArray(data) ? data : [];
 }
 
+/** GET /tests?control_id= — all tests for a control (dedupe requests in the UI if multiple tests share a request). */
+export async function fetchTestsByControlId(controlId) {
+  if (controlId == null) return [];
+
+  const url = new URL(`${API_BASE}/tests`);
+  url.searchParams.set('control_id', String(controlId));
+
+  const resp = await authFetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  return Array.isArray(data) ? data : [];
+}
+
 export async function deleteTest(testId, { hard = false } = {}) {
   if (testId == null) throw new Error('Test ID is required');
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
 import Icon from './common/Icon';
+import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import { objectToCamelCase } from '../utils/transformer';
 import {
@@ -15,151 +16,6 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
-
-const DATE_FORMAT = {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-};
-
-function formatDate(value) {
-  if (!value) return '';
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(undefined, DATE_FORMAT);
-}
-
-function logActorDisplayNameRaw(log) {
-  const v = log.actorDisplayName;
-  return v != null ? String(v).trim() : '';
-}
-
-function logActorUserIdRaw(log) {
-  const v = log.actorUserId;
-  if (v === null || v === undefined || v === '') return null;
-  return v;
-}
-
-function resolveActorLabel(log, actorFallback) {
-  const fromApi = logActorDisplayNameRaw(log);
-  if (fromApi) return fromApi;
-  const uid = logActorUserIdRaw(log);
-  if (uid != null) return `User ${uid}`;
-  if (actorFallback) {
-    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
-    if (fn && fn !== '-') return fn;
-    const fuid = actorFallback.userId;
-    if (fuid != null && fuid !== '') return `User ${fuid}`;
-  }
-  return '';
-}
-
-function getAuditChanges(log) {
-  const action = String(log.action || '').toUpperCase();
-  const after = log.afterSnapshot || {};
-  const before = log.beforeSnapshot || {};
-  const changed = log.changedFields || [];
-
-  if (action === 'UPDATE') {
-    const diff = after.changed || {};
-    return changed
-      .filter((field) => {
-        const entry = diff[field];
-        if (!entry) return false;
-        if (field === 'updatedAt') return false;
-        if (entry.from === entry.to) return false;
-        return true;
-      })
-      .map((field) => {
-        const entry = diff[field];
-        const label = formatFieldLabel(field);
-        const fromStr = formatAuditValue(field, entry?.from);
-        const toStr = formatAuditValue(field, entry?.to);
-        return { field, label, fromStr, toStr };
-      });
-  }
-
-  if (action === 'DELETE' && before.status) {
-    return [
-      {
-        field: 'status',
-        label: 'Status',
-        fromStr: formatTestRowStatusLabel(before.status),
-        toStr: 'Archived',
-      },
-    ];
-  }
-
-  return [];
-}
-
-function formatFieldLabel(field) {
-  const labels = {
-    status: 'Status',
-    datStep: 'DAT Step',
-    oetStep: 'OET Step',
-    updatedAt: 'Updated',
-    dueDate: 'Due date',
-    estimatedDate: 'ETA',
-    startDate: 'Start date',
-    completeDate: 'Complete date',
-    description: 'Description',
-    priority: 'Priority',
-    requestor: 'Requestor',
-    assignedTesterId: 'Assignee',
-  };
-  return labels[field] || field.replace(/_/g, ' ');
-}
-
-function formatAuditValue(field, value) {
-  if (value === null || value === undefined || value === '') return '—';
-
-  const dateFields = [
-    'updatedAt',
-    'dueDate',
-    'estimatedDate',
-    'startDate',
-    'completeDate',
-    'createdAt',
-  ];
-  if (dateFields.includes(field)) {
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
-  }
-
-  if (field === 'status') {
-    return formatTestRowStatusLabel(value);
-  }
-
-  if (field === 'datStep' || field === 'oetStep') {
-    return humanStep(value);
-  }
-
-  return String(value);
-}
-
-function formatTestRowStatusLabel(value) {
-  if (value === null || value === undefined || value === '') return '—';
-  const raw = String(value).toUpperCase();
-  const map = {
-    NOT_STARTED: 'Not Started',
-    DAT_IN_PROGRESS: 'DAT In Progress',
-    OET_IN_PROGRESS: 'OET In Progress',
-    IN_REVIEW: 'In Review',
-    BLOCKED: 'Blocked',
-    COMPLETED: 'Completed',
-    ARCHIVED: 'Archived',
-  };
-  return (
-    map[raw] ||
-    raw
-      .toLowerCase()
-      .split('_')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ')
-  );
-}
 
 export default function DetailsTestModal({
   isOpen,
@@ -233,7 +89,7 @@ export default function DetailsTestModal({
 
     fetchAuditLogsByTestId({ testId: currentTestId })
       .then((logs) => {
-        if (!cancelled) setHistoryLogs(objectToCamelCase(logs));
+        if (!cancelled) setHistoryLogs(Array.isArray(logs) ? logs : []);
       })
       .catch((e) => {
         if (!cancelled) setHistoryError(e?.message || 'Failed to load history');
@@ -800,94 +656,14 @@ export default function DetailsTestModal({
                 </div>
               </>
             ) : activeTab === 'History' ? (
-              <div className="dtm-timeline">
-                {historyLoading ? (
-                  <div className="dtm-timeline-empty">Loading history…</div>
-                ) : historyError ? (
-                  <div className="dtm-timeline-empty dtm-timeline-error">Error: {historyError}</div>
-                ) : !historyLogs?.length ? (
-                  <div className="dtm-timeline-empty">No history found.</div>
-                ) : (
-                  historyLogs.map((log, index) => {
-                    const action = String(log.action || '').toUpperCase();
-                    const entity = String(log.entityType || '').toUpperCase();
-                    const actorLabel = resolveActorLabel(log, {
-                      displayName: assignedName && assignedName !== '-' ? assignedName : null,
-                      userId: t?.assignedTesterId ?? null,
-                    });
-                    const timestamp = formatDate(log.changedAt);
-                    const changes = getAuditChanges(log);
-                    const hasStatusChange = changes.some((c) => c.field === 'status');
-                    const hasStepChange = changes.some(
-                      (c) => c.field === 'datStep' || c.field === 'oetStep'
-                    );
-
-                    let statusBadge = null;
-                    if (hasStatusChange) {
-                      const statusChange = changes.find((c) => c.field === 'status');
-                      statusBadge = `${statusChange.fromStr} → ${statusChange.toStr}`;
-                    } else if (hasStepChange) {
-                      const stepChange = changes.find(
-                        (c) => c.field === 'datStep' || c.field === 'oetStep'
-                      );
-                      if (stepChange) {
-                        const stepType = stepChange.field === 'datStep' ? 'DAT' : 'OET';
-                        statusBadge = `${stepType}: ${stepChange.fromStr} → ${stepChange.toStr}`;
-                      }
-                    }
-
-                    let eventTitle = '';
-                    let affectedId = '';
-
-                    if (entity === 'REQUEST') {
-                      affectedId = `Request`;
-                      if (action === 'CREATE') eventTitle = 'Request Created';
-                      else if (action === 'UPDATE') eventTitle = 'Request Updated';
-                      else if (action === 'DELETE') eventTitle = 'Request Archived';
-                      else eventTitle = `Request ${action}`;
-                    } else if (entity === 'TEST') {
-                      affectedId = vgcpid;
-                      if (action === 'CREATE') eventTitle = 'Control Test Created';
-                      else if (action === 'UPDATE') eventTitle = 'Control Test Updated';
-                      else if (action === 'DELETE') eventTitle = 'Control Test Archived';
-                      else eventTitle = `Control Test ${action}`;
-                    } else {
-                      eventTitle = `${entity} ${action}`;
-                    }
-
-                    return (
-                      <div className="dtm-timeline-item" key={log.auditId || index}>
-                        <div className="dtm-timeline-line">
-                          <div className="dtm-timeline-dot"></div>
-                          {index < historyLogs.length - 1 && (
-                            <div className="dtm-timeline-connector"></div>
-                          )}
-                        </div>
-                        <div className="dtm-timeline-content">
-                          <div className="dtm-timeline-header">
-                            <span className="dtm-timeline-title">{eventTitle}</span>
-                            <span className="dtm-timeline-time">{timestamp}</span>
-                          </div>
-                          <div className="dtm-timeline-meta">
-                            <span className="dtm-timeline-id">{affectedId}</span>
-                          </div>
-                          {statusBadge && (
-                            <div className="dtm-timeline-transition">
-                              <span>{statusBadge}</span>
-                            </div>
-                          )}
-                          {actorLabel && (
-                            <div className="dtm-timeline-actor">
-                              <Icon name="user" category="deco" size="xs" color="#8a8f98" />
-                              <span>by {actorLabel}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+              <AuditHistoryView
+                logs={historyLogs}
+                loading={historyLoading}
+                error={historyError}
+                overlayTitle={`Test History: ${vgcpid}`}
+                showContent={true}
+                contextVgcpid={vgcpid}
+              />
             ) : activeTab === 'Attachments' ? (
               <div className="dtm-empty">This view is not implemented yet.</div>
             ) : null}
