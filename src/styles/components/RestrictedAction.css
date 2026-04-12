@@ -1,0 +1,8 @@
+.restricted-action--blocked {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.restricted-action--blocked:hover {
+  opacity: 0.55;
+}

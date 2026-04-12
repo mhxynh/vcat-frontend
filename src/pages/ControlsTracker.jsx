@@ -8,6 +8,8 @@ import Calendar from './views/Calendar';
 import CreateTestModal from '../components/CreateTestModal';
 import CreateRequestModal from '../components/CreateRequestModal';
 import AssignTestModal from '../components/AssignTestModal';
+import RestrictedAction from '../components/RestrictedAction';
+import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
 import '../styles/pages/views/Tests.css';
 
@@ -139,34 +141,40 @@ export default function ControlsTracker() {
                   </button>
                   <span>{selectedTestRows.length} selected</span>
                 </div>
-                <button
-                  className="btn btn--new"
-                  type="button"
-                  onClick={() => setIsAssignOpen(true)}
-                >
-                  Bulk Assign
-                </button>
+                <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+                  <button
+                    className="btn btn--new"
+                    type="button"
+                    onClick={() => setIsAssignOpen(true)}
+                  >
+                    Bulk Assign
+                  </button>
+                </RestrictedAction>
               </div>
             ) : null}
 
-            <button
-              className="btn btn--new"
-              type="button"
-              onClick={() => setIsCreateTestOpen(true)}
-            >
-              + Add Control Test
-            </button>
+            <RestrictedAction action={ACTIONS.CREATE_TEST}>
+              <button
+                className="btn btn--new"
+                type="button"
+                onClick={() => setIsCreateTestOpen(true)}
+              >
+                + Add Control Test
+              </button>
+            </RestrictedAction>
           </div>
         )}
 
         {activeTab === 'Requests' && (
-          <button
-            className="btn btn--new"
-            type="button"
-            onClick={() => setIsCreateRequestOpen(true)}
-          >
-            + Add Request
-          </button>
+          <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
+            <button
+              className="btn btn--new"
+              type="button"
+              onClick={() => setIsCreateRequestOpen(true)}
+            >
+              + Add Request
+            </button>
+          </RestrictedAction>
         )}
       </div>
 
