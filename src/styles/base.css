@@ -1,5 +1,13 @@
 /* Base / global defaults */
 
+:root {
+  /* Request priority — foreground colors shared by Kanban dots, Request badges, Details Request modal */
+  --priority-low: #0f6a2b;
+  --priority-medium: #8a5a00;
+  --priority-high: #8b0f17;
+  --priority-critical: #5b21b6;
+}
+
 html,
 body,
 #root {

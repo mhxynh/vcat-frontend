@@ -1,3 +1,4 @@
+import { parseLocalDate } from '../utils/date';
 import { objectToSnakeCase } from '../utils/transformer';
 import { authFetch, API_BASE } from './apiClient';
 
@@ -133,6 +134,31 @@ export async function fetchTestsByRequestId(requestId, { details = true } = {}) 
   return Array.isArray(data) ? data : [];
 }
 
+/** GET /tests?control_id= — all tests for a control (dedupe requests in the UI if multiple tests share a request). */
+export async function fetchTestsByControlId(controlId) {
+  if (controlId == null) return [];
+
+  const url = new URL(`${API_BASE}/tests`);
+  url.searchParams.set('control_id', String(controlId));
+
+  const resp = await authFetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  return Array.isArray(data) ? data : [];
+}
+
 export async function deleteTest(testId, { hard = false } = {}) {
   if (testId == null) throw new Error('Test ID is required');
 
@@ -187,18 +213,6 @@ function mapTestStatusToUi(s) {
   if (v === 'BLOCKED') return 'Blocked';
   if (v === 'ARCHIVED') return 'Archived';
   return 'Not Started';
-}
-
-function parseLocalDate(value) {
-  if (!value) return null;
-
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const dt = new Date(value);
-  return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
 function formatShortDate(value) {

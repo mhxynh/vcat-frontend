@@ -1,7 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
+import {
+  buildRequestHistoryForControl,
+  fetchRequestById,
+  fetchRequestsByIds,
+  mapRequestRowToUi,
+} from '../api/RequestsAPI';
+import {
+  fetchTestsByControlId,
+  fetchTestsByRequestId,
+  mapTestRowToRequestControlCard,
+} from '../api/TestsAPI';
 import EditControlModal from './EditControlModal';
+import DetailsRequestModal from './DetailsRequestModal';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 
@@ -18,6 +30,34 @@ function formatDisplayDate(value) {
   }).format(parsed);
 }
 
+/** Request history: format once from raw API date; avoid reparsing localized `date` strings. */
+function formatRequestHistoryTableDate(row) {
+  if (row?.dateRaw != null && row.dateRaw !== '') {
+    return formatDisplayDate(row.dateRaw);
+  }
+  if (!row?.date || row.date === '-') return '-';
+  return row.date;
+}
+
+/** Numeric backend request_id for API calls; supports rows from fetch path or `control.requestHistory` fallback. */
+function getHistoryRowRequestId(historyRow) {
+  const keyValue = historyRow?.key;
+  if (keyValue != null) {
+    const numericKey = Number(keyValue);
+    if (!Number.isNaN(numericKey)) return numericKey;
+  }
+
+  const requestIdValue = historyRow?.requestId;
+  if (requestIdValue == null) return null;
+
+  const normalized =
+    typeof requestIdValue === 'string'
+      ? requestIdValue.replace(/^REQ-/i, '').trim()
+      : requestIdValue;
+  const numericRequestId = Number(normalized);
+  return Number.isNaN(numericRequestId) ? null : numericRequestId;
+}
+
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -27,22 +67,40 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
   const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
 
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const [fetchedRequestHistory, setFetchedRequestHistory] = useState([]);
+  const [requestHistoryLoading, setRequestHistoryLoading] = useState(false);
+  const [requestHistoryError, setRequestHistoryError] = useState('');
+
+  const [isRequestDetailsOpen, setIsRequestDetailsOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [requestDetailsError, setRequestDetailsError] = useState('');
+  const requestDetailsSeq = useRef(0);
+
   useEffect(() => {
     if (!isOpen) return;
 
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (isDeleteConfirmOpen) closeDeleteConfirm();
-        else onClose?.();
+      if (e.key !== 'Escape') return;
+      if (isDeleteConfirmOpen) {
+        closeDeleteConfirm();
+        return;
       }
+      if (isRequestDetailsOpen) {
+        setIsRequestDetailsOpen(false);
+        setSelectedRequest(null);
+        setRequestDetailsError('');
+        requestDetailsSeq.current += 1;
+        return;
+      }
+      onClose?.();
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen]);
-
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
+  }, [isOpen, onClose, isDeleteConfirmOpen, isRequestDetailsOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -52,10 +110,65 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   useEffect(() => {
     if (!isOpen) {
+      requestDetailsSeq.current += 1;
       setIsEditOpen(false);
       setIsDeleteConfirmOpen(false);
+      setIsRequestDetailsOpen(false);
+      setSelectedRequest(null);
+      setRequestDetailsError('');
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || control?.controlId == null) {
+      setFetchedRequestHistory([]);
+      setRequestHistoryLoading(false);
+      setRequestHistoryError('');
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRequestHistory() {
+      setRequestHistoryLoading(true);
+      setRequestHistoryError('');
+      try {
+        const tests = await fetchTestsByControlId(control.controlId);
+        if (cancelled) return;
+
+        const ids = Array.from(
+          new Set(
+            (Array.isArray(tests) ? tests : [])
+              .map((t) => t?.request_id)
+              .filter((x) => x != null)
+              .map((x) => Number(x))
+              .filter((n) => !Number.isNaN(n))
+          )
+        );
+
+        if (ids.length === 0) {
+          setFetchedRequestHistory([]);
+          return;
+        }
+
+        const requests = await fetchRequestsByIds(ids);
+        if (cancelled) return;
+        setFetchedRequestHistory(buildRequestHistoryForControl(tests, requests));
+      } catch (e) {
+        if (!cancelled) {
+          setFetchedRequestHistory([]);
+          setRequestHistoryError(e?.message || 'Failed to load request history');
+        }
+      } finally {
+        if (!cancelled) setRequestHistoryLoading(false);
+      }
+    }
+
+    loadRequestHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, control?.controlId]);
 
   if (!isOpen) return null;
 
@@ -72,13 +185,52 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const lastTested = formatDisplayDate(control?.lastTested);
   const escalationRequired = control?.escalationRequired ?? '-';
 
-  const requestHistory = Array.isArray(control?.requestHistory) ? control.requestHistory : [];
+  const requestHistory =
+    control?.controlId != null
+      ? fetchedRequestHistory
+      : Array.isArray(control?.requestHistory)
+        ? control.requestHistory
+        : [];
   const logs =
     (Array.isArray(control?.logs) && control.logs) ||
     (Array.isArray(control?.historyLogs) && control.historyLogs) ||
     [];
 
   const stop = (e) => e.stopPropagation();
+
+  async function openRequestDetails(historyRow) {
+    const requestId = getHistoryRowRequestId(historyRow);
+    if (requestId == null) return;
+
+    const seq = (requestDetailsSeq.current += 1);
+    try {
+      setRequestDetailsError('');
+
+      const [rawRequest, rawTests] = await Promise.all([
+        fetchRequestById(requestId),
+        fetchTestsByRequestId(requestId, { details: true }),
+      ]);
+
+      if (seq !== requestDetailsSeq.current) return;
+
+      const ui = mapRequestRowToUi(rawRequest || {});
+      const controls = Array.isArray(rawTests) ? rawTests.map(mapTestRowToRequestControlCard) : [];
+
+      setSelectedRequest({ ...ui, controls });
+      setIsRequestDetailsOpen(true);
+    } catch (e) {
+      if (seq === requestDetailsSeq.current) {
+        setRequestDetailsError(e?.message || 'Failed to open request details');
+      }
+    }
+  }
+
+  function closeRequestDetails() {
+    requestDetailsSeq.current += 1;
+    setIsRequestDetailsOpen(false);
+    setSelectedRequest(null);
+    setRequestDetailsError('');
+  }
 
   async function handleDelete() {
     if (!id) return;
@@ -174,12 +326,16 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           <section className="dcm-section-request-history">
             <div className="dcm-section">
               <div className="dcm-section-title dcm-section-title--withicon">
-                <Icon name="documents" category="deco" />
+                <Icon name="documents" category="deco" className="dcm-icon--doc" />
                 Request History
               </div>
 
               <div className="dcm-request-table-wrap">
-                {requestHistory.length === 0 ? (
+                {requestHistoryError ? (
+                  <div className="dcm-empty">{requestHistoryError}</div>
+                ) : requestHistoryLoading ? (
+                  <div className="dcm-empty">Loading request history…</div>
+                ) : requestHistory.length === 0 ? (
                   <div className="dcm-empty">No request history found.</div>
                 ) : (
                   <table className="dcm-request-table">
@@ -194,9 +350,22 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                     </thead>
                     <tbody>
                       {requestHistory.map((r) => (
-                        <tr key={r.requestId}>
-                          <td className="dcm-mono">{r.requestId}</td>
-                          <td>{formatDisplayDate(r.date ?? '-')}</td>
+                        <tr key={r.key ?? r.requestId}>
+                          <td className="dcm-request-id">
+                            {getHistoryRowRequestId(r) != null ? (
+                              <button
+                                type="button"
+                                className="dcm-link"
+                                onClick={() => openRequestDetails(r)}
+                                title="Open request details"
+                              >
+                                {r.requestId}
+                              </button>
+                            ) : (
+                              <span>{r.requestId}</span>
+                            )}
+                          </td>
+                          <td>{formatRequestHistoryTableDate(r)}</td>
                           <td>{r.requester ?? '-'}</td>
                           <td>
                             <span
@@ -214,6 +383,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                   </table>
                 )}
               </div>
+              {requestDetailsError ? (
+                <div className="dcm-empty" style={{ paddingLeft: 0, paddingRight: 0 }}>
+                  {requestDetailsError}
+                </div>
+              ) : null}
             </div>
           </section>
 
@@ -336,6 +510,15 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           await onUpdated?.();
           closeEdit();
           onClose?.();
+        }}
+      />
+
+      <DetailsRequestModal
+        isOpen={isRequestDetailsOpen}
+        onClose={closeRequestDetails}
+        request={selectedRequest}
+        onUpdated={() => {
+          // keep as no-op for now; request modal self-refreshes on edits
         }}
       />
     </>
