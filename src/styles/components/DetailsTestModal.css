@@ -278,13 +278,14 @@
   line-height: 1;
 }
 
-.dtm-btn:hover {
+.dtm-btn:hover:not(:disabled) {
   filter: brightness(0.98);
 }
 
 .dtm-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  filter: none;
 }
 
 .dtm-btn--outline {

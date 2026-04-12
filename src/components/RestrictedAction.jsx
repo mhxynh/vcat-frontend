@@ -24,13 +24,28 @@ export default function RestrictedAction({ action, children }) {
 
   const reason = restrictionMessage(action);
   const prevTitle = children.props.title;
-  const title = prevTitle ? `${prevTitle} — ${reason}` : reason;
+  const title = prevTitle ? `${prevTitle} - ${reason}` : reason;
+  const childStyle = {
+    ...(children.props.style || {}),
+    pointerEvents: 'none',
+  };
+  const childClassName = [children.props.className, 'restricted-action__control']
+    .filter(Boolean)
+    .join(' ');
 
-  return React.cloneElement(children, {
-    disabled: true,
-    'aria-disabled': true,
-    onClick: undefined,
-    title,
-    className: [children.props.className, 'restricted-action--blocked'].filter(Boolean).join(' '),
-  });
+  return (
+    <span className="restricted-action restricted-action--blocked" title={title} aria-label={title}>
+      {React.cloneElement(children, {
+        disabled: true,
+        'aria-disabled': true,
+        tabIndex: -1,
+        onClick: undefined,
+        onMouseDown: undefined,
+        onPointerDown: undefined,
+        title,
+        style: childStyle,
+        className: childClassName,
+      })}
+    </span>
+  );
 }

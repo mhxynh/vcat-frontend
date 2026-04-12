@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
+import { ACTIONS, useCan } from '../../auth';
 
 function parseLocalDate(value) {
   if (!value) return null;
@@ -74,6 +75,7 @@ export default function Tests({
   selectedRows: propSelectedRows,
   onSelectionChange,
 }) {
+  const canBulkAssign = useCan(ACTIONS.BULK_ASSIGN_TESTERS);
   const onSelectionChangeRef = React.useRef(onSelectionChange);
   const propSelectedRowsRef = React.useRef(propSelectedRows);
 
@@ -102,6 +104,12 @@ export default function Tests({
 
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+
+  useEffect(() => {
+    if (!canBulkAssign && selectedRows.length > 0) {
+      updateSelectedRows([]);
+    }
+  }, [canBulkAssign, selectedRows.length, updateSelectedRows]);
 
   function openTestDetails(t) {
     setSelectedTest(t);
@@ -193,10 +201,12 @@ export default function Tests({
   const isAllSelected = rowIds.length > 0 && selectedRows.length === rowIds.length;
 
   const handleSelectAll = (e) => {
+    if (!canBulkAssign) return;
     updateSelectedRows(e.target.checked ? rowIds : []);
   };
 
   const handleSelectRow = (id) => {
+    if (!canBulkAssign) return;
     const next = selectedRows.includes(id)
       ? selectedRows.filter((x) => x !== id)
       : [...selectedRows, id];
@@ -226,15 +236,17 @@ export default function Tests({
           <table className="table">
             <thead className="table__head">
               <tr>
-                <th className="table__header-cell">
-                  <input
-                    type="checkbox"
-                    className="table__checkbox"
-                    aria-label="Select all rows"
-                    checked={isAllSelected}
-                    onChange={handleSelectAll}
-                  />
-                </th>
+                {canBulkAssign ? (
+                  <th className="table__header-cell">
+                    <input
+                      type="checkbox"
+                      className="table__checkbox"
+                      aria-label="Select all rows"
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                ) : null}
                 <th className="table__header-cell">VGCPID</th>
                 <th className="table__header-cell">Tester</th>
                 <th className="table__header-cell">Test Type</th>
@@ -265,15 +277,17 @@ export default function Tests({
 
                 return (
                   <tr key={id} className="table__row">
-                    <td className="table__cell">
-                      <input
-                        type="checkbox"
-                        className="table__checkbox"
-                        aria-label={`Select ${String(vgcpidCell)}`}
-                        checked={selectedRows.includes(id)}
-                        onChange={() => handleSelectRow(id)}
-                      />
-                    </td>
+                    {canBulkAssign ? (
+                      <td className="table__cell">
+                        <input
+                          type="checkbox"
+                          className="table__checkbox"
+                          aria-label={`Select ${String(vgcpidCell)}`}
+                          checked={selectedRows.includes(id)}
+                          onChange={() => handleSelectRow(id)}
+                        />
+                      </td>
+                    ) : null}
 
                     <td className="table__cell table__cell--vgcpid">
                       <button

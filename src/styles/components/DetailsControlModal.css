@@ -301,6 +301,12 @@
   background: #f4f4f4;
 }
 
+.dcm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
 .dcm-btn--ghost {
   background: #ffffff;
   border-color: #e6e6e6;

@@ -1,8 +1,19 @@
-.restricted-action--blocked {
-  cursor: not-allowed;
-  opacity: 0.55;
+.restricted-action {
+  display: inline-flex;
 }
 
-.restricted-action--blocked:hover {
+.restricted-action--blocked {
+  cursor: not-allowed;
+}
+
+.restricted-action--blocked .restricted-action__control {
   opacity: 0.55;
+  pointer-events: none !important;
+}
+
+.restricted-action--blocked .restricted-action__control:hover,
+.restricted-action--blocked:hover .restricted-action__control {
+  opacity: 0.55;
+  filter: none;
+  transform: none;
 }
