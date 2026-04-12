@@ -94,16 +94,3 @@
   font-weight: bold;
   text-decoration: none;
 }
-
-.login-footer {
-  background-color: #f9f9f9;
-  border-top: 1px solid #eaeaea;
-  text-align: center;
-  padding: 14px 24px;
-}
-
-.login-footer-text {
-  font-size: 12px;
-  color: #979797;
-  margin: 0px;
-}
