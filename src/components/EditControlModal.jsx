@@ -96,7 +96,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
       showSuccessToast({
         title: 'Control Saved',
-        message: `${trimmedId} has been saved successfully.`,
+        message: `Control ${originalVgcpid} has been saved successfully.`,
       });
 
       onClose?.();

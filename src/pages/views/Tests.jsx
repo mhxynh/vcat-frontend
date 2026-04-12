@@ -6,18 +6,6 @@ import Icon from '../../components/common/Icon';
 import { isOverdue, parseLocalDate } from '../../utils/date.js';
 import { ACTIONS, useCan } from '../../auth';
 
-function parseLocalDate(value) {
-  if (!value) return null;
-
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const dt = new Date(value);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
-
 function formatDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
