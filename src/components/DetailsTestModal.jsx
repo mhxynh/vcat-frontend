@@ -351,7 +351,7 @@ export default function DetailsTestModal({
           const errorMessage = e?.message || 'Failed to complete control test';
 
           showErrorToast({
-            title: 'Control Test Completed Failed',
+            title: 'Control Test Completion Failed',
             message: `An error occurred while completing the control test: ${errorMessage}`,
           });
         }
