@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { updateControl, retireControl } from '../api/ControlsAPI';
+import { useRole, ACTIONS } from '../auth';
 import '../styles/components/EditControlModal.css';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
+  const { isManager, restrictionMessage } = useRole();
   const originalVgcpid = control?.id ?? '';
 
   const initial = useMemo(() => {
@@ -13,7 +15,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       controlOwner: control?.owner ?? '',
       controlSme: control?.sme ?? '',
       escalation: (control?.escalationRequired ?? '').toLowerCase() === 'yes',
-      lastTested: control?.lastTested && control?.lastTested !== '-' ? control.lastTested : '',
       status: control?.status ?? 'Active',
     };
   }, [control]);
@@ -23,7 +24,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   const [controlOwner, setControlOwner] = useState('');
   const [controlSme, setControlSme] = useState('');
   const [escalation, setEscalation] = useState(false);
-  const [lastTested, setLastTested] = useState('');
   const [status, setStatus] = useState('Active');
 
   const [submitting, setSubmitting] = useState(false);
@@ -38,7 +38,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     setControlOwner(initial.controlOwner);
     setControlSme(initial.controlSme);
     setEscalation(initial.escalation);
-    setLastTested(initial.lastTested);
     setStatus(initial.status);
 
     setError('');
@@ -74,13 +73,15 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     setSubmitting(true);
 
     try {
-      const trimmedId = vgcpid.trim();
+      const effectiveVgcpid = isManager ? vgcpid.trim() : initial.vgcpid.trim();
+      const transitioningToRetired =
+        isManager && status === 'Retired' && initial.status !== 'Retired';
 
-      if (status === 'Retired') {
+      if (transitioningToRetired) {
         await retireControl(originalVgcpid);
       } else {
         const payload = {
-          vgcpid: trimmedId,
+          vgcpid: effectiveVgcpid,
           description: description.trim(),
           controlOwner: controlOwner.trim(),
           controlSme: controlSme.trim(),
@@ -113,6 +114,11 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   }
 
   if (!isOpen) return null;
+
+  const controlIdFieldTitle = !isManager
+    ? restrictionMessage(ACTIONS.CHANGE_CATALOG_CONTROL_ID)
+    : undefined;
+  const statusFieldTitle = !isManager ? restrictionMessage(ACTIONS.RETIRE_CONTROL) : undefined;
 
   return (
     <div
@@ -150,6 +156,8 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 value={vgcpid}
                 onChange={(e) => setVgcpid(e.target.value)}
                 placeholder="e.g. VGCP-123456"
+                disabled={!isManager}
+                title={controlIdFieldTitle}
                 aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
               />
               {fieldErrors.vgcpid ? <div className="field-error">{fieldErrors.vgcpid}</div> : null}
@@ -161,9 +169,19 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
                 className="ecm-select"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
+                disabled={!isManager}
+                title={statusFieldTitle}
               >
-                <option value="Active">Active</option>
-                <option value="Retired">Retired</option>
+                {isManager ? (
+                  <>
+                    <option value="Active">Active</option>
+                    <option value="Retired">Retired</option>
+                  </>
+                ) : initial.status === 'Retired' ? (
+                  <option value="Retired">Retired</option>
+                ) : (
+                  <option value="Active">Active</option>
+                )}
               </select>
             </div>
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Authenticator, ThemeProvider } from '@aws-amplify/ui-react';
 import { ToastContainer } from 'react-toastify';
+import { RoleProvider } from './auth';
 import { vcatTheme, components, formFields } from './pages/Login';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
@@ -22,36 +23,38 @@ export default function App() {
             <Navbar />
             <div style={{ flex: 1 }}>
               <Authenticator components={components} formFields={formFields} hideSignUp={true}>
-                {({ signOut, user }) => (
-                  <main style={{ width: '100%', padding: '20px' }}>
-                    <Routes>
-                      <Route path="/" element={<Dashboard user={user} />} />
-                      <Route path="/catalog" element={<Catalog />} />
-                      <Route path="/tracker" element={<Tracker />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                {() => (
+                  <RoleProvider>
+                    <main style={{ width: '100%', padding: '20px' }}>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/catalog" element={<Catalog />} />
+                        <Route path="/tracker" element={<Tracker />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
 
-                    <ToastContainer
-                      position="top-right"
-                      autoClose={5000}
-                      newestOnTop
-                      closeOnClick={false}
-                      pauseOnHover={false}
-                      draggable={false}
-                      hideProgressBar={false}
-                      theme="light"
-                      toastStyle={{
-                        background: 'transparent',
-                        boxShadow: 'none',
-                        padding: 0,
-                        minHeight: 'unset',
-                      }}
-                      bodyStyle={{
-                        padding: 0,
-                        margin: 0,
-                      }}
-                    />
-                  </main>
+                      <ToastContainer
+                        position="top-right"
+                        autoClose={5000}
+                        newestOnTop
+                        closeOnClick={false}
+                        pauseOnHover={false}
+                        draggable={false}
+                        hideProgressBar={false}
+                        theme="light"
+                        toastStyle={{
+                          background: 'transparent',
+                          boxShadow: 'none',
+                          padding: 0,
+                          minHeight: 'unset',
+                        }}
+                        bodyStyle={{
+                          padding: 0,
+                          margin: 0,
+                        }}
+                      />
+                    </main>
+                  </RoleProvider>
                 )}
               </Authenticator>
             </div>
