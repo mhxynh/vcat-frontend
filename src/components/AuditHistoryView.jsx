@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
+import { fetchUsers } from '../api/UsersAPI';
 import '../styles/components/AuditHistoryView.css';
 
 const DATE_FORMAT = {
@@ -30,33 +33,135 @@ function logActorUserIdRaw(log) {
   return v;
 }
 
-/** Label: API `actor_display_name`, else `User {id}`, else optional assignee fallback (test details). */
-function resolveActorLabel(log, actorFallback) {
+/** Map user_id -> display label from GET /users (same source as assignee modals). */
+function buildActorDisplayNameLookup(users) {
+  const map = Object.create(null);
+  for (const u of users || []) {
+    const id = u.user_id ?? u.userId ?? u.id;
+    if (id == null) continue;
+    const raw = u.display_name ?? u.displayName ?? u.email ?? '';
+    const name = String(raw).trim();
+    if (name) map[String(id)] = name;
+  }
+  return map;
+}
+
+/** Decode Cognito ID token payload (browser); UTF-8 safe for Unicode claims. */
+function decodeJwtPayload(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+    const binary = atob(b64 + pad);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const json = new TextDecoder('utf-8').decode(bytes);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+async function getActorLookupSessionKey() {
+  try {
+    const session = await fetchAuthSession();
+    const token = session?.tokens?.idToken?.toString();
+    const payload = token ? decodeJwtPayload(token) : null;
+    const userKey = payload?.sub ?? payload?.['cognito:username'] ?? null;
+    return userKey != null && userKey !== '' ? String(userKey) : 'anonymous';
+  } catch {
+    return 'anonymous';
+  }
+}
+
+/** Per signed-in user: avoids cross-session reuse of GET /users within the same tab. */
+let actorLookupCacheBySession = Object.create(null);
+let actorLookupInFlightBySession = Object.create(null);
+let actorLookupLastFailureAtBySession = Object.create(null);
+
+function resetActorLookupModuleCache() {
+  actorLookupCacheBySession = Object.create(null);
+  actorLookupInFlightBySession = Object.create(null);
+  actorLookupLastFailureAtBySession = Object.create(null);
+}
+
+function loadActorLookupMap() {
+  return getActorLookupSessionKey().then((sessionKey) => {
+    if (actorLookupCacheBySession[sessionKey]) {
+      return Promise.resolve(actorLookupCacheBySession[sessionKey]);
+    }
+    if (actorLookupInFlightBySession[sessionKey]) {
+      return actorLookupInFlightBySession[sessionKey];
+    }
+    if (Date.now() - (actorLookupLastFailureAtBySession[sessionKey] ?? 0) < 10_000) {
+      return Promise.resolve(Object.create(null));
+    }
+    // Full org list: needed to resolve historical actor_user_ids. A future API could return
+    // display names on audit rows or accept a set of user ids to narrow this call.
+    actorLookupInFlightBySession[sessionKey] = fetchUsers()
+      .then((users) => {
+        actorLookupCacheBySession[sessionKey] = buildActorDisplayNameLookup(users);
+        return actorLookupCacheBySession[sessionKey];
+      })
+      .catch(() => {
+        actorLookupLastFailureAtBySession[sessionKey] = Date.now();
+        return Object.create(null);
+      })
+      .finally(() => {
+        delete actorLookupInFlightBySession[sessionKey];
+      });
+    return actorLookupInFlightBySession[sessionKey];
+  });
+}
+
+function displayNameFromIdTokenPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  const name = payload.name || payload.given_name || payload.preferred_username;
+  if (name && String(name).trim()) return String(name).trim();
+  const email = payload.email;
+  if (email && typeof email === 'string') {
+    const local = email.split('@')[0];
+    if (local) return local;
+  }
+  return null;
+}
+
+/**
+ * Prefer API `actor_display_name`, then /users lookup by `actor_user_id`, then `User {id}`.
+ * With no `actor_user_id`, production shows "Unknown" so viewers are not misattributed.
+ * In development only, fall back to the signed-in Cognito user when the backend omits actor (local).
+ */
+function resolveActorLabel(log, sessionDisplayNameFallback, actorLookup, isDev) {
   const fromApi = logActorDisplayNameRaw(log);
   if (fromApi) return fromApi;
   const uid = logActorUserIdRaw(log);
-  if (uid != null) return `User ${uid}`;
-  if (actorFallback) {
-    const fn = actorFallback.displayName != null ? String(actorFallback.displayName).trim() : '';
-    if (fn && fn !== '-') return fn;
-    const fuid = actorFallback.userId;
-    if (fuid != null && fuid !== '') return `User ${fuid}`;
+  if (uid != null && actorLookup && actorLookup[String(uid)]) {
+    return actorLookup[String(uid)];
   }
-  return '';
+  if (uid != null) return `User ${uid}`;
+  if (isDev && sessionDisplayNameFallback) return sessionDisplayNameFallback;
+  return 'Unknown';
 }
 
-/** Same initials pattern as Dashboard capacity (up to two tokens). */
+/** Up to two characters: first letter of first two words, or first two letters of a single word (e.g. "MH"). */
 function historyAvatarInitials(name) {
-  return (name || '')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((token) => token[0]?.toUpperCase())
-    .join('');
+  const s = String(name || '').trim();
+  if (!s) return '';
+  const parts = s.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return parts
+      .slice(0, 2)
+      .map((token) => token[0]?.toUpperCase())
+      .join('');
+  }
+  const one = parts[0] || '';
+  if (one.length >= 2) return one.slice(0, 2).toUpperCase();
+  return one.slice(0, 1).toUpperCase();
 }
 
-function auditEntryAvatarInitial(log, actorFallback) {
-  const label = resolveActorLabel(log, actorFallback);
+function auditEntryAvatarInitial(log, sessionDisplayNameFallback, actorLookup, isDev) {
+  const label = resolveActorLabel(log, sessionDisplayNameFallback, actorLookup, isDev);
+  if (label === 'Unknown') return '?';
   if (label) {
     const badge = historyAvatarInitials(label);
     if (badge) return badge;
@@ -78,7 +183,6 @@ function auditEntryAvatarInitial(log, actorFallback) {
  * @param {string} [props.contextVgcpid] - VGCP ID of the current test (when viewing single test history). Shown with each "Test updated" entry.
  * @param {string} [props.contextRequestId] - Request display ID (e.g. "REQ-0001") when viewing request history. Shown with each "Request updated" entry.
  * @param {Object} [props.contextTestIdToVgcpid] - Map of test_id -> vgcpid for tests under a request. Used when viewing request history to show "Test: VGCP-xxx Updated" for each test.
- * @param {Object} [props.actorFallback] - When audit row has no actor: `{ displayName?, userId? }` (e.g. current test assignee).
  */
 export default function AuditHistoryView({
   logs,
@@ -90,9 +194,70 @@ export default function AuditHistoryView({
   contextVgcpid = null,
   contextRequestId = null,
   contextTestIdToVgcpid = null,
-  actorFallback = null,
 }) {
   const [showExpanded, setShowExpanded] = useState(false);
+  const [sessionDisplayName, setSessionDisplayName] = useState(null);
+  const [actorLookup, setActorLookup] = useState(() => Object.create(null));
+
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const needsActorLookup = useMemo(() => {
+    if (!showContent || !logs?.length) return false;
+    return logs.some((log) => logActorUserIdRaw(log) != null && !logActorDisplayNameRaw(log));
+  }, [showContent, logs]);
+
+  /** Dev fallback when backend omits actor_user_id + actor_display_name — only then read Cognito. */
+  const needsDevSessionFallback = useMemo(() => {
+    if (!isDev || !showContent || !logs?.length) return false;
+    return logs.some((log) => !logActorDisplayNameRaw(log) && logActorUserIdRaw(log) == null);
+  }, [isDev, showContent, logs]);
+
+  useEffect(() => {
+    if (!needsDevSessionFallback) {
+      setSessionDisplayName(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const session = await fetchAuthSession();
+        const token = session?.tokens?.idToken?.toString();
+        const payload = token ? decodeJwtPayload(token) : null;
+        const name = displayNameFromIdTokenPayload(payload);
+        if (!cancelled) setSessionDisplayName(name);
+      } catch {
+        if (!cancelled) setSessionDisplayName(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [needsDevSessionFallback]);
+
+  useEffect(() => {
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      if (payload?.event === 'signedOut') {
+        resetActorLookupModuleCache();
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!needsActorLookup) {
+      setActorLookup((currentLookup) =>
+        Object.keys(currentLookup).length > 0 ? Object.create(null) : currentLookup
+      );
+      return;
+    }
+    let cancelled = false;
+    loadActorLookupMap().then((map) => {
+      if (!cancelled) setActorLookup(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsActorLookup]);
 
   useEffect(() => {
     if (!showExpanded) return;
@@ -113,11 +278,15 @@ export default function AuditHistoryView({
       {logs.map((log) => {
         const changes = getAuditChanges(log);
         const vgcpid = resolveVgcpid(log, contextVgcpid, contextTestIdToVgcpid);
-        const actorLabel = resolveActorLabel(log, actorFallback);
+        const actorLabel = resolveActorLabel(log, sessionDisplayName, actorLookup, isDev);
         return (
           <div className="ahv-entry" key={log.audit_id}>
             <div className="ahv-header">
-              <div className="ahv-avatar">{auditEntryAvatarInitial(log, actorFallback)}</div>
+              <div className="ahv-avatar" aria-hidden="true">
+                <span className="ahv-avatar-text">
+                  {auditEntryAvatarInitial(log, sessionDisplayName, actorLookup, isDev)}
+                </span>
+              </div>
               <div className="ahv-meta">
                 <span className="ahv-action">
                   {formatAuditAction(log, { vgcpid, requestId: contextRequestId })}
