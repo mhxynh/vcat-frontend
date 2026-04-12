@@ -74,7 +74,11 @@ export const components = {
         <div className="login-signin-footer">
           <p className="login-signin-footer-text">
             Don't have an account?{' '}
-            <a href="/" className="login-contact-admin-link">
+            <a
+              href="/"
+              className="login-contact-admin-link"
+              onClick={(event) => event.preventDefault()}
+            >
               Contact Admin
             </a>
           </p>
