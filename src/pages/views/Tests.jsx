@@ -1,25 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
-import { parseLocalDate } from '../../utils/date';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
+import { isOverdue, parseLocalDate } from '../../utils/date.js';
 
 function formatDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
   return d.toLocaleDateString();
-}
-
-function isOverdue(value) {
-  const due = parseLocalDate(value);
-  if (!due) return false;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-
-  return due < today;
 }
 
 function statusToLabel(status) {

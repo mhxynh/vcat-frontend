@@ -16,7 +16,7 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { parseLocalDate } from '../utils/date';
+import { isOverdue, parseLocalDate } from '../utils/date.js';
 
 export default function DetailsTestModal({
   isOpen,
@@ -134,7 +134,7 @@ export default function DetailsTestModal({
   const updatedAt = formatLongDate(t?.updatedAt);
   const dueDate = formatLongDate(t?.dueDate);
   const overdue =
-    isOverdue(t?.due_date) &&
+    isOverdue(t?.dueDate) &&
     !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
   const etaDate = formatLongDate(t?.estimatedDate);
 
@@ -861,15 +861,4 @@ function formatLongDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function isOverdue(value) {
-  const due = parseLocalDate(value);
-  if (!due) return false;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-
-  return due < today;
 }

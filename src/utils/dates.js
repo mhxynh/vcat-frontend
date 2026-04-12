@@ -1,6 +1,3 @@
-/**
- * Parse API date values without UTC off-by-one for `YYYY-MM-DD` strings.
- */
 export function parseLocalDate(value) {
   if (!value) return null;
 
@@ -13,13 +10,18 @@ export function parseLocalDate(value) {
   return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
+export function toLocalDayStart(date) {
+  if (!date) return null;
+  const normalized = new Date(date);
+  if (Number.isNaN(normalized.getTime())) return null;
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+}
+
 export function isOverdue(value) {
-  const due = parseLocalDate(value);
+  const due = toLocalDayStart(parseLocalDate(value));
   if (!due) return false;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-
+  const today = toLocalDayStart(new Date());
   return due < today;
 }
