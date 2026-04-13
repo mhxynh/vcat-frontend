@@ -6,14 +6,16 @@
   cursor: not-allowed;
 }
 
-.restricted-action--blocked .restricted-action__control {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
+.restricted-action--blocked .restricted-action__control,
 .restricted-action--blocked .restricted-action__control:hover,
+.restricted-action--blocked .restricted-action__control:focus,
+.restricted-action--blocked .restricted-action__control:focus-visible,
+.restricted-action--blocked .restricted-action__control:active,
 .restricted-action--blocked:hover .restricted-action__control {
   opacity: 0.55;
+  cursor: not-allowed !important;
+  text-decoration: none;
+  box-shadow: none !important;
   filter: none;
   transform: none;
 }

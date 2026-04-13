@@ -28,6 +28,7 @@ export default function RestrictedAction({ action, children }) {
   const title = prevTitle ? `${prevTitle} - ${reason}` : reason;
   const childStyle = {
     ...(children.props.style || {}),
+    pointerEvents: 'none',
   };
   const childClassName = [children.props.className, 'restricted-action__control']
     .filter(Boolean)
