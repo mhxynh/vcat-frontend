@@ -61,6 +61,7 @@ export default function DetailsTestModal({
       setIsBusy(false);
     }
   }
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -181,9 +182,7 @@ export default function DetailsTestModal({
     const oetStep = String(testRow?.oetStep || '');
 
     if (requiresDat && datStep !== 'COMPLETED') return 'DAT';
-
     if (requiresOet && oetStep !== 'COMPLETED') return 'OET';
-
     if (requiresOet) return 'OET';
     if (requiresDat) return 'DAT';
     return null;
@@ -205,8 +204,9 @@ export default function DetailsTestModal({
           'ADDRESSING_COMMENTS',
         ];
       }
-      if (track === 'OET')
+      if (track === 'OET') {
         return ['', 'TESTING_READY', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+      }
     }
 
     if (requiresDat) {
@@ -255,8 +255,8 @@ export default function DetailsTestModal({
     return false;
   }
 
-  function isInProgress(status) {
-    const s = String(status || '').toUpperCase();
+  function isInProgress(statusValue) {
+    const s = String(statusValue || '').toUpperCase();
     return s === 'DAT_IN_PROGRESS' || s === 'OET_IN_PROGRESS';
   }
 
@@ -272,7 +272,7 @@ export default function DetailsTestModal({
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
     }
-    if (statusUpper === 'IN_REVIEW') return 'Approve Control Ã¢Å“â€œ';
+    if (statusUpper === 'IN_REVIEW') return 'Approve Control ✓';
     if (statusUpper === 'COMPLETED') return '';
     return 'Next Step';
   }
@@ -346,7 +346,6 @@ export default function DetailsTestModal({
           await setTrackStepApi(track, next, statusForTrack(track));
           await refreshTest();
         });
-        return;
       }
     } catch (e) {
       alert(e?.message || 'Update failed');
@@ -454,16 +453,16 @@ export default function DetailsTestModal({
     setCommentText('');
   }
 
-  function statusToLabel(status) {
-    return String(status || 'NOT_STARTED')
+  function statusToLabel(statusValue) {
+    return String(statusValue || 'NOT_STARTED')
       .replaceAll('_', ' ')
       .toLowerCase()
       .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
       .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
   }
 
-  function statusToBadgeType(status) {
-    return String(status || 'NOT_STARTED')
+  function statusToBadgeType(statusValue) {
+    return String(statusValue || 'NOT_STARTED')
       .toLowerCase()
       .replaceAll('_', '-');
   }
@@ -488,7 +487,7 @@ export default function DetailsTestModal({
           <section className="dtm-header">
             <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
             <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
-              Ãƒâ€”
+              ×
             </button>
           </section>
 
@@ -500,7 +499,7 @@ export default function DetailsTestModal({
                 <span className={`badge badge--${statusToBadgeType(status)}`}>
                   {statusToLabel(status)}
                 </span>
-                <span className="dtm-dot">Ã¢â‚¬Â¢</span>
+                <span className="dtm-dot">•</span>
                 <span className="dtm-subtle">{typeLabel}</span>
               </div>
 
@@ -518,7 +517,7 @@ export default function DetailsTestModal({
             <div className="dtm-step-card">
               <div className="dtm-step-left">
                 <div className="dtm-step-icon" aria-hidden="true">
-                  Ã¢â€“Â¶
+                  ▶
                 </div>
                 <div>
                   <div className="dtm-step-label">CURRENT STEP</div>
@@ -551,7 +550,7 @@ export default function DetailsTestModal({
               </div>
 
               <div className="dtm-step-mid" aria-hidden="true">
-                Ã¢â€ â€™
+                →
               </div>
 
               <div className="dtm-step-right">
@@ -640,7 +639,7 @@ export default function DetailsTestModal({
                 <div className="dtm-addcomment">
                   <input
                     className="dtm-comment-input"
-                    placeholder="Write a commentÃ¢â‚¬Â¦"
+                    placeholder="Write a comment…"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     onKeyDown={(e) => {
@@ -653,7 +652,7 @@ export default function DetailsTestModal({
                     onClick={handleAddComment}
                     aria-label="Send"
                   >
-                    Ã¢Å¾Â¤
+                    ➤
                   </button>
                 </div>
               </>
