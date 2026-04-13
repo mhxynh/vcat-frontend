@@ -81,6 +81,13 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [requestDetailsError, setRequestDetailsError] = useState('');
   const requestDetailsSeq = useRef(0);
 
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -431,17 +438,28 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </button>
 
               <div className="dcm-footer-right">
-                <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
-                  <button
-                    className="dcm-btn dcm-btn--outline"
-                    type="button"
-                    onClick={openDeleteConfirm}
-                    disabled={deleting || !id}
-                    title={!id ? 'No control selected' : 'Delete this control'}
-                  >
-                    {deleting ? 'Deleting…' : 'Delete Control'}
-                  </button>
-                </RestrictedAction>
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
+                    }
+                  }}
+                >
+                  <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
+                    <button
+                      className="dcm-btn dcm-btn--outline"
+                      type="button"
+                      onClick={openDeleteConfirm}
+                      disabled={deleting || !id}
+                      title={!id ? 'No control selected' : 'Delete this control'}
+                    >
+                      {deleting ? 'Deleting…' : 'Delete Control'}
+                    </button>
+                  </RestrictedAction>
+                </div>
 
                 <button
                   className="dcm-btn dcm-btn--primary"

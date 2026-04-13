@@ -11,6 +11,7 @@ import AssignRequestModal from '../../components/AssignRequestModal';
 import DetailsTestModal from '../../components/DetailsTestModal';
 import RestrictedAction from '../../components/RestrictedAction';
 import { ACTIONS } from '../../auth';
+import { showErrorToast } from '../../utils/toast';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
@@ -47,6 +48,13 @@ export default function Requests({ refreshKey = 0 }) {
   const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -341,11 +349,23 @@ export default function Requests({ refreshKey = 0 }) {
                       <button className="btn-outline" onClick={() => openRequestDetails(req)}>
                         Details
                       </button>
-                      <RestrictedAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
-                        <button className="btn-outline" onClick={() => openAssignModal(req)}>
-                          Assign
-                        </button>
-                      </RestrictedAction>
+
+                      <div
+                        onClick={(e) => {
+                          const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                          if (blockedWrapper) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showPermissionDeniedToast();
+                          }
+                        }}
+                      >
+                        <RestrictedAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
+                          <button className="btn-outline" onClick={() => openAssignModal(req)}>
+                            Assign
+                          </button>
+                        </RestrictedAction>
+                      </div>
 
                       <button className="btn-chev" onClick={() => toggleExpand(req)}>
                         {isOpen ? '▴' : '▾'}

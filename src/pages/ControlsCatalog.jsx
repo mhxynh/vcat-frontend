@@ -7,6 +7,7 @@ import { ACTIONS } from '../auth';
 import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
+import { showErrorToast } from '../utils/toast';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -31,10 +32,10 @@ function formatDisplayDate(value) {
 }
 
 export default function Controls() {
-  const [filter, setFilter] = useState('All'); // Defaulted to ALL, can change to ACTIVE if needed
+  const [filter, setFilter] = useState('All');
   const [openId, setOpenId] = useState(null);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10; // Set a control per page limit depending on what we think
+  const PAGE_SIZE = 10;
   const [search, setSearch] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -55,6 +56,13 @@ export default function Controls() {
     setIsDetailsModalOpen(false);
     setSelectedControl(null);
   };
+
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
 
   async function loadControls({ setFirstOpen = false } = {}) {
     setLoading(true);
@@ -87,7 +95,6 @@ export default function Controls() {
     }
   }
 
-  //I changed moved the loading controls function outside of UseEffect as its own function (loadControls). This way new controls will be loaded after creation without needing to refresh the page.
   useEffect(() => {
     loadControls();
   }, []);
@@ -129,7 +136,6 @@ export default function Controls() {
 
   return (
     <div className="controls-page">
-      {/* Header */}
       <PageHeader
         title={
           <div className="dashboard-header-title">
@@ -154,7 +160,6 @@ export default function Controls() {
         }
       />
 
-      {/* Filter */}
       <div className="controls-filters">
         <div className="pill-group">
           <button
@@ -190,21 +195,34 @@ export default function Controls() {
           />
         </div>
 
-        <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-          <button className="btn btn--red" type="button" onClick={() => setIsCreateModalOpen(true)}>
-            + New Control
-          </button>
-        </RestrictedAction>
+        <div
+          onClick={(e) => {
+            const blockedWrapper = e.target.closest('.restricted-action--blocked');
+            if (blockedWrapper) {
+              e.preventDefault();
+              e.stopPropagation();
+              showPermissionDeniedToast();
+            }
+          }}
+        >
+          <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
+            <button
+              className="btn btn--red"
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              + New Control
+            </button>
+          </RestrictedAction>
+        </div>
       </div>
 
-      {/* Loading / Error */}
       {loading ? (
         <div className="no-results">Loading controls...</div>
       ) : error ? (
         <div className="no-results">Error: {error}</div>
       ) : (
         <>
-          {/* Accordion */}
           <div className="controls-accordion">
             {pagedControls.length === 0 ? (
               <div className="no-results">No controls found.</div>
@@ -326,7 +344,6 @@ export default function Controls() {
               })
             )}
 
-            {/* Pagination */}
             <div className="pagination">
               <button
                 className="pagination__arrow"
@@ -356,7 +373,6 @@ export default function Controls() {
         </>
       )}
 
-      {/* Details Control Modal*/}
       <DetailsControlModal
         isOpen={isDetailsModalOpen}
         onClose={closeDetails}
@@ -367,7 +383,6 @@ export default function Controls() {
         }}
       />
 
-      {/* Create Control Modal */}
       <CreateControlModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

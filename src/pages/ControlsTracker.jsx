@@ -11,6 +11,7 @@ import AssignTestModal from '../components/AssignTestModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
+import { showErrorToast } from '../utils/toast';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -38,6 +39,13 @@ export default function ControlsTracker() {
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
+
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -153,28 +161,50 @@ export default function ControlsTracker() {
               </div>
             ) : null}
 
-            <RestrictedAction action={ACTIONS.CREATE_TEST}>
-              <button
-                className="btn btn--new"
-                type="button"
-                onClick={() => setIsCreateTestOpen(true)}
-              >
-                + Add Control Test
-              </button>
-            </RestrictedAction>
+            <div
+              onClick={(e) => {
+                const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                if (blockedWrapper) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showPermissionDeniedToast();
+                }
+              }}
+            >
+              <RestrictedAction action={ACTIONS.CREATE_TEST}>
+                <button
+                  className="btn btn--new"
+                  type="button"
+                  onClick={() => setIsCreateTestOpen(true)}
+                >
+                  + Add Control Test
+                </button>
+              </RestrictedAction>
+            </div>
           </div>
         )}
 
         {activeTab === 'Requests' && (
-          <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
-            <button
-              className="btn btn--new"
-              type="button"
-              onClick={() => setIsCreateRequestOpen(true)}
-            >
-              + Add Request
-            </button>
-          </RestrictedAction>
+          <div
+            onClick={(e) => {
+              const blockedWrapper = e.target.closest('.restricted-action--blocked');
+              if (blockedWrapper) {
+                e.preventDefault();
+                e.stopPropagation();
+                showPermissionDeniedToast();
+              }
+            }}
+          >
+            <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
+              <button
+                className="btn btn--new"
+                type="button"
+                onClick={() => setIsCreateRequestOpen(true)}
+              >
+                + Add Request
+              </button>
+            </RestrictedAction>
+          </div>
         )}
       </div>
 

@@ -142,6 +142,13 @@ export default function DetailsTestModal({
 
   const description = t?.description ?? 'No description.';
 
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
+
   async function handleArchive() {
     if (testId == null) return;
 
@@ -718,26 +725,50 @@ export default function DetailsTestModal({
             </button>
 
             <div className="dtm-footer-right">
-              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
-                <button
-                  className="dtm-btn dtm-btn--danger"
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={isBusy}
-                >
-                  Delete Control Test
-                </button>
-              </RestrictedAction>
-              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
-                <button
-                  className="dtm-btn dtm-btn--outline"
-                  type="button"
-                  onClick={handleArchive}
-                  disabled={isBusy}
-                >
-                  Archive Control Test
-                </button>
-              </RestrictedAction>
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                  <button
+                    className="dtm-btn dtm-btn--danger"
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={isBusy}
+                  >
+                    Delete Control Test
+                  </button>
+                </RestrictedAction>
+              </div>
+
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                  <button
+                    className="dtm-btn dtm-btn--outline"
+                    type="button"
+                    onClick={handleArchive}
+                    disabled={isBusy}
+                  >
+                    Archive Control Test
+                  </button>
+                </RestrictedAction>
+              </div>
+
               <button
                 className="dtm-btn dtm-btn--primary"
                 type="button"
