@@ -84,6 +84,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
           controlOwner: controlOwner.trim(),
           controlSme: controlSme.trim(),
           escalation,
+          isActive: status === 'Active',
         };
 
         await updateControl(originalVgcpid, payload);

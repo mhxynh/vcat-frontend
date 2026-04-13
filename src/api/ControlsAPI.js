@@ -48,6 +48,7 @@ export function mapControlRowToUi(control) {
 
   return {
     id: control.vgcpid,
+    controlId: control.control_id ?? null,
     status: control.is_active ? 'Active' : 'Retired',
     testing: lastTested ? `Last Tested on ${lastTested}` : 'Not Tested Yet',
     description: control.description ?? null,

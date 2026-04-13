@@ -3,18 +3,8 @@ import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
 import { ACTIONS, useCan } from '../../auth';
-
-function parseLocalDate(value) {
-  if (!value) return null;
-
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const dt = new Date(value);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
+import Icon from '../../components/common/Icon';
+import { isOverdue, parseLocalDate } from '../../utils/date.js';
 
 function formatDate(value) {
   const d = parseLocalDate(value);
@@ -273,6 +263,9 @@ export default function Tests({
 
                 const lastUpdated = formatDate(t?.updated_at);
                 const dueDate = formatDate(t?.due_date);
+                const overdue =
+                  isOverdue(t?.due_date) &&
+                  !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
                 const etaDate = formatDate(t?.estimated_date);
 
                 return (
@@ -308,7 +301,12 @@ export default function Tests({
 
                     <td className="table__cell">{step}</td>
                     <td className="table__cell">{lastUpdated}</td>
-                    <td className="table__cell table__cell--due-date">{dueDate}</td>
+                    <td className="table__cell table__cell--due-date">
+                      <span className="due-date-content">
+                        <span>{dueDate}</span>
+                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
+                      </span>
+                    </td>
                     <td className="table__cell">{etaDate}</td>
                   </tr>
                 );

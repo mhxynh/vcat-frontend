@@ -81,7 +81,7 @@ const WEEKDAY_LABELS = [
   'Friday',
   'Saturday',
 ];
-const TEAM_CAPACITY_COLORS = ['#a6131f', '#139a47', '#1d4ed8', '#ea580c', '#7c3aed'];
+const TEAM_CAPACITY_COLOR = '#96151d';
 const TEAM_CAPACITY_ROLES = new Set(['TESTER', 'MANAGER']);
 
 function userCapacityDisplayName(user) {
@@ -106,7 +106,7 @@ function statusBucketFromStep(stepValue, allowedStatusKeys) {
   return allowedStatusKeys.has('NOT_STARTED') ? 'NOT_STARTED' : null;
 }
 
-const getTeamColor = (index) => TEAM_CAPACITY_COLORS[index % TEAM_CAPACITY_COLORS.length];
+const getTeamColor = () => TEAM_CAPACITY_COLOR;
 
 function supportsTestType(control, type) {
   const requiresDat = Boolean(control.requires_dat ?? control.requiresDat);
@@ -538,7 +538,7 @@ export default function Dashboard() {
     );
     const capacityRowNames = [...users.map(userCapacityDisplayName), ...extraAssigneeNamesSorted];
 
-    return capacityRowNames.map((name, index) => {
+    return capacityRowNames.map((name) => {
       const counts = byTester.get(name) || { assigned: 0, inProgress: 0 };
       const { progressPercent, progressLabel } = formatCapacityProgress(
         counts.inProgress,
@@ -551,7 +551,7 @@ export default function Dashboard() {
         inProgressTests: counts.inProgress,
         progress: progressPercent,
         progressLabel,
-        color: getTeamColor(index),
+        color: getTeamColor(),
       };
     });
   }, [controls, users]);

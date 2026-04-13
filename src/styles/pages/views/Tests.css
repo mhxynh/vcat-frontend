@@ -133,7 +133,8 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   cursor: pointer;
-  background: var(--color-surface);
+  background: #f0f1f3;
+  color: var(--color-text-main);
   text-align: center;
 }
 
@@ -262,4 +263,10 @@ body {
 
 .selection-count {
   line-height: 16px;
+}
+
+.due-date-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
