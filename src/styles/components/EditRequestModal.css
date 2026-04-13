@@ -137,7 +137,8 @@
 }
 
 .erm-search:disabled,
-.erm-search-input-wrap:has(.erm-search:disabled) {
+.erm-search-input-wrap--disabled,
+.erm-search-input-wrap--disabled .erm-search-icon {
   cursor: not-allowed;
 }
 

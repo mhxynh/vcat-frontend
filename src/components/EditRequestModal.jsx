@@ -159,14 +159,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       setAssociatedTests((prev) => {
         const normalizedTest = { ...test, requestId };
         const testIdToMatch = test.testId ?? test.id;
-
         const withoutOld = prev.filter((t) => (t.testId ?? t.id) !== testIdToMatch);
-
         return [normalizedTest, ...withoutOld];
       });
 
       setAllTests((prev) =>
-        prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: requestId } : t))
+        prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId } : t))
       );
 
       setSearchQuery('');
@@ -204,8 +202,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   if (!isOpen) return null;
 
   const updateRequestRestriction = restrictionMessage(ACTIONS.UPDATE_REQUEST);
-  const createTestRestriction = restrictionMessage(ACTIONS.CREATE_TEST);
   const requestFieldsDisabled = saving || !isManager;
+  const searchDisabled = saving || !isManager;
 
   return (
     <div
@@ -358,7 +356,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
                 <div className="erm-search-row">
                   <div className="erm-search-wrapper" ref={searchWrapperRef}>
-                    <div className="erm-search-input-wrap">
+                    <div
+                      className={`erm-search-input-wrap ${searchDisabled ? 'erm-search-input-wrap--disabled' : ''}`}
+                    >
                       <span className="erm-search-icon" aria-hidden="true">
                         🔍
                       </span>
@@ -375,7 +375,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                           if (!isManager) return;
                           setShowSearchResults(true);
                         }}
-                        disabled={saving || !isManager}
+                        disabled={searchDisabled}
                         title={!isManager ? updateRequestRestriction : undefined}
                       />
                     </div>
@@ -470,7 +470,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                               className="erm-x"
                               onClick={() => handleRemoveTest(test)}
                               disabled={saving}
-                              title={!isManager ? updateRequestRestriction : 'Remove Control'}
+                              title="Remove Control"
                             >
                               ×
                             </button>
@@ -489,7 +489,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                           if (!saving) setIsCreateTestOpen(true);
                         }}
                         disabled={saving}
-                        title={!isManager ? createTestRestriction : undefined}
+                        title="Create New Control for this Request"
                       >
                         + Create New Control for this Request
                       </button>

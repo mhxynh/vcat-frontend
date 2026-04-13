@@ -25,7 +25,10 @@ export default function RestrictedAction({ action, children }) {
 
   const reason = restrictionMessage(action);
   const prevTitle = children.props.title;
-  const title = prevTitle ? `${prevTitle} - ${reason}` : reason;
+  const title = !prevTitle || prevTitle === reason ? reason : `${prevTitle} - ${reason}`;
+  const isNativeControl =
+    typeof children.type === 'string' &&
+    ['button', 'input', 'select', 'textarea', 'option'].includes(children.type);
   const childStyle = {
     ...(children.props.style || {}),
     pointerEvents: 'none',
@@ -59,15 +62,17 @@ export default function RestrictedAction({ action, children }) {
   }
 
   return (
-    <span className="restricted-action restricted-action--blocked" title={title} aria-label={title}>
+    <span className="restricted-action restricted-action--blocked" title={title}>
       {React.cloneElement(children, {
         'aria-disabled': true,
-        'aria-describedby': describedBy,
-        onClick: handleClick,
-        onMouseDown: handleMouseDown,
-        onPointerDown: handlePointerDown,
-        onKeyDown: handleKeyDown,
-        title,
+        'aria-describedby': describedBy || undefined,
+        disabled: isNativeControl ? true : children.props.disabled,
+        tabIndex: isNativeControl ? -1 : children.props.tabIndex,
+        onClick: isNativeControl ? children.props.onClick : handleClick,
+        onMouseDown: isNativeControl ? children.props.onMouseDown : handleMouseDown,
+        onPointerDown: isNativeControl ? children.props.onPointerDown : handlePointerDown,
+        onKeyDown: isNativeControl ? children.props.onKeyDown : handleKeyDown,
+        title: isNativeControl ? prevTitle : title,
         style: childStyle,
         className: childClassName,
       })}
