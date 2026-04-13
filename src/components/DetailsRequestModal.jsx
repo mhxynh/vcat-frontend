@@ -547,14 +547,17 @@ export default function DetailsRequestModal({
                 </button>
               </RestrictedAction>
 
-              <button
-                className="drm-btn drm-btn--primary"
-                type="button"
-                onClick={openEdit}
-                disabled={!requestId}
-              >
-                Edit Request
-              </button>
+              <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                <button
+                  className="drm-btn drm-btn--primary"
+                  type="button"
+                  onClick={openEdit}
+                  disabled={!requestId}
+                  title={requestId ? 'Edit this request' : 'No request selected'}
+                >
+                  Edit Request
+                </button>
+              </RestrictedAction>
             </div>
           </div>
 

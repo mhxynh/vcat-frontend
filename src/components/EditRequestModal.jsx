@@ -205,6 +205,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
   const updateRequestRestriction = restrictionMessage(ACTIONS.UPDATE_REQUEST);
   const createTestRestriction = restrictionMessage(ACTIONS.CREATE_TEST);
+  const requestFieldsDisabled = saving || !isManager;
 
   return (
     <div
@@ -272,7 +273,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       setPriority(e.target.value);
                       if (fieldErrors.priority) setFieldErrors({ ...fieldErrors, priority: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.priority ? 'true' : 'false'}
                   >
                     <option value="CRITICAL">Critical Priority</option>
@@ -295,7 +297,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       if (fieldErrors.requestedBy)
                         setFieldErrors({ ...fieldErrors, requestedBy: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.requestedBy ? 'true' : 'false'}
                   />
                   {fieldErrors.requestedBy && (
@@ -318,7 +321,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       setDueDate(e.target.value);
                       if (fieldErrors.dueDate) setFieldErrors({ ...fieldErrors, dueDate: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
                   />
                   {fieldErrors.dueDate && <div className="field-error">{fieldErrors.dueDate}</div>}
@@ -334,7 +338,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       if (fieldErrors.description)
                         setFieldErrors({ ...fieldErrors, description: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.description ? 'true' : 'false'}
                   />
                   {fieldErrors.description && (
