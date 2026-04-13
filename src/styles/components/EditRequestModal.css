@@ -136,6 +136,11 @@
   cursor: not-allowed;
 }
 
+.erm-search:disabled,
+.erm-search-input-wrap:has(.erm-search:disabled) {
+  cursor: not-allowed;
+}
+
 .erm-summary-card {
   background: #fdfdfd;
   border: 1px solid #eee;
