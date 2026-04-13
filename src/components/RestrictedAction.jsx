@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useRole } from '../auth';
 import '../styles/components/RestrictedAction.css';
 
@@ -12,6 +12,7 @@ import '../styles/components/RestrictedAction.css';
  */
 export default function RestrictedAction({ action, children }) {
   const { can, restrictionMessage } = useRole();
+  const reasonId = useId();
 
   if (!React.isValidElement(children)) {
     return children;
@@ -27,25 +28,51 @@ export default function RestrictedAction({ action, children }) {
   const title = prevTitle ? `${prevTitle} - ${reason}` : reason;
   const childStyle = {
     ...(children.props.style || {}),
-    pointerEvents: 'none',
   };
   const childClassName = [children.props.className, 'restricted-action__control']
     .filter(Boolean)
     .join(' ');
+  const describedBy = [children.props['aria-describedby'], reasonId].filter(Boolean).join(' ');
+
+  function blockEvent(event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      blockEvent(event);
+    }
+  }
+
+  function handleClick(event) {
+    blockEvent(event);
+  }
+
+  function handleMouseDown(event) {
+    blockEvent(event);
+  }
+
+  function handlePointerDown(event) {
+    blockEvent(event);
+  }
 
   return (
     <span className="restricted-action restricted-action--blocked" title={title} aria-label={title}>
       {React.cloneElement(children, {
-        disabled: true,
         'aria-disabled': true,
-        tabIndex: -1,
-        onClick: undefined,
-        onMouseDown: undefined,
-        onPointerDown: undefined,
+        'aria-describedby': describedBy,
+        onClick: handleClick,
+        onMouseDown: handleMouseDown,
+        onPointerDown: handlePointerDown,
+        onKeyDown: handleKeyDown,
         title,
         style: childStyle,
         className: childClassName,
       })}
+      <span id={reasonId} className="restricted-action__sr-only">
+        {reason}
+      </span>
     </span>
   );
 }

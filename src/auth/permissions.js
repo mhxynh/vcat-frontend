@@ -52,6 +52,9 @@ const MANAGER_ONLY = new Set([
   ACTIONS.VERSION_RESTORE,
 ]);
 
+const ALL_ACTIONS = new Set(Object.values(ACTIONS));
+const TESTER_ALLOWED = new Set([...ALL_ACTIONS].filter((action) => !MANAGER_ONLY.has(action)));
+
 export const ACTION_MESSAGES = {
   [ACTIONS.CREATE_CONTROL]: 'Only managers can create controls. Contact a manager for access.',
   [ACTIONS.RETIRE_CONTROL]: 'Only managers can retire controls. Contact a manager for assistance.',
@@ -85,9 +88,10 @@ export const ACTION_MESSAGES = {
  * @returns {boolean}
  */
 export function can(role, action) {
+  if (!ALL_ACTIONS.has(action)) return false;
   if (role === ROLES.MANAGER) return true;
-  if (MANAGER_ONLY.has(action)) return false;
-  return true;
+  if (role === ROLES.TESTER) return TESTER_ALLOWED.has(action);
+  return false;
 }
 
 /**
