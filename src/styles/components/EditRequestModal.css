@@ -136,6 +136,12 @@
   cursor: not-allowed;
 }
 
+.erm-search:disabled,
+.erm-search-input-wrap--disabled,
+.erm-search-input-wrap--disabled .erm-search-icon {
+  cursor: not-allowed;
+}
+
 .erm-summary-card {
   background: #fdfdfd;
   border: 1px solid #eee;
@@ -178,6 +184,12 @@
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.erm-restriction-note {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  color: #6b7280;
 }
 
 .erm-search-row {
@@ -387,6 +399,8 @@
 }
 
 .erm-create-control-link {
+  border: 0;
+  background: transparent;
   color: #9b1c22;
   font-size: 14px;
   font-weight: 600;
@@ -405,6 +419,11 @@
   opacity: 0.6;
   cursor: not-allowed;
   text-decoration: none;
+}
+
+.erm-create-control-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .erm-test-meta .status-pill {

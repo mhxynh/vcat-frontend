@@ -1,0 +1,84 @@
+import React, { useId } from 'react';
+import { useRole } from '../auth';
+import '../styles/components/RestrictedAction.css';
+
+/**
+ * Enforces RBAC on a single interactive child (e.g. button).
+ * When the user lacks permission: disabled, greyed, native tooltip via title.
+ *
+ * @param {Object} props
+ * @param {string} props.action - import { ACTIONS } from '../auth'
+ * @param {React.ReactElement} props.children
+ */
+export default function RestrictedAction({ action, children }) {
+  const { can, restrictionMessage } = useRole();
+  const reasonId = useId();
+
+  if (!React.isValidElement(children)) {
+    return children;
+  }
+
+  const allowed = can(action);
+  if (allowed) {
+    return children;
+  }
+
+  const reason = restrictionMessage(action);
+  const prevTitle = children.props.title;
+  const title = !prevTitle || prevTitle === reason ? reason : `${prevTitle} - ${reason}`;
+  const isNativeControl =
+    typeof children.type === 'string' &&
+    ['button', 'input', 'select', 'textarea', 'option'].includes(children.type);
+  const childStyle = {
+    ...(children.props.style || {}),
+    pointerEvents: 'none',
+  };
+  const childClassName = [children.props.className, 'restricted-action__control']
+    .filter(Boolean)
+    .join(' ');
+  const describedBy = [children.props['aria-describedby'], reasonId].filter(Boolean).join(' ');
+
+  function blockEvent(event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      blockEvent(event);
+    }
+  }
+
+  function handleClick(event) {
+    blockEvent(event);
+  }
+
+  function handleMouseDown(event) {
+    blockEvent(event);
+  }
+
+  function handlePointerDown(event) {
+    blockEvent(event);
+  }
+
+  return (
+    <span className="restricted-action restricted-action--blocked" title={title}>
+      {React.cloneElement(children, {
+        'aria-disabled': true,
+        'aria-describedby': describedBy || undefined,
+        disabled: isNativeControl ? true : children.props.disabled,
+        tabIndex: isNativeControl ? -1 : children.props.tabIndex,
+        onClick: isNativeControl ? children.props.onClick : handleClick,
+        onMouseDown: isNativeControl ? children.props.onMouseDown : handleMouseDown,
+        onPointerDown: isNativeControl ? children.props.onPointerDown : handlePointerDown,
+        onKeyDown: isNativeControl ? children.props.onKeyDown : handleKeyDown,
+        title: isNativeControl ? prevTitle : title,
+        style: childStyle,
+        className: childClassName,
+      })}
+      <span id={reasonId} className="restricted-action__sr-only">
+        {reason}
+      </span>
+    </span>
+  );
+}

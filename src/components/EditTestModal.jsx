@@ -5,6 +5,7 @@ import '../styles/components/EditControlModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
+import { useRole, ACTIONS } from '../auth';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -14,6 +15,7 @@ function flagsFromTestType(v) {
 }
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
+  const { isManager, restrictionMessage } = useRole();
   const originalTestId = test?.test_id ?? '';
 
   const initial = useMemo(() => {
@@ -155,17 +157,29 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
     const flags = flagsFromTestType(testType);
 
+    const vgcpidForPayload = (() => {
+      if (isManager) return selectedVgcpid;
+      const idNum = Number(initial.selectedControlId);
+      const fromList = controls.find((c) => Number(c.control_id) === idNum);
+      return fromList?.vgcpid ?? test?.vgcpid ?? selectedVgcpid;
+    })();
+
     const payload = {
       action: 'update_details',
-      vgcpid: selectedVgcpid,
+      vgcpid: vgcpidForPayload,
       ...flags,
       dueDate: dueDate,
       description: description.trim() || ' ',
     };
 
-    if (selectedRequestId) payload.requestId = Number(selectedRequestId);
+    if (isManager) {
+      if (selectedRequestId) payload.requestId = Number(selectedRequestId);
+      if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
+    } else {
+      if (initial.selectedRequestId) payload.requestId = Number(initial.selectedRequestId);
+      if (initial.selectedTesterId) payload.assignedTesterId = Number(initial.selectedTesterId);
+    }
     if (etaDate) payload.estimatedDate = etaDate;
-    if (selectedTesterId) payload.assignedTesterId = Number(selectedTesterId);
 
     try {
       setSubmitting(true);
@@ -180,6 +194,12 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   }
 
   if (!isOpen) return null;
+
+  const controlSelectTitle = !isManager
+    ? restrictionMessage(ACTIONS.CHANGE_TEST_CONTROL_VGCPID)
+    : undefined;
+  const requestSelectTitle = !isManager ? restrictionMessage(ACTIONS.UPDATE_REQUEST) : undefined;
+  const testerSelectTitle = !isManager ? restrictionMessage(ACTIONS.ASSIGN_TESTER) : undefined;
 
   return (
     <div
@@ -218,6 +238,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                 className="ctm-select"
                 value={selectedControlId}
                 onChange={(e) => setSelectedControlId(e.target.value)}
+                disabled={!isManager}
+                title={controlSelectTitle}
                 aria-invalid={fieldErrors.selectedControlId ? 'true' : 'false'}
               >
                 <option value="" disabled>
@@ -240,6 +262,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                 className="ctm-select"
                 value={selectedRequestId}
                 onChange={(e) => setSelectedRequestId(e.target.value)}
+                disabled={!isManager}
+                title={requestSelectTitle}
                 aria-invalid={fieldErrors.selectedRequestId ? 'true' : 'false'}
               >
                 <option value="" disabled>
@@ -263,6 +287,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                 className="ctm-select"
                 value={selectedTesterId}
                 onChange={(e) => setSelectedTesterId(e.target.value)}
+                disabled={!isManager}
+                title={testerSelectTitle}
               >
                 <option value="">Unassigned</option>
                 {testerOptions.map((u) => (

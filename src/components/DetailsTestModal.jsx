@@ -15,6 +15,8 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
 
 export default function DetailsTestModal({
@@ -59,6 +61,7 @@ export default function DetailsTestModal({
       setIsBusy(false);
     }
   }
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -179,9 +182,7 @@ export default function DetailsTestModal({
     const oetStep = String(testRow?.oetStep || '');
 
     if (requiresDat && datStep !== 'COMPLETED') return 'DAT';
-
     if (requiresOet && oetStep !== 'COMPLETED') return 'OET';
-
     if (requiresOet) return 'OET';
     if (requiresDat) return 'DAT';
     return null;
@@ -203,8 +204,9 @@ export default function DetailsTestModal({
           'ADDRESSING_COMMENTS',
         ];
       }
-      if (track === 'OET')
+      if (track === 'OET') {
         return ['', 'TESTING_READY', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+      }
     }
 
     if (requiresDat) {
@@ -253,8 +255,8 @@ export default function DetailsTestModal({
     return false;
   }
 
-  function isInProgress(status) {
-    const s = String(status || '').toUpperCase();
+  function isInProgress(statusValue) {
+    const s = String(statusValue || '').toUpperCase();
     return s === 'DAT_IN_PROGRESS' || s === 'OET_IN_PROGRESS';
   }
 
@@ -344,7 +346,6 @@ export default function DetailsTestModal({
           await setTrackStepApi(track, next, statusForTrack(track));
           await refreshTest();
         });
-        return;
       }
     } catch (e) {
       alert(e?.message || 'Update failed');
@@ -452,16 +453,16 @@ export default function DetailsTestModal({
     setCommentText('');
   }
 
-  function statusToLabel(status) {
-    return String(status || 'NOT_STARTED')
+  function statusToLabel(statusValue) {
+    return String(statusValue || 'NOT_STARTED')
       .replaceAll('_', ' ')
       .toLowerCase()
       .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
       .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
   }
 
-  function statusToBadgeType(status) {
-    return String(status || 'NOT_STARTED')
+  function statusToBadgeType(statusValue) {
+    return String(statusValue || 'NOT_STARTED')
       .toLowerCase()
       .replaceAll('_', '-');
   }
@@ -677,22 +678,26 @@ export default function DetailsTestModal({
             </button>
 
             <div className="dtm-footer-right">
-              <button
-                className="dtm-btn dtm-btn--danger"
-                type="button"
-                onClick={handleDelete}
-                disabled={isBusy}
-              >
-                Delete Control Test
-              </button>
-              <button
-                className="dtm-btn dtm-btn--outline"
-                type="button"
-                onClick={handleArchive}
-                disabled={isBusy}
-              >
-                Archive Control Test
-              </button>
+              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                <button
+                  className="dtm-btn dtm-btn--danger"
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isBusy}
+                >
+                  Delete Control Test
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                <button
+                  className="dtm-btn dtm-btn--outline"
+                  type="button"
+                  onClick={handleArchive}
+                  disabled={isBusy}
+                >
+                  Archive Control Test
+                </button>
+              </RestrictedAction>
               <button
                 className="dtm-btn dtm-btn--primary"
                 type="button"

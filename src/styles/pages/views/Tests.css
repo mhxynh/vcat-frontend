@@ -83,8 +83,13 @@ body {
   color: #fff;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btn--export {

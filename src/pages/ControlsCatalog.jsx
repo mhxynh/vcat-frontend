@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import RestrictedAction from '../components/RestrictedAction';
+import { ACTIONS } from '../auth';
 import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
@@ -188,9 +190,11 @@ export default function Controls() {
           />
         </div>
 
-        <button className="btn btn--red" type="button" onClick={() => setIsCreateModalOpen(true)}>
-          + New Control
-        </button>
+        <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
+          <button className="btn btn--red" type="button" onClick={() => setIsCreateModalOpen(true)}>
+            + New Control
+          </button>
+        </RestrictedAction>
       </div>
 
       {/* Loading / Error */}

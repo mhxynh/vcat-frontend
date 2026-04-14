@@ -15,6 +15,8 @@ import {
 import EditControlModal from './EditControlModal';
 import DetailsRequestModal from './DetailsRequestModal';
 import Icon from './common/Icon';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS } from '../auth';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -422,15 +424,17 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </button>
 
               <div className="dcm-footer-right">
-                <button
-                  className="dcm-btn dcm-btn--outline"
-                  type="button"
-                  onClick={openDeleteConfirm}
-                  disabled={deleting || !id}
-                  title={!id ? 'No control selected' : 'Delete this control'}
-                >
-                  {deleting ? 'Deleting…' : 'Delete Control'}
-                </button>
+                <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
+                  <button
+                    className="dcm-btn dcm-btn--outline"
+                    type="button"
+                    onClick={openDeleteConfirm}
+                    disabled={deleting || !id}
+                    title={!id ? 'No control selected' : 'Delete this control'}
+                  >
+                    {deleting ? 'Deleting…' : 'Delete Control'}
+                  </button>
+                </RestrictedAction>
 
                 <button
                   className="dcm-btn dcm-btn--primary"
