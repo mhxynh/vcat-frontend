@@ -15,10 +15,12 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { parseLocalDate } from '../utils/date';
 import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS } from '../auth';
+import { isOverdue, parseLocalDate } from '../utils/date.js';
 
 export default function DetailsTestModal({
   isOpen,
@@ -138,6 +140,7 @@ export default function DetailsTestModal({
       setIsBusy(false);
     }
   }
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -222,7 +225,7 @@ export default function DetailsTestModal({
   const updatedAt = formatLongDate(t?.updatedAt);
   const dueDate = formatLongDate(t?.dueDate);
   const overdue =
-    isOverdue(t?.due_date) &&
+    isOverdue(t?.dueDate) &&
     !['COMPLETED', 'ARCHIVED'].includes(String(t?.status || '').toUpperCase());
   const etaDate = formatLongDate(t?.estimatedDate);
 
@@ -269,9 +272,7 @@ export default function DetailsTestModal({
     const oetStep = String(testRow?.oetStep || '');
 
     if (requiresDat && datStep !== 'COMPLETED') return 'DAT';
-
     if (requiresOet && oetStep !== 'COMPLETED') return 'OET';
-
     if (requiresOet) return 'OET';
     if (requiresDat) return 'DAT';
     return null;
@@ -293,8 +294,9 @@ export default function DetailsTestModal({
           'ADDRESSING_COMMENTS',
         ];
       }
-      if (track === 'OET')
+      if (track === 'OET') {
         return ['', 'TESTING_READY', 'TESTING_IN_PROGRESS', 'COMPLETED', 'ADDRESSING_COMMENTS'];
+      }
     }
 
     if (requiresDat) {
@@ -343,8 +345,8 @@ export default function DetailsTestModal({
     return false;
   }
 
-  function isInProgress(status) {
-    const s = String(status || '').toUpperCase();
+  function isInProgress(statusValue) {
+    const s = String(statusValue || '').toUpperCase();
     return s === 'DAT_IN_PROGRESS' || s === 'OET_IN_PROGRESS';
   }
 
@@ -434,7 +436,6 @@ export default function DetailsTestModal({
           await setTrackStepApi(track, next, statusForTrack(track));
           await refreshTest();
         });
-        return;
       }
     } catch (e) {
       alert(e?.message || 'Update failed');
@@ -560,16 +561,16 @@ export default function DetailsTestModal({
     }
   }
 
-  function statusToLabel(status) {
-    return String(status || 'NOT_STARTED')
+  function statusToLabel(statusValue) {
+    return String(statusValue || 'NOT_STARTED')
       .replaceAll('_', ' ')
       .toLowerCase()
       .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
       .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
   }
 
-  function statusToBadgeType(status) {
-    return String(status || 'NOT_STARTED')
+  function statusToBadgeType(statusValue) {
+    return String(statusValue || 'NOT_STARTED')
       .toLowerCase()
       .replaceAll('_', '-');
   }
@@ -816,22 +817,26 @@ export default function DetailsTestModal({
             </button>
 
             <div className="dtm-footer-right">
-              <button
-                className="dtm-btn dtm-btn--danger"
-                type="button"
-                onClick={handleDelete}
-                disabled={isBusy}
-              >
-                Delete Control Test
-              </button>
-              <button
-                className="dtm-btn dtm-btn--outline"
-                type="button"
-                onClick={handleArchive}
-                disabled={isBusy}
-              >
-                Archive Control Test
-              </button>
+              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                <button
+                  className="dtm-btn dtm-btn--danger"
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isBusy}
+                >
+                  Delete Control Test
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                <button
+                  className="dtm-btn dtm-btn--outline"
+                  type="button"
+                  onClick={handleArchive}
+                  disabled={isBusy}
+                >
+                  Archive Control Test
+                </button>
+              </RestrictedAction>
               <button
                 className="dtm-btn dtm-btn--primary"
                 type="button"
@@ -961,15 +966,4 @@ function formatLongDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function isOverdue(value) {
-  const due = parseLocalDate(value);
-  if (!due) return false;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-
-  return due < today;
 }

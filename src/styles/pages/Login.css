@@ -1,0 +1,96 @@
+.amplify-authenticator {
+  background-color: #efefef;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.amplify-authenticator .amplify-authenticator__container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 16px 40px;
+}
+
+[data-amplify-authenticator] [data-amplify-container] {
+  place-self: start center;
+  margin-top: clamp(56px, 18vh, 100px);
+}
+
+.amplify-authenticator .amplify-authenticator__router {
+  width: 340px;
+  max-width: 100%;
+  border: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.amplify-passwordfield .amplify-field__show-password {
+  border-radius: 0 4px 4px 0;
+  color: #6c6c6c;
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  background-color: white;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #eaeaea;
+  text-align: center;
+  padding: 24px 18px;
+  gap: 16px;
+}
+
+.login-logo {
+  height: 60px;
+  width: 60px;
+  align-self: center;
+}
+
+.login-title {
+  color: #921a1d;
+  font-weight: 700;
+  font-size: 32px;
+  font-family: Fremont;
+  margin: 0px;
+}
+
+.login-subtitle {
+  color: #6c6c6c;
+  font-size: 16px;
+  margin: 0px;
+}
+
+.login-password-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.login-password-forgot-link {
+  color: #96151d;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.login-signin-footer {
+  text-align: center;
+}
+
+.login-signin-footer-text {
+  font-size: 14px;
+  color: #6c6c6c;
+  margin: 0;
+}
+
+.login-contact-admin-link {
+  color: #96151d;
+  font-weight: bold;
+  text-decoration: none;
+}

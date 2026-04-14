@@ -10,6 +10,8 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS } from '../auth';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -626,46 +628,53 @@ export default function DetailsRequestModal({
             </button>
 
             <div className="drm-footer-right">
-              <button
-                className="drm-btn drm-btn--outline"
-                type="button"
-                onClick={handleArchiveRequest}
-                disabled={archiving || deleting || requestId == null || isCompleted}
-                title={
-                  requestId == null
-                    ? 'No request selected'
-                    : isCompleted
-                      ? 'Cannot archive a completed request'
-                      : 'Archive this request'
-                }
-              >
-                {archiving ? 'Archiving…' : 'Archive Request'}
-              </button>
+              <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
+                <button
+                  className="drm-btn drm-btn--outline"
+                  type="button"
+                  onClick={handleArchiveRequest}
+                  disabled={archiving || deleting || requestId == null || isCompleted}
+                  title={
+                    requestId == null
+                      ? 'No request selected'
+                      : isCompleted
+                        ? 'Cannot archive a completed request'
+                        : 'Archive this request'
+                  }
+                >
+                  {archiving ? 'Archiving…' : 'Archive Request'}
+                </button>
+              </RestrictedAction>
 
-              <button
-                className="drm-btn drm-btn--outline"
-                type="button"
-                onClick={handleHardDeleteRequest}
-                disabled={deleting || archiving || requestId == null || isCompleted}
-                title={
-                  requestId == null
-                    ? 'No request selected'
-                    : isCompleted
-                      ? 'Cannot delete a completed request'
-                      : 'Permanently delete this request'
-                }
-              >
-                {deleting ? 'Deleting…' : 'Delete Request'}
-              </button>
+              <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
+                <button
+                  className="drm-btn drm-btn--outline"
+                  type="button"
+                  onClick={handleHardDeleteRequest}
+                  disabled={deleting || archiving || requestId == null || isCompleted}
+                  title={
+                    requestId == null
+                      ? 'No request selected'
+                      : isCompleted
+                        ? 'Cannot delete a completed request'
+                        : 'Permanently delete this request'
+                  }
+                >
+                  {deleting ? 'Deleting…' : 'Delete Request'}
+                </button>
+              </RestrictedAction>
 
-              <button
-                className="drm-btn drm-btn--primary"
-                type="button"
-                onClick={openEdit}
-                disabled={!requestId}
-              >
-                Edit Request
-              </button>
+              <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                <button
+                  className="drm-btn drm-btn--primary"
+                  type="button"
+                  onClick={openEdit}
+                  disabled={!requestId}
+                  title={requestId ? 'Edit this request' : 'No request selected'}
+                >
+                  Edit Request
+                </button>
+              </RestrictedAction>
             </div>
           </div>
 
