@@ -75,7 +75,10 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
 
   async function handleAssign() {
     if (!selectedUser) {
-      alert('Please select a tester to assign');
+      showErrorToast({
+        title: 'Tester Required',
+        message: 'Please select a tester to assign.',
+      });
       return;
     }
 
