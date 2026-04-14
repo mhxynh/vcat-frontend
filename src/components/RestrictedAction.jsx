@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useRole } from '../auth';
 import '../styles/components/RestrictedAction.css';
 
@@ -12,6 +12,7 @@ import '../styles/components/RestrictedAction.css';
  */
 export default function RestrictedAction({ action, children }) {
   const { can, restrictionMessage } = useRole();
+  const reasonId = useId();
 
   if (!React.isValidElement(children)) {
     return children;
@@ -24,7 +25,10 @@ export default function RestrictedAction({ action, children }) {
 
   const reason = restrictionMessage(action);
   const prevTitle = children.props.title;
-  const title = prevTitle ? `${prevTitle} - ${reason}` : reason;
+  const title = !prevTitle || prevTitle === reason ? reason : `${prevTitle} - ${reason}`;
+  const isNativeControl =
+    typeof children.type === 'string' &&
+    ['button', 'input', 'select', 'textarea', 'option'].includes(children.type);
   const childStyle = {
     ...(children.props.style || {}),
     pointerEvents: 'none',
@@ -32,20 +36,49 @@ export default function RestrictedAction({ action, children }) {
   const childClassName = [children.props.className, 'restricted-action__control']
     .filter(Boolean)
     .join(' ');
+  const describedBy = [children.props['aria-describedby'], reasonId].filter(Boolean).join(' ');
+
+  function blockEvent(event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      blockEvent(event);
+    }
+  }
+
+  function handleClick(event) {
+    blockEvent(event);
+  }
+
+  function handleMouseDown(event) {
+    blockEvent(event);
+  }
+
+  function handlePointerDown(event) {
+    blockEvent(event);
+  }
 
   return (
-    <span className="restricted-action restricted-action--blocked" title={title} aria-label={title}>
+    <span className="restricted-action restricted-action--blocked" title={title}>
       {React.cloneElement(children, {
-        disabled: true,
         'aria-disabled': true,
-        tabIndex: -1,
-        onClick: undefined,
-        onMouseDown: undefined,
-        onPointerDown: undefined,
-        title,
+        'aria-describedby': describedBy || undefined,
+        disabled: isNativeControl ? true : children.props.disabled,
+        tabIndex: isNativeControl ? -1 : children.props.tabIndex,
+        onClick: isNativeControl ? children.props.onClick : handleClick,
+        onMouseDown: isNativeControl ? children.props.onMouseDown : handleMouseDown,
+        onPointerDown: isNativeControl ? children.props.onPointerDown : handlePointerDown,
+        onKeyDown: isNativeControl ? children.props.onKeyDown : handleKeyDown,
+        title: isNativeControl ? prevTitle : title,
         style: childStyle,
         className: childClassName,
       })}
+      <span id={reasonId} className="restricted-action__sr-only">
+        {reason}
+      </span>
     </span>
   );
 }

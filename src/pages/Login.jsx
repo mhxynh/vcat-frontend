@@ -1,4 +1,5 @@
 import vanguardLogo from '../assets/images/vanguard.png';
+import '../styles/pages/Login.css';
 
 export const vcatTheme = {
   name: 'vcat-enterprise-theme',
@@ -6,8 +7,8 @@ export const vcatTheme = {
     colors: {
       brand: {
         primary: {
-          10: { value: '#f9f9f9' },
-          80: { value: '#921A1D' },
+          10: { value: '#FFFFFF' },
+          80: { value: '#96151D' },
           90: { value: '#7a1518' },
         },
       },
@@ -15,16 +16,16 @@ export const vcatTheme = {
     components: {
       authenticator: {
         router: {
-          boxShadow: { value: '0 4px 12px rgba(0, 0, 0, 0.1)' },
-          borderWidth: { value: '1px' },
+          borderWidth: { value: '0' },
+          boxShadow: { value: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' },
         },
       },
       button: {
         primary: {
           backgroundColor: { value: '{colors.brand.primary.80}' },
           _hover: { backgroundColor: { value: '{colors.brand.primary.90}' } },
-          borderRadius: { value: '4px' },
         },
+        borderRadius: { value: '10px' },
       },
       fieldcontrol: {
         borderRadius: { value: '4px' },
@@ -40,7 +41,18 @@ export const formFields = {
       placeholder: 'name@company.com',
     },
     password: {
-      label: 'Password',
+      label: (
+        <div className="login-password-label-row">
+          <span>Password</span>
+          <a
+            href="/"
+            className="login-password-forgot-link"
+            onClick={(event) => event.preventDefault()}
+          >
+            Forgot password?
+          </a>
+        </div>
+      ),
       placeholder: 'Enter your password',
     },
   },
@@ -49,28 +61,23 @@ export const formFields = {
 export const components = {
   Header() {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem 1rem 0' }}>
-        <img
-          alt="Vanguard logo"
-          src={vanguardLogo}
-          style={{ height: '60px', marginBottom: '1rem' }}
-        />
-        <h2 style={{ color: '#921A1D', fontWeight: '700', margin: 0 }}>Control Testing</h2>
-        <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '8px' }}>
-          Sign in to your account
-        </p>
+      <div className="login-header">
+        <img alt="Vanguard logo" src={vanguardLogo} className="login-logo" />
+        <h2 className="login-title">Control Testing</h2>
+        <p className="login-subtitle">Sign in to your account</p>
       </div>
     );
   },
   SignIn: {
     Footer() {
       return (
-        <div style={{ textAlign: 'center', padding: '0 1rem 1rem' }}>
-          <p style={{ fontSize: '0.85rem' }}>
+        <div className="login-signin-footer">
+          <p className="login-signin-footer-text">
             Don't have an account?{' '}
             <a
-              href="mailto:admin@vanguard.com"
-              style={{ color: '#921A1D', fontWeight: 'bold', textDecoration: 'none' }}
+              href="/"
+              className="login-contact-admin-link"
+              onClick={(event) => event.preventDefault()}
             >
               Contact Admin
             </a>
@@ -78,14 +85,5 @@ export const components = {
         </div>
       );
     },
-  },
-  Footer() {
-    return (
-      <div style={{ textAlign: 'center', padding: '1rem' }}>
-        <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.5rem' }}>
-          © 2026 Control Testing App. All rights reserved.
-        </p>
-      </div>
-    );
   },
 };

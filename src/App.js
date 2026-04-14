@@ -11,6 +11,7 @@ import Tracker from './pages/ControlsTracker';
 import '@aws-amplify/ui-react/styles.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/index.css';
+import './styles/pages/Login.css';
 
 const NotFound = () => <h2>404: Page Not Found</h2>;
 

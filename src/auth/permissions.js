@@ -32,25 +32,24 @@ export const ACTIONS = {
 };
 
 /** Manager-only actions per SDD permissions matrix */
-const MANAGER_ONLY = new Set([
-  ACTIONS.CREATE_CONTROL,
-  ACTIONS.RETIRE_CONTROL,
-  ACTIONS.CHANGE_CATALOG_CONTROL_ID,
-  ACTIONS.DELETE_CONTROL_HARD,
-  ACTIONS.IMPORT_CONTROLS,
-  ACTIONS.CREATE_REQUEST,
-  ACTIONS.UPDATE_REQUEST,
-  ACTIONS.ARCHIVE_REQUEST,
-  ACTIONS.REMOVE_REQUEST,
-  ACTIONS.CREATE_TEST,
-  ACTIONS.DELETE_CONTROL_TEST,
-  ACTIONS.ARCHIVE_CONTROL_TEST,
-  ACTIONS.ASSIGN_TESTER,
-  ACTIONS.CHANGE_TEST_CONTROL_VGCPID,
-  ACTIONS.BULK_ASSIGN_TESTERS,
-  ACTIONS.ASSIGN_TESTER_TO_REQUEST,
-  ACTIONS.VERSION_RESTORE,
+const ALL_ACTIONS = Object.values(ACTIONS);
+
+const TESTER_PERMISSIONS = new Set([
+  ACTIONS.VIEW_CONTROLS,
+  ACTIONS.COMMENT,
+  ACTIONS.VIEW_TESTS,
+  ACTIONS.UPDATE_TEST,
+  ACTIONS.VIEW_SUMMARY,
+  ACTIONS.EXPORT_SUMMARY,
+  ACTIONS.VIEW_VERSION_HISTORY,
 ]);
+
+const MANAGER_PERMISSIONS = new Set(ALL_ACTIONS);
+
+const ROLE_PERMISSIONS = {
+  [ROLES.MANAGER]: MANAGER_PERMISSIONS,
+  [ROLES.TESTER]: TESTER_PERMISSIONS,
+};
 
 export const ACTION_MESSAGES = {
   [ACTIONS.CREATE_CONTROL]: 'Only managers can create controls. Contact a manager for access.',
@@ -85,9 +84,10 @@ export const ACTION_MESSAGES = {
  * @returns {boolean}
  */
 export function can(role, action) {
-  if (role === ROLES.MANAGER) return true;
-  if (MANAGER_ONLY.has(action)) return false;
-  return true;
+  if (!ALL_ACTIONS.includes(action)) return false;
+  const allowedActions = ROLE_PERMISSIONS[role];
+  if (!allowedActions) return false;
+  return allowedActions.has(action);
 }
 
 /**

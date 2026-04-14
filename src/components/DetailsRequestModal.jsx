@@ -11,6 +11,8 @@ import {
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS } from '../auth';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -18,24 +20,6 @@ import {
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
-import RestrictedAction from './RestrictedAction';
-import { ACTIONS } from '../auth';
-
-function getRequestYear(req) {
-  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
-  if (!raw) return new Date().getFullYear();
-
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
-
-  return parsed.getFullYear();
-}
-
-function formatRequestDisplayId(req) {
-  const id = req?.requestId ?? req?.request_id ?? req?.id;
-  if (id == null || id === '') return 'Request Details';
-  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
-}
 
 export default function DetailsRequestModal({
   isOpen,
@@ -752,14 +736,17 @@ export default function DetailsRequestModal({
                 </RestrictedAction>
               </div>
 
-              <button
-                className="drm-btn drm-btn--primary"
-                type="button"
-                onClick={openEdit}
-                disabled={!requestId}
-              >
-                Edit Request
-              </button>
+              <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                <button
+                  className="drm-btn drm-btn--primary"
+                  type="button"
+                  onClick={openEdit}
+                  disabled={!requestId}
+                  title={requestId ? 'Edit this request' : 'No request selected'}
+                >
+                  Edit Request
+                </button>
+              </RestrictedAction>
             </div>
           </div>
 

@@ -6,14 +6,28 @@
   cursor: not-allowed;
 }
 
-.restricted-action--blocked .restricted-action__control {
-  opacity: 0.55;
-  pointer-events: none !important;
-}
-
+.restricted-action--blocked .restricted-action__control,
 .restricted-action--blocked .restricted-action__control:hover,
+.restricted-action--blocked .restricted-action__control:focus,
+.restricted-action--blocked .restricted-action__control:focus-visible,
+.restricted-action--blocked .restricted-action__control:active,
 .restricted-action--blocked:hover .restricted-action__control {
   opacity: 0.55;
+  cursor: not-allowed !important;
+  text-decoration: none;
+  box-shadow: none !important;
   filter: none;
   transform: none;
+}
+
+.restricted-action__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

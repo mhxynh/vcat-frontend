@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import '../styles/components/EditRequestModal.css';
 import { fetchRequestById, updateRequest } from '../api/RequestsAPI';
 import { fetchTestsByRequestId, fetchTests, updateTest } from '../api/TestsAPI';
 import CreateTestModal from './CreateTestModal';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import RestrictedAction from './RestrictedAction';
+import { ACTIONS, useRole } from '../auth';
 
 function getRequestYearFromValue(value) {
   if (!value) return new Date().getFullYear();
@@ -19,8 +21,8 @@ function formatRequestDisplayId(requestId, yearSource) {
   if (requestId == null || requestId === '') return '';
   return `REQ-${getRequestYearFromValue(yearSource)}-${String(requestId).padStart(4, '0')}`;
 }
-
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
+  const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
   const [requestedBy, setRequestedBy] = useState('');
   const [requestDate, setRequestDate] = useState('');
@@ -183,14 +185,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       setAssociatedTests((prev) => {
         const normalizedTest = { ...test, requestId };
         const testIdToMatch = test.testId ?? test.id;
-
         const withoutOld = prev.filter((t) => (t.testId ?? t.id) !== testIdToMatch);
-
         return [normalizedTest, ...withoutOld];
       });
 
       setAllTests((prev) =>
-        prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: requestId } : t))
+        prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId } : t))
       );
 
       setSearchQuery('');
@@ -237,6 +237,10 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   };
 
   if (!isOpen) return null;
+
+  const updateRequestRestriction = restrictionMessage(ACTIONS.UPDATE_REQUEST);
+  const requestFieldsDisabled = saving || !isManager;
+  const searchDisabled = saving || !isManager;
 
   return (
     <div
@@ -304,7 +308,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       setPriority(e.target.value);
                       if (fieldErrors.priority) setFieldErrors({ ...fieldErrors, priority: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.priority ? 'true' : 'false'}
                   >
                     <option value="CRITICAL">Critical Priority</option>
@@ -327,7 +332,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       if (fieldErrors.requestedBy)
                         setFieldErrors({ ...fieldErrors, requestedBy: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.requestedBy ? 'true' : 'false'}
                   />
                   {fieldErrors.requestedBy && (
@@ -350,7 +356,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       setDueDate(e.target.value);
                       if (fieldErrors.dueDate) setFieldErrors({ ...fieldErrors, dueDate: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
                   />
                   {fieldErrors.dueDate && <div className="field-error">{fieldErrors.dueDate}</div>}
@@ -366,7 +373,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       if (fieldErrors.description)
                         setFieldErrors({ ...fieldErrors, description: null });
                     }}
-                    disabled={saving}
+                    disabled={requestFieldsDisabled}
+                    title={!isManager ? updateRequestRestriction : undefined}
                     aria-invalid={fieldErrors.description ? 'true' : 'false'}
                   />
                   {fieldErrors.description && (
@@ -379,9 +387,15 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
               <div className="erm-section erm-section--associated-controls">
                 <h3 className="erm-section-title">Associated Controls*</h3>
+                {!isManager ? (
+                  <div className="erm-restriction-note">{updateRequestRestriction}</div>
+                ) : null}
+
                 <div className="erm-search-row">
                   <div className="erm-search-wrapper" ref={searchWrapperRef}>
-                    <div className="erm-search-input-wrap">
+                    <div
+                      className={`erm-search-input-wrap ${searchDisabled ? 'erm-search-input-wrap--disabled' : ''}`}
+                    >
                       <span className="erm-search-icon" aria-hidden="true">
                         🔍
                       </span>
@@ -390,16 +404,20 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                         placeholder="Search Controls to add..."
                         value={searchQuery || ''}
                         onChange={(e) => {
+                          if (!isManager) return;
                           setSearchQuery(e.target.value);
                           setShowSearchResults(true);
                         }}
                         onFocus={() => {
+                          if (!isManager) return;
                           setShowSearchResults(true);
                         }}
-                        disabled={saving}
+                        disabled={searchDisabled}
+                        title={!isManager ? updateRequestRestriction : undefined}
                       />
                     </div>
-                    {showSearchResults && (
+
+                    {isManager && showSearchResults && (
                       <div className="erm-search-dropdown">
                         {searchResults.length === 0 ? (
                           <div className="erm-search-empty">No matching controls found.</div>
@@ -432,14 +450,16 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                       : 'Unlinked'}
                                   </div>
                                 </div>
-                                <button
-                                  type="button"
-                                  className="erm-add-btn"
-                                  onClick={() => handleAddTest(test)}
-                                  title="Link to this request"
-                                >
-                                  +
-                                </button>
+                                <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                                  <button
+                                    type="button"
+                                    className="erm-add-btn"
+                                    onClick={() => handleAddTest(test)}
+                                    title="Link to this request"
+                                  >
+                                    +
+                                  </button>
+                                </RestrictedAction>
                               </div>
                             );
                           })
@@ -485,37 +505,36 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                               </span>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            className="erm-x"
-                            onClick={() => handleRemoveTest(test)}
-                            disabled={saving}
-                            title="Remove Control"
-                          >
-                            ×
-                          </button>
+                          <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                            <button
+                              type="button"
+                              className="erm-x"
+                              onClick={() => handleRemoveTest(test)}
+                              disabled={saving}
+                              title="Remove Control"
+                            >
+                              ×
+                            </button>
+                          </RestrictedAction>
                         </div>
                       );
                     })
                   )}
+
                   <div className="erm-create-control-row">
-                    <span
-                      className={`erm-create-control-link ${saving ? 'erm-create-control-link--disabled' : ''}`}
-                      onClick={() => {
-                        if (!saving) setIsCreateTestOpen(true);
-                      }}
-                      role="button"
-                      tabIndex={saving ? -1 : 0}
-                      onKeyDown={(e) => {
-                        if (saving) return;
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setIsCreateTestOpen(true);
-                        }
-                      }}
-                    >
-                      + Create New Control for this Request
-                    </span>
+                    <RestrictedAction action={ACTIONS.CREATE_TEST}>
+                      <button
+                        type="button"
+                        className={`erm-create-control-link ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
+                        onClick={() => {
+                          if (!saving) setIsCreateTestOpen(true);
+                        }}
+                        disabled={saving}
+                        title="Create New Control for this Request"
+                      >
+                        + Create New Control for this Request
+                      </button>
+                    </RestrictedAction>
                   </div>
                 </div>
               </div>
