@@ -10,6 +10,7 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import {
@@ -19,6 +20,22 @@ import {
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
+
+function getRequestYear(req) {
+  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
+  if (!raw) return new Date().getFullYear();
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
+
+  return parsed.getFullYear();
+}
+
+function formatRequestDisplayId(req) {
+  const id = req?.requestId ?? req?.request_id ?? req?.id;
+  if (id == null || id === '') return 'Request Details';
+  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
+}
 
 export default function DetailsRequestModal({
   isOpen,
@@ -258,7 +275,7 @@ export default function DetailsRequestModal({
 
   if (!isOpen) return null;
 
-  const requestTitle = localRequest?.id ?? 'Request Details';
+  const requestTitle = formatRequestDisplayId(localRequest ?? request);
   const backendStatus = localRequest?.status ?? 'Not Started';
   const status = localStatus ?? backendStatus;
   const isCompleted = String(status || '').toUpperCase() === 'COMPLETED';
@@ -272,6 +289,13 @@ export default function DetailsRequestModal({
   const requestId = localRequest?.requestId ?? request?.requestId;
 
   const stop = (e) => e.stopPropagation();
+
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
 
   async function handleAddComment() {
     const text = commentText.trim();
@@ -333,10 +357,22 @@ export default function DetailsRequestModal({
 
       setLocalStatus('ARCHIVED');
 
-      onArchived?.(requestId);
+      await onArchived?.(requestId);
+
+      showSuccessToast({
+        title: 'Request Archived',
+        message: `${requestTitle} has been archived successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setDeleteError(e?.message || 'Failed to archive request and associated tests');
+      const errorMessage = e?.message || 'Failed to archive request and associated tests';
+      setDeleteError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Archive Failed',
+        message: `An error occurred while archiving the request: ${errorMessage}`,
+      });
     } finally {
       setArchiving(false);
     }
@@ -356,10 +392,22 @@ export default function DetailsRequestModal({
 
       await deleteRequest(requestId, { hard: true });
 
-      onDeleted?.(requestId);
+      await onDeleted?.(requestId);
+
+      showSuccessToast({
+        title: 'Request Deleted',
+        message: `${requestTitle} has been deleted successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setDeleteError(e?.message || 'Failed to delete request');
+      const errorMessage = e?.message || 'Failed to delete request';
+      setDeleteError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Delete Failed',
+        message: `An error occurred while deleting the request: ${errorMessage}`,
+      });
     } finally {
       setDeleting(false);
     }
@@ -396,7 +444,6 @@ export default function DetailsRequestModal({
   return (
     <div className="drm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
       <div className="drm-modal" onMouseDown={stop}>
-        {/* header */}
         <section className="drm-section-header">
           <div className="drm-header">
             <div className="drm-title">Request Details: {requestTitle}</div>
@@ -408,7 +455,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* status bar */}
         <section className="drm-section-statusbar">
           <div className="drm-statusbar">
             <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
@@ -431,7 +477,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* description + details */}
         <section className="drm-section-description-details">
           <div className="drm-section">
             <div className="drm-section-title">Description</div>
@@ -463,7 +508,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* associated controls/tests */}
         <section className="drm-section-associated">
           <div className="drm-section">
             <div className="drm-section-title drm-section-title--withicon">
@@ -520,7 +564,6 @@ export default function DetailsRequestModal({
 
         <div className="drm-divider" />
 
-        {/* comments/history tabs */}
         <section className="drm-section-tabs">
           <div className="drm-tabs">
             <button
@@ -618,9 +661,32 @@ export default function DetailsRequestModal({
           </div>
         </section>
 
+        {activeTab === 'Comments' ? (
+          <section className="drm-section-addcomment">
+            <div className="drm-addcomment">
+              <input
+                className="drm-comment-input"
+                placeholder="Write a comment…"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddComment();
+                }}
+              />
+              <button
+                className="drm-send"
+                type="button"
+                onClick={handleAddComment}
+                aria-label="Send"
+              >
+                ➤
+              </button>
+            </div>
+          </section>
+        ) : null}
+
         <div className="drm-divider" />
 
-        {/* footer */}
         <section className="drm-section-footer">
           <div className="drm-footer">
             <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
@@ -628,53 +694,85 @@ export default function DetailsRequestModal({
             </button>
 
             <div className="drm-footer-right">
-              <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
-                <button
-                  className="drm-btn drm-btn--outline"
-                  type="button"
-                  onClick={handleArchiveRequest}
-                  disabled={archiving || deleting || requestId == null || isCompleted}
-                  title={
-                    requestId == null
-                      ? 'No request selected'
-                      : isCompleted
-                        ? 'Cannot archive a completed request'
-                        : 'Archive this request'
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
                   }
-                >
-                  {archiving ? 'Archiving…' : 'Archive Request'}
-                </button>
-              </RestrictedAction>
+                }}
+              >
+                <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
+                  <button
+                    className="drm-btn drm-btn--outline"
+                    type="button"
+                    onClick={handleArchiveRequest}
+                    disabled={archiving || deleting || requestId == null || isCompleted}
+                    title={
+                      requestId == null
+                        ? 'No request selected'
+                        : isCompleted
+                          ? 'Cannot archive a completed request'
+                          : 'Archive this request'
+                    }
+                  >
+                    {archiving ? 'Archiving…' : 'Archive Request'}
+                  </button>
+                </RestrictedAction>
+              </div>
 
-              <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
-                <button
-                  className="drm-btn drm-btn--outline"
-                  type="button"
-                  onClick={handleHardDeleteRequest}
-                  disabled={deleting || archiving || requestId == null || isCompleted}
-                  title={
-                    requestId == null
-                      ? 'No request selected'
-                      : isCompleted
-                        ? 'Cannot delete a completed request'
-                        : 'Permanently delete this request'
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
                   }
-                >
-                  {deleting ? 'Deleting…' : 'Delete Request'}
-                </button>
-              </RestrictedAction>
-
-              <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                <button
-                  className="drm-btn drm-btn--primary"
-                  type="button"
-                  onClick={openEdit}
-                  disabled={!requestId}
-                  title={requestId ? 'Edit this request' : 'No request selected'}
-                >
-                  Edit Request
-                </button>
-              </RestrictedAction>
+                }}
+              >
+                <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
+                  <button
+                    className="drm-btn drm-btn--outline"
+                    type="button"
+                    onClick={handleHardDeleteRequest}
+                    disabled={deleting || archiving || requestId == null || isCompleted}
+                    title={
+                      requestId == null
+                        ? 'No request selected'
+                        : isCompleted
+                          ? 'Cannot delete a completed request'
+                          : 'Permanently delete this request'
+                    }
+                  >
+                    {deleting ? 'Deleting…' : 'Delete Request'}
+                  </button>
+                </RestrictedAction>
+              </div>
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                  <button
+                    className="drm-btn drm-btn--primary"
+                    type="button"
+                    onClick={openEdit}
+                    disabled={!requestId}
+                    title={requestId ? 'Edit this request' : 'No request selected'}
+                  >
+                    Edit Request
+                  </button>
+                </RestrictedAction>
+              </div>
             </div>
           </div>
 

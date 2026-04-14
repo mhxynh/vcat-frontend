@@ -2,6 +2,23 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/AssignRequestModal.css';
 import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
+
+function getRequestYear(req) {
+  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
+  if (!raw) return new Date().getFullYear();
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
+
+  return parsed.getFullYear();
+}
+
+function formatRequestDisplayId(req) {
+  const id = req?.requestId ?? req?.request_id ?? req?.id;
+  if (id == null || id === '') return '';
+  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
+}
 
 export default function AssignRequestModal({ isOpen, onClose, request, onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
@@ -9,11 +26,13 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState('');
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
       setSelectedUser('');
       setNote('');
+      setAssigning(false);
     }
   }, [isOpen]);
 
@@ -48,19 +67,21 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
   if (!isOpen) return null;
 
   const controlsCount = Array.isArray(request?.controls) ? request.controls.length : 0;
+  const requestTitle = formatRequestDisplayId(request) || 'Request';
 
   function stop(e) {
     e.stopPropagation();
   }
 
-  function handleAssign() {
+  async function handleAssign() {
     if (!selectedUser) {
-      // simple validation
-      alert('Please select a tester to assign');
+      showErrorToast({
+        title: 'Tester Required',
+        message: 'Please select a tester to assign.',
+      });
       return;
     }
 
-    // find selected user's display name (support multiple id/name shapes)
     const sel = users.find(
       (u) =>
         String(u.userId) === String(selectedUser) ||
@@ -70,15 +91,34 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
     const display = sel?.display_name ?? sel?.displayName ?? sel?.email ?? String(selectedUser);
     const idVal = sel?.userId ?? sel?.user_id ?? sel?.id ?? selectedUser;
 
-    onAssign?.(request?.requestId ?? request?.id, String(idVal), display, note);
-    onClose?.();
+    try {
+      setAssigning(true);
+
+      await onAssign?.(request?.requestId ?? request?.id, String(idVal), display, note);
+
+      showSuccessToast({
+        title: 'Request Bulk Assigned',
+        message: `${requestTitle} has been assigned successfully.`,
+      });
+
+      onClose?.();
+    } catch (e) {
+      const errorMessage = e?.message || 'Failed to bulk assign request';
+
+      showErrorToast({
+        title: 'Request Bulk Assign Failed',
+        message: `An error occurred while bulk assigning the request: ${errorMessage}`,
+      });
+    } finally {
+      setAssigning(false);
+    }
   }
 
   return (
     <div className="arm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
       <div className="arm-modal" onMouseDown={stop}>
         <header className="arm-header">
-          <h3>Assign Request: {request?.id ?? request?.requestId ?? ''}</h3>
+          <h3>Assign Request: {requestTitle}</h3>
           <button className="arm-close" onClick={onClose} aria-label="Close">
             ×
           </button>
@@ -103,7 +143,7 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
             className="arm-select"
             value={selectedUser}
             onChange={(e) => setSelectedUser(e.target.value)}
-            disabled={loadingUsers}
+            disabled={loadingUsers || assigning}
           >
             <option value="">{loadingUsers ? 'Loading testers...' : 'Select a user'}</option>
             {!loadingUsers &&
@@ -125,17 +165,22 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
             placeholder="Reason for assignment..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
+            disabled={assigning}
           />
         </section>
 
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button className="arm-btn arm-btn-ghost" onClick={onClose}>
+          <button className="arm-btn arm-btn-ghost" onClick={onClose} disabled={assigning}>
             Cancel
           </button>
-          <button className="arm-btn arm-btn-primary" onClick={handleAssign}>
-            Assign All Controls
+          <button
+            className="arm-btn arm-btn-primary"
+            onClick={handleAssign}
+            disabled={assigning || loadingUsers}
+          >
+            {assigning ? 'Assigning...' : 'Assign All Controls'}
           </button>
         </footer>
       </div>

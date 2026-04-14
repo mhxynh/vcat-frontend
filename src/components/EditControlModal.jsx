@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { updateControl, retireControl } from '../api/ControlsAPI';
 import { useRole, ACTIONS } from '../auth';
 import '../styles/components/EditControlModal.css';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
@@ -70,6 +71,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     }
 
     setSubmitting(true);
+
     try {
       const effectiveVgcpid = isManager ? vgcpid.trim() : initial.vgcpid.trim();
       const transitioningToRetired =
@@ -91,9 +93,21 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       }
 
       if (onUpdated) await onUpdated();
+
+      showSuccessToast({
+        title: 'Control Saved',
+        message: `Control ${originalVgcpid} has been saved successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      setError(e?.message || 'Failed to update control');
+      const errorMessage = e?.message || 'Failed to update control';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Save Failed',
+        message: `An error occurred while saving the control: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }

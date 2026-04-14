@@ -4,6 +4,7 @@ import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import { objectToCamelCase } from '../utils/transformer';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
   archiveTest,
   hardDeleteTest,
@@ -141,6 +142,13 @@ export default function DetailsTestModal({
 
   const description = t?.description ?? 'No description.';
 
+  function showPermissionDeniedToast() {
+    showErrorToast({
+      title: 'Permission Denied',
+      message: 'Only managers have permission for this action. Contact a manager for access.',
+    });
+  }
+
   async function handleArchive() {
     if (testId == null) return;
 
@@ -152,10 +160,21 @@ export default function DetailsTestModal({
 
       const fresh = await refreshTest();
 
-      onArchived?.(testId, fresh ?? { ...t, status: 'ARCHIVED' });
+      await onArchived?.(testId, fresh ?? { ...t, status: 'ARCHIVED' });
+
+      showSuccessToast({
+        title: 'Control Test Archived',
+        message: `${vgcpid} has been archived successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      alert(e?.message || 'Failed to archive control test');
+      const errorMessage = e?.message || 'Failed to archive control test';
+
+      showErrorToast({
+        title: 'Control Test Archive Failed',
+        message: `An error occurred while archiving the control test: ${errorMessage}`,
+      });
     }
   }
 
@@ -167,10 +186,21 @@ export default function DetailsTestModal({
 
     try {
       await hardDeleteTest(testId);
-      onDeleted?.(testId);
+      await onDeleted?.(testId);
+
+      showSuccessToast({
+        title: 'Control Test Deleted',
+        message: `${vgcpid} has been deleted successfully.`,
+      });
+
       onClose?.();
     } catch (e) {
-      alert(e?.message || 'Failed to delete control test');
+      const errorMessage = e?.message || 'Failed to delete control test';
+
+      showErrorToast({
+        title: 'Control Test Delete Failed',
+        message: `An error occurred while deleting the control test: ${errorMessage}`,
+      });
     }
   }
 
@@ -315,10 +345,25 @@ export default function DetailsTestModal({
         const ok = window.confirm(`Approve control test ${vgcpid}?`);
         if (!ok) return;
 
-        await runBusy('Approving control...', async () => {
-          await completeTest(testId);
-          await refreshTest();
-        });
+        try {
+          await runBusy('Approving control...', async () => {
+            await completeTest(testId);
+            await refreshTest();
+          });
+
+          showSuccessToast({
+            title: 'Control Test Completed',
+            message: `${vgcpid} has been completed successfully.`,
+          });
+        } catch (e) {
+          const errorMessage = e?.message || 'Failed to complete control test';
+
+          showErrorToast({
+            title: 'Control Test Completion Failed',
+            message: `An error occurred while completing the control test: ${errorMessage}`,
+          });
+        }
+
         return;
       }
 
@@ -678,26 +723,50 @@ export default function DetailsTestModal({
             </button>
 
             <div className="dtm-footer-right">
-              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
-                <button
-                  className="dtm-btn dtm-btn--danger"
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={isBusy}
-                >
-                  Delete Control Test
-                </button>
-              </RestrictedAction>
-              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
-                <button
-                  className="dtm-btn dtm-btn--outline"
-                  type="button"
-                  onClick={handleArchive}
-                  disabled={isBusy}
-                >
-                  Archive Control Test
-                </button>
-              </RestrictedAction>
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                  <button
+                    className="dtm-btn dtm-btn--danger"
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={isBusy}
+                  >
+                    Delete Control Test
+                  </button>
+                </RestrictedAction>
+              </div>
+
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                  <button
+                    className="dtm-btn dtm-btn--outline"
+                    type="button"
+                    onClick={handleArchive}
+                    disabled={isBusy}
+                  >
+                    Archive Control Test
+                  </button>
+                </RestrictedAction>
+              </div>
+
               <button
                 className="dtm-btn dtm-btn--primary"
                 type="button"

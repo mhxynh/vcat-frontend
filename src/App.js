@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Authenticator, ThemeProvider } from '@aws-amplify/ui-react';
+import { ToastContainer } from 'react-toastify';
 import { RoleProvider } from './auth';
 import { vcatTheme, components, formFields } from './pages/Login';
 import Navbar from './components/Navbar';
@@ -8,12 +9,12 @@ import Dashboard from './pages/Dashboard';
 import Catalog from './pages/ControlsCatalog';
 import Tracker from './pages/ControlsTracker';
 import '@aws-amplify/ui-react/styles.css';
+import 'react-toastify/dist/ReactToastify.css';
 import './styles/index.css';
 import './styles/pages/Login.css';
 
 const NotFound = () => <h2>404: Page Not Found</h2>;
 
-// App.js
 export default function App() {
   return (
     <ThemeProvider theme={vcatTheme}>
@@ -32,6 +33,27 @@ export default function App() {
                         <Route path="/tracker" element={<Tracker />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
+
+                      <ToastContainer
+                        position="top-right"
+                        autoClose={5000}
+                        newestOnTop
+                        closeOnClick={false}
+                        pauseOnHover={false}
+                        draggable={false}
+                        hideProgressBar={false}
+                        theme="light"
+                        toastStyle={{
+                          background: 'transparent',
+                          boxShadow: 'none',
+                          padding: 0,
+                          minHeight: 'unset',
+                        }}
+                        bodyStyle={{
+                          padding: 0,
+                          margin: 0,
+                        }}
+                      />
                     </main>
                   </RoleProvider>
                 )}

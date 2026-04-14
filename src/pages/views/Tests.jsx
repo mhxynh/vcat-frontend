@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
-import { ACTIONS, useCan } from '../../auth';
 import Icon from '../../components/common/Icon';
 import { isOverdue, parseLocalDate } from '../../utils/date.js';
+import { ACTIONS, useCan } from '../../auth';
 
 function formatDate(value) {
   const d = parseLocalDate(value);

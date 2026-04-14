@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createControl } from '../api/ControlsAPI';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [vgcpid, setVgcpid] = useState('');
@@ -21,10 +22,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setControlOwner('');
     setControlSme('');
     setEscalation(null);
-
-    // FE default: Active
     setInitialStatus('active');
-
     setError('');
     setSubmitting(false);
     setFieldErrors({});
@@ -58,21 +56,36 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     }
 
     setSubmitting(true);
+
     try {
+      const trimmedId = vgcpid.trim();
       const isActive = initialStatus === 'active';
+
       await createControl({
-        vgcpid: vgcpid.trim(),
+        vgcpid: trimmedId,
         description: description.trim(),
         controlOwner: controlOwner.trim(),
         controlSme: controlSme.trim(),
         escalation,
-        isActive: isActive,
+        isActive,
       });
 
       if (onCreated) await onCreated();
+
+      showSuccessToast({
+        title: 'Control Created',
+        message: `${trimmedId} has been created successfully.`,
+      });
+
       onClose();
     } catch (e) {
-      setError(e?.message || 'Failed to create control');
+      const errorMessage = e?.message || 'Failed to create control';
+      setError(errorMessage);
+
+      showErrorToast({
+        title: 'Control Create Failed',
+        message: `An error occurred while creating the control: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }
