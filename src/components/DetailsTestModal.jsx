@@ -151,6 +151,7 @@ export default function DetailsTestModal({
 
   async function handleArchive() {
     if (testId == null) return;
+    if (String(t?.status || '').toUpperCase() === 'COMPLETED') return;
 
     const ok = window.confirm(`Archive control test ${vgcpid}?`);
     if (!ok) return;
@@ -180,6 +181,7 @@ export default function DetailsTestModal({
 
   async function handleDelete() {
     if (testId == null) return;
+    if (String(t?.status || '').toUpperCase() === 'COMPLETED') return;
 
     const ok = window.confirm(`Delete control test ${vgcpid}?\n\nThis is permanent.`);
     if (!ok) return;
@@ -334,6 +336,7 @@ export default function DetailsTestModal({
     if (testId == null) return;
 
     const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+    if (statusUpper === 'COMPLETED') return;
 
     try {
       if (statusUpper === 'NOT_STARTED') {
@@ -513,7 +516,8 @@ export default function DetailsTestModal({
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
-  const showRevert = statusUpper !== 'NOT_STARTED' && statusUpper !== 'COMPLETED';
+  const isLockedStatus = statusUpper === 'COMPLETED';
+  const showRevert = statusUpper !== 'NOT_STARTED';
   const showReject = statusUpper === 'IN_REVIEW';
   const primaryLabel = getPrimaryActionLabel(t);
 
@@ -576,7 +580,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--outline"
                     type="button"
                     onClick={handleRevert}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
+                          : 'Revert this control test to the previous step'
+                    }
                   >
                     Revert
                   </button>
@@ -604,7 +615,7 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--primary"
                     type="button"
                     onClick={handlePrimaryAction}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
                   >
                     {primaryLabel}
                   </button>
@@ -738,7 +749,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--danger"
                     type="button"
                     onClick={handleDelete}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot delete a ${statusUpper.toLowerCase()} control test`
+                          : 'Delete this control test'
+                    }
                   >
                     Delete Control Test
                   </button>
@@ -760,7 +778,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--outline"
                     type="button"
                     onClick={handleArchive}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot archive a ${statusUpper.toLowerCase()} control test`
+                          : 'Archive this control test'
+                    }
                   >
                     Archive Control Test
                   </button>
