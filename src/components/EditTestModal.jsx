@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { updateTest } from '../api/TestsAPI';
+import { fetchTestById, updateTest } from '../api/TestsAPI';
 import '../styles/components/EditTestModal.css';
 import '../styles/components/EditControlModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
 
 function flagsFromTestType(v) {
@@ -17,26 +18,29 @@ function flagsFromTestType(v) {
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
-  const originalTestId = test?.test_id ?? '';
+  const normalizedPropTest = useMemo(() => objectToCamelCase(test ?? null), [test]);
+  const [resolvedTest, setResolvedTest] = useState(normalizedPropTest);
+  const originalTestId = resolvedTest?.testId ?? normalizedPropTest?.testId ?? '';
 
   const initial = useMemo(() => {
     let testType = '';
-    if (test) {
-      if (test.requires_dat && test.requires_oet) testType = 'DAT & OET';
-      else if (test.requires_dat) testType = 'DAT Only';
-      else if (test.requires_oet) testType = 'OET Only';
+    if (resolvedTest) {
+      if (resolvedTest.requiresDat && resolvedTest.requiresOet) testType = 'DAT & OET';
+      else if (resolvedTest.requiresDat) testType = 'DAT Only';
+      else if (resolvedTest.requiresOet) testType = 'OET Only';
     }
 
     return {
-      selectedControlId: test?.control_id != null ? String(test.control_id) : '',
-      selectedRequestId: test?.request_id != null ? String(test.request_id) : '',
-      selectedTesterId: test?.assigned_tester_id != null ? String(test.assigned_tester_id) : '',
+      selectedControlId: resolvedTest?.controlId != null ? String(resolvedTest.controlId) : '',
+      selectedRequestId: resolvedTest?.requestId != null ? String(resolvedTest.requestId) : '',
+      selectedTesterId:
+        resolvedTest?.assignedTesterId != null ? String(resolvedTest.assignedTesterId) : '',
       testType,
-      dueDate: test?.due_date || '',
-      etaDate: test?.estimated_date || '',
-      description: test?.description ?? '',
+      dueDate: formatISOToDate(resolvedTest?.dueDate) || '',
+      etaDate: formatISOToDate(resolvedTest?.estimatedDate) || '',
+      description: resolvedTest?.description ?? '',
     };
-  }, [test]);
+  }, [resolvedTest]);
 
   const [controls, setControls] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -56,6 +60,13 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   useEffect(() => {
     if (!isOpen) return;
+    setResolvedTest(normalizedPropTest);
+  }, [isOpen, normalizedPropTest]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const testId = normalizedPropTest?.testId;
 
     setSelectedControlId(initial.selectedControlId);
     setSelectedRequestId(initial.selectedRequestId);
@@ -71,11 +82,13 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
     (async () => {
       try {
-        const [c, r, u] = await Promise.all([
+        const [freshTest, c, r, u] = await Promise.all([
+          testId ? fetchTestById(testId) : Promise.resolve(null),
           fetchControls(),
           fetchRequests(),
           fetchUsers({ isActive: true }),
         ]);
+        if (freshTest) setResolvedTest(objectToCamelCase(freshTest));
         setControls(Array.isArray(c) ? c : []);
         setRequests(Array.isArray(r) ? r : []);
         setUsers(Array.isArray(u) ? u : []);
@@ -83,7 +96,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
         setError(e?.message || 'Failed to load dropdown data.');
       }
     })();
-  }, [isOpen, initial]);
+  }, [isOpen, initial, normalizedPropTest]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -161,7 +174,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       if (isManager) return selectedVgcpid;
       const idNum = Number(initial.selectedControlId);
       const fromList = controls.find((c) => Number(c.control_id) === idNum);
-      return fromList?.vgcpid ?? test?.vgcpid ?? selectedVgcpid;
+      return fromList?.vgcpid ?? resolvedTest?.vgcpid ?? selectedVgcpid;
     })();
 
     const payload = {
@@ -231,11 +244,11 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       >
         <div className="ctm-header">
           <h2 className="ctm-title" id="edit-test-title">
-            Edit Control Test: {selectedVgcpid || '—'}
+            Edit Control Test: {selectedVgcpid || 'â€”'}
           </h2>
 
           <button type="button" className="ctm-close" aria-label="Close" onClick={onClose}>
-            ×
+            Ã—
           </button>
         </div>
 
@@ -286,7 +299,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                   <option
                     key={r.requestId}
                     value={String(r.requestId)}
-                  >{`REQ-${String(r.requestId).padStart(4, '0')} • ${r.requestor ?? '-'} • ${r.dueDate ?? '-'}`}</option>
+                  >{`REQ-${String(r.requestId).padStart(4, '0')} â€¢ ${r.requestor ?? '-'} â€¢ ${r.dueDate ?? '-'}`}</option>
                 ))}
               </select>
               {fieldErrors.selectedRequestId ? (
