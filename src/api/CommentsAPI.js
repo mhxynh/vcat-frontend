@@ -56,6 +56,31 @@ export async function fetchCommentsByRequestId(requestId) {
   return Array.isArray(camelData) ? camelData : [];
 }
 
+export async function fetchCommentsByTestId(testId) {
+  if (testId == null) return [];
+
+  const url = new URL(`${API_BASE}/comments`);
+  url.searchParams.set('test_id', String(testId));
+
+  const resp = await authFetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to fetch comments (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  const camelData = objectToCamelCase(data);
+  return Array.isArray(camelData) ? camelData : [];
+}
+
 export async function createRequestComment({ requestId, authorUserId, commentText }) {
   if (requestId == null) throw new Error('requestId is required');
   if (authorUserId == null) throw new Error('authorUserId is required');
@@ -67,6 +92,36 @@ export async function createRequestComment({ requestId, authorUserId, commentTex
     body: JSON.stringify(
       objectToSnakeCase({
         requestId,
+        authorUserId,
+        commentText: String(commentText).trim(),
+      })
+    ),
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to create comment (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  return objectToCamelCase(data);
+}
+
+export async function createTestComment({ testId, authorUserId, commentText }) {
+  if (testId == null) throw new Error('testId is required');
+  if (authorUserId == null) throw new Error('authorUserId is required');
+  if (!String(commentText || '').trim()) throw new Error('commentText is required');
+
+  const resp = await authFetch(`${API_BASE}/comments`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(
+      objectToSnakeCase({
+        testId,
         authorUserId,
         commentText: String(commentText).trim(),
       })
