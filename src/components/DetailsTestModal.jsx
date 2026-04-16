@@ -114,8 +114,8 @@ export default function DetailsTestModal({
     const fresh = await fetchTestById(testId);
     const normalized = objectToCamelCase(fresh);
     setLocalTest(normalized);
-    onEdit?.(normalized);
-    return normalized;
+    onEdit?.(fresh);
+    return fresh;
   }
 
   const stop = (e) => e.stopPropagation();
@@ -785,9 +785,9 @@ export default function DetailsTestModal({
         onClose={closeEdit}
         test={t}
         onUpdated={async () => {
+          const fresh = await refreshTest();
           closeEdit();
-          onClose?.();
-          window.location.reload();
+          await onUpdated?.(fresh);
         }}
       />
     </>
