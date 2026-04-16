@@ -195,7 +195,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     }
 
     const flags = flagsFromTestType(testType);
-
     const vgcpidForPayload = (() => {
       if (isManager) return selectedVgcpid;
       const idNum = Number(initial.selectedControlId);
@@ -228,7 +227,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
       showSuccessToast({
         title: 'Control Test Saved',
-        message: `${selectedVgcpid} has been saved successfully.`,
+        message: `${vgcpidForPayload} has been saved successfully.`,
       });
 
       onClose?.();
@@ -247,7 +246,9 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   if (!isOpen) return null;
 
-  const controlSelectTitle = 'VGCPID cannot be changed when editing a control test.';
+  const controlSelectTitle = !isManager
+    ? restrictionMessage(ACTIONS.CHANGE_TEST_CONTROL_VGCPID)
+    : undefined;
   const requestSelectTitle = !isManager ? restrictionMessage(ACTIONS.UPDATE_REQUEST) : undefined;
   const testerSelectTitle = !isManager ? restrictionMessage(ACTIONS.ASSIGN_TESTER) : undefined;
 
@@ -297,7 +298,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                     className="ctm-select"
                     value={selectedControlId}
                     onChange={(e) => setSelectedControlId(e.target.value)}
-                    disabled={true}
+                    disabled={!isManager}
                     title={controlSelectTitle}
                     aria-invalid={fieldErrors.selectedControlId ? 'true' : 'false'}
                   >
