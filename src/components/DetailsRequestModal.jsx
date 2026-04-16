@@ -830,7 +830,7 @@ export default function DetailsRequestModal({
         title="Archive Request?"
         message="Are you sure you want to archive this request?"
         itemName={requestTitle}
-        warning="This will set this request and all associated tests to Archived."
+        warning="Archived requests will be removed from active views, but can still be accessed from the archive."
         confirmText={archiving ? 'Archiving...' : 'Archive'}
         cancelText="Cancel"
         isLoading={archiving}
@@ -844,7 +844,7 @@ export default function DetailsRequestModal({
         title="Delete Request?"
         message="Are you sure you want to permanently delete this request?"
         itemName={requestTitle}
-        warning="This action cannot be undone."
+        warning="Deleted requests will be permanently removed and cannot be recovered."
         confirmText={deleting ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
         isLoading={deleting}

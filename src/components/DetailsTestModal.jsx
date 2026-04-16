@@ -855,15 +855,9 @@ export default function DetailsTestModal({
           await handleDelete();
         }}
         title="Delete Control Test?"
-        message={
-          <>
-            Are you sure you want to{' '}
-            <strong className="dcm-confirm-bold-black">permanently delete</strong> this control
-            test?
-          </>
-        }
+        message="Are you sure you want to permanently delete this control test?"
         itemName={String(vgcpid)}
-        warning="This will permanently remove the control test and cannot be undone."
+        warning="Deleted control tests will be permanently removed and cannot be recovered."
         confirmText="Delete"
         cancelText="Cancel"
       />
@@ -878,7 +872,7 @@ export default function DetailsTestModal({
         title="Archive Control Test?"
         message="Are you sure you want to archive this control test?"
         itemName={String(vgcpid)}
-        warning="The control test will be archived and removed from active workflows."
+        warning="Archived control tests will be removed from active views, but can still be accessed from the archive."
         confirmText="Archive"
         cancelText="Cancel"
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"

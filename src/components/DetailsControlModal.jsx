@@ -486,14 +486,9 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
           await handleDelete();
         }}
         title="Delete Control?"
-        message={
-          <>
-            Are you sure you want to{' '}
-            <strong className="dcm-confirm-bold-black">permanently delete</strong> control?
-          </>
-        }
+        message="Are you sure you want to permanently delete this control?"
         itemName={id}
-        warning="This will hard-delete it from the database and cannot be undone."
+        warning="Deleted controls will be permanently removed and cannot be recovered."
         confirmText={deleting ? 'Deleting…' : 'Delete'}
         cancelText="Cancel"
         confirmDisabled={deleting}
