@@ -336,7 +336,6 @@ export default function DetailsTestModal({
     if (testId == null) return;
 
     const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
-    if (statusUpper === 'COMPLETED') return;
 
     try {
       if (statusUpper === 'NOT_STARTED') {
@@ -615,7 +614,7 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--primary"
                     type="button"
                     onClick={handlePrimaryAction}
-                    disabled={isBusy || isLockedStatus}
+                    disabled={isBusy}
                   >
                     {primaryLabel}
                   </button>
