@@ -49,6 +49,12 @@ export default function DetailsTestModal({
     [localTest, test]
   );
 
+  function syncLocalTest(rawTest) {
+    const normalized = objectToCamelCase(rawTest);
+    setLocalTest(normalized);
+    return normalized;
+  }
+
   useEffect(() => {
     if (!isOpen) setIsEditOpen(false);
   }, [isOpen]);
@@ -72,7 +78,7 @@ export default function DetailsTestModal({
     setHistoryLogs([]);
     setHistoryError('');
 
-    setLocalTest(objectToCamelCase(test ?? null));
+    syncLocalTest(test ?? null);
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
@@ -112,10 +118,15 @@ export default function DetailsTestModal({
     if (testId == null) return null;
 
     const fresh = await fetchTestById(testId);
-    const normalized = objectToCamelCase(fresh);
-    setLocalTest(normalized);
+    syncLocalTest(fresh);
     onEdit?.(fresh);
     return fresh;
+  }
+
+  async function handleEditUpdated() {
+    const fresh = await refreshTest();
+    closeEdit();
+    await onUpdated?.(fresh);
   }
 
   const stop = (e) => e.stopPropagation();
@@ -562,7 +573,7 @@ export default function DetailsTestModal({
             <div className="dtm-step-card">
               <div className="dtm-step-left">
                 <div className="dtm-step-icon" aria-hidden="true">
-                  >
+                  {'>'}
                 </div>
                 <div>
                   <div className="dtm-step-label">CURRENT STEP</div>
@@ -595,7 +606,7 @@ export default function DetailsTestModal({
               </div>
 
               <div className="dtm-step-mid" aria-hidden="true">
-                ->
+                {'->'}
               </div>
 
               <div className="dtm-step-right">
@@ -784,11 +795,7 @@ export default function DetailsTestModal({
         isOpen={isEditOpen}
         onClose={closeEdit}
         test={t}
-        onUpdated={async () => {
-          const fresh = await refreshTest();
-          closeEdit();
-          await onUpdated?.(fresh);
-        }}
+        onUpdated={handleEditUpdated}
       />
     </>
   );

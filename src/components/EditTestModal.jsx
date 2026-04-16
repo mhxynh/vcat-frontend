@@ -16,6 +16,10 @@ function flagsFromTestType(v) {
   return { requiresDat: false, requiresOet: false };
 }
 
+function normalizeTest(test) {
+  return objectToCamelCase(test ?? null);
+}
+
 function buildInitialState(test) {
   let testType = '';
   if (test) {
@@ -39,7 +43,7 @@ const MODAL_BODY_MIN_HEIGHT = 428;
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
-  const normalizedPropTest = useMemo(() => objectToCamelCase(test ?? null), [test]);
+  const normalizedPropTest = useMemo(() => normalizeTest(test), [test]);
   const [resolvedTest, setResolvedTest] = useState(normalizedPropTest);
   const originalTestId = resolvedTest?.testId ?? normalizedPropTest?.testId ?? '';
   const initial = useMemo(() => buildInitialState(resolvedTest), [resolvedTest]);
@@ -61,6 +65,16 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
+  function syncForm(state) {
+    setSelectedControlId(state.selectedControlId);
+    setSelectedRequestId(state.selectedRequestId);
+    setSelectedTesterId(state.selectedTesterId);
+    setTestType(state.testType);
+    setDueDate(state.dueDate);
+    setEtaDate(state.etaDate);
+    setDescription(state.description);
+  }
+
   useEffect(() => {
     if (!isOpen) return;
     setResolvedTest(normalizedPropTest);
@@ -69,6 +83,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   useEffect(() => {
     if (!isOpen) return;
 
+    let cancelled = false;
     const testId = normalizedPropTest?.testId;
     const seed = buildInitialState(normalizedPropTest);
 
@@ -76,13 +91,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     setFieldErrors({});
     setLoading(true);
     setSubmitting(false);
-    setSelectedControlId(seed.selectedControlId);
-    setSelectedRequestId(seed.selectedRequestId);
-    setSelectedTesterId(seed.selectedTesterId);
-    setTestType(seed.testType);
-    setDueDate(seed.dueDate);
-    setEtaDate(seed.etaDate);
-    setDescription(seed.description);
+    syncForm(seed);
 
     (async () => {
       try {
@@ -92,26 +101,27 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
           fetchRequests(),
           fetchUsers({ isActive: true }),
         ]);
-        const normalizedFresh = freshTest ? objectToCamelCase(freshTest) : normalizedPropTest;
+        if (cancelled) return;
+
+        const normalizedFresh = freshTest ? normalizeTest(freshTest) : normalizedPropTest;
         const nextInitial = buildInitialState(normalizedFresh);
 
         setResolvedTest(normalizedFresh);
         setControls(Array.isArray(c) ? c : []);
         setRequests(Array.isArray(r) ? r : []);
         setUsers(Array.isArray(u) ? u : []);
-        setSelectedControlId(nextInitial.selectedControlId);
-        setSelectedRequestId(nextInitial.selectedRequestId);
-        setSelectedTesterId(nextInitial.selectedTesterId);
-        setTestType(nextInitial.testType);
-        setDueDate(nextInitial.dueDate);
-        setEtaDate(nextInitial.etaDate);
-        setDescription(nextInitial.description);
+        syncForm(nextInitial);
       } catch (e) {
+        if (cancelled) return;
         setError(e?.message || 'Failed to load dropdown data.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, normalizedPropTest]);
 
   useEffect(() => {
@@ -167,7 +177,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     return controls.find((c) => Number(c.control_id) === idNum) || null;
   }, [controls, selectedControlId]);
 
-  const selectedVgcpid = selectedControl?.vgcpid ?? '';
+  const selectedVgcpid = selectedControl?.vgcpid ?? resolvedTest?.vgcpid ?? '';
 
   async function handleSave() {
     setError('');
@@ -268,18 +278,12 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
           </button>
         </div>
 
-        <div className="ctm-body" style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}>
+        <div
+          className="ctm-body ctm-body--stable"
+          style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}
+        >
           {loading ? (
-            <div
-              style={{
-                minHeight: `${MODAL_BODY_MIN_HEIGHT}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                color: '#666',
-              }}
-            >
+            <div className="ctm-loading" style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}>
               Loading test details...
             </div>
           ) : (

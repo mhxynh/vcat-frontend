@@ -46,6 +46,18 @@
   padding: 22px;
 }
 
+.ctm-body--stable {
+  box-sizing: border-box;
+}
+
+.ctm-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #666;
+}
+
 .ctm-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
