@@ -244,11 +244,11 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       >
         <div className="ctm-header">
           <h2 className="ctm-title" id="edit-test-title">
-            Edit Control Test: {selectedVgcpid || 'â€”'}
+            Edit Control Test: {selectedVgcpid || '-'}
           </h2>
 
           <button type="button" className="ctm-close" aria-label="Close" onClick={onClose}>
-            Ã—
+            x
           </button>
         </div>
 
@@ -299,7 +299,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                   <option
                     key={r.requestId}
                     value={String(r.requestId)}
-                  >{`REQ-${String(r.requestId).padStart(4, '0')} â€¢ ${r.requestor ?? '-'} â€¢ ${r.dueDate ?? '-'}`}</option>
+                  >{`REQ-${String(r.requestId).padStart(4, '0')} - ${r.requestor ?? '-'} - ${r.dueDate ?? '-'}`}</option>
                 ))}
               </select>
               {fieldErrors.selectedRequestId ? (

@@ -302,7 +302,7 @@ export default function DetailsTestModal({
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
     }
-    if (statusUpper === 'IN_REVIEW') return 'Approve Control ✓';
+    if (statusUpper === 'IN_REVIEW') return 'Approve Control';
     if (statusUpper === 'COMPLETED') return '';
     return 'Next Step';
   }
@@ -532,7 +532,7 @@ export default function DetailsTestModal({
           <section className="dtm-header">
             <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
             <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
-              ×
+              x
             </button>
           </section>
 
@@ -544,7 +544,7 @@ export default function DetailsTestModal({
                 <span className={`badge badge--${statusToBadgeType(status)}`}>
                   {statusToLabel(status)}
                 </span>
-                <span className="dtm-dot">•</span>
+                <span className="dtm-dot">|</span>
                 <span className="dtm-subtle">{typeLabel}</span>
               </div>
 
@@ -562,7 +562,7 @@ export default function DetailsTestModal({
             <div className="dtm-step-card">
               <div className="dtm-step-left">
                 <div className="dtm-step-icon" aria-hidden="true">
-                  ▶
+                  >
                 </div>
                 <div>
                   <div className="dtm-step-label">CURRENT STEP</div>
@@ -595,7 +595,7 @@ export default function DetailsTestModal({
               </div>
 
               <div className="dtm-step-mid" aria-hidden="true">
-                →
+                ->
               </div>
 
               <div className="dtm-step-right">
@@ -684,7 +684,7 @@ export default function DetailsTestModal({
                 <div className="dtm-addcomment">
                   <input
                     className="dtm-comment-input"
-                    placeholder="Write a comment…"
+                    placeholder="Write a comment..."
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     onKeyDown={(e) => {
@@ -697,7 +697,7 @@ export default function DetailsTestModal({
                     onClick={handleAddComment}
                     aria-label="Send"
                   >
-                    ➤
+                    Send
                   </button>
                 </div>
               </>
