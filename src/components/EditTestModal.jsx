@@ -247,9 +247,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   if (!isOpen) return null;
 
-  const controlSelectTitle = !isManager
-    ? restrictionMessage(ACTIONS.CHANGE_TEST_CONTROL_VGCPID)
-    : undefined;
+  const controlSelectTitle = 'VGCPID cannot be changed when editing a control test.';
   const requestSelectTitle = !isManager ? restrictionMessage(ACTIONS.UPDATE_REQUEST) : undefined;
   const testerSelectTitle = !isManager ? restrictionMessage(ACTIONS.ASSIGN_TESTER) : undefined;
 
@@ -299,7 +297,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                     className="ctm-select"
                     value={selectedControlId}
                     onChange={(e) => setSelectedControlId(e.target.value)}
-                    disabled={!isManager}
+                    disabled={true}
                     title={controlSelectTitle}
                     aria-invalid={fieldErrors.selectedControlId ? 'true' : 'false'}
                   >
@@ -391,8 +389,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    readOnly={!!selectedRequestId}
-                    title={selectedRequestId ? 'Matches the selected request' : undefined}
                     aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
                   />
                   {fieldErrors.dueDate ? (
