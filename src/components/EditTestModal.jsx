@@ -245,7 +245,10 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
           <div className="ctm-grid">
             <div className="ctm-field">
               <label className="ctm-label">
-                VGCPID <span className="ctm-req">*</span>{' '}
+                VGCPID{' '}
+                <span className="ctm-req" aria-hidden="true">
+                  *
+                </span>{' '}
               </label>
               <select
                 className="ctm-select"
@@ -314,7 +317,10 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
             <div className="ctm-field">
               <label className="ctm-label">
-                Test Type <span className="ctm-req">*</span>
+                Test Type{' '}
+                <span className="ctm-req" aria-hidden="true">
+                  *
+                </span>
               </label>
               <select
                 className="ctm-select"
@@ -336,7 +342,10 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
             <div className="ctm-field">
               <label className="ctm-label">
-                Due Date <span className="ctm-req">*</span>
+                Due Date{' '}
+                <span className="ctm-req" aria-hidden="true">
+                  *
+                </span>
               </label>
               <input
                 className="ctm-input"
@@ -364,7 +373,10 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
             <div className="ctm-field ctm-field--full">
               <label className="ctm-label">
-                Description <span className="ctm-req">*</span>{' '}
+                Description{' '}
+                <span className="ctm-req" aria-hidden="true">
+                  *
+                </span>{' '}
               </label>
               <textarea
                 className="ctm-textarea"

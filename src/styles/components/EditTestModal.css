@@ -67,6 +67,11 @@
   color: #444;
 }
 
+.ctm-req {
+  color: #b91c1c;
+  margin-left: 3px;
+}
+
 .ctm-input,
 .ctm-textarea,
 .ctm-select {

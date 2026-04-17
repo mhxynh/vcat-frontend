@@ -114,7 +114,12 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
 
           <div className="crm-grid">
             <div className="crm-field">
-              <label className="crm-label">Request ID*</label>
+              <label className="crm-label">
+                Request ID
+                <span className="crm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <input
                 className="crm-input"
                 value={`REQ-${currentYear}-(Auto-generated)`}
@@ -124,7 +129,12 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="crm-field">
-              <label className="crm-label">Priority*</label>
+              <label className="crm-label">
+                Priority
+                <span className="crm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <select
                 className="crm-select"
                 value={priority}
@@ -144,7 +154,12 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="crm-field crm-field--full">
-              <label className="crm-label">Requested By*</label>
+              <label className="crm-label">
+                Requested By
+                <span className="crm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <input
                 className="crm-input"
                 value={requestedBy}
@@ -159,7 +174,12 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="crm-field">
-              <label className="crm-label">Request Date*</label>
+              <label className="crm-label">
+                Request Date
+                <span className="crm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <input
                 className="crm-input"
                 type="date"
@@ -170,7 +190,12 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="crm-field">
-              <label className="crm-label">Due Date*</label>
+              <label className="crm-label">
+                Due Date
+                <span className="crm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <input
                 className="crm-input"
                 type="date"
@@ -185,7 +210,12 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
             </div>
 
             <div className="crm-field crm-field--full">
-              <label className="crm-label">Description*</label>
+              <label className="crm-label">
+                Description
+                <span className="crm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <textarea
                 className="crm-textarea"
                 placeholder="Describe the purpose of this request..."
