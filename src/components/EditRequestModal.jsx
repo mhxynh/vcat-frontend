@@ -295,12 +295,22 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
               <div className="erm-grid">
                 <div className="erm-field">
-                  <label className="erm-label">Request ID*</label>
+                  <label className="erm-label">
+                    Request ID{' '}
+                    <span className="erm-req" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
                   <input className="erm-input" value={formattedReqId} disabled />
                 </div>
 
                 <div className="erm-field">
-                  <label className="erm-label">Priority*</label>
+                  <label className="erm-label">
+                    Priority{' '}
+                    <span className="erm-req" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
                   <select
                     className="erm-select"
                     value={priority}
@@ -323,7 +333,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                 </div>
 
                 <div className="erm-field erm-field--full">
-                  <label className="erm-label">Requested By*</label>
+                  <label className="erm-label">
+                    Requested By{' '}
+                    <span className="erm-req" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
                   <input
                     className="erm-input"
                     value={requestedBy || ''}
@@ -342,12 +357,22 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                 </div>
 
                 <div className="erm-field">
-                  <label className="erm-label">Request Date*</label>
+                  <label className="erm-label">
+                    Request Date{' '}
+                    <span className="erm-req" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
                   <input className="erm-input" type="date" value={requestDate} disabled />
                 </div>
 
                 <div className="erm-field">
-                  <label className="erm-label">Due Date*</label>
+                  <label className="erm-label">
+                    Due Date{' '}
+                    <span className="erm-req" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
                   <input
                     className="erm-input"
                     type="date"
@@ -364,7 +389,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                 </div>
 
                 <div className="erm-field erm-field--full">
-                  <label className="erm-label">Description*</label>
+                  <label className="erm-label">
+                    Description{' '}
+                    <span className="erm-req" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
                   <textarea
                     className="erm-textarea"
                     value={description || ''}

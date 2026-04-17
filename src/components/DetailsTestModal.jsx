@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
 import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
@@ -16,6 +16,9 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
+import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
+import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
@@ -44,6 +47,12 @@ export default function DetailsTestModal({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [usersById, setUsersById] = useState({});
+
   const normalizedTest = useMemo(
     () => objectToCamelCase(localTest ?? test ?? null),
     [localTest, test]
@@ -54,6 +63,76 @@ export default function DetailsTestModal({
     setLocalTest(normalized);
     return normalized;
   }
+
+  const buildUsersById = useCallback((users) => {
+    const map = {};
+    for (const u of Array.isArray(users) ? users : []) {
+      const id = u?.['user_id'];
+      if (id != null) map[String(id)] = u;
+    }
+    return map;
+  }, []);
+
+  const getCurrentUserEmail = useCallback(async () => {
+    try {
+      const attrs = await fetchUserAttributes();
+      return attrs?.email || '';
+    } catch {
+      return '';
+    }
+  }, []);
+
+  const loadCommentsAndUsers = useCallback(
+    async (tid, isCancelled = () => false) => {
+      if (tid == null) {
+        if (!isCancelled()) setLocalComments([]);
+        return;
+      }
+
+      if (!isCancelled()) {
+        setCommentsLoading(true);
+        setCommentsError('');
+      }
+
+      try {
+        const [commentRows, activeUsers] = await Promise.all([
+          fetchCommentsByTestId(tid),
+          fetchUsers({ isActive: true }),
+        ]);
+
+        if (isCancelled()) return;
+
+        const userMap = buildUsersById(activeUsers);
+        setUsersById(userMap);
+
+        const uiComments = mapCommentRowsToUi(commentRows, userMap);
+        setLocalComments(uiComments);
+
+        const email = await getCurrentUserEmail();
+        if (isCancelled()) return;
+
+        if (email) {
+          try {
+            const me = await fetchUserByEmail(email);
+            if (!isCancelled()) setCurrentUser(me || null);
+          } catch (e) {
+            console.warn('Failed to resolve current user by email', e);
+          }
+        } else if (!isCancelled()) {
+          setCurrentUser(null);
+        }
+      } catch (e) {
+        if (!isCancelled()) {
+          setCommentsError(e?.message || 'Failed to load comments');
+          setLocalComments([]);
+          setCurrentUser(null);
+        }
+      } finally {
+        if (!isCancelled()) setCommentsLoading(false);
+      }
+    },
+    [buildUsersById, getCurrentUserEmail]
+  );
 
   useEffect(() => {
     if (!isOpen) setIsEditOpen(false);
@@ -72,21 +151,32 @@ export default function DetailsTestModal({
   useEffect(() => {
     if (!isOpen) return;
 
+    let cancelled = false;
+
     setActiveTab('Details');
     setCommentText('');
     setLocalComments([]);
     setHistoryLogs([]);
     setHistoryError('');
+    setCommentsError('');
+    setCurrentUser(null);
+    setUsersById({});
 
     syncLocalTest(test ?? null);
+
+    const tid = objectToCamelCase(test ?? null)?.testId ?? null;
+    void loadCommentsAndUsers(tid, () => cancelled);
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
     };
 
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, test, onClose]);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, test, onClose, loadCommentsAndUsers]);
 
   const currentTestId = normalizedTest?.testId ?? null;
 
@@ -118,15 +208,10 @@ export default function DetailsTestModal({
     if (testId == null) return null;
 
     const fresh = await fetchTestById(testId);
-    syncLocalTest(fresh);
-    onEdit?.(fresh);
-    return fresh;
-  }
-
-  async function handleEditUpdated() {
-    const fresh = await refreshTest();
-    closeEdit();
-    await onUpdated?.(fresh);
+    const normalized = objectToCamelCase(fresh);
+    setLocalTest(normalized);
+    onEdit?.(normalized);
+    return normalized;
   }
 
   const stop = (e) => e.stopPropagation();
@@ -162,6 +247,7 @@ export default function DetailsTestModal({
 
   async function handleArchive() {
     if (testId == null) return;
+    if (String(t?.status || '').toUpperCase() === 'COMPLETED') return;
 
     const ok = window.confirm(`Archive control test ${vgcpid}?`);
     if (!ok) return;
@@ -191,6 +277,7 @@ export default function DetailsTestModal({
 
   async function handleDelete() {
     if (testId == null) return;
+    if (String(t?.status || '').toUpperCase() === 'COMPLETED') return;
 
     const ok = window.confirm(`Delete control test ${vgcpid}?\n\nThis is permanent.`);
     if (!ok) return;
@@ -313,7 +400,7 @@ export default function DetailsTestModal({
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
     }
-    if (statusUpper === 'IN_REVIEW') return 'Approve Control';
+    if (statusUpper === 'IN_REVIEW') return 'Approve Control ✓';
     if (statusUpper === 'COMPLETED') return '';
     return 'Next Step';
   }
@@ -494,19 +581,37 @@ export default function DetailsTestModal({
     }
   }
 
-  function handleAddComment() {
+  async function handleAddComment() {
     const text = commentText.trim();
-    if (!text) return;
+    if (!text || testId == null || commentSaving) return;
 
-    const newComment = {
-      id: `local-${Date.now()}`,
-      author: 'You',
-      text,
-      date: new Date().toLocaleString(),
-    };
+    if (!currentUser?.['user_id']) {
+      setCommentsError('Could not identify the logged-in user.');
+      return;
+    }
 
-    setLocalComments((prev) => [newComment, ...prev]);
-    setCommentText('');
+    try {
+      setCommentSaving(true);
+      setCommentsError('');
+
+      const created = await createTestComment({
+        testId,
+        authorUserId: currentUser['user_id'],
+        commentText: text,
+      });
+
+      const createdUi = mapCommentRowsToUi([created], {
+        ...usersById,
+        [String(currentUser['user_id'])]: currentUser,
+      })[0];
+
+      setLocalComments((prev) => [createdUi, ...prev]);
+      setCommentText('');
+    } catch (e) {
+      setCommentsError(e?.message || 'Failed to add comment');
+    } finally {
+      setCommentSaving(false);
+    }
   }
 
   function statusToLabel(statusValue) {
@@ -524,9 +629,11 @@ export default function DetailsTestModal({
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
-  const showRevert = statusUpper !== 'NOT_STARTED' && statusUpper !== 'COMPLETED';
+  const isLockedStatus = statusUpper === 'COMPLETED';
+  const showRevert = statusUpper !== 'NOT_STARTED';
   const showReject = statusUpper === 'IN_REVIEW';
   const primaryLabel = getPrimaryActionLabel(t);
+  const showNextStepPanel = statusUpper !== 'COMPLETED';
 
   return (
     <>
@@ -543,7 +650,7 @@ export default function DetailsTestModal({
           <section className="dtm-header">
             <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
             <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
-              x
+              ×
             </button>
           </section>
 
@@ -555,7 +662,7 @@ export default function DetailsTestModal({
                 <span className={`badge badge--${statusToBadgeType(status)}`}>
                   {statusToLabel(status)}
                 </span>
-                <span className="dtm-dot">|</span>
+                <span className="dtm-dot">•</span>
                 <span className="dtm-subtle">{typeLabel}</span>
               </div>
 
@@ -573,7 +680,7 @@ export default function DetailsTestModal({
             <div className="dtm-step-card">
               <div className="dtm-step-left">
                 <div className="dtm-step-icon" aria-hidden="true">
-                  {'>'}
+                  ▶
                 </div>
                 <div>
                   <div className="dtm-step-label">CURRENT STEP</div>
@@ -587,7 +694,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--outline"
                     type="button"
                     onClick={handleRevert}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
+                          : 'Revert this control test to the previous step'
+                    }
                   >
                     Revert
                   </button>
@@ -605,26 +719,30 @@ export default function DetailsTestModal({
                 ) : null}
               </div>
 
-              <div className="dtm-step-mid" aria-hidden="true">
-                {'->'}
-              </div>
+              {showNextStepPanel ? (
+                <>
+                  <div className="dtm-step-mid" aria-hidden="true">
+                    →
+                  </div>
 
-              <div className="dtm-step-right">
-                {primaryLabel ? (
-                  <button
-                    className="dtm-btn dtm-btn--primary"
-                    type="button"
-                    onClick={handlePrimaryAction}
-                    disabled={isBusy}
-                  >
-                    {primaryLabel}
-                  </button>
-                ) : null}
+                  <div className="dtm-step-right">
+                    {primaryLabel ? (
+                      <button
+                        className="dtm-btn dtm-btn--primary"
+                        type="button"
+                        onClick={handlePrimaryAction}
+                        disabled={isBusy}
+                      >
+                        {primaryLabel}
+                      </button>
+                    ) : null}
 
-                <span className="dtm-next">
-                  <span className="dtm-next-label">Next:</span> {nextStepLabel}
-                </span>
-              </div>
+                    <span className="dtm-next">
+                      <span className="dtm-next-label">Next:</span> {nextStepLabel}
+                    </span>
+                  </div>
+                </>
+              ) : null}
             </div>
           </section>
 
@@ -688,16 +806,13 @@ export default function DetailsTestModal({
               </>
             ) : activeTab === 'Comments' ? (
               <>
-                <div className="dtm-empty">
-                  {localComments.length === 0 ? 'No comments found.' : null}
-                </div>
-
-                <div className="dtm-addcomment">
+                <div className="dtm-addcomment dtm-addcomment--top">
                   <input
                     className="dtm-comment-input"
-                    placeholder="Write a comment..."
+                    placeholder="Write a comment…"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
+                    disabled={commentSaving || commentsLoading || !currentUser}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleAddComment();
                     }}
@@ -707,9 +822,43 @@ export default function DetailsTestModal({
                     type="button"
                     onClick={handleAddComment}
                     aria-label="Send"
+                    disabled={
+                      commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                    }
                   >
-                    Send
+                    {commentSaving ? '...' : '➤'}
                   </button>
+                </div>
+
+                <div className="dtm-comments">
+                  {commentsLoading ? (
+                    <div className="dtm-empty">Loading comments...</div>
+                  ) : commentsError ? (
+                    <div className="dtm-empty">Error: {commentsError}</div>
+                  ) : localComments.length === 0 ? (
+                    <div className="dtm-empty">No comments found.</div>
+                  ) : (
+                    localComments.map((c) => (
+                      <div className="dtm-comment" key={c.id}>
+                        <div className="dtm-comment-left">
+                          <div className="dtm-avatar" aria-hidden="true">
+                            {String(c.author || '?')
+                              .trim()
+                              .slice(0, 1)
+                              .toUpperCase()}
+                          </div>
+                        </div>
+
+                        <div className="dtm-comment-main">
+                          <div className="dtm-comment-top">
+                            <div className="dtm-comment-author">{c.author ?? '-'}</div>
+                            <div className="dtm-comment-date">{c.date ?? ''}</div>
+                          </div>
+                          <div className="dtm-comment-text">{c.text ?? ''}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </>
             ) : activeTab === 'History' ? (
@@ -749,7 +898,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--danger"
                     type="button"
                     onClick={handleDelete}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot delete a ${statusUpper.toLowerCase()} control test`
+                          : 'Delete this control test'
+                    }
                   >
                     Delete Control Test
                   </button>
@@ -771,7 +927,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--outline"
                     type="button"
                     onClick={handleArchive}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot archive a ${statusUpper.toLowerCase()} control test`
+                          : 'Archive this control test'
+                    }
                   >
                     Archive Control Test
                   </button>
@@ -795,7 +958,11 @@ export default function DetailsTestModal({
         isOpen={isEditOpen}
         onClose={closeEdit}
         test={t}
-        onUpdated={handleEditUpdated}
+        onUpdated={async () => {
+          closeEdit();
+          onClose?.();
+          window.location.reload();
+        }}
       />
     </>
   );

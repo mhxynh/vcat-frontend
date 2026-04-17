@@ -390,6 +390,8 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
+                    readOnly={!!selectedRequestId}
+                    title={selectedRequestId ? 'Due date is synced from the selected request.' : ''}
                     aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
                   />
                   {fieldErrors.dueDate ? (

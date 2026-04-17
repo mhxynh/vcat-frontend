@@ -83,6 +83,11 @@
   font-weight: 500;
 }
 
+.erm-req {
+  color: #b91c1c;
+  margin-left: 3px;
+}
+
 .erm-input,
 .erm-textarea,
 .erm-select,
