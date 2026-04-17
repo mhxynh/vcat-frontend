@@ -624,6 +624,7 @@ export default function DetailsTestModal({
   const showRevert = statusUpper !== 'NOT_STARTED' && statusUpper !== 'COMPLETED';
   const showReject = statusUpper === 'IN_REVIEW';
   const primaryLabel = getPrimaryActionLabel(t);
+  const showNextStepPanel = statusUpper !== 'COMPLETED';
 
   return (
     <>
@@ -702,26 +703,30 @@ export default function DetailsTestModal({
                 ) : null}
               </div>
 
-              <div className="dtm-step-mid" aria-hidden="true">
-                →
-              </div>
+              {showNextStepPanel ? (
+                <>
+                  <div className="dtm-step-mid" aria-hidden="true">
+                    →
+                  </div>
 
-              <div className="dtm-step-right">
-                {primaryLabel ? (
-                  <button
-                    className="dtm-btn dtm-btn--primary"
-                    type="button"
-                    onClick={handlePrimaryAction}
-                    disabled={isBusy}
-                  >
-                    {primaryLabel}
-                  </button>
-                ) : null}
+                  <div className="dtm-step-right">
+                    {primaryLabel ? (
+                      <button
+                        className="dtm-btn dtm-btn--primary"
+                        type="button"
+                        onClick={handlePrimaryAction}
+                        disabled={isBusy}
+                      >
+                        {primaryLabel}
+                      </button>
+                    ) : null}
 
-                <span className="dtm-next">
-                  <span className="dtm-next-label">Next:</span> {nextStepLabel}
-                </span>
-              </div>
+                    <span className="dtm-next">
+                      <span className="dtm-next-label">Next:</span> {nextStepLabel}
+                    </span>
+                  </div>
+                </>
+              ) : null}
             </div>
           </section>
 
