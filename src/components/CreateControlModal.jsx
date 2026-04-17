@@ -124,7 +124,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
           <div className="modal-grid">
             <div className="form-field">
               <label className="form-label">
-                Control ID <span aria-hidden="true">*</span>
+                Control ID{' '}
+                <span className="form-req" aria-hidden="true">
+                  *
+                </span>
               </label>
               <input
                 className="form-input"
@@ -138,7 +141,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
             <div className="form-field">
               <label className="form-label">
-                Initial Status <span aria-hidden="true">*</span>
+                Initial Status{' '}
+                <span className="form-req" aria-hidden="true">
+                  *
+                </span>
               </label>
               <select
                 className="form-input"
@@ -151,7 +157,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
             <div className="form-field form-field--full">
               <label className="form-label">
-                Description <span aria-hidden="true">*</span>
+                Description{' '}
+                <span className="form-req" aria-hidden="true">
+                  *
+                </span>
               </label>
               <textarea
                 className="form-textarea"
@@ -167,7 +176,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
             <div className="form-field">
               <label className="form-label">
-                Control Owner <span aria-hidden="true">*</span>
+                Control Owner{' '}
+                <span className="form-req" aria-hidden="true">
+                  *
+                </span>
               </label>
               <input
                 className="form-input"
@@ -193,7 +205,10 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
             <div className="form-field form-field--full">
               <label className="form-label">
-                Escalation Required? <span aria-hidden="true">*</span>
+                Escalation Required?{' '}
+                <span className="form-req" aria-hidden="true">
+                  *
+                </span>
               </label>
 
               <div

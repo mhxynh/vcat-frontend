@@ -150,7 +150,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
           <div className="ecm-grid">
             <div className="ecm-field">
-              <label className="ecm-label">Control ID *</label>
+              <label className="ecm-label">
+                Control ID{' '}
+                <span className="ecm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <input
                 className="ecm-input"
                 value={vgcpid}
@@ -164,7 +169,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             </div>
 
             <div className="ecm-field">
-              <label className="ecm-label">Status *</label>
+              <label className="ecm-label">
+                Status{' '}
+                <span className="ecm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <select
                 className="ecm-select"
                 value={status}
@@ -186,7 +196,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             </div>
 
             <div className="ecm-field ecm-field--full">
-              <label className="ecm-label">Description *</label>
+              <label className="ecm-label">
+                Description{' '}
+                <span className="ecm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <textarea
                 className="ecm-textarea"
                 placeholder="Enter detailed control description..."
@@ -200,7 +215,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             </div>
 
             <div className="ecm-field">
-              <label className="ecm-label">Control Owner *</label>
+              <label className="ecm-label">
+                Control Owner{' '}
+                <span className="ecm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <input
                 className="ecm-input"
                 value={controlOwner}
@@ -222,7 +242,12 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             </div>
 
             <div className="ecm-field ecm-field--full">
-              <label className="ecm-label">Escalation Required? *</label>
+              <label className="ecm-label">
+                Escalation Required?{' '}
+                <span className="ecm-req" aria-hidden="true">
+                  *
+                </span>
+              </label>
               <div className="ecm-radio-row" role="radiogroup" aria-label="Escalation Required">
                 <label className="ecm-radio-item">
                   <input
