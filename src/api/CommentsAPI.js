@@ -5,12 +5,7 @@ function toUiComment(row, usersById = {}) {
   const authorId = row?.authorUserId ?? null;
   const authorUser = authorId != null ? usersById[String(authorId)] : null;
 
-  const author =
-    authorUser?.fullName ||
-    authorUser?.name ||
-    authorUser?.displayName ||
-    authorUser?.email ||
-    `User ${authorId ?? ''}`.trim();
+  const author = authorUser?.display_name || authorUser?.email || `User ${authorId ?? ''}`.trim();
 
   return {
     id: row?.commentId ?? row?.id,

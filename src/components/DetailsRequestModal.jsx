@@ -301,6 +301,11 @@ export default function DetailsRequestModal({
     const text = commentText.trim();
     if (!text || requestId == null || commentSaving) return;
 
+    if (!currentUser?.['user_id']) {
+      setCommentsError('Could not identify the logged-in user.');
+      return;
+    }
+
     try {
       setCommentSaving(true);
       setCommentsError('');

@@ -577,6 +577,11 @@ export default function DetailsTestModal({
     const text = commentText.trim();
     if (!text || testId == null || commentSaving) return;
 
+    if (!currentUser?.['user_id']) {
+      setCommentsError('Could not identify the logged-in user.');
+      return;
+    }
+
     try {
       setCommentSaving(true);
       setCommentsError('');
