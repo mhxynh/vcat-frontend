@@ -151,7 +151,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
           <div className="ecm-grid">
             <div className="ecm-field">
               <label className="ecm-label">
-                Control ID{' '}
+Control ID <span className="ecm-req" aria-hidden="true">*</span>
                 <span className="ecm-req" aria-hidden="true">
                   *
                 </span>
