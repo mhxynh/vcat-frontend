@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsTestModal.css';
 import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
@@ -17,6 +17,9 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
+import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
+import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
+import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
@@ -66,9 +69,85 @@ export default function DetailsTestModal({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [usersById, setUsersById] = useState({});
+
   const normalizedTest = useMemo(
     () => objectToCamelCase(localTest ?? test ?? null),
     [localTest, test]
+  );
+
+  const buildUsersById = useCallback((users) => {
+    const map = {};
+    for (const u of Array.isArray(users) ? users : []) {
+      const id = u?.['user_id'];
+      if (id != null) map[String(id)] = u;
+    }
+    return map;
+  }, []);
+
+  const getCurrentUserEmail = useCallback(async () => {
+    try {
+      const attrs = await fetchUserAttributes();
+      return attrs?.email || '';
+    } catch {
+      return '';
+    }
+  }, []);
+
+  const loadCommentsAndUsers = useCallback(
+    async (tid, isCancelled = () => false) => {
+      if (tid == null) {
+        if (!isCancelled()) setLocalComments([]);
+        return;
+      }
+
+      if (!isCancelled()) {
+        setCommentsLoading(true);
+        setCommentsError('');
+      }
+
+      try {
+        const [commentRows, activeUsers] = await Promise.all([
+          fetchCommentsByTestId(tid),
+          fetchUsers({ isActive: true }),
+        ]);
+
+        if (isCancelled()) return;
+
+        const userMap = buildUsersById(activeUsers);
+        setUsersById(userMap);
+
+        const uiComments = mapCommentRowsToUi(commentRows, userMap);
+        setLocalComments(uiComments);
+
+        const email = await getCurrentUserEmail();
+        if (isCancelled()) return;
+
+        if (email) {
+          try {
+            const me = await fetchUserByEmail(email);
+            if (!isCancelled()) setCurrentUser(me || null);
+          } catch (e) {
+            console.warn('Failed to resolve current user by email', e);
+          }
+        } else if (!isCancelled()) {
+          setCurrentUser(null);
+        }
+      } catch (e) {
+        if (!isCancelled()) {
+          setCommentsError(e?.message || 'Failed to load comments');
+          setLocalComments([]);
+          setCurrentUser(null);
+        }
+      } finally {
+        if (!isCancelled()) setCommentsLoading(false);
+      }
+    },
+    [buildUsersById, getCurrentUserEmail]
   );
 
   useEffect(() => {
@@ -95,6 +174,8 @@ export default function DetailsTestModal({
   useEffect(() => {
     if (!isOpen) return;
 
+    let cancelled = false;
+
     setActiveTab('Details');
     setCommentText('');
     setLocalComments([]);
@@ -104,12 +185,21 @@ export default function DetailsTestModal({
     setIsDeleteConfirmOpen(false);
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
-    setIsApproveConfirmOpen(false);
+    setIsApproveConfirmOpen(false);    
+    setCommentsError('');
+    setCurrentUser(null);
+    setUsersById({});
+
     setLocalTest(objectToCamelCase(test ?? null));
   }, [isOpen, test]);
 
   useEffect(() => {
     if (!isOpen) return;
+
+    let cancelled = false;
+
+    const tid = objectToCamelCase(test ?? null)?.testId ?? null;
+    void loadCommentsAndUsers(tid, () => cancelled);
 
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
@@ -143,10 +233,13 @@ export default function DetailsTestModal({
     };
 
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, [
     isOpen,
-    onClose,
+    onClose, loadCommentsAndUsers,
     isDeleteConfirmOpen,
     isArchiveConfirmOpen,
     isSubmitConfirmOpen,
@@ -550,19 +643,37 @@ export default function DetailsTestModal({
     }
   }
 
-  function handleAddComment() {
+  async function handleAddComment() {
     const text = commentText.trim();
-    if (!text) return;
+    if (!text || testId == null || commentSaving) return;
 
-    const newComment = {
-      id: `local-${Date.now()}`,
-      author: 'You',
-      text,
-      date: new Date().toLocaleString(),
-    };
+    if (!currentUser?.['user_id']) {
+      setCommentsError('Could not identify the logged-in user.');
+      return;
+    }
 
-    setLocalComments((prev) => [newComment, ...prev]);
-    setCommentText('');
+    try {
+      setCommentSaving(true);
+      setCommentsError('');
+
+      const created = await createTestComment({
+        testId,
+        authorUserId: currentUser['user_id'],
+        commentText: text,
+      });
+
+      const createdUi = mapCommentRowsToUi([created], {
+        ...usersById,
+        [String(currentUser['user_id'])]: currentUser,
+      })[0];
+
+      setLocalComments((prev) => [createdUi, ...prev]);
+      setCommentText('');
+    } catch (e) {
+      setCommentsError(e?.message || 'Failed to add comment');
+    } finally {
+      setCommentSaving(false);
+    }
   }
 
   function statusToLabel(statusValue) {
@@ -744,16 +855,13 @@ export default function DetailsTestModal({
               </>
             ) : activeTab === 'Comments' ? (
               <>
-                <div className="dtm-empty">
-                  {localComments.length === 0 ? 'No comments found.' : null}
-                </div>
-
-                <div className="dtm-addcomment">
+                <div className="dtm-addcomment dtm-addcomment--top">
                   <input
                     className="dtm-comment-input"
                     placeholder="Write a comment…"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
+                    disabled={commentSaving || commentsLoading || !currentUser}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleAddComment();
                     }}
@@ -763,9 +871,43 @@ export default function DetailsTestModal({
                     type="button"
                     onClick={handleAddComment}
                     aria-label="Send"
+                    disabled={
+                      commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                    }
                   >
-                    ➤
+                    {commentSaving ? '...' : '➤'}
                   </button>
+                </div>
+
+                <div className="dtm-comments">
+                  {commentsLoading ? (
+                    <div className="dtm-empty">Loading comments...</div>
+                  ) : commentsError ? (
+                    <div className="dtm-empty">Error: {commentsError}</div>
+                  ) : localComments.length === 0 ? (
+                    <div className="dtm-empty">No comments found.</div>
+                  ) : (
+                    localComments.map((c) => (
+                      <div className="dtm-comment" key={c.id}>
+                        <div className="dtm-comment-left">
+                          <div className="dtm-avatar" aria-hidden="true">
+                            {String(c.author || '?')
+                              .trim()
+                              .slice(0, 1)
+                              .toUpperCase()}
+                          </div>
+                        </div>
+
+                        <div className="dtm-comment-main">
+                          <div className="dtm-comment-top">
+                            <div className="dtm-comment-author">{c.author ?? '-'}</div>
+                            <div className="dtm-comment-date">{c.date ?? ''}</div>
+                          </div>
+                          <div className="dtm-comment-text">{c.text ?? ''}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </>
             ) : activeTab === 'History' ? (
