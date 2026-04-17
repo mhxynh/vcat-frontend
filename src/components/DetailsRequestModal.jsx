@@ -352,7 +352,7 @@ export default function DetailsRequestModal({
   }
 
   async function handleArchiveRequest() {
-    if (requestId == null) return;
+    if (requestId == null || archiving) return;
 
     try {
       setArchiving(true);
@@ -396,7 +396,7 @@ export default function DetailsRequestModal({
   }
 
   async function handleHardDeleteRequest() {
-    if (requestId == null) return;
+    if (requestId == null || deleting) return;
 
     try {
       setDeleting(true);
@@ -833,7 +833,8 @@ export default function DetailsRequestModal({
         warning="Archived requests will be removed from active views, but can still be accessed from the archive."
         confirmText={archiving ? 'Archiving...' : 'Archive'}
         cancelText="Cancel"
-        isLoading={archiving}
+        confirmDisabled={archiving}
+        cancelDisabled={archiving}
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
       />
 
@@ -847,7 +848,8 @@ export default function DetailsRequestModal({
         warning="Deleted requests will be permanently removed and cannot be recovered."
         confirmText={deleting ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
-        isLoading={deleting}
+        confirmDisabled={deleting}
+        cancelDisabled={deleting}
       />
     </>
   );

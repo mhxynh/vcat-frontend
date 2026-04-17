@@ -80,6 +80,8 @@ export default function DetailsTestModal({
     [localTest, test]
   );
 
+  const currentTestId = normalizedTest?.testId ?? null;
+
   const buildUsersById = useCallback((users) => {
     const map = {};
     for (const u of Array.isArray(users) ? users : []) {
@@ -174,8 +176,6 @@ export default function DetailsTestModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    let cancelled = false;
-
     setActiveTab('Details');
     setCommentText('');
     setLocalComments([]);
@@ -185,21 +185,26 @@ export default function DetailsTestModal({
     setIsDeleteConfirmOpen(false);
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
-    setIsApproveConfirmOpen(false);    
+    setIsApproveConfirmOpen(false);
     setCommentsError('');
     setCurrentUser(null);
     setUsersById({});
-
     setLocalTest(objectToCamelCase(test ?? null));
   }, [isOpen, test]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !currentTestId) return;
 
     let cancelled = false;
+    void loadCommentsAndUsers(currentTestId, () => cancelled);
 
-    const tid = objectToCamelCase(test ?? null)?.testId ?? null;
-    void loadCommentsAndUsers(tid, () => cancelled);
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, currentTestId, loadCommentsAndUsers]);
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
@@ -234,20 +239,17 @@ export default function DetailsTestModal({
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      cancelled = true;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [
     isOpen,
-    onClose, loadCommentsAndUsers,
+    onClose,
     isDeleteConfirmOpen,
     isArchiveConfirmOpen,
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
   ]);
-
-  const currentTestId = normalizedTest?.testId ?? null;
 
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !currentTestId) return;
@@ -1000,8 +1002,10 @@ export default function DetailsTestModal({
         message="Are you sure you want to permanently delete this control test?"
         itemName={String(vgcpid)}
         warning="Deleted control tests will be permanently removed and cannot be recovered."
-        confirmText="Delete"
+        confirmText={isBusy ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
       />
 
       <ConfirmActionModal
@@ -1015,8 +1019,10 @@ export default function DetailsTestModal({
         message="Are you sure you want to archive this control test?"
         itemName={String(vgcpid)}
         warning="Archived control tests will be removed from active views, but can still be accessed from the archive."
-        confirmText="Archive"
+        confirmText={isBusy ? 'Archiving...' : 'Archive'}
         cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
       />
 
@@ -1031,8 +1037,10 @@ export default function DetailsTestModal({
         message="Are you sure you want to submit this test for approval?"
         itemName={String(testTitle)}
         warning='This will move the control test to the "In Review" Status.'
-        confirmText="Submit"
+        confirmText={isBusy ? 'Submitting...' : 'Submit'}
         cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
       />
 
@@ -1047,8 +1055,10 @@ export default function DetailsTestModal({
         message="Are you sure you want to reject this test?"
         itemName={String(testTitle)}
         warning='This will return the control test to "Addressing Comments" for future action.'
-        confirmText="Reject"
+        confirmText={isBusy ? 'Rejecting...' : 'Reject'}
         cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
       />
 
       <ConfirmActionModal
@@ -1062,8 +1072,10 @@ export default function DetailsTestModal({
         message="Are you sure you want to approve this test?"
         itemName={String(testTitle)}
         warning='This will mark the control test as "Completed".'
-        confirmText="Approve"
+        confirmText={isBusy ? 'Approving...' : 'Approve'}
         cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
       />
 
