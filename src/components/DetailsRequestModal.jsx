@@ -301,24 +301,20 @@ export default function DetailsRequestModal({
     const text = commentText.trim();
     if (!text || requestId == null || commentSaving) return;
 
-    if (!currentUser?.['user_id']) {
-      setCommentsError('Could not identify the logged-in user.');
-      return;
-    }
-
     try {
       setCommentSaving(true);
       setCommentsError('');
 
       const created = await createRequestComment({
         requestId,
-        authorUserId: currentUser['user_id'],
         commentText: text,
       });
 
       const createdUi = mapCommentRowsToUi([created], {
         ...usersById,
-        [String(currentUser['user_id'])]: currentUser,
+        ...(currentUser?.['user_id'] != null
+          ? { [String(currentUser['user_id'])]: currentUser }
+          : {}),
       })[0];
 
       setLocalComments((prev) => [createdUi, ...prev]);
@@ -591,7 +587,7 @@ export default function DetailsRequestModal({
                     placeholder="Write a comment…"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    disabled={commentSaving || commentsLoading || !currentUser}
+                    disabled={commentSaving || commentsLoading}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleAddComment();
                     }}
@@ -601,9 +597,7 @@ export default function DetailsRequestModal({
                     type="button"
                     onClick={handleAddComment}
                     aria-label="Send"
-                    disabled={
-                      commentSaving || commentsLoading || !currentUser || !commentText.trim()
-                    }
+                    disabled={commentSaving || commentsLoading || !commentText.trim()}
                   >
                     {commentSaving ? '...' : '➤'}
                   </button>
