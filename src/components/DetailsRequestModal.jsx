@@ -602,7 +602,9 @@ export default function DetailsRequestModal({
                     type="button"
                     onClick={handleAddComment}
                     aria-label="Send"
-                    disabled={commentSaving || commentsLoading || !commentText.trim()}
+                    disabled={
+                      !currentUser || commentSaving || commentsLoading || !commentText.trim()
+                    }
                   >
                     {commentSaving ? '...' : '➤'}
                   </button>
