@@ -58,6 +58,12 @@ export default function DetailsTestModal({
     [localTest, test]
   );
 
+  function syncLocalTest(rawTest) {
+    const normalized = objectToCamelCase(rawTest);
+    setLocalTest(normalized);
+    return normalized;
+  }
+
   const buildUsersById = useCallback((users) => {
     const map = {};
     for (const u of Array.isArray(users) ? users : []) {
@@ -156,7 +162,7 @@ export default function DetailsTestModal({
     setCurrentUser(null);
     setUsersById({});
 
-    setLocalTest(objectToCamelCase(test ?? null));
+    syncLocalTest(test ?? null);
 
     const tid = objectToCamelCase(test ?? null)?.testId ?? null;
     void loadCommentsAndUsers(tid, () => cancelled);
