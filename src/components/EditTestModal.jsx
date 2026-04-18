@@ -9,6 +9,8 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
 
+const MODAL_BODY_MIN_HEIGHT = 428;
+
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
   if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
@@ -38,8 +40,6 @@ function buildInitialState(test) {
     description: test?.description ?? '',
   };
 }
-
-const MODAL_BODY_MIN_HEIGHT = 428;
 
 export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
@@ -391,6 +391,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
                     readOnly={!!selectedRequestId}
+                    disabled={!!selectedRequestId}
                     title={selectedRequestId ? 'Due date is synced from the selected request.' : ''}
                     aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
                   />
