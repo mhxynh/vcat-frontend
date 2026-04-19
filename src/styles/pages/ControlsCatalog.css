@@ -107,6 +107,11 @@
   background: #a31d24;
   border-color: #a31d24;
   color: #ffffff;
+  justify-content: center;
+  min-width: 94px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
 }
 
 .controls-toolbar__action--add:hover {
