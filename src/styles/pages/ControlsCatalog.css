@@ -113,10 +113,15 @@
   color: #ffffff;
   justify-content: center;
   min-width: 116px;
-  height: 24px;
+  height: 27px;
   padding: 0 10px;
   border-radius: 4px;
   font-size: 10px;
+}
+
+.controls-toolbar__add-label {
+  display: inline-block;
+  transform: translateY(1px);
 }
 
 .controls-toolbar__action--add:hover {
@@ -129,10 +134,11 @@
   border: 1px solid #e1e1e1;
   color: #545454;
   justify-content: center;
-  min-width: 94px;
+  min-width: 106px;
   white-space: nowrap;
   padding: 0 12px;
   height: 28px;
+  border-radius: 4px;
 }
 
 .controls-toolbar__filter-label {
@@ -160,6 +166,7 @@
   display: block;
   filter: brightness(0) saturate(100%);
   opacity: 0.67;
+  transform: translateY(1px);
 }
 
 /* Accordion */

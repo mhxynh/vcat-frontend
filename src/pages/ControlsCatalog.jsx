@@ -226,7 +226,7 @@ export default function Controls() {
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
                 >
-                  + Add Control
+                  <span className="controls-toolbar__add-label">+ Add Control</span>
                 </button>
               </RestrictedAction>
             </div>
