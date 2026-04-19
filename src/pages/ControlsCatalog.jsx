@@ -235,7 +235,7 @@ export default function Controls() {
               type="button"
             >
               <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                <svg viewBox="0 0 16 16" width="12" height="12">
+                <svg viewBox="0 0 16 16" width="15" height="15">
                   <path
                     d="M2 3.25h12L9.75 8v3.25l-3.5 1.5V8L2 3.25Z"
                     fill="none"
@@ -245,7 +245,7 @@ export default function Controls() {
                   />
                 </svg>
               </span>
-              Filter
+              <span className="controls-toolbar__filter-label">Filter</span>
             </button>
           </div>
         </div>

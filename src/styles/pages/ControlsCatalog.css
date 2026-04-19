@@ -122,7 +122,16 @@
 .controls-toolbar__action--filter {
   background: #ffffff;
   border: 1px solid #e1e1e1;
-  color: #666666;
+  color: #545454;
+  justify-content: center;
+  min-width: 94px;
+  white-space: nowrap;
+  padding: 0 12px;
+  height: 28px;
+}
+
+.controls-toolbar__filter-label {
+  color: #545454 !important;
 }
 
 .controls-toolbar__action--filter:hover {
@@ -136,6 +145,7 @@
   justify-content: center;
   flex-shrink: 0;
   color: #7c8594;
+  margin-right: 4px;
 }
 
 /* Accordion */
