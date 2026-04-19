@@ -185,35 +185,69 @@ export default function Controls() {
           </button>
         </div>
 
-        <div className="filter-search">
-          <input
-            type="text"
-            placeholder="Search by ID"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-        </div>
+        <div className="controls-toolbar">
+          <div className="controls-search-input-wrap">
+            <span className="controls-search-icon" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="13" height="13">
+                <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" fill="none" />
+                <path
+                  d="M10.75 10.75L14 14"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search controls..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-input"
+              aria-label="Search controls"
+            />
+          </div>
 
-        <div
-          onClick={(e) => {
-            const blockedWrapper = e.target.closest('.restricted-action--blocked');
-            if (blockedWrapper) {
-              e.preventDefault();
-              e.stopPropagation();
-              showPermissionDeniedToast();
-            }
-          }}
-        >
-          <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-            <button
-              className="btn btn--red"
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
+          <div className="controls-toolbar__actions">
+            <div
+              onClick={(e) => {
+                const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                if (blockedWrapper) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showPermissionDeniedToast();
+                }
+              }}
             >
-              + New Control
+              <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
+                <button
+                  className="btn btn--red controls-toolbar__action controls-toolbar__action--add"
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  + Add Control
+                </button>
+              </RestrictedAction>
+            </div>
+
+            <button
+              className="btn controls-toolbar__action controls-toolbar__action--filter"
+              type="button"
+            >
+              <span className="controls-toolbar__filter-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16" width="12" height="12">
+                  <path
+                    d="M2 3.25h12L9.75 8v3.25l-3.5 1.5V8L2 3.25Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              Filter
             </button>
-          </RestrictedAction>
+          </div>
         </div>
       </div>
 
