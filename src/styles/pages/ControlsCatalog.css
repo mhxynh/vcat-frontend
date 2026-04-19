@@ -112,10 +112,11 @@
   border-color: #a31d24;
   color: #ffffff;
   justify-content: center;
-  min-width: 94px;
-  height: 28px;
+  min-width: 116px;
+  height: 24px;
   padding: 0 10px;
-  font-size: 11px;
+  border-radius: 4px;
+  font-size: 10px;
 }
 
 .controls-toolbar__action--add:hover {
