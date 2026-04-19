@@ -13,6 +13,7 @@ import {
   completeTest,
   updateDat,
   updateOet,
+  updateTest,
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
@@ -57,6 +58,7 @@ export default function DetailsTestModal({
     () => objectToCamelCase(localTest ?? test ?? null),
     [localTest, test]
   );
+  const attachments = useMemo(() => normalizeAttachments(normalizedTest), [normalizedTest]);
 
   function syncLocalTest(rawTest) {
     const normalized = objectToCamelCase(rawTest);
@@ -211,6 +213,7 @@ export default function DetailsTestModal({
     const normalized = objectToCamelCase(fresh);
     setLocalTest(normalized);
     onEdit?.(normalized);
+    await onUpdated?.(normalized);
     return normalized;
   }
 
@@ -243,6 +246,87 @@ export default function DetailsTestModal({
       title: 'Permission Denied',
       message: 'Only managers have permission for this action. Contact a manager for access.',
     });
+  }
+
+  async function handleAddEvidenceLink() {
+    if (testId == null || isBusy) return;
+
+    const raw = window.prompt('Enter an evidence link URL');
+    if (raw == null) return;
+
+    const nextUrl = raw.trim();
+    if (!nextUrl) return;
+
+    let normalizedUrl = nextUrl;
+    try {
+      normalizedUrl = new URL(nextUrl).toString();
+    } catch {
+      showErrorToast({
+        title: 'Invalid Link',
+        message: 'Enter a valid URL that includes the protocol, such as https://.',
+      });
+      return;
+    }
+
+    const existingUrls = attachments.map((attachment) => attachment.url);
+    if (existingUrls.includes(normalizedUrl)) {
+      showErrorToast({
+        title: 'Link Already Added',
+        message: 'That evidence link is already in the list.',
+      });
+      return;
+    }
+
+    try {
+      await runBusy('Saving attachments...', async () => {
+        await updateTest(testId, {
+          action: 'update_evidence_links',
+          evidenceLinks: [...existingUrls, normalizedUrl],
+        });
+        await refreshTest();
+      });
+
+      showSuccessToast({
+        title: 'Evidence Link Added',
+        message: 'The attachment list has been updated.',
+      });
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Add Link',
+        message: e?.message || 'An error occurred while saving the evidence link.',
+      });
+    }
+  }
+
+  async function handleRemoveEvidenceLink(url) {
+    if (testId == null || isBusy || !url) return;
+
+    const ok = window.confirm('Remove this evidence link?');
+    if (!ok) return;
+
+    const nextLinks = attachments
+      .map((attachment) => attachment.url)
+      .filter((attachmentUrl) => attachmentUrl !== url);
+
+    try {
+      await runBusy('Updating attachments...', async () => {
+        await updateTest(testId, {
+          action: 'update_evidence_links',
+          evidenceLinks: nextLinks,
+        });
+        await refreshTest();
+      });
+
+      showSuccessToast({
+        title: 'Evidence Link Removed',
+        message: 'The attachment list has been updated.',
+      });
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Remove Link',
+        message: e?.message || 'An error occurred while removing the evidence link.',
+      });
+    }
   }
 
   async function handleArchive() {
@@ -628,6 +712,58 @@ export default function DetailsTestModal({
       .replaceAll('_', '-');
   }
 
+  function normalizeAttachments(test) {
+    const raw = test?.evidenceLinks ?? test?.evidence_links ?? [];
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+      .map((item) => {
+        if (item == null) return null;
+
+        const url =
+          typeof item === 'string' ? item.trim() : String(item?.url ?? item?.href ?? '').trim();
+        if (!url) return null;
+
+        const parsed = safeParseUrl(url);
+        const title =
+          typeof item === 'object' && item?.title
+            ? String(item.title).trim()
+            : formatAttachmentTitle(parsed, url);
+        const source = parsed?.hostname ? parsed.hostname : 'External link';
+
+        return {
+          id: url,
+          url,
+          title,
+          meta: source,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function safeParseUrl(url) {
+    try {
+      return new URL(url);
+    } catch {
+      return null;
+    }
+  }
+
+  function formatAttachmentTitle(parsed, fallbackUrl) {
+    if (!parsed) return fallbackUrl;
+
+    const pathParts = String(parsed.pathname || '')
+      .split('/')
+      .filter(Boolean);
+    const fileName = pathParts[pathParts.length - 1] || parsed.hostname || fallbackUrl;
+
+    try {
+      return decodeURIComponent(fileName);
+    } catch {
+      return fileName;
+    }
+  }
+
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
   const isLockedStatus = statusUpper === 'COMPLETED';
   const showRevert = statusUpper !== 'NOT_STARTED';
@@ -761,14 +897,20 @@ export default function DetailsTestModal({
               className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
               onClick={() => setActiveTab('Attachments')}
             >
-              Attachments
+              <span>Attachments</span>
+              {attachments.length > 0 ? (
+                <span className="dtm-tab-count">{attachments.length}</span>
+              ) : null}
             </button>
             <button
               type="button"
               className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
               onClick={() => setActiveTab('Comments')}
             >
-              Comments
+              <span>Comments</span>
+              {localComments.length > 0 ? (
+                <span className="dtm-tab-count">{localComments.length}</span>
+              ) : null}
             </button>
             <button
               type="button"
@@ -871,7 +1013,118 @@ export default function DetailsTestModal({
                 contextVgcpid={vgcpid}
               />
             ) : activeTab === 'Attachments' ? (
-              <div className="dtm-empty">This view is not implemented yet.</div>
+              <div className="dtm-attachments">
+                <div className="dtm-attachments-note" role="note">
+                  <Icon
+                    name="exclamation"
+                    category="deco"
+                    size="sm"
+                    color="#1d4ed8"
+                    className="dtm-attachments-note-icon-svg"
+                  />
+                  <div>
+                    <div className="dtm-attachments-note-title">
+                      Attachments are stored as external links. No files are uploaded or stored
+                      within this application.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dtm-attachments-header">
+                  <div>
+                    <div className="dtm-section-title">Linked Files ({attachments.length})</div>
+                  </div>
+
+                  <button
+                    className="dtm-btn dtm-btn--outline dtm-btn--compact"
+                    type="button"
+                    onClick={handleAddEvidenceLink}
+                    disabled={isBusy}
+                  >
+                    <Icon
+                      name="attach"
+                      category="actions"
+                      size="sm"
+                      color="#96151D"
+                      className="dtm-btn-icon"
+                    />
+                    Add Link
+                  </button>
+                </div>
+
+                {attachments.length === 0 ? (
+                  <div className="dtm-attachments-empty">
+                    <div className="dtm-attachments-empty-title">No links yet</div>
+                    <div className="dtm-attachments-empty-text">
+                      Add a supporting document, screenshot, or other external evidence link to
+                      track test artifacts here.
+                    </div>
+                    <button
+                      className="dtm-btn dtm-btn--primary dtm-btn--compact"
+                      type="button"
+                      onClick={handleAddEvidenceLink}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="attach"
+                        category="actions"
+                        size="sm"
+                        color="#fff"
+                        className="dtm-btn-icon"
+                      />
+                      Add Link
+                    </button>
+                  </div>
+                ) : (
+                  <div className="dtm-attachments-list">
+                    {attachments.map((attachment) => (
+                      <div className="dtm-attachment-card" key={attachment.id}>
+                        <div className="dtm-attachment-link">
+                          <div className="dtm-attachment-media" aria-hidden="true">
+                            <Icon
+                              name="documents"
+                              category="deco"
+                              size="sm"
+                              color="#4b5563"
+                              className="dtm-attachment-media-icon"
+                            />
+                          </div>
+
+                          <div className="dtm-attachment-body">
+                            <div className="dtm-attachment-title-row">
+                              <div className="dtm-attachment-title">{attachment.title}</div>
+                            </div>
+                            <div className="dtm-attachment-meta">{attachment.meta}</div>
+                          </div>
+                        </div>
+
+                        <div className="dtm-attachment-actions">
+                          <a
+                            className="dtm-attachment-action dtm-attachment-action--open"
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open Link"
+                          >
+                            <Icon name="link" category="actions" size="sm" color="#545454" />
+                          </a>
+
+                          <button
+                            className="dtm-attachment-action dtm-attachment-action--delete"
+                            type="button"
+                            onClick={() => handleRemoveEvidenceLink(attachment.url)}
+                            disabled={isBusy}
+                            aria-label={`Remove ${attachment.title}`}
+                            title="Delete Link"
+                          >
+                            <Icon name="trash" category="actions" size="sm" color="#545454" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : null}
           </section>
 
