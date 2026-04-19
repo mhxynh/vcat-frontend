@@ -65,6 +65,7 @@
   margin-right: 6px;
   color: #8f96a3;
   line-height: 1;
+  transform: translateY(-0.25px);
 }
 
 .controls-page .search-input {
@@ -73,12 +74,15 @@
   border: 0;
   border-radius: 0;
   font-size: 12px;
+  font-weight: 400;
   background: transparent;
   outline: none;
+  transform: translateY(.5px);
 }
 
 .controls-page .search-input::placeholder {
   color: #9aa0a6;
+  font-weight: 400;
 }
 
 .controls-page .search-input:focus {
