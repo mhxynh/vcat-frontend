@@ -8,6 +8,7 @@ import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
+import filterIcon from '../assets/images/filter.png';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -235,15 +236,7 @@ export default function Controls() {
               type="button"
             >
               <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                <svg viewBox="0 0 16 16" width="15" height="15">
-                  <path
-                    d="M2 3.25h12L9.75 8v3.25l-3.5 1.5V8L2 3.25Z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
               </span>
               <span className="controls-toolbar__filter-label">Filter</span>
             </button>

@@ -148,6 +148,15 @@
   color: #545454;
 }
 
+.controls-toolbar__filter-icon-image {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) saturate(100%);
+  opacity: 0.67;
+}
+
 /* Accordion */
 .controls-accordion {
   margin-top: 14px;
