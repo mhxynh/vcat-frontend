@@ -3,6 +3,7 @@ import '../styles/components/DetailsTestModal.css';
 import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
+import ConfirmActionModal from './ConfirmActionModal';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -43,6 +44,27 @@ export default function DetailsTestModal({
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
 
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
+  const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
+  const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+
+  const openArchiveConfirm = () => setIsArchiveConfirmOpen(true);
+  const closeArchiveConfirm = () => setIsArchiveConfirmOpen(false);
+
+  const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
+  const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
+
+  const openSubmitConfirm = () => setIsSubmitConfirmOpen(true);
+  const closeSubmitConfirm = () => setIsSubmitConfirmOpen(false);
+
+  const openRejectConfirm = () => setIsRejectConfirmOpen(true);
+  const closeRejectConfirm = () => setIsRejectConfirmOpen(false);
+
+  const openApproveConfirm = () => setIsApproveConfirmOpen(true);
+  const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
+
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
@@ -58,11 +80,7 @@ export default function DetailsTestModal({
     [localTest, test]
   );
 
-  function syncLocalTest(rawTest) {
-    const normalized = objectToCamelCase(rawTest);
-    setLocalTest(normalized);
-    return normalized;
-  }
+  const currentTestId = normalizedTest?.testId ?? null;
 
   const buildUsersById = useCallback((users) => {
     const map = {};
@@ -135,7 +153,14 @@ export default function DetailsTestModal({
   );
 
   useEffect(() => {
-    if (!isOpen) setIsEditOpen(false);
+    if (!isOpen) {
+      setIsEditOpen(false);
+      setIsArchiveConfirmOpen(false);
+      setIsDeleteConfirmOpen(false);
+      setIsSubmitConfirmOpen(false);
+      setIsRejectConfirmOpen(false);
+      setIsApproveConfirmOpen(false);
+    }
   }, [isOpen]);
 
   async function runBusy(message, fn) {
@@ -151,34 +176,80 @@ export default function DetailsTestModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    let cancelled = false;
-
     setActiveTab('Details');
     setCommentText('');
     setLocalComments([]);
     setHistoryLogs([]);
     setHistoryError('');
+    setIsArchiveConfirmOpen(false);
+    setIsDeleteConfirmOpen(false);
+    setIsSubmitConfirmOpen(false);
+    setIsRejectConfirmOpen(false);
+    setIsApproveConfirmOpen(false);
     setCommentsError('');
     setCurrentUser(null);
     setUsersById({});
+    setLocalTest(objectToCamelCase(test ?? null));
+  }, [isOpen, test]);
 
-    syncLocalTest(test ?? null);
+  useEffect(() => {
+    if (!isOpen || !currentTestId) return;
 
-    const tid = objectToCamelCase(test ?? null)?.testId ?? null;
-    void loadCommentsAndUsers(tid, () => cancelled);
+    let cancelled = false;
+    void loadCommentsAndUsers(currentTestId, () => cancelled);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, currentTestId, loadCommentsAndUsers]);
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key !== 'Escape') return;
+
+      if (isDeleteConfirmOpen) {
+        closeDeleteConfirm();
+        return;
+      }
+
+      if (isArchiveConfirmOpen) {
+        closeArchiveConfirm();
+        return;
+      }
+
+      if (isSubmitConfirmOpen) {
+        closeSubmitConfirm();
+        return;
+      }
+
+      if (isRejectConfirmOpen) {
+        closeRejectConfirm();
+        return;
+      }
+
+      if (isApproveConfirmOpen) {
+        closeApproveConfirm();
+        return;
+      }
+
+      onClose?.();
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      cancelled = true;
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [isOpen, test, onClose, loadCommentsAndUsers]);
-
-  const currentTestId = normalizedTest?.testId ?? null;
+  }, [
+    isOpen,
+    onClose,
+    isDeleteConfirmOpen,
+    isArchiveConfirmOpen,
+    isSubmitConfirmOpen,
+    isRejectConfirmOpen,
+    isApproveConfirmOpen,
+  ]);
 
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !currentTestId) return;
@@ -224,6 +295,7 @@ export default function DetailsTestModal({
 
   const testId = currentTestId;
   const vgcpid = t?.vgcpid ?? t?.controlVgcpid ?? t?.controlId ?? 'Unknown';
+  const testTitle = t?.title ?? t?.description ?? String(vgcpid);
   const assignedName = t?.assignedTesterName ?? t?.testerName ?? String(t?.assignedTesterId ?? '-');
 
   const status = t?.status ?? 'NOT_STARTED';
@@ -247,10 +319,6 @@ export default function DetailsTestModal({
 
   async function handleArchive() {
     if (testId == null) return;
-    if (String(t?.status || '').toUpperCase() === 'COMPLETED') return;
-
-    const ok = window.confirm(`Archive control test ${vgcpid}?`);
-    if (!ok) return;
 
     try {
       await archiveTest(testId);
@@ -277,10 +345,6 @@ export default function DetailsTestModal({
 
   async function handleDelete() {
     if (testId == null) return;
-    if (String(t?.status || '').toUpperCase() === 'COMPLETED') return;
-
-    const ok = window.confirm(`Delete control test ${vgcpid}?\n\nThis is permanent.`);
-    if (!ok) return;
 
     try {
       await hardDeleteTest(testId);
@@ -428,6 +492,38 @@ export default function DetailsTestModal({
     }
   }
 
+  async function handleApproveConfirmAction() {
+    if (testId == null) return;
+
+    try {
+      await runBusy('Approving control...', async () => {
+        await completeTest(testId);
+        await refreshTest();
+      });
+
+      showSuccessToast({
+        title: 'Control Test Completed',
+        message: `${vgcpid} has been completed successfully.`,
+      });
+    } catch (e) {
+      const errorMessage = e?.message || 'Failed to complete control test';
+
+      showErrorToast({
+        title: 'Control Test Completion Failed',
+        message: `An error occurred while completing the control test: ${errorMessage}`,
+      });
+    }
+  }
+
+  async function handleSubmitForApprovalConfirmAction() {
+    if (testId == null) return;
+
+    await runBusy('Submitting for approval...', async () => {
+      await reviewTest(testId);
+      await refreshTest();
+    });
+  }
+
   async function handlePrimaryAction() {
     if (testId == null) return;
 
@@ -440,40 +536,13 @@ export default function DetailsTestModal({
       }
 
       if (statusUpper === 'IN_REVIEW') {
-        const ok = window.confirm(`Approve control test ${vgcpid}?`);
-        if (!ok) return;
-
-        try {
-          await runBusy('Approving control...', async () => {
-            await completeTest(testId);
-            await refreshTest();
-          });
-
-          showSuccessToast({
-            title: 'Control Test Completed',
-            message: `${vgcpid} has been completed successfully.`,
-          });
-        } catch (e) {
-          const errorMessage = e?.message || 'Failed to complete control test';
-
-          showErrorToast({
-            title: 'Control Test Completion Failed',
-            message: `An error occurred while completing the control test: ${errorMessage}`,
-          });
-        }
-
+        openApproveConfirm();
         return;
       }
 
       if (isInProgress(statusUpper)) {
         if (isFinalTestingComplete(t)) {
-          const ok = window.confirm(`Submit ${vgcpid} for manager review?`);
-          if (!ok) return;
-
-          await runBusy('Submitting for approval...', async () => {
-            await reviewTest(testId);
-            await refreshTest();
-          });
+          openSubmitConfirm();
           return;
         }
 
@@ -564,11 +633,6 @@ export default function DetailsTestModal({
 
     const statusUpper = String(t?.status || '').toUpperCase();
     if (statusUpper !== 'IN_REVIEW') return;
-
-    const ok = window.confirm(
-      `Reject ${vgcpid}? This will move it back to In Progress (Addressing Comments).`
-    );
-    if (!ok) return;
 
     try {
       await runBusy('Rejecting...', async () => {
@@ -712,7 +776,7 @@ export default function DetailsTestModal({
                   <button
                     className="dtm-btn dtm-btn--danger"
                     type="button"
-                    onClick={handleReject}
+                    onClick={openRejectConfirm}
                     disabled={isBusy}
                   >
                     Reject
@@ -894,21 +958,14 @@ export default function DetailsTestModal({
                   }
                 }}
               >
-                <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
                   <button
-                    className="dtm-btn dtm-btn--danger"
+                    className="dtm-btn dtm-btn--outline"
                     type="button"
-                    onClick={handleDelete}
-                    disabled={isBusy || isLockedStatus}
-                    title={
-                      isBusy
-                        ? 'Action in progress'
-                        : isLockedStatus
-                          ? `Cannot delete a ${statusUpper.toLowerCase()} control test`
-                          : 'Delete this control test'
-                    }
+                    onClick={openArchiveConfirm}
+                    disabled={isBusy}
                   >
-                    Delete Control Test
+                    Archive Control Test
                   </button>
                 </RestrictedAction>
               </div>
@@ -923,21 +980,14 @@ export default function DetailsTestModal({
                   }
                 }}
               >
-                <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
                   <button
-                    className="dtm-btn dtm-btn--outline"
+                    className="dtm-btn dtm-btn--danger"
                     type="button"
-                    onClick={handleArchive}
-                    disabled={isBusy || isLockedStatus}
-                    title={
-                      isBusy
-                        ? 'Action in progress'
-                        : isLockedStatus
-                          ? `Cannot archive a ${statusUpper.toLowerCase()} control test`
-                          : 'Archive this control test'
-                    }
+                    onClick={openDeleteConfirm}
+                    disabled={isBusy}
                   >
-                    Archive Control Test
+                    Delete Control Test
                   </button>
                 </RestrictedAction>
               </div>
@@ -954,6 +1004,94 @@ export default function DetailsTestModal({
           </section>
         </div>
       </div>
+
+      <ConfirmActionModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={closeDeleteConfirm}
+        onConfirm={async () => {
+          closeDeleteConfirm();
+          await handleDelete();
+        }}
+        title="Delete Control Test?"
+        message="Are you sure you want to permanently delete this control test?"
+        itemName={String(vgcpid)}
+        warning="Deleted control tests will be permanently removed and cannot be recovered."
+        confirmText={isBusy ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+      />
+
+      <ConfirmActionModal
+        isOpen={isArchiveConfirmOpen}
+        onClose={closeArchiveConfirm}
+        onConfirm={async () => {
+          closeArchiveConfirm();
+          await handleArchive();
+        }}
+        title="Archive Control Test?"
+        message="Are you sure you want to archive this control test?"
+        itemName={String(vgcpid)}
+        warning="Archived control tests will be removed from active views, but can still be accessed from the archive."
+        confirmText={isBusy ? 'Archiving...' : 'Archive'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
+      <ConfirmActionModal
+        isOpen={isSubmitConfirmOpen}
+        onClose={closeSubmitConfirm}
+        onConfirm={async () => {
+          closeSubmitConfirm();
+          await handleSubmitForApprovalConfirmAction();
+        }}
+        title="Submit Control Test?"
+        message="Are you sure you want to submit this test for approval?"
+        itemName={String(testTitle)}
+        warning='This will move the control test to the "In Review" Status.'
+        confirmText={isBusy ? 'Submitting...' : 'Submit'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
+      <ConfirmActionModal
+        isOpen={isRejectConfirmOpen}
+        onClose={closeRejectConfirm}
+        onConfirm={async () => {
+          closeRejectConfirm();
+          await handleReject();
+        }}
+        title="Reject Control Test?"
+        message="Are you sure you want to reject this test?"
+        itemName={String(testTitle)}
+        warning='This will return the control test to "Addressing Comments" for future action.'
+        confirmText={isBusy ? 'Rejecting...' : 'Reject'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+      />
+
+      <ConfirmActionModal
+        isOpen={isApproveConfirmOpen}
+        onClose={closeApproveConfirm}
+        onConfirm={async () => {
+          closeApproveConfirm();
+          await handleApproveConfirmAction();
+        }}
+        title="Approve Control Test?"
+        message="Are you sure you want to approve this test?"
+        itemName={String(testTitle)}
+        warning='This will mark the control test as "Completed".'
+        confirmText={isBusy ? 'Approving...' : 'Approve'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
 
       <EditTestModal
         isOpen={isEditOpen}
