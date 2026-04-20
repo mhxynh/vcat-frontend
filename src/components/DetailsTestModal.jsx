@@ -685,13 +685,14 @@ export default function DetailsTestModal({
 
       const created = await createTestComment({
         testId,
-        authorUserId: currentUser['user_id'],
         commentText: text,
       });
 
       const createdUi = mapCommentRowsToUi([created], {
         ...usersById,
-        [String(currentUser['user_id'])]: currentUser,
+        ...(currentUser?.['user_id'] != null
+          ? { [String(currentUser['user_id'])]: currentUser }
+          : {}),
       })[0];
 
       setLocalComments((prev) => [createdUi, ...prev]);
@@ -959,7 +960,7 @@ export default function DetailsTestModal({
                     placeholder="Write a comment…"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    disabled={commentSaving || commentsLoading || !currentUser}
+                    disabled={commentSaving || commentsLoading}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleAddComment();
                     }}
@@ -970,7 +971,7 @@ export default function DetailsTestModal({
                     onClick={handleAddComment}
                     aria-label="Send"
                     disabled={
-                      commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                      !currentUser || commentSaving || commentsLoading || !commentText.trim()
                     }
                   >
                     {commentSaving ? '...' : '➤'}
