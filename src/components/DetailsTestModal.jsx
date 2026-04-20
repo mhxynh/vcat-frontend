@@ -18,7 +18,12 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
+import {
+  fetchCommentsByTestId,
+  createTestComment,
+  deleteTestComment,
+  mapCommentRowsToUi,
+} from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
@@ -56,6 +61,7 @@ export default function DetailsTestModal({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
+  const [commentDeletingId, setCommentDeletingId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -166,6 +172,7 @@ export default function DetailsTestModal({
     setHistoryLogs([]);
     setHistoryError('');
     setCommentsError('');
+    setCommentDeletingId(null);
     setCurrentUser(null);
     setUsersById({});
 
@@ -675,7 +682,12 @@ export default function DetailsTestModal({
     if (!text || testId == null || commentSaving) return;
 
     if (!currentUser?.['user_id']) {
-      setCommentsError('Could not identify the logged-in user.');
+      const msg = 'Could not identify the logged-in user.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
       return;
     }
 
@@ -697,10 +709,60 @@ export default function DetailsTestModal({
 
       setLocalComments((prev) => [createdUi, ...prev]);
       setCommentText('');
+      showSuccessToast({
+        title: 'Comment Added',
+        message: 'Your comment was posted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to add comment');
+      const msg = e?.message || 'Failed to add comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
     } finally {
       setCommentSaving(false);
+    }
+  }
+
+  async function handleDeleteComment(comment) {
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (testId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      return;
+    }
+
+    const ok = window.confirm('Delete this comment?');
+    if (!ok) return;
+
+    try {
+      setCommentDeletingId(String(commentId));
+      setCommentsError('');
+      await deleteTestComment({ commentId, testId });
+      setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      showSuccessToast({
+        title: 'Comment Deleted',
+        message: 'Your comment was deleted successfully.',
+      });
+    } catch (e) {
+      const msg = e?.message || 'Failed to delete comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+    } finally {
+      setCommentDeletingId(null);
     }
   }
 
@@ -1000,7 +1062,26 @@ export default function DetailsTestModal({
                         <div className="dtm-comment-main">
                           <div className="dtm-comment-top">
                             <div className="dtm-comment-author">{c.author ?? '-'}</div>
-                            <div className="dtm-comment-date">{c.date ?? ''}</div>
+                            <div className="dtm-comment-meta">
+                              <div className="dtm-comment-date">{c.date ?? ''}</div>
+                              {currentUser?.['user_id'] != null &&
+                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
+                                <button
+                                  className="dtm-comment-action dtm-comment-action--delete"
+                                  type="button"
+                                  onClick={() => handleDeleteComment(c)}
+                                  disabled={commentDeletingId != null}
+                                  aria-label="Delete comment"
+                                  title="Delete comment"
+                                >
+                                  {commentDeletingId === String(c.id) ? (
+                                    '...'
+                                  ) : (
+                                    <Icon name="trash" category="actions" size="sm" />
+                                  )}
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           <div className="dtm-comment-text">{c.text ?? ''}</div>
                         </div>

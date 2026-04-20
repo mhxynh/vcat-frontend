@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
+import Icon from './common/Icon';
 import DetailsTestModal from './DetailsTestModal';
 import EditRequestModal from './EditRequestModal';
 import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
@@ -16,6 +17,7 @@ import { ACTIONS } from '../auth';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
+  deleteRequestComment,
   mapCommentRowsToUi,
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
@@ -71,6 +73,7 @@ export default function DetailsRequestModal({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
+  const [commentDeletingId, setCommentDeletingId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -174,6 +177,7 @@ export default function DetailsRequestModal({
     setHistoryLogs([]);
     setHistoryError('');
     setCommentsError('');
+    setCommentDeletingId(null);
     setCurrentUser(null);
     setUsersById({});
 
@@ -302,7 +306,12 @@ export default function DetailsRequestModal({
     if (!text || requestId == null || commentSaving) return;
 
     if (!currentUser?.['user_id']) {
-      setCommentsError('Could not identify the logged-in user.');
+      const msg = 'Could not identify the logged-in user.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
       return;
     }
 
@@ -324,10 +333,60 @@ export default function DetailsRequestModal({
 
       setLocalComments((prev) => [createdUi, ...prev]);
       setCommentText('');
+      showSuccessToast({
+        title: 'Comment Added',
+        message: 'Your comment was posted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to add comment');
+      const msg = e?.message || 'Failed to add comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
     } finally {
       setCommentSaving(false);
+    }
+  }
+
+  async function handleDeleteComment(comment) {
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (requestId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      return;
+    }
+
+    const ok = window.confirm('Delete this comment?');
+    if (!ok) return;
+
+    try {
+      setCommentDeletingId(String(commentId));
+      setCommentsError('');
+      await deleteRequestComment({ commentId, requestId });
+      setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      showSuccessToast({
+        title: 'Comment Deleted',
+        message: 'Your comment was deleted successfully.',
+      });
+    } catch (e) {
+      const msg = e?.message || 'Failed to delete comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+    } finally {
+      setCommentDeletingId(null);
     }
   }
 
@@ -572,7 +631,10 @@ export default function DetailsRequestModal({
               className={`drm-tab ${activeTab === 'Comments' ? 'drm-tab--active' : ''}`}
               onClick={() => setActiveTab('Comments')}
             >
-              Comments
+              <span>Comments</span>
+              {localComments.length > 0 ? (
+                <span className="drm-tab-count">{localComments.length}</span>
+              ) : null}
             </button>
             <button
               type="button"
@@ -632,7 +694,31 @@ export default function DetailsRequestModal({
                         <div className="drm-comment-main">
                           <div className="drm-comment-top">
                             <div className="drm-comment-author">{c.author ?? '-'}</div>
-                            <div className="drm-comment-date">{c.date ?? ''}</div>
+                            <div className="drm-comment-meta">
+                              <div className="drm-comment-date">{c.date ?? ''}</div>
+                              {currentUser?.['user_id'] != null &&
+                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
+                                <button
+                                  className="drm-comment-action drm-comment-action--delete"
+                                  type="button"
+                                  onClick={() => handleDeleteComment(c)}
+                                  disabled={commentDeletingId != null}
+                                  aria-label="Delete comment"
+                                  title="Delete comment"
+                                >
+                                  {commentDeletingId === String(c.id) ? (
+                                    '...'
+                                  ) : (
+                                    <Icon
+                                      name="trash"
+                                      category="actions"
+                                      size="sm"
+                                      color="#545454"
+                                    />
+                                  )}
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           <div className="drm-comment-text">{c.text ?? ''}</div>
                         </div>
@@ -661,30 +747,6 @@ export default function DetailsRequestModal({
             ) : null}
           </div>
         </section>
-
-        {activeTab === 'Comments' ? (
-          <section className="drm-section-addcomment">
-            <div className="drm-addcomment">
-              <input
-                className="drm-comment-input"
-                placeholder="Write a comment…"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddComment();
-                }}
-              />
-              <button
-                className="drm-send"
-                type="button"
-                onClick={handleAddComment}
-                aria-label="Send"
-              >
-                ➤
-              </button>
-            </div>
-          </section>
-        ) : null}
 
         <div className="drm-divider" />
 

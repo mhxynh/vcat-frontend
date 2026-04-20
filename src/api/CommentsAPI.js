@@ -133,6 +133,58 @@ export async function createTestComment({ testId, commentText }) {
   return objectToCamelCase(data);
 }
 
+export async function deleteRequestComment({ commentId, requestId }) {
+  if (commentId == null) throw new Error('commentId is required');
+  if (requestId == null) throw new Error('requestId is required');
+
+  const url = new URL(`${API_BASE}/comments`);
+  url.searchParams.set('comment_id', String(commentId));
+  url.searchParams.set('request_id', String(requestId));
+
+  const resp = await authFetch(url.toString(), {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to delete comment (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  return objectToCamelCase(data);
+}
+
+export async function deleteTestComment({ commentId, testId }) {
+  if (commentId == null) throw new Error('commentId is required');
+  if (testId == null) throw new Error('testId is required');
+
+  const url = new URL(`${API_BASE}/comments`);
+  url.searchParams.set('comment_id', String(commentId));
+  url.searchParams.set('test_id', String(testId));
+
+  const resp = await authFetch(url.toString(), {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!resp.ok) {
+    let msg = `Failed to delete comment (HTTP ${resp.status})`;
+    try {
+      const data = await resp.json();
+      msg = data?.error || data?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  return objectToCamelCase(data);
+}
+
 export function mapCommentRowsToUi(rows, usersById = {}) {
   return (Array.isArray(rows) ? rows : [])
     .map((row) => toUiComment(row, usersById))
