@@ -333,13 +333,14 @@ export default function DetailsRequestModal({
 
       const created = await createRequestComment({
         requestId,
-        authorUserId: currentUser['user_id'],
         commentText: text,
       });
 
       const createdUi = mapCommentRowsToUi([created], {
         ...usersById,
-        [String(currentUser['user_id'])]: currentUser,
+        ...(currentUser?.['user_id'] != null
+          ? { [String(currentUser['user_id'])]: currentUser }
+          : {}),
       })[0];
 
       setLocalComments((prev) => [createdUi, ...prev]);

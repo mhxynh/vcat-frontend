@@ -660,13 +660,14 @@ export default function DetailsTestModal({
 
       const created = await createTestComment({
         testId,
-        authorUserId: currentUser['user_id'],
         commentText: text,
       });
 
       const createdUi = mapCommentRowsToUi([created], {
         ...usersById,
-        [String(currentUser['user_id'])]: currentUser,
+        ...(currentUser?.['user_id'] != null
+          ? { [String(currentUser['user_id'])]: currentUser }
+          : {}),
       })[0];
 
       setLocalComments((prev) => [createdUi, ...prev]);
@@ -693,9 +694,11 @@ export default function DetailsTestModal({
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
-  const showRevert = statusUpper !== 'NOT_STARTED' && statusUpper !== 'COMPLETED';
+  const isLockedStatus = statusUpper === 'COMPLETED';
+  const showRevert = statusUpper !== 'NOT_STARTED';
   const showReject = statusUpper === 'IN_REVIEW';
   const primaryLabel = getPrimaryActionLabel(t);
+  const showNextStepPanel = statusUpper !== 'COMPLETED';
 
   return (
     <>
@@ -756,7 +759,14 @@ export default function DetailsTestModal({
                     className="dtm-btn dtm-btn--outline"
                     type="button"
                     onClick={handleRevert}
-                    disabled={isBusy}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
+                          : 'Revert this control test to the previous step'
+                    }
                   >
                     Revert
                   </button>
@@ -774,26 +784,30 @@ export default function DetailsTestModal({
                 ) : null}
               </div>
 
-              <div className="dtm-step-mid" aria-hidden="true">
-                →
-              </div>
+              {showNextStepPanel ? (
+                <>
+                  <div className="dtm-step-mid" aria-hidden="true">
+                    →
+                  </div>
 
-              <div className="dtm-step-right">
-                {primaryLabel ? (
-                  <button
-                    className="dtm-btn dtm-btn--primary"
-                    type="button"
-                    onClick={handlePrimaryAction}
-                    disabled={isBusy}
-                  >
-                    {primaryLabel}
-                  </button>
-                ) : null}
+                  <div className="dtm-step-right">
+                    {primaryLabel ? (
+                      <button
+                        className="dtm-btn dtm-btn--primary"
+                        type="button"
+                        onClick={handlePrimaryAction}
+                        disabled={isBusy}
+                      >
+                        {primaryLabel}
+                      </button>
+                    ) : null}
 
-                <span className="dtm-next">
-                  <span className="dtm-next-label">Next:</span> {nextStepLabel}
-                </span>
-              </div>
+                    <span className="dtm-next">
+                      <span className="dtm-next-label">Next:</span> {nextStepLabel}
+                    </span>
+                  </div>
+                </>
+              ) : null}
             </div>
           </section>
 
@@ -863,7 +877,7 @@ export default function DetailsTestModal({
                     placeholder="Write a comment…"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    disabled={commentSaving || commentsLoading || !currentUser}
+                    disabled={commentSaving || commentsLoading}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleAddComment();
                     }}
@@ -874,7 +888,7 @@ export default function DetailsTestModal({
                     onClick={handleAddComment}
                     aria-label="Send"
                     disabled={
-                      commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                      !currentUser || commentSaving || commentsLoading || !commentText.trim()
                     }
                   >
                     {commentSaving ? '...' : '➤'}

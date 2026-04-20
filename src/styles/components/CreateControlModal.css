@@ -66,6 +66,11 @@
   color: #444;
 }
 
+.form-req {
+  color: #b91c1c;
+  margin-left: 3px;
+}
+
 .form-input,
 .form-textarea {
   width: 100%;

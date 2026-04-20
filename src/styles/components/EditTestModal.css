@@ -46,6 +46,18 @@
   padding: 22px;
 }
 
+.ctm-body--stable {
+  box-sizing: border-box;
+}
+
+.ctm-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #666;
+}
+
 .ctm-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -65,6 +77,11 @@
   font-size: 12px;
   margin-bottom: 6px;
   color: #444;
+}
+
+.ctm-req {
+  color: #b91c1c;
+  margin-left: 3px;
 }
 
 .ctm-input,
