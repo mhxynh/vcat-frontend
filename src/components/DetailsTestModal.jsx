@@ -3,6 +3,7 @@ import '../styles/components/DetailsTestModal.css';
 import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
+import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -43,6 +44,10 @@ export default function DetailsTestModal({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
+
+  const [isAddAttachmentModalOpen, setIsAddAttachmentModalOpen] = useState(false);
+  const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
+  const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
 
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -248,14 +253,12 @@ export default function DetailsTestModal({
     });
   }
 
-  async function handleAddEvidenceLink() {
+  function handleAddEvidenceLink() {
+    openAddAttachmentModal();
+  }
+
+  async function handleAddAttachmentLinkSubmit(nextUrl) {
     if (testId == null || isBusy) return;
-
-    const raw = window.prompt('Enter an evidence link URL');
-    if (raw == null) return;
-
-    const nextUrl = raw.trim();
-    if (!nextUrl) return;
 
     let normalizedUrl = nextUrl;
     try {
@@ -290,6 +293,8 @@ export default function DetailsTestModal({
         title: 'Evidence Link Added',
         message: 'The attachment list has been updated.',
       });
+
+      closeAddAttachmentModal();
     } catch (e) {
       showErrorToast({
         title: 'Failed to Add Link',
@@ -1216,6 +1221,13 @@ export default function DetailsTestModal({
           onClose?.();
           window.location.reload();
         }}
+      />
+
+      <AddAttachmentLinkModal
+        isOpen={isAddAttachmentModalOpen}
+        onClose={closeAddAttachmentModal}
+        onAdd={handleAddAttachmentLinkSubmit}
+        isLoading={isBusy}
       />
     </>
   );
