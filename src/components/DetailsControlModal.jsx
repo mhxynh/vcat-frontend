@@ -14,6 +14,7 @@ import {
 } from '../api/TestsAPI';
 import EditControlModal from './EditControlModal';
 import DetailsRequestModal from './DetailsRequestModal';
+import ConfirmActionModal from './ConfirmActionModal';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
@@ -477,52 +478,21 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         </div>
       </div>
 
-      {isDeleteConfirmOpen && (
-        <div
-          className="dcm-confirm-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="dcm-confirm-title"
-          onMouseDown={(e) => e.target === e.currentTarget && closeDeleteConfirm()}
-        >
-          <div className="dcm-confirm-modal" onMouseDown={stop}>
-            <h2 id="dcm-confirm-title" className="dcm-confirm-title">
-              Delete Control?
-            </h2>
-            <div className="dcm-confirm-message">
-              <p className="dcm-confirm-question">
-                Are you sure you want to{' '}
-                <strong className="dcm-confirm-bold-black">permanently delete</strong> control?
-              </p>
-              <p className="dcm-confirm-id">{id}</p>
-              <p className="dcm-confirm-warning">
-                <strong>This will hard-delete it from the database and cannot be undone.</strong>
-              </p>
-            </div>
-            <div className="dcm-confirm-actions">
-              <button
-                type="button"
-                className="dcm-confirm-btn dcm-confirm-btn--cancel"
-                onClick={closeDeleteConfirm}
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="dcm-confirm-btn dcm-confirm-btn--delete"
-                onClick={async () => {
-                  closeDeleteConfirm();
-                  await handleDelete();
-                }}
-                disabled={deleting}
-              >
-                {deleting ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmActionModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={closeDeleteConfirm}
+        onConfirm={async () => {
+          closeDeleteConfirm();
+          await handleDelete();
+        }}
+        title="Delete Control?"
+        message="Are you sure you want to permanently delete this control?"
+        itemName={id}
+        warning="Deleted controls will be permanently removed and cannot be recovered."
+        confirmText={deleting ? 'Deleting…' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={deleting}
+      />
 
       <EditControlModal
         isOpen={isEditOpen}
