@@ -20,6 +20,7 @@ import {
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 function getRequestYear(req) {
   const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
@@ -415,7 +416,7 @@ export default function DetailsRequestModal({
 
   async function refreshLocalRequest() {
     const rid = requestId;
-    if (rid == null) return;
+    if (rid == null) return null;
     try {
       const raw = await fetchRequestById(rid);
       const ui = mapRequestRowToUi(raw);
@@ -428,18 +429,27 @@ export default function DetailsRequestModal({
         console.warn('Failed to refresh tests for request', rid, e);
       }
 
-      setLocalRequest({ ...ui, controls: items });
+      const refreshedRequest = { ...ui, controls: items };
+      setLocalRequest(refreshedRequest);
       await loadCommentsAndUsers(rid);
-
-      try {
-        onUpdated?.(rid, ui, items);
-      } catch (e) {
-        console.warn('Parent onUpdated handler failed', e);
-      }
+      return refreshedRequest;
     } catch (e) {
       console.warn('Failed to refresh request', requestId, e);
+      return null;
     }
   }
+
+  const { refreshInline } = createRefreshHandlers({
+    localRefresh: refreshLocalRequest,
+    parentRefresh: (updatedRequest) => {
+      if (!updatedRequest?.requestId) return;
+      return onUpdated?.(
+        updatedRequest.requestId,
+        updatedRequest,
+        Array.isArray(updatedRequest.controls) ? updatedRequest.controls : []
+      );
+    },
+  });
 
   return (
     <div className="drm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
@@ -785,7 +795,7 @@ export default function DetailsRequestModal({
         onClose={closeEdit}
         requestId={requestId}
         onUpdated={async () => {
-          await refreshLocalRequest();
+          await refreshInline();
         }}
       />
       <DetailsTestModal
