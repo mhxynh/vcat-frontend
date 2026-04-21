@@ -52,6 +52,8 @@ export default function DetailsTestModal({
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+  const [isRemoveAttachmentConfirmOpen, setIsRemoveAttachmentConfirmOpen] = useState(false);
+  const [pendingAttachmentRemoval, setPendingAttachmentRemoval] = useState(null);
 
   const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
   const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
@@ -70,6 +72,11 @@ export default function DetailsTestModal({
 
   const openApproveConfirm = () => setIsApproveConfirmOpen(true);
   const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
+  const openRemoveAttachmentConfirm = () => setIsRemoveAttachmentConfirmOpen(true);
+  const closeRemoveAttachmentConfirm = () => {
+    setIsRemoveAttachmentConfirmOpen(false);
+    setPendingAttachmentRemoval(null);
+  };
 
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -167,6 +174,8 @@ export default function DetailsTestModal({
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
+      setIsRemoveAttachmentConfirmOpen(false);
+      setPendingAttachmentRemoval(null);
     }
   }, [isOpen]);
 
@@ -193,6 +202,8 @@ export default function DetailsTestModal({
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
     setIsApproveConfirmOpen(false);
+    setIsRemoveAttachmentConfirmOpen(false);
+    setPendingAttachmentRemoval(null);
     setCommentsError('');
     setCurrentUser(null);
     setUsersById({});
@@ -241,6 +252,11 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isRemoveAttachmentConfirmOpen) {
+        closeRemoveAttachmentConfirm();
+        return;
+      }
+
       onClose?.();
     };
 
@@ -256,6 +272,7 @@ export default function DetailsTestModal({
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
+    isRemoveAttachmentConfirmOpen,
   ]);
 
   useEffect(() => {
@@ -378,8 +395,14 @@ export default function DetailsTestModal({
   async function handleRemoveEvidenceLink(url) {
     if (testId == null || isBusy || !url) return;
 
-    const ok = window.confirm('Remove this evidence link?');
-    if (!ok) return;
+    const attachment = attachments.find((item) => item.url === url) || null;
+    setPendingAttachmentRemoval(attachment || { url, title: url });
+    openRemoveAttachmentConfirm();
+  }
+
+  async function handleConfirmRemoveEvidenceLink() {
+    const url = pendingAttachmentRemoval?.url;
+    if (testId == null || isBusy || !url) return;
 
     const nextLinks = attachments
       .map((attachment) => attachment.url)
@@ -398,6 +421,7 @@ export default function DetailsTestModal({
         title: 'Evidence Link Removed',
         message: 'The attachment list has been updated.',
       });
+      closeRemoveAttachmentConfirm();
     } catch (e) {
       showErrorToast({
         title: 'Failed to Remove Link',
@@ -1275,6 +1299,22 @@ export default function DetailsTestModal({
         itemName={String(vgcpid)}
         warning="Deleted control tests will be permanently removed and cannot be recovered."
         confirmText={isBusy ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+      />
+
+      <ConfirmActionModal
+        isOpen={isRemoveAttachmentConfirmOpen}
+        onClose={closeRemoveAttachmentConfirm}
+        onConfirm={async () => {
+          await handleConfirmRemoveEvidenceLink();
+        }}
+        title="Remove Evidence Link?"
+        message="Are you sure you want to remove this evidence link?"
+        itemName={String(pendingAttachmentRemoval?.title || pendingAttachmentRemoval?.url || '')}
+        warning="This will remove the link from the control test attachments list."
+        confirmText={isBusy ? 'Removing...' : 'Remove'}
         cancelText="Cancel"
         confirmDisabled={isBusy}
         cancelDisabled={isBusy}
