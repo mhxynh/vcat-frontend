@@ -812,7 +812,7 @@ export default function DetailsRequestModal({
           onClose={closeEdit}
           requestId={requestId}
           onUpdated={async () => {
-            await refreshLocalRequest();
+            await refreshInline();
           }}
         />
         <DetailsTestModal
