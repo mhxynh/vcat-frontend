@@ -84,6 +84,8 @@ export default function DetailsTestModal({
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
   const [commentDeletingId, setCommentDeletingId] = useState(null);
+  const [isDeleteCommentConfirmOpen, setIsDeleteCommentConfirmOpen] = useState(false);
+  const [pendingCommentDeletion, setPendingCommentDeletion] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -173,6 +175,8 @@ export default function DetailsTestModal({
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
     }
   }, [isOpen]);
 
@@ -199,6 +203,8 @@ export default function DetailsTestModal({
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
     setIsApproveConfirmOpen(false);
+    setIsDeleteCommentConfirmOpen(false);
+    setPendingCommentDeletion(null);
     setCommentsError('');
     setCommentDeletingId(null);
     setCurrentUser(null);
@@ -248,6 +254,12 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isDeleteCommentConfirmOpen) {
+        setIsDeleteCommentConfirmOpen(false);
+        setPendingCommentDeletion(null);
+        return;
+      }
+
       onClose?.();
     };
 
@@ -263,6 +275,7 @@ export default function DetailsTestModal({
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
+    isDeleteCommentConfirmOpen,
   ]);
 
   useEffect(() => {
@@ -806,14 +819,37 @@ export default function DetailsTestModal({
       return;
     }
 
-    const ok = window.confirm('Delete this comment?');
-    if (!ok) return;
+    setPendingCommentDeletion(comment);
+    setIsDeleteCommentConfirmOpen(true);
+  }
+
+  async function handleConfirmDeleteComment() {
+    const comment = pendingCommentDeletion;
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (testId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      return;
+    }
 
     try {
       setCommentDeletingId(String(commentId));
       setCommentsError('');
       await deleteTestComment({ commentId, testId });
       setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
       showSuccessToast({
         title: 'Comment Deleted',
         message: 'Your comment was deleted successfully.',
@@ -1359,6 +1395,23 @@ export default function DetailsTestModal({
         cancelText="Cancel"
         confirmDisabled={isBusy}
         cancelDisabled={isBusy}
+      />
+
+      <ConfirmActionModal
+        isOpen={isDeleteCommentConfirmOpen}
+        onClose={() => {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+        }}
+        onConfirm={handleConfirmDeleteComment}
+        title="Delete Comment?"
+        message="Are you sure you want to permanently delete this comment?"
+        itemName={String(pendingCommentDeletion?.text || '')}
+        warning="Deleted comments are permanently removed and cannot be recovered."
+        confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={commentDeletingId != null}
+        cancelDisabled={commentDeletingId != null}
       />
 
       <ConfirmActionModal

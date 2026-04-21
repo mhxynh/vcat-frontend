@@ -78,6 +78,8 @@ export default function DetailsRequestModal({
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
   const [commentDeletingId, setCommentDeletingId] = useState(null);
+  const [isDeleteCommentConfirmOpen, setIsDeleteCommentConfirmOpen] = useState(false);
+  const [pendingCommentDeletion, setPendingCommentDeletion] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -164,19 +166,26 @@ export default function DetailsRequestModal({
           setIsArchiveConfirmOpen(false);
           return;
         }
+        if (isDeleteCommentConfirmOpen) {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+          return;
+        }
         onClose?.();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen, isArchiveConfirmOpen]);
+  }, [isOpen, onClose, isDeleteConfirmOpen, isArchiveConfirmOpen, isDeleteCommentConfirmOpen]);
 
   useEffect(() => {
     if (!isOpen) {
       setIsEditOpen(false);
       setIsArchiveConfirmOpen(false);
       setIsDeleteConfirmOpen(false);
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
     }
   }, [isOpen]);
 
@@ -198,6 +207,8 @@ export default function DetailsRequestModal({
     setHistoryError('');
     setCommentsError('');
     setCommentDeletingId(null);
+    setIsDeleteCommentConfirmOpen(false);
+    setPendingCommentDeletion(null);
     setCurrentUser(null);
     setUsersById({});
     setIsArchiveConfirmOpen(false);
@@ -387,14 +398,37 @@ export default function DetailsRequestModal({
       return;
     }
 
-    const ok = window.confirm('Delete this comment?');
-    if (!ok) return;
+    setPendingCommentDeletion(comment);
+    setIsDeleteCommentConfirmOpen(true);
+  }
+
+  async function handleConfirmDeleteComment() {
+    const comment = pendingCommentDeletion;
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (requestId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      return;
+    }
 
     try {
       setCommentDeletingId(String(commentId));
       setCommentsError('');
       await deleteRequestComment({ commentId, requestId });
       setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
       showSuccessToast({
         title: 'Comment Deleted',
         message: 'Your comment was deleted successfully.',
@@ -648,9 +682,9 @@ export default function DetailsRequestModal({
                 onClick={() => setActiveTab('Comments')}
               >
                 <span>Comments</span>
-              {localComments.length > 0 ? (
-                <span className="drm-tab-count">{localComments.length}</span>
-              ) : null}
+                {localComments.length > 0 ? (
+                  <span className="drm-tab-count">{localComments.length}</span>
+                ) : null}
               </button>
               <button
                 type="button"
@@ -711,31 +745,31 @@ export default function DetailsRequestModal({
                             <div className="drm-comment-top">
                               <div className="drm-comment-author">{c.author ?? '-'}</div>
                               <div className="drm-comment-meta">
-                              <div className="drm-comment-date">{c.date ?? ''}</div>
+                                <div className="drm-comment-date">{c.date ?? ''}</div>
                                 {currentUser?.['user_id'] != null &&
-                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                                <button
-                                  className="drm-comment-action drm-comment-action--delete"
-                                  type="button"
-                                  onClick={() => handleDeleteComment(c)}
-                                  disabled={commentDeletingId != null}
-                                  aria-label="Delete comment"
-                                  title="Delete comment"
-                                >
-                                  {commentDeletingId === String(c.id) ? (
-                                    '...'
-                                  ) : (
-                                    <Icon
-                                      name="trash"
-                                      category="actions"
-                                      size="sm"
-                                      color="#545454"
-                                    />
-                                  )}
-                                </button>
-                              ) : null}
+                                String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
+                                  <button
+                                    className="drm-comment-action drm-comment-action--delete"
+                                    type="button"
+                                    onClick={() => handleDeleteComment(c)}
+                                    disabled={commentDeletingId != null}
+                                    aria-label="Delete comment"
+                                    title="Delete comment"
+                                  >
+                                    {commentDeletingId === String(c.id) ? (
+                                      '...'
+                                    ) : (
+                                      <Icon
+                                        name="trash"
+                                        category="actions"
+                                        size="sm"
+                                        color="#545454"
+                                      />
+                                    )}
+                                  </button>
+                                ) : null}
+                              </div>
                             </div>
-                          </div>
                             <div className="drm-comment-text">{c.text ?? ''}</div>
                           </div>
                         </div>
@@ -745,24 +779,24 @@ export default function DetailsRequestModal({
                 </>
               ) : null}
 
-            {activeTab === 'History' ? (
-              <AuditHistoryView
-                logs={historyLogs}
-                loading={historyLoading}
-                error={historyError}
-                overlayTitle={`Request History: ${requestTitle}`}
-                showContent={
-                  status === 'DAT_IN_PROGRESS' ||
-                  status === 'OET_IN_PROGRESS' ||
-                  status === 'COMPLETED'
-                }
-                statusMessage="History is available when the request is in progress or completed."
-                contextRequestId={requestTitle}
-                contextTestIdToVgcpid={contextTestIdToVgcpid}
-              />
-            ) : null}
-          </div>
-        </section>
+              {activeTab === 'History' ? (
+                <AuditHistoryView
+                  logs={historyLogs}
+                  loading={historyLoading}
+                  error={historyError}
+                  overlayTitle={`Request History: ${requestTitle}`}
+                  showContent={
+                    status === 'DAT_IN_PROGRESS' ||
+                    status === 'OET_IN_PROGRESS' ||
+                    status === 'COMPLETED'
+                  }
+                  statusMessage="History is available when the request is in progress or completed."
+                  contextRequestId={requestTitle}
+                  contextTestIdToVgcpid={contextTestIdToVgcpid}
+                />
+              ) : null}
+            </div>
+          </section>
 
           <div className="drm-divider" />
 
@@ -913,6 +947,23 @@ export default function DetailsRequestModal({
         cancelText="Cancel"
         confirmDisabled={deleting}
         cancelDisabled={deleting}
+      />
+
+      <ConfirmActionModal
+        isOpen={isDeleteCommentConfirmOpen}
+        onClose={() => {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+        }}
+        onConfirm={handleConfirmDeleteComment}
+        title="Delete Comment?"
+        message="Are you sure you want to permanently delete this comment?"
+        itemName={String(pendingCommentDeletion?.text || '')}
+        warning="Deleted comments are permanently removed and cannot be recovered."
+        confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={commentDeletingId != null}
+        cancelDisabled={commentDeletingId != null}
       />
     </>
   );
