@@ -175,6 +175,7 @@ export default function DetailsTestModal({
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
       setIsRemoveAttachmentConfirmOpen(false);
+      setIsAddAttachmentModalOpen(false);
       setPendingAttachmentRemoval(null);
     }
   }, [isOpen]);
@@ -257,6 +258,11 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isAddAttachmentModalOpen) {
+        closeAddAttachmentModal();
+        return;
+      }
+
       onClose?.();
     };
 
@@ -273,6 +279,7 @@ export default function DetailsTestModal({
     isRejectConfirmOpen,
     isApproveConfirmOpen,
     isRemoveAttachmentConfirmOpen,
+    isAddAttachmentModalOpen,
   ]);
 
   useEffect(() => {
@@ -346,22 +353,44 @@ export default function DetailsTestModal({
     openAddAttachmentModal();
   }
 
+  function normalizeEvidenceLinkUrl(nextUrl) {
+    const parsedUrl = new URL(nextUrl);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new Error('Unsupported URL protocol');
+    }
+    return parsedUrl.toString();
+  }
+
   async function handleAddAttachmentLinkSubmit(nextUrl) {
     if (testId == null || isBusy) return;
 
     let normalizedUrl = nextUrl;
     try {
-      normalizedUrl = new URL(nextUrl).toString();
+      normalizedUrl = normalizeEvidenceLinkUrl(nextUrl);
     } catch {
       showErrorToast({
         title: 'Invalid Link',
-        message: 'Enter a valid URL that includes the protocol, such as https://.',
+        message: 'Enter a valid http:// or https:// URL.',
       });
       return;
     }
 
     const existingUrls = attachments.map((attachment) => attachment.url);
-    if (existingUrls.includes(normalizedUrl)) {
+    const normalizedExistingUrls = Array.from(
+      new Set(
+        existingUrls
+          .map((url) => {
+            try {
+              return normalizeEvidenceLinkUrl(url);
+            } catch {
+              return String(url || '').trim();
+            }
+          })
+          .filter(Boolean)
+      )
+    );
+
+    if (normalizedExistingUrls.includes(normalizedUrl)) {
       showErrorToast({
         title: 'Link Already Added',
         message: 'That evidence link is already in the list.',
@@ -373,7 +402,7 @@ export default function DetailsTestModal({
       await runBusy('Saving attachments...', async () => {
         await updateTest(testId, {
           action: 'update_evidence_links',
-          evidenceLinks: [...existingUrls, normalizedUrl],
+          evidenceLinks: [...normalizedExistingUrls, normalizedUrl],
         });
         await refreshTest();
       });
