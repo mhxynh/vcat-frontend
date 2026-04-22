@@ -72,42 +72,28 @@ export default function ControlsTracker() {
   }
 
   const renderActiveView = () => {
-    switch (activeTab) {
-      case 'Controls':
-        return (
-          <Tests
-            refreshKey={controlsRefreshKey}
-            searchValue={controlsSearch}
-            filters={controlsFilters}
-            selectedRows={selectedTestRows}
-            onSelectionChange={setSelectedTestRows}
-          />
-        );
-      case 'Kanban':
-        return <Kanban refreshKey={kanbanRefreshKey} />;
-      case 'Requests':
-        return (
-          <Requests
-            refreshKey={requestsRefreshKey}
-            searchValue={requestsSearch}
-            filters={requestsFilters}
-            newRequestToOpen={newRequestToOpen}
-            onNewRequestOpened={() => setNewRequestToOpen(null)}
-          />
-        );
-      case 'Calendar':
-        return <Calendar refreshKey={calendarRefreshKey} />;
-      default:
-        return (
-          <Tests
-            refreshKey={controlsRefreshKey}
-            searchValue={controlsSearch}
-            filters={controlsFilters}
-            selectedRows={selectedTestRows}
-            onSelectionChange={setSelectedTestRows}
-          />
-        );
+    if (activeTab === 'Kanban') return <Kanban refreshKey={kanbanRefreshKey} />;
+    if (activeTab === 'Requests') {
+      return (
+        <Requests
+          refreshKey={requestsRefreshKey}
+          searchValue={requestsSearch}
+          filters={requestsFilters}
+          newRequestToOpen={newRequestToOpen}
+          onNewRequestOpened={() => setNewRequestToOpen(null)}
+        />
+      );
     }
+    if (activeTab === 'Calendar') return <Calendar refreshKey={calendarRefreshKey} />;
+    return (
+      <Tests
+        refreshKey={controlsRefreshKey}
+        searchValue={controlsSearch}
+        filters={controlsFilters}
+        selectedRows={selectedTestRows}
+        onSelectionChange={setSelectedTestRows}
+      />
+    );
   };
 
   const handleRefreshClick = () => {

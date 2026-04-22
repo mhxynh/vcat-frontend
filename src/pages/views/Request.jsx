@@ -276,11 +276,14 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters }) 
     if (!q) return base;
 
     return base.filter((r) => {
+      const dispId = formatRequestDisplayId(r).toLowerCase();
       const matchReq =
         String(r.id).toLowerCase().includes(q) ||
+        (dispId && dispId.includes(q)) ||
         String(r.requestedBy).toLowerCase().includes(q) ||
         String(r.priority).toLowerCase().includes(q) ||
-        String(r.status).toLowerCase().includes(q);
+        String(r.status).toLowerCase().includes(q) ||
+        String(r.description ?? '').toLowerCase().includes(q);
 
       const matchControl = (r.controls || []).some((c) => {
         const id = String(c.id || '').toLowerCase();

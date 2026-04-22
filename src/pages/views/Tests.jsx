@@ -60,6 +60,27 @@ function normalizeText(v) {
   return String(v ?? '').toLowerCase();
 }
 
+/** Single lowercase string of display fields for substring search */
+function buildTestSearchHaystack(t) {
+  const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '';
+  const testerCell = t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '';
+  const parts = [
+    t?.test_id,
+    t?.request_id,
+    t?.control_id,
+    vgcpidCell,
+    testerCell,
+    testTypeFromFlags(t),
+    statusToLabel(t?.status),
+    statusToBadgeType(t?.status),
+    stepFromTracks(t),
+    formatDate(t?.updated_at),
+    formatDate(t?.due_date),
+    formatDate(t?.estimated_date),
+  ];
+  return parts.map(normalizeText).join(' ');
+}
+
 export default function Tests({
   refreshKey = 0,
   searchValue = '',
@@ -152,7 +173,7 @@ export default function Tests({
     const typeFilter = filters?.testType ?? 'all';
     const overdueFilter = filters?.overdue ?? 'all';
 
-    const q = String(searchValue).trim().toLowerCase();
+    const q = normalizeText(String(searchValue).trim());
     const base = tests.filter((t) => {
       if (statusFilter !== 'all') {
         if (String(t?.status || 'NOT_STARTED') !== statusFilter) return false;
@@ -176,38 +197,7 @@ export default function Tests({
     });
 
     if (!q) return base;
-
-    return base.filter((t) => {
-      const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '';
-      const testerCell = t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '';
-      const testType = testTypeFromFlags(t);
-      const statusLabel = statusToLabel(t?.status);
-      const statusType = statusToBadgeType(t?.status);
-      const step = stepFromTracks(t);
-
-      const lastUpdated = formatDate(t?.updated_at);
-      const dueDate = formatDate(t?.due_date);
-      const etaDate = formatDate(t?.estimated_date);
-
-      const haystack = [
-        t?.test_id,
-        t?.request_id,
-        t?.control_id,
-        vgcpidCell,
-        testerCell,
-        testType,
-        statusLabel,
-        statusType,
-        step,
-        lastUpdated,
-        dueDate,
-        etaDate,
-      ]
-        .map(normalizeText)
-        .join(' ');
-
-      return haystack.includes(q);
-    });
+    return base.filter((t) => buildTestSearchHaystack(t).includes(q));
   }, [tests, searchValue, filters?.status, filters?.testType, filters?.overdue]);
 
   const rowIds = useMemo(
