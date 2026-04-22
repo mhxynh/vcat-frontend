@@ -6,11 +6,7 @@ function toUiComment(row, usersById = {}) {
   const authorUser = authorId != null ? usersById[String(authorId)] : null;
 
   const author =
-    authorUser?.fullName ||
-    authorUser?.name ||
-    authorUser?.displayName ||
-    authorUser?.email ||
-    `User ${authorId ?? ''}`.trim();
+    authorUser?.['display_name'] || authorUser?.email || `User ${authorId ?? ''}`.trim();
 
   return {
     id: row?.commentId ?? row?.id,
@@ -81,9 +77,8 @@ export async function fetchCommentsByTestId(testId) {
   return Array.isArray(camelData) ? camelData : [];
 }
 
-export async function createRequestComment({ requestId, authorUserId, commentText }) {
+export async function createRequestComment({ requestId, commentText }) {
   if (requestId == null) throw new Error('requestId is required');
-  if (authorUserId == null) throw new Error('authorUserId is required');
   if (!String(commentText || '').trim()) throw new Error('commentText is required');
 
   const resp = await authFetch(`${API_BASE}/comments`, {
@@ -92,7 +87,6 @@ export async function createRequestComment({ requestId, authorUserId, commentTex
     body: JSON.stringify(
       objectToSnakeCase({
         requestId,
-        authorUserId,
         commentText: String(commentText).trim(),
       })
     ),
@@ -111,9 +105,8 @@ export async function createRequestComment({ requestId, authorUserId, commentTex
   return objectToCamelCase(data);
 }
 
-export async function createTestComment({ testId, authorUserId, commentText }) {
+export async function createTestComment({ testId, commentText }) {
   if (testId == null) throw new Error('testId is required');
-  if (authorUserId == null) throw new Error('authorUserId is required');
   if (!String(commentText || '').trim()) throw new Error('commentText is required');
 
   const resp = await authFetch(`${API_BASE}/comments`, {
@@ -122,7 +115,6 @@ export async function createTestComment({ testId, authorUserId, commentText }) {
     body: JSON.stringify(
       objectToSnakeCase({
         testId,
-        authorUserId,
         commentText: String(commentText).trim(),
       })
     ),
