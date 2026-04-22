@@ -91,6 +91,19 @@
   box-sizing: border-box;
 }
 
+/* Reuse Controls Catalog search styling elsewhere (e.g., Controls Tracker) */
+.controls-search-input-wrap .search-input {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+  height: 100%;
+  display: block;
+  box-sizing: border-box;
+}
+
 .controls-page .search-input::placeholder {
   color: #9aa0a6;
   font-weight: 400;
