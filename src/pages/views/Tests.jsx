@@ -64,6 +64,7 @@ export default function Tests({
   refreshKey = 0,
   searchValue = '',
   onSearchChange,
+  filters,
   selectedRows: propSelectedRows,
   onSelectionChange,
 }) {
@@ -148,10 +149,36 @@ export default function Tests({
   }, [refreshKey]);
 
   const filteredTests = useMemo(() => {
-    const q = String(searchValue).trim().toLowerCase();
-    if (!q) return tests;
+    const statusFilter = filters?.status ?? 'all';
+    const typeFilter = filters?.testType ?? 'all';
+    const overdueFilter = filters?.overdue ?? 'all';
 
-    return tests.filter((t) => {
+    const q = String(searchValue).trim().toLowerCase();
+    const base = tests.filter((t) => {
+      if (statusFilter !== 'all') {
+        if (String(t?.status || 'NOT_STARTED') !== statusFilter) return false;
+      }
+
+      if (typeFilter !== 'all') {
+        const dat = !!t?.requires_dat;
+        const oet = !!t?.requires_oet;
+        const computed = dat && oet ? 'both' : dat ? 'dat' : oet ? 'oet' : 'none';
+        if (computed !== typeFilter) return false;
+      }
+
+      if (overdueFilter !== 'all') {
+        const due = parseLocalDate(t?.due_date);
+        const overdue = due ? isOverdue(due) : false;
+        if (overdueFilter === 'overdue' && !overdue) return false;
+        if (overdueFilter === 'not_overdue' && overdue) return false;
+      }
+
+      return true;
+    });
+
+    if (!q) return base;
+
+    return base.filter((t) => {
       const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '';
       const testerCell = t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '';
       const testType = testTypeFromFlags(t);
@@ -182,7 +209,7 @@ export default function Tests({
 
       return haystack.includes(q);
     });
-  }, [tests, searchValue]);
+  }, [tests, searchValue, filters?.status, filters?.testType, filters?.overdue]);
 
   const rowIds = useMemo(
     () => filteredTests.map((t) => t?.test_id).filter((v) => v != null),

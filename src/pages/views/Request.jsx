@@ -31,7 +31,7 @@ function formatRequestDisplayId(req) {
   return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
 }
 
-export default function Requests({ refreshKey = 0, searchValue = '', onSearchChange }) {
+export default function Requests({ refreshKey = 0, searchValue = '', onSearchChange, filters }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [requests, setRequests] = useState([]);
 
@@ -254,10 +254,28 @@ export default function Requests({ refreshKey = 0, searchValue = '', onSearchCha
   }, [enrichedRequests, isRequestDetailsOpen, selectedRequest?.requestId]);
 
   const filteredRequests = useMemo(() => {
-    const q = String(searchValue).trim().toLowerCase();
-    if (!q) return enrichedRequests;
+    const priorityFilter = filters?.priority ?? 'all';
+    const overdueFilter = filters?.overdue ?? 'all';
 
-    return enrichedRequests.filter((r) => {
+    const base = enrichedRequests.filter((r) => {
+      if (priorityFilter !== 'all') {
+        const p = String(r.priority || '').toLowerCase();
+        if (p !== priorityFilter) return false;
+      }
+
+      if (overdueFilter !== 'all') {
+        const overdue = Boolean(r.overdue);
+        if (overdueFilter === 'overdue' && !overdue) return false;
+        if (overdueFilter === 'not_overdue' && overdue) return false;
+      }
+
+      return true;
+    });
+
+    const q = String(searchValue).trim().toLowerCase();
+    if (!q) return base;
+
+    return base.filter((r) => {
       const matchReq =
         String(r.id).toLowerCase().includes(q) ||
         String(r.requestedBy).toLowerCase().includes(q) ||
@@ -274,7 +292,7 @@ export default function Requests({ refreshKey = 0, searchValue = '', onSearchCha
 
       return matchReq || matchControl;
     });
-  }, [enrichedRequests, searchValue]);
+  }, [enrichedRequests, searchValue, filters?.priority, filters?.overdue]);
 
   function computeProgress(req) {
     const total = (req.controls || []).length;
