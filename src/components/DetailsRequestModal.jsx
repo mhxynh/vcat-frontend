@@ -3,11 +3,17 @@ import '../styles/components/DetailsRequestModal.css';
 import DetailsTestModal from './DetailsTestModal';
 import EditRequestModal from './EditRequestModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
+import {
+  deleteRequest,
+  fetchRequestById,
+  mapRequestRowToUi,
+  unarchiveRequest,
+} from '../api/RequestsAPI';
 import {
   fetchTestsByRequestId,
   mapTestRowToRequestControlCard,
   archiveTest,
+  unarchiveTest,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
@@ -56,7 +62,10 @@ export default function DetailsRequestModal({
   const closeEdit = () => setIsEditOpen(false);
 
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [isUnarchiveConfirmOpen, setIsUnarchiveConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const openUnarchive = () => setIsUnarchiveConfirmOpen(true);
+  const closeUnarchive = () => setIsUnarchiveConfirmOpen(false);
 
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -161,6 +170,10 @@ export default function DetailsRequestModal({
           setIsArchiveConfirmOpen(false);
           return;
         }
+        if (isUnarchiveConfirmOpen) {
+          setIsUnarchiveConfirmOpen(false);
+          return;
+        }
         onClose?.();
       }
     };
@@ -173,6 +186,7 @@ export default function DetailsRequestModal({
     if (!isOpen) {
       setIsEditOpen(false);
       setIsArchiveConfirmOpen(false);
+      setIsUnarchiveConfirmOpen(false);
       setIsDeleteConfirmOpen(false);
     }
   }, [isOpen]);
@@ -197,6 +211,7 @@ export default function DetailsRequestModal({
     setCurrentUser(null);
     setUsersById({});
     setIsArchiveConfirmOpen(false);
+    setIsUnarchiveConfirmOpen(false);
     setIsDeleteConfirmOpen(false);
 
     void loadCommentsAndUsers(requestKey, () => cancelled);
@@ -299,6 +314,7 @@ export default function DetailsRequestModal({
   const requestTitle = formatRequestDisplayId(localRequest ?? request);
   const backendStatus = localRequest?.status ?? 'Not Started';
   const status = localStatus ?? backendStatus;
+  const statusUpper = String(status || '').toUpperCase();
   const isCompleted = String(status || '').toUpperCase() === 'COMPLETED';
 
   const priority = localRequest?.priority ?? 'MEDIUM';
@@ -390,6 +406,54 @@ export default function DetailsRequestModal({
       showErrorToast({
         title: 'Request Archive Failed',
         message: `An error occurred while archiving the request: ${errorMessage}`,
+      });
+    } finally {
+      setArchiving(false);
+    }
+  }
+
+  async function handleUnarchiveRequest() {
+    if (requestId == null || archiving) return;
+
+    try {
+      setArchiving(true);
+      setDeleteError('');
+
+      const rows = await fetchTestsByRequestId(requestId, { details: true });
+      const tests = Array.isArray(rows) ? rows : [];
+
+      await Promise.all(
+        tests
+          .filter((t) => String(t?.status || '').toUpperCase() === 'ARCHIVED')
+          .map((t) => unarchiveTest(t.test_id))
+      );
+
+      await unarchiveRequest(requestId);
+
+      await refreshLocalRequest();
+
+      setLocalStatus('NOT_STARTED');
+
+      try {
+        await onUpdated?.(requestId);
+      } catch (e) {
+        console.warn('Parent onUpdated handler failed', e);
+      }
+
+      showSuccessToast({
+        title: 'Request Unarchived',
+        message: `${requestTitle} has been unarchived successfully.`,
+      });
+
+      setIsUnarchiveConfirmOpen(false);
+      onClose?.();
+    } catch (e) {
+      const errorMessage = e?.message || 'Failed to unarchive request and associated tests';
+      setDeleteError(errorMessage);
+
+      showErrorToast({
+        title: 'Request Unarchive Failed',
+        message: `An error occurred while unarchiving the request: ${errorMessage}`,
       });
     } finally {
       setArchiving(false);
@@ -722,21 +786,33 @@ export default function DetailsRequestModal({
                   }}
                 >
                   <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
-                    <button
-                      className="drm-btn drm-btn--outline"
-                      type="button"
-                      onClick={() => setIsArchiveConfirmOpen(true)}
-                      disabled={archiving || deleting || requestId == null || isCompleted}
-                      title={
-                        requestId == null
-                          ? 'No request selected'
-                          : isCompleted
-                            ? 'Cannot archive a completed request'
-                            : 'Archive this request'
-                      }
-                    >
-                      {archiving ? 'Archiving…' : 'Archive Request'}
-                    </button>
+                    {statusUpper === 'ARCHIVED' ? (
+                      <button
+                        className="drm-btn drm-btn--outline"
+                        type="button"
+                        onClick={openUnarchive}
+                        disabled={archiving || deleting || requestId == null}
+                        title={requestId == null ? 'No request selected' : 'Unarchive this request'}
+                      >
+                        {archiving ? 'Updating…' : 'Unarchive Request'}
+                      </button>
+                    ) : (
+                      <button
+                        className="drm-btn drm-btn--outline"
+                        type="button"
+                        onClick={() => setIsArchiveConfirmOpen(true)}
+                        disabled={archiving || deleting || requestId == null || isCompleted}
+                        title={
+                          requestId == null
+                            ? 'No request selected'
+                            : isCompleted
+                              ? 'Cannot archive a completed request'
+                              : 'Archive this request'
+                        }
+                      >
+                        {archiving ? 'Archiving…' : 'Archive Request'}
+                      </button>
+                    )}
                   </RestrictedAction>
                 </div>
 
@@ -837,6 +913,20 @@ export default function DetailsRequestModal({
         confirmDisabled={archiving}
         cancelDisabled={archiving}
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
+      <ConfirmActionModal
+        isOpen={isUnarchiveConfirmOpen}
+        onClose={() => setIsUnarchiveConfirmOpen(false)}
+        onConfirm={handleUnarchiveRequest}
+        title="Unarchive Request?"
+        message="Are you sure you want to unarchive this request?"
+        itemName={requestTitle}
+        warning="Unarchived requests will be returned to active views and set to Not Started."
+        confirmText={archiving ? 'Unarchiving...' : 'Unarchive'}
+        cancelText="Cancel"
+        confirmDisabled={archiving}
+        cancelDisabled={archiving}
       />
 
       <ConfirmActionModal
