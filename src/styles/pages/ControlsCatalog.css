@@ -69,6 +69,8 @@
 
 .controls-search-icon svg {
   display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .controls-page .search-input {
@@ -76,7 +78,7 @@
   padding: 0;
   border: 0;
   border-radius: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   background: transparent;
   outline: none;
