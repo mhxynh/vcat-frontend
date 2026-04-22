@@ -36,7 +36,7 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
     } catch (err) {
       setError(err?.message || 'Failed to add link. Please try again.');
     }
-  };
+  }
 
   const handleCancel = () => {
     if (isLoading) return;
