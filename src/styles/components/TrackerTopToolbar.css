@@ -7,8 +7,3 @@
   width: 100%;
 }
 
-/* Tracker search: nudge text down 1px */
-.tracker-top-toolbar .controls-search-input-wrap .search-input {
-  padding-top: 3.5px;
-}
-

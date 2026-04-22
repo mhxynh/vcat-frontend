@@ -97,10 +97,14 @@
   padding: 0;
   border: 0;
   border-radius: 0;
+  font-size: 13px;
+  font-weight: 400;
   background: transparent;
   outline: none;
   height: 100%;
+  line-height: normal;
   display: block;
+  padding-top: 2px;
   box-sizing: border-box;
 }
 
