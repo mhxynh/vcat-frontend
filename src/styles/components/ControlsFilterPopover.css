@@ -1,0 +1,82 @@
+.controls-toolbar__filter-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cfp-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.14);
+  padding: 14px;
+  z-index: 1000;
+}
+
+.cfp-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.cfp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.cfp-grid .form-label {
+  font-weight: 400;
+}
+
+.cfp-grid .form-input {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  font-weight: 400;
+}
+
+@media (max-width: 760px) {
+  .cfp-panel {
+    width: min(92vw, 420px);
+    right: -8px;
+  }
+
+  .cfp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cfp-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
+}
+
+.cfp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.cfp-actions .btn {
+  border-radius: 10px;
+  font-weight: 400;
+}
+
+.cfp-btn-clear {
+  background: #ffffff;
+  border-color: #8b0f17;
+  color: #8b0f17;
+}
+
+.cfp-btn-clear:hover {
+  background: #fff5f5;
+}
+

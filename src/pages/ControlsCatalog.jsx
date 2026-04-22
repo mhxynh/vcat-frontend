@@ -9,6 +9,7 @@ import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
 import filterIcon from '../assets/images/filter.png';
+import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -39,6 +40,8 @@ export default function Controls() {
   const PAGE_SIZE = 10;
   const [search, setSearch] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState(DEFAULT_FILTERS);
 
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -112,8 +115,36 @@ export default function Controls() {
       result = result.filter((c) => c.id.toLowerCase().includes(q));
     }
 
+    if (advancedFilters.owner.trim() !== '') {
+      const q = advancedFilters.owner.toLowerCase();
+      result = result.filter((c) => (c.owner ?? '').toLowerCase().includes(q));
+    }
+
+    if (advancedFilters.sme.trim() !== '') {
+      const q = advancedFilters.sme.toLowerCase();
+      result = result.filter((c) => (c.sme ?? '').toLowerCase().includes(q));
+    }
+
+    if (advancedFilters.escalation !== 'all') {
+      const want = advancedFilters.escalation === 'yes';
+      result = result.filter((c) => Boolean(c.escalationRequired) === want);
+    }
+
+    if (advancedFilters.tested !== 'all') {
+      const isTested = (c) => {
+        const value = c.testing ?? c.lastTested;
+        if (!value) return false;
+        const s = String(value).toLowerCase();
+        if (s.includes('not tested')) return false;
+        if (s === '-') return false;
+        return true;
+      };
+      const wantTested = advancedFilters.tested === 'tested';
+      result = result.filter((c) => isTested(c) === wantTested);
+    }
+
     return result;
-  }, [controls, filter, search]);
+  }, [controls, filter, search, advancedFilters]);
 
   const onToggle = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
@@ -134,6 +165,18 @@ export default function Controls() {
     setPage(1);
     setOpenId(null);
   }, [filter, search]);
+
+  useEffect(() => {
+    if (!isFilterOpen) return;
+
+    const onMouseDown = (e) => {
+      const panel = e.target.closest?.('.controls-toolbar__filter-wrap');
+      if (!panel) setIsFilterOpen(false);
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [isFilterOpen]);
 
   return (
     <div className="controls-page">
@@ -231,15 +274,25 @@ export default function Controls() {
               </RestrictedAction>
             </div>
 
-            <button
-              className="btn controls-toolbar__action controls-toolbar__action--filter"
-              type="button"
-            >
-              <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
-              </span>
-              <span className="controls-toolbar__filter-label">Filter</span>
-            </button>
+            <div className="controls-toolbar__filter-wrap">
+              <button
+                className="btn controls-toolbar__action controls-toolbar__action--filter"
+                type="button"
+                onClick={() => setIsFilterOpen((v) => !v)}
+              >
+                <span className="controls-toolbar__filter-icon" aria-hidden="true">
+                  <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
+                </span>
+                <span className="controls-toolbar__filter-label">Filter</span>
+              </button>
+
+              <ControlsFilterPopover
+                isOpen={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+                value={advancedFilters}
+                onChange={(next) => setAdvancedFilters(next)}
+              />
+            </div>
           </div>
         </div>
       </div>
