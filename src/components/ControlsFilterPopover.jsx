@@ -17,7 +17,7 @@ function countActive(draft) {
   return n;
 }
 
-export default function ControlsFilterPopover({ isOpen, onClose, value, onChange }) {
+export default function ControlsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
     <FilterPopoverFrame
       isOpen={isOpen}
@@ -27,6 +27,7 @@ export default function ControlsFilterPopover({ isOpen, onClose, value, onChange
       onApply={onChange}
       title="Filter Controls"
       ariaLabel="Filter controls"
+      panelId={panelId}
       getActiveCount={countActive}
     >
       {(draft, setDraft) => (

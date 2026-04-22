@@ -174,7 +174,7 @@ export default function Controls() {
   useEffect(() => {
     setPage(1);
     setOpenId(null);
-  }, [filter, search]);
+  }, [filter, search, advancedFilters]);
 
   useEffect(() => {
     if (!isFilterOpen) return;
@@ -259,6 +259,7 @@ export default function Controls() {
               </div>
 
               <ToolbarFilterDropdown
+                filterPanelId="controls-catalog-filter-panel"
                 isOpen={isFilterOpen}
                 onToggle={() => setIsFilterOpen((v) => !v)}
                 onClose={() => setIsFilterOpen(false)}

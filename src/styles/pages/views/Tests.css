@@ -98,9 +98,6 @@ body {
 .btn--refresh {
   background-color: var(--color-refresh-blue);
 }
-.btn--new {
-  background-color: var(--color-brand-red);
-}
 
 /* Tabs */
 

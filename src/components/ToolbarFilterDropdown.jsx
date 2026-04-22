@@ -6,6 +6,7 @@ import filterIcon from '../assets/images/filter.png';
  * Parent owns open state and outside-click / tab switching.
  */
 export default function ToolbarFilterDropdown({
+  filterPanelId,
   isOpen,
   onToggle,
   onClose,
@@ -18,6 +19,9 @@ export default function ToolbarFilterDropdown({
       <button
         className="btn controls-toolbar__action controls-toolbar__action--filter"
         type="button"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-controls={filterPanelId}
         onClick={onToggle}
       >
         <span className="controls-toolbar__filter-icon" aria-hidden="true">
@@ -25,7 +29,13 @@ export default function ToolbarFilterDropdown({
         </span>
         <span className="controls-toolbar__filter-label">Filter</span>
       </button>
-      <FilterPopover isOpen={isOpen} onClose={onClose} value={value} onChange={onChange} />
+      <FilterPopover
+        panelId={filterPanelId}
+        isOpen={isOpen}
+        onClose={onClose}
+        value={value}
+        onChange={onChange}
+      />
     </div>
   );
 }

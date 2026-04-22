@@ -13,7 +13,7 @@ function countActive(draft) {
   return n;
 }
 
-export default function TrackerRequestsFilterPopover({ isOpen, onClose, value, onChange }) {
+export default function TrackerRequestsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
     <FilterPopoverFrame
       isOpen={isOpen}
@@ -23,6 +23,7 @@ export default function TrackerRequestsFilterPopover({ isOpen, onClose, value, o
       onApply={onChange}
       title="Filter"
       ariaLabel="Filter requests"
+      panelId={panelId}
       getActiveCount={countActive}
     >
       {(draft, setDraft) => (

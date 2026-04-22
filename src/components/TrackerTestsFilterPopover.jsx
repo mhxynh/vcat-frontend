@@ -15,7 +15,7 @@ function countActive(draft) {
   return n;
 }
 
-export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onChange }) {
+export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
     <FilterPopoverFrame
       isOpen={isOpen}
@@ -25,6 +25,7 @@ export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onCh
       onApply={onChange}
       title="Filter"
       ariaLabel="Filter control tests"
+      panelId={panelId}
       getActiveCount={countActive}
     >
       {(draft, setDraft) => (

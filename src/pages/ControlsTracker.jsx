@@ -219,6 +219,7 @@ export default function ControlsTracker() {
               </div>
 
               <ToolbarFilterDropdown
+                filterPanelId="tracker-controls-filter-panel"
                 isOpen={isControlsFilterOpen}
                 onToggle={() => setIsControlsFilterOpen((v) => !v)}
                 onClose={() => setIsControlsFilterOpen(false)}
@@ -252,6 +253,7 @@ export default function ControlsTracker() {
               </div>
 
               <ToolbarFilterDropdown
+                filterPanelId="tracker-requests-filter-panel"
                 isOpen={isRequestsFilterOpen}
                 onToggle={() => setIsRequestsFilterOpen((v) => !v)}
                 onClose={() => setIsRequestsFilterOpen(false)}
