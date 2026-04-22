@@ -70,13 +70,18 @@
   font-weight: 400;
 }
 
-.cfp-btn-clear {
+/* Beat Tracker `Tests.css` `.btn { color: #fff }` so Clear label stays red */
+.cfp-panel .btn.cfp-btn-clear,
+.cfp-actions .btn.cfp-btn-clear {
   background: #ffffff;
-  border-color: #8b0f17;
+  border: 1px solid #8b0f17;
   color: #8b0f17;
 }
 
-.cfp-btn-clear:hover {
+.cfp-panel .btn.cfp-btn-clear:hover:not(:disabled),
+.cfp-actions .btn.cfp-btn-clear:hover:not(:disabled) {
   background: #fff5f5;
+  color: #8b0f17;
+  opacity: 1;
 }
 
