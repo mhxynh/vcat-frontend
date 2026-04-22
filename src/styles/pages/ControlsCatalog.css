@@ -31,8 +31,8 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 46px;
-  padding: 9px 12px;
+  min-height: 52px;
+  padding: 12px 12px;
   border: 1px solid #eaeaea;
   border-radius: 4px;
   background: #ffffff;
@@ -45,8 +45,7 @@
   align-items: center;
   width: 100%;
   max-width: 260px;
-  height: 26px;
-  padding: 0 10px;
+  padding: 6px 10px;
   border: 1px solid #e1e1e1;
   border-radius: 4px;
   background: #ffffff;
@@ -65,8 +64,11 @@
   flex-shrink: 0;
   margin-right: 6px;
   color: #8f96a3;
-  line-height: 1;
-  transform: translateY(-0.25px);
+  line-height: 0;
+}
+
+.controls-search-icon svg {
+  display: block;
 }
 
 .controls-page .search-input {
@@ -78,7 +80,11 @@
   font-weight: 400;
   background: transparent;
   outline: none;
-  transform: translateY(.5px);
+  height: auto;
+  line-height: normal;
+  display: block;
+  padding-top: 2px;
+  box-sizing: border-box;
 }
 
 .controls-page .search-input::placeholder {
@@ -106,6 +112,7 @@
   border-radius: 6px;
   font-size: 12px;
   line-height: 1;
+  box-sizing: border-box;
 }
 
 .controls-toolbar__action--add {
@@ -114,15 +121,18 @@
   color: #ffffff;
   justify-content: center;
   min-width: 104px;
-  height: 24px;
-  padding: 0 8px;
+  padding: 9px 8px 5px;
   border-radius: 4px;
   font-size: 10px;
+  line-height: 1;
 }
 
 .controls-toolbar__add-label {
-  display: inline-block;
-  transform: translateY(1px);
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  padding-top: 2px;
+  box-sizing: border-box;
 }
 
 .controls-toolbar__action--add:hover {
@@ -137,14 +147,18 @@
   justify-content: center;
   min-width: 86px;
   white-space: nowrap;
-  padding: 0 9px;
-  height: 24px;
+  padding: 9px 9px 5px;
   border-radius: 4px;
+  line-height: 1;
 }
 
 .controls-toolbar__filter-label {
   color: #545454 !important;
-  transform: translateY(2px);
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  padding-top: 2px;
+  box-sizing: border-box;
 }
 
 .controls-toolbar__action--filter:hover {
@@ -167,7 +181,6 @@
   display: block;
   filter: brightness(0) saturate(100%);
   opacity: 0.67;
-  transform: translateY(1px);
 }
 
 /* Accordion */
