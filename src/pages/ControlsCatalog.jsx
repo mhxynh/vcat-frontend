@@ -249,7 +249,7 @@ export default function Controls() {
               >
                 <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
                   <button
-                    className="btn btn--red controls-toolbar__action controls-toolbar__action--add"
+                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
                     type="button"
                     onClick={() => setIsCreateModalOpen(true)}
                   >
