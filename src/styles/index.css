@@ -5,6 +5,7 @@
 @import './components/PageHeader.css';
 @import './components/CreateControlModal.css';
 @import './components/ControlsFilterPopover.css';
+@import './components/TrackerTopToolbar.css';
 
 @import './pages/ControlsCatalog.css';
 @import './pages/Dashboard.css';

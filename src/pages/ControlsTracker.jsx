@@ -12,6 +12,7 @@ import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
 import { showErrorToast } from '../utils/toast';
+import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -27,6 +28,9 @@ export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
+
+  const [controlsSearch, setControlsSearch] = useState('');
+  const [requestsSearch, setRequestsSearch] = useState('');
 
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
@@ -53,6 +57,8 @@ export default function ControlsTracker() {
         return (
           <Tests
             refreshKey={controlsRefreshKey}
+            searchValue={controlsSearch}
+            onSearchChange={setControlsSearch}
             selectedRows={selectedTestRows}
             onSelectionChange={setSelectedTestRows}
           />
@@ -63,6 +69,8 @@ export default function ControlsTracker() {
         return (
           <Requests
             refreshKey={requestsRefreshKey}
+            searchValue={requestsSearch}
+            onSearchChange={setRequestsSearch}
             newRequestToOpen={newRequestToOpen}
             onNewRequestOpened={() => setNewRequestToOpen(null)}
           />
@@ -115,52 +123,92 @@ export default function ControlsTracker() {
             </button>
           ))}
         </div>
+      </div>
 
-        {activeTab === 'Controls' && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {selectedTestRows.length > 0 ? (
-              <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    borderRadius: 4,
-                    backgroundColor: 'rgba(150,21,29,0.05)',
-                    padding: '4px 8px',
-                    color: '#96151d',
-                  }}
-                >
-                  <button
-                    aria-label="Clear selection"
-                    onClick={() => setSelectedTestRows([])}
+      {activeTab === 'Controls' ? (
+        <TrackerTopToolbar
+          searchValue={controlsSearch}
+          onSearchChange={setControlsSearch}
+          searchPlaceholder="Search controls..."
+          searchAriaLabel="Search controls"
+          right={
+            <>
+              {selectedTestRows.length > 0 ? (
+                <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                  <div
                     style={{
-                      background: 'transparent',
-                      border: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      borderRadius: 4,
+                      backgroundColor: 'rgba(150,21,29,0.05)',
+                      padding: '4px 8px',
                       color: '#96151d',
-                      cursor: 'pointer',
-                      padding: 0,
-                      marginRight: 6,
-                      fontSize: 14,
-                      lineHeight: '14px',
+                      fontWeight: 400,
                     }}
                   >
-                    ×
-                  </button>
-                  <span>{selectedTestRows.length} selected</span>
+                    <button
+                      aria-label="Clear selection"
+                      onClick={() => setSelectedTestRows([])}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#96151d',
+                        cursor: 'pointer',
+                        padding: 0,
+                        marginRight: 6,
+                        fontSize: 14,
+                        lineHeight: '14px',
+                      }}
+                    >
+                      ×
+                    </button>
+                    <span>{selectedTestRows.length} selected</span>
+                  </div>
+                  <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+                    <button
+                      className="btn btn--new"
+                      type="button"
+                      onClick={() => setIsAssignOpen(true)}
+                    >
+                      Bulk Assign
+                    </button>
+                  </RestrictedAction>
                 </div>
-                <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+              ) : null}
+
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.CREATE_TEST}>
                   <button
                     className="btn btn--new"
                     type="button"
-                    onClick={() => setIsAssignOpen(true)}
+                    onClick={() => setIsCreateTestOpen(true)}
                   >
-                    Bulk Assign
+                    + Add Control Test
                   </button>
                 </RestrictedAction>
               </div>
-            ) : null}
+            </>
+          }
+        />
+      ) : null}
 
+      {activeTab === 'Requests' ? (
+        <TrackerTopToolbar
+          searchValue={requestsSearch}
+          onSearchChange={setRequestsSearch}
+          searchPlaceholder="Search requests..."
+          searchAriaLabel="Search requests"
+          right={
             <div
               onClick={(e) => {
                 const blockedWrapper = e.target.closest('.restricted-action--blocked');
@@ -171,42 +219,19 @@ export default function ControlsTracker() {
                 }
               }}
             >
-              <RestrictedAction action={ACTIONS.CREATE_TEST}>
+              <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
                 <button
                   className="btn btn--new"
                   type="button"
-                  onClick={() => setIsCreateTestOpen(true)}
+                  onClick={() => setIsCreateRequestOpen(true)}
                 >
-                  + Add Control Test
+                  + Add Request
                 </button>
               </RestrictedAction>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'Requests' && (
-          <div
-            onClick={(e) => {
-              const blockedWrapper = e.target.closest('.restricted-action--blocked');
-              if (blockedWrapper) {
-                e.preventDefault();
-                e.stopPropagation();
-                showPermissionDeniedToast();
-              }
-            }}
-          >
-            <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
-              <button
-                className="btn btn--new"
-                type="button"
-                onClick={() => setIsCreateRequestOpen(true)}
-              >
-                + Add Request
-              </button>
-            </RestrictedAction>
-          </div>
-        )}
-      </div>
+          }
+        />
+      ) : null}
 
       <div className="tracker__content">{renderActiveView()}</div>
 

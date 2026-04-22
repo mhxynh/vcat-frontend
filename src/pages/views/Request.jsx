@@ -31,8 +31,7 @@ function formatRequestDisplayId(req) {
   return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
 }
 
-export default function Requests({ refreshKey = 0 }) {
-  const [search, setSearch] = useState('');
+export default function Requests({ refreshKey = 0, searchValue = '', onSearchChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [requests, setRequests] = useState([]);
 
@@ -255,7 +254,7 @@ export default function Requests({ refreshKey = 0 }) {
   }, [enrichedRequests, isRequestDetailsOpen, selectedRequest?.requestId]);
 
   const filteredRequests = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = String(searchValue).trim().toLowerCase();
     if (!q) return enrichedRequests;
 
     return enrichedRequests.filter((r) => {
@@ -275,7 +274,7 @@ export default function Requests({ refreshKey = 0 }) {
 
       return matchReq || matchControl;
     });
-  }, [enrichedRequests, search]);
+  }, [enrichedRequests, searchValue]);
 
   function computeProgress(req) {
     const total = (req.controls || []).length;
@@ -288,16 +287,6 @@ export default function Requests({ refreshKey = 0 }) {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
-        <input
-          className="search-input"
-          placeholder="Search requests..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 320 }}
-        />
-      </div>
-
       {loading ? (
         <div className="no-results">Loading requests...</div>
       ) : error ? (

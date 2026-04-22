@@ -62,6 +62,8 @@ function normalizeText(v) {
 
 export default function Tests({
   refreshKey = 0,
+  searchValue = '',
+  onSearchChange,
   selectedRows: propSelectedRows,
   onSelectionChange,
 }) {
@@ -73,7 +75,6 @@ export default function Tests({
     onSelectionChangeRef.current = onSelectionChange;
     propSelectedRowsRef.current = propSelectedRows;
   }, [onSelectionChange, propSelectedRows]);
-  const [search, setSearch] = useState('');
   const [tests, setTests] = useState([]);
   const [localSelectedRows, setLocalSelectedRows] = useState([]);
   const selectedRows = propSelectedRows !== undefined ? propSelectedRows : localSelectedRows;
@@ -147,7 +148,7 @@ export default function Tests({
   }, [refreshKey]);
 
   const filteredTests = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = String(searchValue).trim().toLowerCase();
     if (!q) return tests;
 
     return tests.filter((t) => {
@@ -181,7 +182,7 @@ export default function Tests({
 
       return haystack.includes(q);
     });
-  }, [tests, search]);
+  }, [tests, searchValue]);
 
   const rowIds = useMemo(
     () => filteredTests.map((t) => t?.test_id).filter((v) => v != null),
@@ -205,16 +206,6 @@ export default function Tests({
 
   return (
     <div className="tracker__table-container">
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
-        <input
-          className="search-input"
-          placeholder="Search tests..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 320 }}
-        />
-      </div>
-
       {loading ? (
         <div className="no-results">Loading tests...</div>
       ) : error ? (

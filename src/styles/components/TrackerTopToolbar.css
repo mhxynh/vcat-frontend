@@ -1,0 +1,9 @@
+.tracker-top-toolbar {
+  margin: 12px 0 14px;
+}
+
+/* Tracker pages use wider containers; keep the toolbar full width */
+.tracker-top-toolbar .controls-toolbar {
+  width: 100%;
+}
+
