@@ -206,6 +206,9 @@
   font-weight: 800;
   color: #666;
   border-bottom: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dtm-tab--active {
@@ -213,9 +216,32 @@
   border-bottom-color: #b21d1d;
 }
 
+.dtm-tab-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: #667085;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+}
+
 /* Body */
 .dtm-body {
   padding: 18px 22px;
+}
+
+.dtm-btn--compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 8px;
 }
 
 .dtm-details-grid {
@@ -250,6 +276,194 @@
 .dtm-empty {
   color: #777;
   padding: 22px 0;
+}
+
+.dtm-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dtm-attachments-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid #cdddfc;
+  background: #eef4ff;
+  color: #1d4ed8;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.dtm-attachments-note-icon-svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.dtm-attachments-note-title {
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.dtm-attachments-note-text,
+.dtm-attachments-empty-text,
+.dtm-attachment-meta {
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.dtm-attachments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dtm-attachments-subtitle {
+  margin-top: 2px;
+}
+
+.dtm-attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dtm-attachment-card {
+  display: flex;
+  align-items: center;
+  padding: 13px 14px;
+  border: 1px solid #e3e7ee;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.03);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+  gap: 12px;
+}
+
+.dtm-attachment-card:hover {
+  border-color: #d0d8e4;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+  transform: translateY(-1px);
+}
+
+.dtm-attachment-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dtm-btn-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.dtm-attachment-media {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.dtm-attachment-media-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.dtm-attachment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dtm-attachment-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dtm-attachment-title {
+  font-weight: 800;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtm-attachment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.dtm-attachment-card:hover .dtm-attachment-actions,
+.dtm-attachment-card:focus-within .dtm-attachment-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dtm-attachment-action {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #545454;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.dtm-attachment-action:hover {
+  background: #e5e7eb;
+}
+
+.dtm-attachment-action--delete:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dtm-attachment-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dtm-attachments-empty {
+  border: 1px dashed #d7dce4;
+  border-radius: 12px;
+  padding: 22px;
+  background: linear-gradient(180deg, #fff, #fafbfc);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.dtm-attachments-empty-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1f2937;
 }
 
 /* Timeline styles */
