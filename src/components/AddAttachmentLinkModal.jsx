@@ -12,7 +12,7 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
     }
   }, [isOpen]);
 
-  const handleSubmit = (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
 
@@ -29,12 +29,17 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
       return;
     }
 
-    onAdd(trimmedUrl);
-    setUrl('');
-    setError('');
-  };
+    try {
+      await onAdd(trimmedUrl);
+      setUrl('');
+      setError('');
+    } catch (err) {
+      setError(err?.message || 'Failed to add link. Please try again.');
+    }
+  }
 
   const handleCancel = () => {
+    if (isLoading) return;
     setUrl('');
     setError('');
     onClose();
@@ -43,11 +48,25 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
   if (!isOpen) return null;
 
   return (
-    <div className="aalm-overlay" onClick={handleCancel}>
-      <div className="aalm-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="aalm-overlay" onClick={handleCancel} role="presentation">
+      <div
+        className="aalm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-attachment-link-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="aalm-header">
-          <h2 className="aalm-title">Add Attachment Link</h2>
-          <button className="aalm-close" type="button" onClick={handleCancel}>
+          <h2 className="aalm-title" id="add-attachment-link-title">
+            Add Attachment Link
+          </h2>
+          <button
+            className="aalm-close"
+            type="button"
+            onClick={handleCancel}
+            disabled={isLoading}
+            aria-label="Close"
+          >
             ×
           </button>
         </div>

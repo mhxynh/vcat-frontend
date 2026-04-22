@@ -57,9 +57,8 @@ export default function DetailsTestModal({
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
-
-  const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
-  const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
+  const [isRemoveAttachmentConfirmOpen, setIsRemoveAttachmentConfirmOpen] = useState(false);
+  const [pendingAttachmentRemoval, setPendingAttachmentRemoval] = useState(null);
 
   const openArchiveConfirm = () => setIsArchiveConfirmOpen(true);
   const closeArchiveConfirm = () => setIsArchiveConfirmOpen(false);
@@ -75,6 +74,16 @@ export default function DetailsTestModal({
 
   const openApproveConfirm = () => setIsApproveConfirmOpen(true);
   const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
+
+  const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
+  const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
+
+  const openRemoveAttachmentConfirm = () => setIsRemoveAttachmentConfirmOpen(true);
+  const closeRemoveAttachmentConfirm = () => {
+    setIsRemoveAttachmentConfirmOpen(false);
+    setPendingAttachmentRemoval(null);
+  };
+  };
 
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -175,6 +184,9 @@ export default function DetailsTestModal({
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
+      setIsRemoveAttachmentConfirmOpen(false);
+      setIsAddAttachmentModalOpen(false);
+      setPendingAttachmentRemoval(null);
       setIsDeleteCommentConfirmOpen(false);
       setPendingCommentDeletion(null);
     }
@@ -205,6 +217,8 @@ export default function DetailsTestModal({
     setIsApproveConfirmOpen(false);
     setIsDeleteCommentConfirmOpen(false);
     setPendingCommentDeletion(null);
+    setIsRemoveAttachmentConfirmOpen(false);
+    setPendingAttachmentRemoval(null);
     setCommentsError('');
     setCommentDeletingId(null);
     setCurrentUser(null);
@@ -254,6 +268,16 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isRemoveAttachmentConfirmOpen) {
+        closeRemoveAttachmentConfirm();
+        return;
+      }
+
+      if (isAddAttachmentModalOpen) {
+        closeAddAttachmentModal();
+        return;
+      }
+
       if (isDeleteCommentConfirmOpen) {
         setIsDeleteCommentConfirmOpen(false);
         setPendingCommentDeletion(null);
@@ -275,6 +299,8 @@ export default function DetailsTestModal({
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
+    isRemoveAttachmentConfirmOpen,
+    isAddAttachmentModalOpen,
     isDeleteCommentConfirmOpen,
   ]);
 
@@ -349,22 +375,44 @@ export default function DetailsTestModal({
     openAddAttachmentModal();
   }
 
+  function normalizeEvidenceLinkUrl(nextUrl) {
+    const parsedUrl = new URL(nextUrl);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new Error('Unsupported URL protocol');
+    }
+    return parsedUrl.toString();
+  }
+
   async function handleAddAttachmentLinkSubmit(nextUrl) {
     if (testId == null || isBusy) return;
 
     let normalizedUrl = nextUrl;
     try {
-      normalizedUrl = new URL(nextUrl).toString();
+      normalizedUrl = normalizeEvidenceLinkUrl(nextUrl);
     } catch {
       showErrorToast({
         title: 'Invalid Link',
-        message: 'Enter a valid URL that includes the protocol, such as https://.',
+        message: 'Enter a valid http:// or https:// URL.',
       });
       return;
     }
 
     const existingUrls = attachments.map((attachment) => attachment.url);
-    if (existingUrls.includes(normalizedUrl)) {
+    const normalizedExistingUrls = Array.from(
+      new Set(
+        existingUrls
+          .map((url) => {
+            try {
+              return normalizeEvidenceLinkUrl(url);
+            } catch {
+              return String(url || '').trim();
+            }
+          })
+          .filter(Boolean)
+      )
+    );
+
+    if (normalizedExistingUrls.includes(normalizedUrl)) {
       showErrorToast({
         title: 'Link Already Added',
         message: 'That evidence link is already in the list.',
@@ -376,7 +424,7 @@ export default function DetailsTestModal({
       await runBusy('Saving attachments...', async () => {
         await updateTest(testId, {
           action: 'update_evidence_links',
-          evidenceLinks: [...existingUrls, normalizedUrl],
+          evidenceLinks: [...normalizedExistingUrls, normalizedUrl],
         });
         await refreshTest();
       });
@@ -398,8 +446,14 @@ export default function DetailsTestModal({
   async function handleRemoveEvidenceLink(url) {
     if (testId == null || isBusy || !url) return;
 
-    const ok = window.confirm('Remove this evidence link?');
-    if (!ok) return;
+    const attachment = attachments.find((item) => item.url === url) || null;
+    setPendingAttachmentRemoval(attachment || { url, title: url });
+    openRemoveAttachmentConfirm();
+  }
+
+  async function handleConfirmRemoveEvidenceLink() {
+    const url = pendingAttachmentRemoval?.url;
+    if (testId == null || isBusy || !url) return;
 
     const nextLinks = attachments
       .map((attachment) => attachment.url)
@@ -418,6 +472,7 @@ export default function DetailsTestModal({
         title: 'Evidence Link Removed',
         message: 'The attachment list has been updated.',
       });
+      closeRemoveAttachmentConfirm();
     } catch (e) {
       showErrorToast({
         title: 'Failed to Remove Link',
@@ -1412,6 +1467,22 @@ export default function DetailsTestModal({
         cancelText="Cancel"
         confirmDisabled={commentDeletingId != null}
         cancelDisabled={commentDeletingId != null}
+      />
+      
+      <ConfirmActionModal
+        isOpen={isRemoveAttachmentConfirmOpen}
+        onClose={closeRemoveAttachmentConfirm}
+        onConfirm={async () => {
+          await handleConfirmRemoveEvidenceLink();
+        }}
+        title="Remove Evidence Link?"
+        message="Are you sure you want to remove this evidence link?"
+        itemName={String(pendingAttachmentRemoval?.title || pendingAttachmentRemoval?.url || '')}
+        warning="This will remove the link from the control test attachments list."
+        confirmText={isBusy ? 'Removing...' : 'Remove'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
       />
 
       <ConfirmActionModal
