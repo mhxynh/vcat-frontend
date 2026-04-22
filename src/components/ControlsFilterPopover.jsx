@@ -1,5 +1,6 @@
 import React from 'react';
 import FilterPopoverFrame from './FilterPopoverFrame';
+import { CfpSelectField, CfpTextField } from './FilterPopoverFields';
 
 const DEFAULT_FILTERS = Object.freeze({
   owner: '',
@@ -7,6 +8,18 @@ const DEFAULT_FILTERS = Object.freeze({
   escalation: 'all',
   tested: 'all',
 });
+
+const ESCALATION_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No' },
+];
+
+const TESTED_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'tested', label: 'Tested' },
+  { value: 'not_tested', label: 'Not Tested Yet' },
+];
 
 export default function ControlsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
@@ -22,60 +35,34 @@ export default function ControlsFilterPopover({ isOpen, onClose, value, onChange
     >
       {(draft, setDraft) => (
         <div className="cfp-grid">
-          <div className="form-field">
-            <label className="form-label" htmlFor="cfp-owner">
-              Control Owner contains
-            </label>
-            <input
-              id="cfp-owner"
-              className="form-input"
-              placeholder="e.g. Jane"
-              value={draft.owner}
-              onChange={(e) => setDraft((p) => ({ ...p, owner: e.target.value }))}
-            />
-          </div>
-          <div className="form-field">
-            <label className="form-label" htmlFor="cfp-sme">
-              Control SME contains
-            </label>
-            <input
-              id="cfp-sme"
-              className="form-input"
-              placeholder="e.g. John"
-              value={draft.sme}
-              onChange={(e) => setDraft((p) => ({ ...p, sme: e.target.value }))}
-            />
-          </div>
-          <div className="form-field">
-            <label className="form-label" htmlFor="cfp-escalation">
-              Escalation Required
-            </label>
-            <select
-              id="cfp-escalation"
-              className="form-input"
-              value={draft.escalation}
-              onChange={(e) => setDraft((p) => ({ ...p, escalation: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </div>
-          <div className="form-field">
-            <label className="form-label" htmlFor="cfp-tested">
-              Testing Status
-            </label>
-            <select
-              id="cfp-tested"
-              className="form-input"
-              value={draft.tested}
-              onChange={(e) => setDraft((p) => ({ ...p, tested: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="tested">Tested</option>
-              <option value="not_tested">Not Tested Yet</option>
-            </select>
-          </div>
+          <CfpTextField
+            id="cfp-owner"
+            label="Control Owner contains"
+            placeholder="e.g. Jane"
+            value={draft.owner}
+            onValue={(v) => setDraft((p) => ({ ...p, owner: v }))}
+          />
+          <CfpTextField
+            id="cfp-sme"
+            label="Control SME contains"
+            placeholder="e.g. John"
+            value={draft.sme}
+            onValue={(v) => setDraft((p) => ({ ...p, sme: v }))}
+          />
+          <CfpSelectField
+            id="cfp-escalation"
+            label="Escalation Required"
+            value={draft.escalation}
+            onValue={(v) => setDraft((p) => ({ ...p, escalation: v }))}
+            options={ESCALATION_OPTIONS}
+          />
+          <CfpSelectField
+            id="cfp-tested"
+            label="Testing Status"
+            value={draft.tested}
+            onValue={(v) => setDraft((p) => ({ ...p, tested: v }))}
+            options={TESTED_OPTIONS}
+          />
         </div>
       )}
     </FilterPopoverFrame>

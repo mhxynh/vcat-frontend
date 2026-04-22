@@ -1,10 +1,19 @@
 import React from 'react';
 import FilterPopoverFrame from './FilterPopoverFrame';
+import { CfpSelectField, OVERDUE_FILTER_OPTIONS } from './FilterPopoverFields';
 
 const DEFAULT_FILTERS = Object.freeze({
   priority: 'all',
   overdue: 'all',
 });
+
+const PRIORITY_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
+];
 
 export default function TrackerRequestsFilterPopover({
   isOpen,
@@ -26,38 +35,20 @@ export default function TrackerRequestsFilterPopover({
     >
       {(draft, setDraft) => (
         <div className="cfp-grid">
-          <div className="form-field">
-            <label className="form-label" htmlFor="trfp-priority">
-              Priority
-            </label>
-            <select
-              id="trfp-priority"
-              className="form-input"
-              value={draft.priority}
-              onChange={(e) => setDraft((p) => ({ ...p, priority: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
-          <div className="form-field">
-            <label className="form-label" htmlFor="trfp-overdue">
-              Due Date
-            </label>
-            <select
-              id="trfp-overdue"
-              className="form-input"
-              value={draft.overdue}
-              onChange={(e) => setDraft((p) => ({ ...p, overdue: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="overdue">Overdue</option>
-              <option value="not_overdue">Not Overdue</option>
-            </select>
-          </div>
+          <CfpSelectField
+            id="trfp-priority"
+            label="Priority"
+            value={draft.priority}
+            onValue={(v) => setDraft((p) => ({ ...p, priority: v }))}
+            options={PRIORITY_OPTIONS}
+          />
+          <CfpSelectField
+            id="trfp-overdue"
+            label="Due Date"
+            value={draft.overdue}
+            onValue={(v) => setDraft((p) => ({ ...p, overdue: v }))}
+            options={OVERDUE_FILTER_OPTIONS}
+          />
         </div>
       )}
     </FilterPopoverFrame>

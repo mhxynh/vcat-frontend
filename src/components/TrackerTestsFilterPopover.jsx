@@ -1,11 +1,30 @@
 import React from 'react';
 import FilterPopoverFrame from './FilterPopoverFrame';
+import { CfpSelectField, OVERDUE_FILTER_OPTIONS } from './FilterPopoverFields';
 
 const DEFAULT_FILTERS = Object.freeze({
   status: 'all',
   testType: 'all',
   overdue: 'all',
 });
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'NOT_STARTED', label: 'Not Started' },
+  { value: 'DAT_IN_PROGRESS', label: 'DAT In Progress' },
+  { value: 'OET_IN_PROGRESS', label: 'OET In Progress' },
+  { value: 'IN_REVIEW', label: 'In Review' },
+  { value: 'BLOCKED', label: 'Blocked' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'ARCHIVED', label: 'Archived' },
+];
+
+const TEST_TYPE_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'dat', label: 'DAT' },
+  { value: 'oet', label: 'OET' },
+  { value: 'both', label: 'DAT & OET' },
+];
 
 export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
@@ -21,57 +40,27 @@ export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onCh
     >
       {(draft, setDraft) => (
         <div className="cfp-grid">
-          <div className="form-field">
-            <label className="form-label" htmlFor="ttfp-status">
-              Status
-            </label>
-            <select
-              id="ttfp-status"
-              className="form-input"
-              value={draft.status}
-              onChange={(e) => setDraft((p) => ({ ...p, status: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="NOT_STARTED">Not Started</option>
-              <option value="DAT_IN_PROGRESS">DAT In Progress</option>
-              <option value="OET_IN_PROGRESS">OET In Progress</option>
-              <option value="IN_REVIEW">In Review</option>
-              <option value="BLOCKED">Blocked</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
-          </div>
-          <div className="form-field">
-            <label className="form-label" htmlFor="ttfp-type">
-              Test Type
-            </label>
-            <select
-              id="ttfp-type"
-              className="form-input"
-              value={draft.testType}
-              onChange={(e) => setDraft((p) => ({ ...p, testType: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="dat">DAT</option>
-              <option value="oet">OET</option>
-              <option value="both">DAT &amp; OET</option>
-            </select>
-          </div>
-          <div className="form-field">
-            <label className="form-label" htmlFor="ttfp-overdue">
-              Due Date
-            </label>
-            <select
-              id="ttfp-overdue"
-              className="form-input"
-              value={draft.overdue}
-              onChange={(e) => setDraft((p) => ({ ...p, overdue: e.target.value }))}
-            >
-              <option value="all">All</option>
-              <option value="overdue">Overdue</option>
-              <option value="not_overdue">Not Overdue</option>
-            </select>
-          </div>
+          <CfpSelectField
+            id="ttfp-status"
+            label="Status"
+            value={draft.status}
+            onValue={(v) => setDraft((p) => ({ ...p, status: v }))}
+            options={STATUS_OPTIONS}
+          />
+          <CfpSelectField
+            id="ttfp-type"
+            label="Test Type"
+            value={draft.testType}
+            onValue={(v) => setDraft((p) => ({ ...p, testType: v }))}
+            options={TEST_TYPE_OPTIONS}
+          />
+          <CfpSelectField
+            id="ttfp-overdue"
+            label="Due Date"
+            value={draft.overdue}
+            onValue={(v) => setDraft((p) => ({ ...p, overdue: v }))}
+            options={OVERDUE_FILTER_OPTIONS}
+          />
         </div>
       )}
     </FilterPopoverFrame>
