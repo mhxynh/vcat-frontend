@@ -111,15 +111,12 @@ export default function ControlsTracker() {
 
   useEffect(() => {
     if (!isControlsFilterOpen && !isRequestsFilterOpen) return;
-
     const onMouseDown = (e) => {
-      const wrap = e.target.closest?.('.controls-toolbar__filter-wrap');
-      if (!wrap) {
+      if (!e.target.closest?.('.controls-toolbar__filter-wrap')) {
         setIsControlsFilterOpen(false);
         setIsRequestsFilterOpen(false);
       }
     };
-
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, [isControlsFilterOpen, isRequestsFilterOpen]);

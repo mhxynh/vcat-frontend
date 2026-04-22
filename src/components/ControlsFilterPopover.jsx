@@ -8,15 +8,6 @@ const DEFAULT_FILTERS = Object.freeze({
   tested: 'all',
 });
 
-function countActive(draft) {
-  let n = 0;
-  if (draft.owner.trim()) n += 1;
-  if (draft.sme.trim()) n += 1;
-  if (draft.escalation !== 'all') n += 1;
-  if (draft.tested !== 'all') n += 1;
-  return n;
-}
-
 export default function ControlsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
     <FilterPopoverFrame
@@ -28,7 +19,6 @@ export default function ControlsFilterPopover({ isOpen, onClose, value, onChange
       title="Filter Controls"
       ariaLabel="Filter controls"
       panelId={panelId}
-      getActiveCount={countActive}
     >
       {(draft, setDraft) => (
         <div className="cfp-grid">

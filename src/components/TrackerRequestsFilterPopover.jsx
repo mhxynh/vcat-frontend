@@ -6,13 +6,6 @@ const DEFAULT_FILTERS = Object.freeze({
   overdue: 'all',
 });
 
-function countActive(draft) {
-  let n = 0;
-  if (draft.priority !== 'all') n += 1;
-  if (draft.overdue !== 'all') n += 1;
-  return n;
-}
-
 export default function TrackerRequestsFilterPopover({
   isOpen,
   onClose,
@@ -30,7 +23,6 @@ export default function TrackerRequestsFilterPopover({
       title="Filter"
       ariaLabel="Filter requests"
       panelId={panelId}
-      getActiveCount={countActive}
     >
       {(draft, setDraft) => (
         <div className="cfp-grid">

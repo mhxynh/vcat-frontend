@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
 
-/**
- * Shared shell for toolbar filter dropdowns (cfp-* styles).
- * Keeps draft state in sync when opened; Escape closes; Clear / Apply footer.
- */
+function countActiveFromDefaults(draft, defaults) {
+  let n = 0;
+  for (const key of Object.keys(defaults)) {
+    const base = defaults[key];
+    const cur = draft[key];
+    if (base === 'all') {
+      if (cur !== 'all') n += 1;
+    } else if (base === '') {
+      if (String(cur ?? '').trim() !== '') n += 1;
+    } else if (cur !== base) {
+      n += 1;
+    }
+  }
+  return n;
+}
+
+/** Shared shell: draft sync on open, Escape closes, Clear / Apply. */
 export default function FilterPopoverFrame({
   isOpen,
   onClose,
@@ -34,7 +47,9 @@ export default function FilterPopoverFrame({
 
   if (!isOpen) return null;
 
-  const activeCount = getActiveCount(draft);
+  const activeCount = getActiveCount
+    ? getActiveCount(draft)
+    : countActiveFromDefaults(draft, defaultFilters);
 
   return (
     <div id={panelId || undefined} className="cfp-panel" role="dialog" aria-label={ariaLabel}>

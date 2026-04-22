@@ -283,7 +283,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters }) 
         String(r.requestedBy).toLowerCase().includes(q) ||
         String(r.priority).toLowerCase().includes(q) ||
         String(r.status).toLowerCase().includes(q) ||
-        String(r.description ?? '').toLowerCase().includes(q);
+        String(r.description ?? '')
+          .toLowerCase()
+          .includes(q);
 
       const matchControl = (r.controls || []).some((c) => {
         const id = String(c.id || '').toLowerCase();

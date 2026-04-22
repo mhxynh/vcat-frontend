@@ -7,14 +7,6 @@ const DEFAULT_FILTERS = Object.freeze({
   overdue: 'all',
 });
 
-function countActive(draft) {
-  let n = 0;
-  if (draft.status !== 'all') n += 1;
-  if (draft.testType !== 'all') n += 1;
-  if (draft.overdue !== 'all') n += 1;
-  return n;
-}
-
 export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
   return (
     <FilterPopoverFrame
@@ -26,7 +18,6 @@ export default function TrackerTestsFilterPopover({ isOpen, onClose, value, onCh
       title="Filter"
       ariaLabel="Filter control tests"
       panelId={panelId}
-      getActiveCount={countActive}
     >
       {(draft, setDraft) => (
         <div className="cfp-grid">

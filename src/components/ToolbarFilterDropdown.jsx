@@ -1,10 +1,6 @@
 import React from 'react';
 import filterIcon from '../assets/images/filter.png';
 
-/**
- * Filter button + anchored popover (uses controls-toolbar__filter-wrap / cfp-panel styles).
- * Parent owns open state and outside-click / tab switching.
- */
 export default function ToolbarFilterDropdown({
   filterPanelId,
   isOpen,
