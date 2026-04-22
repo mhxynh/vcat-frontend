@@ -44,11 +44,11 @@
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 190px;
-  height: 24px;
-  padding: 0 8px;
+  max-width: 260px;
+  height: 26px;
+  padding: 0 10px;
   border: 1px solid #e1e1e1;
-  border-radius: 3px;
+  border-radius: 4px;
   background: #ffffff;
   box-sizing: border-box;
 }
@@ -113,9 +113,9 @@
   border-color: #a31d24;
   color: #ffffff;
   justify-content: center;
-  min-width: 116px;
-  height: 27px;
-  padding: 0 10px;
+  min-width: 104px;
+  height: 24px;
+  padding: 0 8px;
   border-radius: 4px;
   font-size: 10px;
 }
@@ -135,10 +135,10 @@
   border: 1px solid #e1e1e1;
   color: #545454;
   justify-content: center;
-  min-width: 106px;
+  min-width: 86px;
   white-space: nowrap;
-  padding: 0 12px;
-  height: 28px;
+  padding: 0 9px;
+  height: 24px;
   border-radius: 4px;
 }
 
