@@ -166,27 +166,6 @@ export default function ControlsTracker() {
           searchAriaLabel="Search controls"
           right={
             <>
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                  <button
-                    className="btn btn--new"
-                    type="button"
-                    onClick={() => setIsCreateTestOpen(true)}
-                  >
-                    + Add Control Test
-                  </button>
-                </RestrictedAction>
-              </div>
-
               {selectedTestRows.length > 0 ? (
                 <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
                   <div
@@ -230,6 +209,27 @@ export default function ControlsTracker() {
                   </RestrictedAction>
                 </div>
               ) : null}
+
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.CREATE_TEST}>
+                  <button
+                    className="btn btn--new"
+                    type="button"
+                    onClick={() => setIsCreateTestOpen(true)}
+                  >
+                    + Add Control Test
+                  </button>
+                </RestrictedAction>
+              </div>
 
               <div className="controls-toolbar__filter-wrap">
                 <button
