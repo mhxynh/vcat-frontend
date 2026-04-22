@@ -10,6 +10,7 @@ import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
 import filterIcon from '../assets/images/filter.png';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
+import TrackerTopToolbar from '../components/TrackerTopToolbar';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -229,72 +230,56 @@ export default function Controls() {
           </button>
         </div>
 
-        <div className="controls-toolbar">
-          <div className="controls-search-input-wrap">
-            <span className="controls-search-icon" aria-hidden="true">
-              <svg viewBox="0 0 16 16" width="13" height="13">
-                <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" fill="none" />
-                <path
-                  d="M10.75 10.75L14 14"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Search controls..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="search-input"
-              aria-label="Search controls"
-            />
-          </div>
-
-          <div className="controls-toolbar__actions">
-            <div
-              onClick={(e) => {
-                const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                if (blockedWrapper) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  showPermissionDeniedToast();
-                }
-              }}
-            >
-              <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-                <button
-                  className="btn btn--red controls-toolbar__action controls-toolbar__action--add"
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(true)}
-                >
-                  <span className="controls-toolbar__add-label">+ Add Control</span>
-                </button>
-              </RestrictedAction>
-            </div>
-
-            <div className="controls-toolbar__filter-wrap">
-              <button
-                className="btn controls-toolbar__action controls-toolbar__action--filter"
-                type="button"
-                onClick={() => setIsFilterOpen((v) => !v)}
+        <TrackerTopToolbar
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search controls..."
+          searchAriaLabel="Search controls"
+          right={
+            <>
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
               >
-                <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                  <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
-                </span>
-                <span className="controls-toolbar__filter-label">Filter</span>
-              </button>
+                <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
+                  <button
+                    className="btn btn--red controls-toolbar__action controls-toolbar__action--add"
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
+                  >
+                    <span className="controls-toolbar__add-label">+ Add Control</span>
+                  </button>
+                </RestrictedAction>
+              </div>
 
-              <ControlsFilterPopover
-                isOpen={isFilterOpen}
-                onClose={() => setIsFilterOpen(false)}
-                value={advancedFilters}
-                onChange={(next) => setAdvancedFilters(next)}
-              />
-            </div>
-          </div>
-        </div>
+              <div className="controls-toolbar__filter-wrap">
+                <button
+                  className="btn controls-toolbar__action controls-toolbar__action--filter"
+                  type="button"
+                  onClick={() => setIsFilterOpen((v) => !v)}
+                >
+                  <span className="controls-toolbar__filter-icon" aria-hidden="true">
+                    <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
+                  </span>
+                  <span className="controls-toolbar__filter-label">Filter</span>
+                </button>
+
+                <ControlsFilterPopover
+                  isOpen={isFilterOpen}
+                  onClose={() => setIsFilterOpen(false)}
+                  value={advancedFilters}
+                  onChange={(next) => setAdvancedFilters(next)}
+                />
+              </div>
+            </>
+          }
+        />
       </div>
 
       {loading ? (

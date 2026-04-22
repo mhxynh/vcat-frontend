@@ -139,14 +139,15 @@
 }
 
 .controls-toolbar__action--add {
-  background: #a31d24;
-  border-color: #a31d24;
+  /* Match Tracker "new" action button styling */
+  background: #8a1a23;
+  border-color: #8a1a23;
   color: #ffffff;
   justify-content: center;
   min-width: 104px;
-  height: 32.75px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .controls-toolbar__add-label {
@@ -159,8 +160,8 @@
 }
 
 .controls-toolbar__action--add:hover {
-  background: #86161c;
-  border-color: #86161c;
+  background: #73151d;
+  border-color: #73151d;
 }
 
 .controls-toolbar__action--filter {
