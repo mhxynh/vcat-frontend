@@ -963,7 +963,6 @@ export default function DetailsRequestModal({
         confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
         confirmDisabled={commentDeletingId != null}
-        cancelDisabled={commentDeletingId != null}
       />
     </>
   );

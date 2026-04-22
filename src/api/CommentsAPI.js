@@ -155,7 +155,7 @@ export async function deleteRequestComment({ commentId, requestId }) {
     throw new Error(msg);
   }
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   return objectToCamelCase(data);
 }
 
@@ -181,7 +181,7 @@ export async function deleteTestComment({ commentId, testId }) {
     throw new Error(msg);
   }
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   return objectToCamelCase(data);
 }
 

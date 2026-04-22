@@ -83,7 +83,6 @@ export default function DetailsTestModal({
     setIsRemoveAttachmentConfirmOpen(false);
     setPendingAttachmentRemoval(null);
   };
-  };
 
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -1466,9 +1465,8 @@ export default function DetailsTestModal({
         confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
         confirmDisabled={commentDeletingId != null}
-        cancelDisabled={commentDeletingId != null}
       />
-      
+
       <ConfirmActionModal
         isOpen={isRemoveAttachmentConfirmOpen}
         onClose={closeRemoveAttachmentConfirm}
