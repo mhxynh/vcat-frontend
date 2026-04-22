@@ -8,9 +8,9 @@ import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
-import filterIcon from '../assets/images/filter.png';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
+import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -67,6 +67,15 @@ export default function Controls() {
       title: 'Permission Denied',
       message: 'Only managers have permission for this action. Contact a manager for access.',
     });
+  }
+
+  function handleRestrictedOverlayClick(e) {
+    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+    if (blockedWrapper) {
+      e.preventDefault();
+      e.stopPropagation();
+      showPermissionDeniedToast();
+    }
   }
 
   async function loadControls({ setFirstOpen = false } = {}) {
@@ -237,16 +246,7 @@ export default function Controls() {
           searchAriaLabel="Search controls"
           right={
             <>
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
+              <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
                   <button
                     className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
@@ -258,25 +258,14 @@ export default function Controls() {
                 </RestrictedAction>
               </div>
 
-              <div className="controls-toolbar__filter-wrap">
-                <button
-                  className="btn controls-toolbar__action controls-toolbar__action--filter"
-                  type="button"
-                  onClick={() => setIsFilterOpen((v) => !v)}
-                >
-                  <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                    <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
-                  </span>
-                  <span className="controls-toolbar__filter-label">Filter</span>
-                </button>
-
-                <ControlsFilterPopover
-                  isOpen={isFilterOpen}
-                  onClose={() => setIsFilterOpen(false)}
-                  value={advancedFilters}
-                  onChange={(next) => setAdvancedFilters(next)}
-                />
-              </div>
+              <ToolbarFilterDropdown
+                isOpen={isFilterOpen}
+                onToggle={() => setIsFilterOpen((v) => !v)}
+                onClose={() => setIsFilterOpen(false)}
+                value={advancedFilters}
+                onChange={setAdvancedFilters}
+                FilterPopover={ControlsFilterPopover}
+              />
             </>
           }
         />

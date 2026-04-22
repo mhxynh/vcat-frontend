@@ -31,7 +31,7 @@ function formatRequestDisplayId(req) {
   return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
 }
 
-export default function Requests({ refreshKey = 0, searchValue = '', onSearchChange, filters }) {
+export default function Requests({ refreshKey = 0, searchValue = '', filters }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [requests, setRequests] = useState([]);
 

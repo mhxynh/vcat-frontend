@@ -63,7 +63,6 @@ function normalizeText(v) {
 export default function Tests({
   refreshKey = 0,
   searchValue = '',
-  onSearchChange,
   filters,
   selectedRows: propSelectedRows,
   onSelectionChange,

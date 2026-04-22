@@ -19,7 +19,7 @@ import TrackerTestsFilterPopover, {
 import TrackerRequestsFilterPopover, {
   DEFAULT_FILTERS as DEFAULT_REQUESTS_FILTERS,
 } from '../components/TrackerRequestsFilterPopover';
-import filterIcon from '../assets/images/filter.png';
+import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -62,6 +62,15 @@ export default function ControlsTracker() {
     });
   }
 
+  function handleRestrictedOverlayClick(e) {
+    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+    if (blockedWrapper) {
+      e.preventDefault();
+      e.stopPropagation();
+      showPermissionDeniedToast();
+    }
+  }
+
   const renderActiveView = () => {
     switch (activeTab) {
       case 'Controls':
@@ -69,7 +78,6 @@ export default function ControlsTracker() {
           <Tests
             refreshKey={controlsRefreshKey}
             searchValue={controlsSearch}
-            onSearchChange={setControlsSearch}
             filters={controlsFilters}
             selectedRows={selectedTestRows}
             onSelectionChange={setSelectedTestRows}
@@ -82,7 +90,6 @@ export default function ControlsTracker() {
           <Requests
             refreshKey={requestsRefreshKey}
             searchValue={requestsSearch}
-            onSearchChange={setRequestsSearch}
             filters={requestsFilters}
             newRequestToOpen={newRequestToOpen}
             onNewRequestOpened={() => setNewRequestToOpen(null)}
@@ -91,7 +98,15 @@ export default function ControlsTracker() {
       case 'Calendar':
         return <Calendar refreshKey={calendarRefreshKey} />;
       default:
-        return <Tests refreshKey={controlsRefreshKey} />;
+        return (
+          <Tests
+            refreshKey={controlsRefreshKey}
+            searchValue={controlsSearch}
+            filters={controlsFilters}
+            selectedRows={selectedTestRows}
+            onSelectionChange={setSelectedTestRows}
+          />
+        );
     }
   };
 
@@ -167,32 +182,13 @@ export default function ControlsTracker() {
           right={
             <>
               {selectedTestRows.length > 0 ? (
-                <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderRadius: 4,
-                      backgroundColor: 'rgba(150,21,29,0.05)',
-                      padding: '4px 8px',
-                      color: '#96151d',
-                      fontWeight: 400,
-                    }}
-                  >
+                <div className="tracker-toolbar-selection">
+                  <div className="tracker-toolbar-selection__pill">
                     <button
+                      type="button"
+                      className="tracker-toolbar-selection__clear"
                       aria-label="Clear selection"
                       onClick={() => setSelectedTestRows([])}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#96151d',
-                        cursor: 'pointer',
-                        padding: 0,
-                        marginRight: 6,
-                        fontSize: 14,
-                        lineHeight: '14px',
-                      }}
                     >
                       ×
                     </button>
@@ -210,16 +206,7 @@ export default function ControlsTracker() {
                 </div>
               ) : null}
 
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
+              <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_TEST}>
                   <button
                     className="btn btn--new"
@@ -231,25 +218,14 @@ export default function ControlsTracker() {
                 </RestrictedAction>
               </div>
 
-              <div className="controls-toolbar__filter-wrap">
-                <button
-                  className="btn controls-toolbar__action controls-toolbar__action--filter"
-                  type="button"
-                  onClick={() => setIsControlsFilterOpen((v) => !v)}
-                >
-                  <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                    <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
-                  </span>
-                  <span className="controls-toolbar__filter-label">Filter</span>
-                </button>
-
-                <TrackerTestsFilterPopover
-                  isOpen={isControlsFilterOpen}
-                  onClose={() => setIsControlsFilterOpen(false)}
-                  value={controlsFilters}
-                  onChange={(next) => setControlsFilters(next)}
-                />
-              </div>
+              <ToolbarFilterDropdown
+                isOpen={isControlsFilterOpen}
+                onToggle={() => setIsControlsFilterOpen((v) => !v)}
+                onClose={() => setIsControlsFilterOpen(false)}
+                value={controlsFilters}
+                onChange={setControlsFilters}
+                FilterPopover={TrackerTestsFilterPopover}
+              />
             </>
           }
         />
@@ -263,16 +239,7 @@ export default function ControlsTracker() {
           searchAriaLabel="Search requests"
           right={
             <>
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
+              <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
                   <button
                     className="btn btn--new"
@@ -284,25 +251,14 @@ export default function ControlsTracker() {
                 </RestrictedAction>
               </div>
 
-              <div className="controls-toolbar__filter-wrap">
-                <button
-                  className="btn controls-toolbar__action controls-toolbar__action--filter"
-                  type="button"
-                  onClick={() => setIsRequestsFilterOpen((v) => !v)}
-                >
-                  <span className="controls-toolbar__filter-icon" aria-hidden="true">
-                    <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
-                  </span>
-                  <span className="controls-toolbar__filter-label">Filter</span>
-                </button>
-
-                <TrackerRequestsFilterPopover
-                  isOpen={isRequestsFilterOpen}
-                  onClose={() => setIsRequestsFilterOpen(false)}
-                  value={requestsFilters}
-                  onChange={(next) => setRequestsFilters(next)}
-                />
-              </div>
+              <ToolbarFilterDropdown
+                isOpen={isRequestsFilterOpen}
+                onToggle={() => setIsRequestsFilterOpen((v) => !v)}
+                onClose={() => setIsRequestsFilterOpen(false)}
+                value={requestsFilters}
+                onChange={setRequestsFilters}
+                FilterPopover={TrackerRequestsFilterPopover}
+              />
             </>
           }
         />

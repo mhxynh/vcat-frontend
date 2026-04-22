@@ -7,3 +7,31 @@
   width: 100%;
 }
 
+.tracker-toolbar-selection {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tracker-toolbar-selection__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px;
+  background-color: rgba(150, 21, 29, 0.05);
+  padding: 4px 8px;
+  color: #96151d;
+  font-weight: 400;
+}
+
+.tracker-toolbar-selection__clear {
+  background: transparent;
+  border: none;
+  color: #96151d;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 6px;
+  font-size: 14px;
+  line-height: 14px;
+}
+
