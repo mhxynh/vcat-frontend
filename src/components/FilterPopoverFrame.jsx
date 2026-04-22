@@ -37,12 +37,7 @@ export default function FilterPopoverFrame({
   const activeCount = getActiveCount(draft);
 
   return (
-    <div
-      id={panelId || undefined}
-      className="cfp-panel"
-      role="dialog"
-      aria-label={ariaLabel}
-    >
+    <div id={panelId || undefined} className="cfp-panel" role="dialog" aria-label={ariaLabel}>
       <div className="cfp-title">{title}</div>
       {children(draft, setDraft)}
       <div className="cfp-hint" aria-live="polite">

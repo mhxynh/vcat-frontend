@@ -13,7 +13,13 @@ function countActive(draft) {
   return n;
 }
 
-export default function TrackerRequestsFilterPopover({ isOpen, onClose, value, onChange, panelId }) {
+export default function TrackerRequestsFilterPopover({
+  isOpen,
+  onClose,
+  value,
+  onChange,
+  panelId,
+}) {
   return (
     <FilterPopoverFrame
       isOpen={isOpen}
