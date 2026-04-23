@@ -182,6 +182,8 @@
   border: 1px solid #fecaca;
   color: #b91c1c;
   font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .icm-footer {

@@ -21,9 +21,23 @@ async function readTextSafe(resp, fallback = '') {
 function formatFetchError(e, { url, method } = {}) {
   const name = e?.name ? String(e.name) : 'Error';
   const message = e?.message ? String(e.message) : String(e || 'Unknown error');
-  const cause = e?.cause?.message ? ` Cause: ${String(e.cause.message)}` : '';
-  const where = url ? ` (${method || 'fetch'} ${url})` : '';
-  return `${name}${where}: ${message}${cause}`;
+  const cause = e?.cause?.message ? `\nCause: ${String(e.cause.message)}` : '';
+
+  let safeUrl = url;
+  // Avoid dumping full presigned URLs (they are huge + contain sensitive query params).
+  try {
+    if (typeof url === 'string' && url.startsWith('http')) {
+      const u = new URL(url);
+      safeUrl = `${u.origin}${u.pathname}`;
+    }
+  } catch {
+    // ignore
+  }
+
+  const where = safeUrl ? `${method || 'fetch'} ${safeUrl}` : null;
+  const header = where ? `${name}: ${where}` : name;
+
+  return `${header}\n${message}${cause}`;
 }
 
 export async function deleteControl(vgcpid, { hard = false } = {}) {
@@ -311,8 +325,13 @@ export async function uploadControlsCsvForImport(file) {
     });
   } catch (e) {
     throw new Error(
-      `${formatFetchError(e, { url: '/import', method: 'POST' })}\n` +
-        'No HTTP response was received by the browser (common causes: API not reachable, CORS, mixed-content/HTTPS issues, or a blocked request).'
+      [
+        'Could not contact the import API.',
+        '',
+        formatFetchError(e, { url: '/import', method: 'POST' }),
+        '',
+        'This usually means the API is unreachable, or the browser blocked the request (CORS / HTTPS / network).',
+      ].join('\n')
     );
   }
 
@@ -343,7 +362,15 @@ export async function uploadControlsCsvForImport(file) {
   } catch (e) {
     const hint =
       'Browser upload to storage failed. If this only fails on localhost, it is very often S3 CORS (the bucket allows your deployed origin but not http://localhost:3000).';
-    throw new Error(`${formatFetchError(e, { url: uploadUrl, method: 'PUT' })}\n${hint}`);
+    throw new Error(
+      [
+        'Upload to storage failed.',
+        '',
+        formatFetchError(e, { url: uploadUrl, method: 'PUT' }),
+        '',
+        hint,
+      ].join('\n')
+    );
   }
 
   if (!putResp.ok) {

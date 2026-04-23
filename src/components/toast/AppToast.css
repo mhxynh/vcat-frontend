@@ -87,4 +87,5 @@
   line-height: 1.45;
   color: #666666;
   word-break: break-word;
+  white-space: pre-wrap;
 }
