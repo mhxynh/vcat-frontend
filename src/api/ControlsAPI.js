@@ -165,6 +165,14 @@ export async function fetchControlByVgcpid(vgcpid) {
 }
 
 /** Headers the importing lambda accepts (see vcat-backend importing/main.py FIELD_TO_HEADER). */
+const IMPORT_TEMPLATE_COLUMNS = [
+  'Control ID',
+  'Description',
+  'Control Owner',
+  'Control SME',
+  'Escalation Needed? (Yes / No)',
+];
+
 const IMPORT_CSV_REQUIRED_SUBSTRINGS = [
   'control id',
   'description',
@@ -237,12 +245,31 @@ function assertCatalogImportCsvHeaderPrefix(textPrefix) {
     const missing = IMPORT_CSV_REQUIRED_SUBSTRINGS.filter((s) => !lower.includes(s));
     if (missing.length) {
       throw new Error(
-        'This CSV does not match the catalog import template. Download the CSV template and use its header row exactly (including Control SME and Escalation Needed).'
+        [
+          'File formatting problem: the column header row does not match the Controls import template.',
+          '',
+          'Required columns (in the header row):',
+          `- ${IMPORT_TEMPLATE_COLUMNS.join('\n- ')}`,
+          '',
+          'How to fix:',
+          '- Click “Download CSV Template” in the Import Controls window.',
+          '- Copy/paste your rows under the template header (do not rename columns).',
+          '- Save as CSV and try again.',
+        ].join('\n')
       );
     }
     return;
   }
-  throw new Error('CSV is empty or has no header row.');
+  throw new Error(
+    [
+      'File formatting problem: the file is empty, or the header row could not be found.',
+      '',
+      'How to fix:',
+      '- Make sure the first non-blank row contains the column names.',
+      `- Required columns: ${IMPORT_TEMPLATE_COLUMNS.join(', ')}`,
+      '- If you are using Excel: put the table on the first sheet, then save as CSV.',
+    ].join('\n')
+  );
 }
 
 function lcFileName(name) {
@@ -269,20 +296,42 @@ async function excelWorkbookFileToCsvFile(file) {
     workbook = XLSX.read(buf, { type: 'array' });
   } catch {
     throw new Error(
-      'Could not read this Excel file. Save as .xlsx from Excel, or export as CSV and import the CSV.'
+      [
+        'Could not read this Excel file.',
+        '',
+        'How to fix:',
+        '- Open it in Excel.',
+        '- Click File → Save As.',
+        '- Save as “Excel Workbook (*.xlsx)” OR “CSV (Comma delimited) (*.csv)”.',
+        '- Try the import again.',
+      ].join('\n')
     );
   }
 
   const sheetName = workbook.SheetNames?.[0];
   if (!sheetName) {
-    throw new Error('Excel file has no worksheets.');
+    throw new Error(
+      [
+        'This Excel file has no worksheets.',
+        '',
+        'How to fix:',
+        '- Make sure the workbook contains at least one sheet with your control table.',
+        '- Then try the import again.',
+      ].join('\n')
+    );
   }
 
   const sheet = workbook.Sheets[sheetName];
   const csv = XLSX.utils.sheet_to_csv(sheet, { FS: ',', RS: '\n' });
   if (!csv || !String(csv).trim()) {
     throw new Error(
-      'The first worksheet is empty. Add your control rows there, or pick another file.'
+      [
+        'The first worksheet in this Excel file is empty.',
+        '',
+        'How to fix:',
+        '- Put your control table on the first sheet (the left-most tab).',
+        '- Or save/export your table as a CSV and import the CSV file.',
+      ].join('\n')
     );
   }
 

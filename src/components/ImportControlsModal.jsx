@@ -64,12 +64,29 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
       return;
     }
     if (!isAllowedImportFilename(selected.name)) {
-      setError('Please select a CSV or Excel file (.csv, .xlsx, or .xls).');
+      setError(
+        [
+          'Wrong file type selected.',
+          '',
+          'Please select one of these file types:',
+          '- CSV (.csv)',
+          '- Excel (.xlsx or .xls)',
+          '',
+          'Tip: In Excel use File → Save As → “Excel Workbook (*.xlsx)” or “CSV (Comma delimited) (*.csv)”.',
+        ].join('\n')
+      );
       setFile(null);
       return;
     }
     if (selected.size > MAX_BYTES) {
-      setError('File must be 20 MB or smaller.');
+      setError(
+        [
+          'File is too large.',
+          '',
+          'Maximum file size is 20 MB.',
+          'Tip: Delete unused rows/columns, or save/export as CSV to reduce file size.',
+        ].join('\n')
+      );
       setFile(null);
       return;
     }
