@@ -15,8 +15,8 @@ import {
   updateDat,
   updateOet,
   fetchTestById,
+  unarchiveTest,
 } from '../api/TestsAPI';
-import { unarchiveTest } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
 import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
