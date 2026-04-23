@@ -1,14 +1,27 @@
 import * as XLSX from 'xlsx';
 import { objectToSnakeCase } from '../utils/transformer';
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch } from './apiClient';
+
+async function readJsonSafe(resp, fallback) {
+  try {
+    return await resp.json();
+  } catch {
+    return fallback;
+  }
+}
+
+async function readTextSafe(resp, fallback = '') {
+  try {
+    return await resp.text();
+  } catch {
+    return fallback;
+  }
+}
 
 export async function deleteControl(vgcpid, { hard = false } = {}) {
-  const url = new URL(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`);
-  if (hard) url.searchParams.set('hard', 'true');
-
-  const resp = await authFetch(url.toString(), {
+  const qs = hard ? '?hard=true' : '';
+  const resp = await authFetch(`/controls/${encodeURIComponent(vgcpid)}${qs}`, {
     method: 'DELETE',
-    headers: { Accept: 'application/json' },
   });
 
   if (!resp.ok) {
@@ -27,9 +40,8 @@ export async function deleteControl(vgcpid, { hard = false } = {}) {
 }
 
 export async function fetchControls() {
-  const resp = await authFetch(`${API_BASE}/controls`, {
+  const resp = await authFetch('/controls', {
     method: 'GET',
-    headers: { Accept: 'application/json' },
   });
 
   if (!resp.ok) {
@@ -41,8 +53,6 @@ export async function fetchControls() {
 
   return data;
 }
-
-//schemas are: control_id, vgcpid, description, control_owner, control_sme, escalation, is_active, date_created, last_tested
 
 export function mapControlRowToUi(control) {
   const lastTested = control.last_tested ?? null;
@@ -62,16 +72,15 @@ export function mapControlRowToUi(control) {
 }
 
 export async function createControl(payload) {
-  const resp = await authFetch(`${API_BASE}/controls`, {
+  const resp = await authFetch('/controls', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'application/json',
     },
     body: JSON.stringify(objectToSnakeCase(payload)),
   });
 
-  const data = await resp.json().catch(() => ({}));
+  const data = await readJsonSafe(resp, {});
 
   if (!resp.ok) {
     const msg =
@@ -85,16 +94,15 @@ export async function createControl(payload) {
 }
 
 export async function updateControl(vgcpid, updates) {
-  const resp = await authFetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+  const resp = await authFetch(`/controls/${encodeURIComponent(vgcpid)}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'application/json',
     },
     body: JSON.stringify(objectToSnakeCase(updates)),
   });
 
-  const data = await resp.json().catch(() => null);
+  const data = await readJsonSafe(resp, null);
 
   if (!resp.ok) {
     const msg = data?.error || data?.message || `Failed to update control (HTTP ${resp.status})`;
@@ -105,12 +113,11 @@ export async function updateControl(vgcpid, updates) {
 }
 
 export async function retireControl(vgcpid) {
-  const resp = await authFetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+  const resp = await authFetch(`/controls/${encodeURIComponent(vgcpid)}`, {
     method: 'DELETE',
-    headers: { Accept: 'application/json' },
   });
 
-  const data = await resp.json().catch(() => null);
+  const data = await readJsonSafe(resp, null);
 
   if (!resp.ok) {
     const msg = data?.error || data?.message || `Failed to retire control (HTTP ${resp.status})`;
@@ -121,12 +128,11 @@ export async function retireControl(vgcpid) {
 }
 
 export async function fetchControlByVgcpid(vgcpid) {
-  const resp = await authFetch(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`, {
+  const resp = await authFetch(`/controls/${encodeURIComponent(vgcpid)}`, {
     method: 'GET',
-    headers: { Accept: 'application/json' },
   });
 
-  const data = await resp.json().catch(() => null);
+  const data = await readJsonSafe(resp, null);
 
   if (!resp.ok) {
     const msg = data?.error || data?.message || `Failed to fetch control (HTTP ${resp.status})`;
@@ -283,11 +289,10 @@ export async function uploadControlsCsvForImport(file) {
   const prefix = await importFile.slice(0, prefixBytes).text();
   assertCatalogImportCsvHeaderPrefix(prefix);
 
-  const resp = await authFetch(`${API_BASE}/import`, {
+  const resp = await authFetch('/import', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'application/json',
     },
     body: JSON.stringify({
       filename: importFile.name,
@@ -295,7 +300,7 @@ export async function uploadControlsCsvForImport(file) {
     }),
   });
 
-  const data = await resp.json().catch(() => ({}));
+  const data = await readJsonSafe(resp, {});
 
   if (!resp.ok) {
     const msg = data?.error || data?.message || `Could not start import (HTTP ${resp.status})`;
@@ -326,8 +331,8 @@ export async function uploadControlsCsvForImport(file) {
   }
 
   if (!putResp.ok) {
-    const errText = await putResp.text().catch(() => '');
-    throw new Error(errText?.trim() || `Upload to storage failed (HTTP ${putResp.status}).`);
+    const errText = (await readTextSafe(putResp, '')).trim();
+    throw new Error(errText || `Upload to storage failed (HTTP ${putResp.status}).`);
   }
 
   return data;
