@@ -6,6 +6,13 @@
   padding: 0 16px;
 }
 
+.controls-page .page-header__actions > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .controls-page .page-header__actions .btn {
   gap: 8px;
 }

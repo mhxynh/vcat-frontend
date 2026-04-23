@@ -5,8 +5,8 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 const MAX_BYTES = 20 * 1024 * 1024;
 
 function downloadCsvTemplate() {
-  const header = 'Control ID,Description,Owner,Escalation';
-  const example = 'VGCP-EXAMPLE,Example control description,Jane Doe,Yes';
+  const header = 'Control ID,Description,Control Owner,Control SME,Escalation Needed? (Yes / No)';
+  const example = 'VGCP-EXAMPLE,Example control description,Jane Doe,,Yes';
   const csv = `${header}\n${example}\n`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -52,8 +52,14 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
       return;
     }
     const name = selected.name.toLowerCase();
-    if (!name.endsWith('.csv')) {
-      setError('Please select a CSV file.');
+    const allowed =
+      name.endsWith('.csv') ||
+      name.endsWith('.xlsx') ||
+      name.endsWith('.xlsm') ||
+      name.endsWith('.xls') ||
+      name.endsWith('.xlx');
+    if (!allowed) {
+      setError('Please select a CSV or Excel file (.csv, .xlsx, or .xls).');
       setFile(null);
       return;
     }
@@ -84,9 +90,9 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
       }
 
       showSuccessToast({
-        title: 'Import submitted',
+        title: onImportSubmit ? 'Import uploaded' : 'Import submitted',
         message: onImportSubmit
-          ? `${file.name} was imported successfully.`
+          ? `${file.name} was uploaded. New rows appear in the catalog after the server finishes processing (usually within a few seconds).`
           : `${file.name} passed validation.`,
       });
 
@@ -137,9 +143,13 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
               <p className="icm-requirements__title">File Requirements</p>
               <ul className="icm-requirements__text icm-requirements__list">
                 <li>
-                  Accepted formats: <strong>CSV</strong>
+                  Accepted formats: <strong>CSV</strong> or <strong>Excel</strong> (.xlsx / .xls).{' '}
+                  The first worksheet is used and must match the column template.
                 </li>
-                <li>Required columns: Control ID, Description, Owner, Escalation</li>
+                <li>
+                  Required columns: Control ID, Description, Control Owner, Control SME, Escalation
+                  Needed? (Yes / No)
+                </li>
                 <li>Maximum file size: 20 MB</li>
               </ul>
             </div>
@@ -156,7 +166,7 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
                 id="import-controls-file"
                 className="icm-file-picker__native"
                 type="file"
-                accept=".csv,text/csv"
+                accept=".csv,.xlsx,.xlsm,.xls,.xlx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 onChange={onFileChange}
                 disabled={submitting}
               />
@@ -173,7 +183,9 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
                 <span className="icm-file-picker__action">Choose file</span>
               </div>
             </div>
-            <p className="icm-field-hint">Upload a CSV file containing control data</p>
+            <p className="icm-field-hint">
+              Upload a CSV or Excel workbook with control data (same columns as the template).
+            </p>
           </div>
 
           <div className="icm-template">
