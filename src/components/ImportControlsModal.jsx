@@ -151,14 +151,28 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
             <label className="icm-field-label" htmlFor="import-controls-file">
               Select File to Import
             </label>
-            <input
-              id="import-controls-file"
-              className="icm-file-input"
-              type="file"
-              accept=".csv,text/csv"
-              onChange={onFileChange}
-              disabled={submitting}
-            />
+            <div className={`icm-file-picker${submitting ? ' icm-file-picker--disabled' : ''}`}>
+              <input
+                id="import-controls-file"
+                className="icm-file-picker__native"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={onFileChange}
+                disabled={submitting}
+              />
+              <div className="icm-file-picker__row">
+                <span
+                  className={
+                    file
+                      ? 'icm-file-picker__name'
+                      : 'icm-file-picker__name icm-file-picker__name--placeholder'
+                  }
+                >
+                  {file ? file.name : 'No file selected'}
+                </span>
+                <span className="icm-file-picker__action">Choose file</span>
+              </div>
+            </div>
             <p className="icm-field-hint">Upload a CSV file containing control data</p>
           </div>
 
