@@ -28,6 +28,7 @@ const Icon = ({
     <svg
       viewBox={viewBox}
       stroke={color}
+      style={{ color }}
       fill="none"
       className={`ui-icon icon-${category}-${name} ${className}`}
       aria-hidden="true"

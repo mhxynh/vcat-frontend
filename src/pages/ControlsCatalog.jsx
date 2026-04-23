@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import ImportControlsModal from '../components/ImportControlsModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
@@ -38,6 +39,7 @@ export default function Controls() {
   const PAGE_SIZE = 10;
   const [search, setSearch] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,7 +147,16 @@ export default function Controls() {
         }
         actions={
           <>
+            <button
+              className="btn btn--import"
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              <Icon name="upload" category="actions" size="sm" color="#ffffff" />
+              Import
+            </button>
             <button className="btn btn--white" type="button">
+              <Icon name="download" category="actions" size="sm" color="#ffffff" />
               Export
             </button>
             <button
@@ -154,6 +165,7 @@ export default function Controls() {
               onClick={() => loadControls()}
               disabled={loading}
             >
+              <Icon name="refresh" category="actions" size="sm" color="#ffffff" />
               Refresh
             </button>
           </>
@@ -390,6 +402,8 @@ export default function Controls() {
           await loadControls();
         }}
       />
+
+      <ImportControlsModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
     </div>
   );
 }

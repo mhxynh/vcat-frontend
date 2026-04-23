@@ -1,0 +1,182 @@
+/* Import Controls modal (extends shared .modal-* from CreateControlModal.css) */
+
+.icm-modal {
+  max-width: 560px;
+}
+
+.icm-body {
+  padding: 22px;
+}
+
+.icm-requirements {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  background: #ebf5ff;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+}
+
+.icm-requirements__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.icm-requirements__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1e40af;
+  font-weight: 400;
+}
+
+.icm-requirements__title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.icm-requirements__list {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.icm-field {
+  margin-bottom: 20px;
+}
+
+.icm-field-label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+.icm-file-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.icm-file-input:focus {
+  outline: none;
+  border-color: #4094e6;
+}
+
+.icm-field-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+}
+
+.icm-template {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.icm-template__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.icm-template__label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 400;
+}
+
+.icm-template__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8b0f17;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.icm-template__download:hover {
+  text-decoration: underline;
+}
+
+.icm-error {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.icm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px;
+  border-top: 1px solid #eee;
+}
+
+.icm-btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.icm-btn-cancel:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.icm-btn-import {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #8b0f17;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.icm-btn-import:hover:not(:disabled) {
+  background: #73151d;
+}
+
+.icm-btn-import:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -66,6 +66,11 @@ body * {
   color: white;
 }
 
+.btn--import {
+  background: #ffb01f;
+  color: white;
+}
+
 /* Pills */
 .pill-group {
   display: flex;
