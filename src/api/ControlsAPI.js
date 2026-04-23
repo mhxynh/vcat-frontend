@@ -217,9 +217,6 @@ function assertCatalogImportCsvHeaderPrefix(textPrefix) {
   throw new Error('CSV is empty or has no header row.');
 }
 
-/** Same cap as backend SYNC_IMPORT_MAX_RAW_BYTES — avoids browser→S3 CORS on presigned PUT. */
-const SYNC_IMPORT_MAX_BYTES = 6 * 1024 * 1024;
-
 function lcFileName(name) {
   return String(name || '').toLowerCase();
 }
@@ -268,22 +265,9 @@ async function excelWorkbookFileToCsvFile(file) {
   });
 }
 
-async function fileToBase64(file) {
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  const chunkSize = 8192;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize);
-    binary += String.fromCharCode.apply(null, chunk);
-  }
-  return btoa(binary);
-}
-
 /**
- * Manager-only: small CSVs POST to /import/sync (no S3 browser upload).
- * Larger files use presigned PUT (S3 bucket must allow CORS for your app origin).
- * Excel (.xlsx, .xls, etc.) is converted to CSV here so the backend contract stays CSV-only.
+ * Manager-only: POST /import for a presigned S3 URL, then PUT the file (matches import Lambda API).
+ * Excel (.xlsx, .xls, etc.) is converted to CSV in the browser so the upload stays CSV/text/csv.
  */
 export async function uploadControlsCsvForImport(file) {
   let working = file;
@@ -298,27 +282,6 @@ export async function uploadControlsCsvForImport(file) {
   const prefixBytes = Math.min(importFile.size, 32768);
   const prefix = await importFile.slice(0, prefixBytes).text();
   assertCatalogImportCsvHeaderPrefix(prefix);
-
-  if (importFile.size <= SYNC_IMPORT_MAX_BYTES) {
-    const contentBase64 = await fileToBase64(importFile);
-    const resp = await authFetch(`${API_BASE}/import/sync`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        filename: importFile.name,
-        contentBase64,
-      }),
-    });
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      const msg = data?.error || data?.message || `Import failed (HTTP ${resp.status})`;
-      throw new Error(msg);
-    }
-    return data;
-  }
 
   const resp = await authFetch(`${API_BASE}/import`, {
     method: 'POST',
@@ -358,7 +321,7 @@ export async function uploadControlsCsvForImport(file) {
     });
   } catch (e) {
     const hint =
-      'Browser upload to storage failed (often S3 CORS). Files up to 6 MB use direct import automatically; split the CSV or configure S3 CORS for larger uploads.';
+      'Browser upload to storage failed (often S3 CORS on the presigned PUT). Configure CORS on the import bucket for your app origin, or upload via a network that allows that request.';
     throw new Error(e?.message ? `${e.message}. ${hint}` : hint);
   }
 
