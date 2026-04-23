@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 
-const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
+const MAX_BYTES = 20 * 1024 * 1024; // 20 MB limit
 const ALLOWED_EXTENSIONS = ['.csv', '.xlsx', '.xlsm', '.xls', '.xlx'];
 const ACCEPT_ATTR =
   '.csv,.xlsx,.xlsm,.xls,.xlx,text/csv,' +
