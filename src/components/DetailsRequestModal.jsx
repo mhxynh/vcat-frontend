@@ -65,7 +65,6 @@ export default function DetailsRequestModal({
   const [isUnarchiveConfirmOpen, setIsUnarchiveConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const openUnarchive = () => setIsUnarchiveConfirmOpen(true);
-  const closeUnarchive = () => setIsUnarchiveConfirmOpen(false);
 
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
