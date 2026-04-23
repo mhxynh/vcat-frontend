@@ -99,11 +99,10 @@ export default function Controls() {
 
   async function handleImportControlsCsv(file) {
     await uploadControlsCsvForImport(file);
-    await refreshControls();
-    await new Promise((r) => setTimeout(r, 2500));
-    await refreshControls();
-    await new Promise((r) => setTimeout(r, 4000));
-    await refreshControls();
+    // Close modal/toast quickly; refresh in the background.
+    refreshControls();
+    setTimeout(() => refreshControls(), 2500);
+    setTimeout(() => refreshControls(), 6500);
   }
 
   useEffect(() => {

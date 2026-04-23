@@ -16,6 +16,10 @@ function isAllowedImportFilename(filename) {
   return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
 }
 
+function formatAllowedExtensionsList() {
+  return 'CSV (.csv) or Excel (.xlsx, .xls)';
+}
+
 function downloadCsvTemplate() {
   const header = 'Control ID,Description,Control Owner,Control SME,Escalation Needed? (Yes / No)';
   const example = 'VGCP-EXAMPLE,Example control description,Jane Doe,,Yes';
@@ -69,8 +73,7 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
           'Wrong file type selected.',
           '',
           'Please select one of these file types:',
-          '- CSV (.csv)',
-          '- Excel (.xlsx or .xls)',
+          `- ${formatAllowedExtensionsList()}`,
           '',
           'Tip: In Excel use File → Save As → “Excel Workbook (*.xlsx)” or “CSV (Comma delimited) (*.csv)”.',
         ].join('\n')
@@ -165,8 +168,8 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
               <p className="icm-requirements__title">File Requirements</p>
               <ul className="icm-requirements__text icm-requirements__list">
                 <li>
-                  Accepted formats: <strong>CSV</strong> or <strong>Excel</strong> (.xlsx / .xls).{' '}
-                  The first worksheet is used and must match the column template.
+                  Accepted formats: <strong>CSV</strong> (.csv) or <strong>Excel</strong> (.xlsx /
+                  .xls). The first worksheet is used and must match the column template.
                 </li>
                 <li>
                   Required columns: Control ID, Description, Control Owner, Control SME, Escalation

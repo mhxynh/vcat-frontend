@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { objectToSnakeCase } from '../utils/transformer';
 import { authFetch } from './apiClient';
 
@@ -290,6 +289,22 @@ function isCatalogImportExcelFilename(name) {
 }
 
 async function excelWorkbookFileToCsvFile(file) {
+  let XLSX;
+  try {
+    // Lazy-load to avoid pulling xlsx into the main bundle for non-import users.
+    XLSX = await import('xlsx');
+  } catch {
+    throw new Error(
+      [
+        'Excel support failed to load.',
+        '',
+        'How to fix:',
+        '- Try reloading the page.',
+        '- Or save/export your file as CSV and import the CSV file.',
+      ].join('\n')
+    );
+  }
+
   let workbook;
   try {
     const buf = await file.arrayBuffer();
@@ -391,10 +406,10 @@ export async function uploadControlsCsvForImport(file) {
     throw new Error(msg);
   }
 
-  const uploadUrl = data.upload_url;
+  const uploadUrl = data['upload_url'];
   const contentType =
-    data.content_type ||
-    (data.required_headers && data.required_headers['Content-Type']) ||
+    data['content_type'] ||
+    (data['required_headers'] && data['required_headers']['Content-Type']) ||
     'text/csv';
 
   if (!uploadUrl) {
