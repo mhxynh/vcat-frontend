@@ -2,7 +2,19 @@ import React, { useEffect, useState } from 'react';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 
-const MAX_BYTES = 20 * 1024 * 1024;
+const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
+const ALLOWED_EXTENSIONS = ['.csv', '.xlsx', '.xlsm', '.xls', '.xlx'];
+const ACCEPT_ATTR =
+  '.csv,.xlsx,.xlsm,.xls,.xlx,text/csv,' +
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,' +
+  'application/vnd.ms-excel';
+
+function isAllowedImportFilename(filename) {
+  const name = String(filename || '')
+    .toLowerCase()
+    .trim();
+  return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
 
 function downloadCsvTemplate() {
   const header = 'Control ID,Description,Control Owner,Control SME,Escalation Needed? (Yes / No)';
@@ -51,14 +63,7 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
       setFile(null);
       return;
     }
-    const name = selected.name.toLowerCase();
-    const allowed =
-      name.endsWith('.csv') ||
-      name.endsWith('.xlsx') ||
-      name.endsWith('.xlsm') ||
-      name.endsWith('.xls') ||
-      name.endsWith('.xlx');
-    if (!allowed) {
+    if (!isAllowedImportFilename(selected.name)) {
       setError('Please select a CSV or Excel file (.csv, .xlsx, or .xls).');
       setFile(null);
       return;
@@ -166,7 +171,7 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
                 id="import-controls-file"
                 className="icm-file-picker__native"
                 type="file"
-                accept=".csv,.xlsx,.xlsm,.xls,.xlx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                accept={ACCEPT_ATTR}
                 onChange={onFileChange}
                 disabled={submitting}
               />

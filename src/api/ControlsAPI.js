@@ -18,6 +18,14 @@ async function readTextSafe(resp, fallback = '') {
   }
 }
 
+function formatFetchError(e, { url, method } = {}) {
+  const name = e?.name ? String(e.name) : 'Error';
+  const message = e?.message ? String(e.message) : String(e || 'Unknown error');
+  const cause = e?.cause?.message ? ` Cause: ${String(e.cause.message)}` : '';
+  const where = url ? ` (${method || 'fetch'} ${url})` : '';
+  return `${name}${where}: ${message}${cause}`;
+}
+
 export async function deleteControl(vgcpid, { hard = false } = {}) {
   const qs = hard ? '?hard=true' : '';
   const resp = await authFetch(`/controls/${encodeURIComponent(vgcpid)}${qs}`, {
@@ -289,16 +297,24 @@ export async function uploadControlsCsvForImport(file) {
   const prefix = await importFile.slice(0, prefixBytes).text();
   assertCatalogImportCsvHeaderPrefix(prefix);
 
-  const resp = await authFetch('/import', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      filename: importFile.name,
-      contentType: importFile.type || 'text/csv',
-    }),
-  });
+  let resp;
+  try {
+    resp = await authFetch('/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename: importFile.name,
+        contentType: importFile.type || 'text/csv',
+      }),
+    });
+  } catch (e) {
+    throw new Error(
+      `${formatFetchError(e, { url: '/import', method: 'POST' })}\n` +
+        'No HTTP response was received by the browser (common causes: API not reachable, CORS, mixed-content/HTTPS issues, or a blocked request).'
+    );
+  }
 
   const data = await readJsonSafe(resp, {});
 
@@ -326,8 +342,8 @@ export async function uploadControlsCsvForImport(file) {
     });
   } catch (e) {
     const hint =
-      'Browser upload to storage failed (often S3 CORS on the presigned PUT). Configure CORS on the import bucket for your app origin, or upload via a network that allows that request.';
-    throw new Error(e?.message ? `${e.message}. ${hint}` : hint);
+      'Browser upload to storage failed. If this only fails on localhost, it is very often S3 CORS (the bucket allows your deployed origin but not http://localhost:3000).';
+    throw new Error(`${formatFetchError(e, { url: uploadUrl, method: 'PUT' })}\n${hint}`);
   }
 
   if (!putResp.ok) {
