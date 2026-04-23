@@ -829,7 +829,6 @@ export default function DetailsRequestModal({
           }}
           onUpdated={async () => {
             await refreshLocalRequest();
-            closeTestDetails();
           }}
         />
       </div>
