@@ -117,7 +117,11 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
       showSuccessToast({
         title: onImportSubmit ? 'Import uploaded' : 'Import submitted',
         message: onImportSubmit
-          ? `${file.name} was uploaded. New rows appear in the catalog after the server finishes processing (usually within a few seconds).`
+          ? [
+              `File uploaded: ${file.name}`,
+              '',
+              'Next: New rows will appear after the server finishes processing (usually within a few seconds).',
+            ].join('\n')
           : `${file.name} passed validation.`,
       });
 
