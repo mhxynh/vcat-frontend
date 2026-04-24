@@ -62,7 +62,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   function syncForm(state) {
@@ -87,7 +86,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
     const testId = normalizedPropTest?.testId;
     const seed = buildInitialState(normalizedPropTest);
 
-    setError('');
     setFieldErrors({});
     setLoading(true);
     setSubmitting(false);
@@ -113,7 +111,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
         syncForm(nextInitial);
       } catch (e) {
         if (cancelled) return;
-        setError(e?.message || 'Failed to load dropdown data.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -180,7 +177,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const selectedVgcpid = selectedControl?.vgcpid ?? resolvedTest?.vgcpid ?? '';
 
   async function handleSave() {
-    setError('');
     setFieldErrors({});
 
     const errs = {};
@@ -233,8 +229,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to update test.';
-      setError(errorMessage);
-
       showErrorToast({
         title: 'Control Test Save Failed',
         message: `An error occurred while saving the control test: ${errorMessage}`,
@@ -287,8 +281,6 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             </div>
           ) : (
             <>
-              {error && <div className="ctm-error">{error}</div>}
-
               <div className="ctm-grid">
                 <div className="ctm-field">
                   <label className="ctm-label">
