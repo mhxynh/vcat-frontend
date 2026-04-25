@@ -358,7 +358,7 @@ export default function DetailsRequestModal({
     if (!commentId) return;
     try {
       setLocalComments((prev) => prev.filter((c) => c.id !== commentId));
-      await deleteComment(commentId);
+      await deleteComment({ commentId, requestId });
     } catch (e) {
       setCommentsError(e?.message || 'Failed to delete comment');
       await loadCommentsAndUsers(requestId);

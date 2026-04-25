@@ -19,7 +19,12 @@ import {
   fetchTestById,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
+import {
+  fetchCommentsByTestId,
+  createTestComment,
+  mapCommentRowsToUi,
+  deleteComment,
+} from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
@@ -821,6 +826,17 @@ export default function DetailsTestModal({
     }
   }
 
+  async function handleDeleteComment(commentId) {
+    if (!commentId) return;
+    try {
+      setLocalComments((prev) => prev.filter((c) => c.id !== commentId));
+      await deleteComment({ commentId, testId });
+    } catch (e) {
+      setCommentsError(e?.message || 'Failed to delete comment');
+      if (currentTestId) await loadCommentsAndUsers(currentTestId);
+    }
+  }
+
   function statusToLabel(statusValue) {
     return String(statusValue || 'NOT_STARTED')
       .replaceAll('_', ' ')
@@ -1117,7 +1133,20 @@ export default function DetailsTestModal({
                         <div className="dtm-comment-main">
                           <div className="dtm-comment-top">
                             <div className="dtm-comment-author">{c.author ?? '-'}</div>
-                            <div className="dtm-comment-date">{c.date ?? ''}</div>
+                            <div className="dtm-comment-meta">
+                              <span className="dtm-comment-date">{c.date ?? ''}</span>
+                              {currentUser?.['user_id'] === c.authorUserId ? (
+                                <button
+                                  className="dtm-comment-delete"
+                                  type="button"
+                                  onClick={() => handleDeleteComment(c.id)}
+                                  aria-label="Delete comment"
+                                  title="Delete comment"
+                                >
+                                  <Icon name="trash" category="actions" size="sm" color="#545454" />
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           <div className="dtm-comment-text">{c.text ?? ''}</div>
                         </div>

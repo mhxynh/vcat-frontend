@@ -735,3 +735,23 @@
   font-size: 12px;
   margin-top: 4px;
 }
+
+.dtm-comment-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dtm-comment-delete {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dtm-comment-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
