@@ -266,6 +266,22 @@
   color: #8b0f17;
 }
 
+.drm-tab-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: #667085;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  margin-left: 6px;
+}
+
 /* Comments */
 .drm-comments {
   display: flex;
@@ -595,10 +611,17 @@
 }
 
 .drm-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   border: 0;
-  background: transparent;
+  background: #b21d1d;
+  color: white;
   cursor: pointer;
-  font-size: 16px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Footer */

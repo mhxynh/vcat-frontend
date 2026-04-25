@@ -601,7 +601,10 @@ export default function DetailsRequestModal({
                 className={`drm-tab ${activeTab === 'Comments' ? 'drm-tab--active' : ''}`}
                 onClick={() => setActiveTab('Comments')}
               >
-                Comments
+                <span>Comments</span>
+                {localComments.length > 0 ? (
+                  <span className="drm-tab-count">{localComments.length}</span>
+                ) : null}
               </button>
               <button
                 type="button"
