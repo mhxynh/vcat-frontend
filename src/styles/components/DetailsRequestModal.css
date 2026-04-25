@@ -517,7 +517,6 @@
   font-size: 12px;
 }
 
-/* match test modal layout for comments */
 .drm-comment-left {
   flex-shrink: 0;
 }
@@ -550,6 +549,27 @@
   color: #333;
   font-size: 12px;
   margin-top: 4px;
+}
+
+.drm-comment-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drm-comment-delete {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drm-comment-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Add comment */

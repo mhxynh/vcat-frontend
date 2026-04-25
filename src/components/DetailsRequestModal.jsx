@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
 import DetailsTestModal from './DetailsTestModal';
+import Icon from './common/Icon';
 import EditRequestModal from './EditRequestModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
@@ -18,6 +19,7 @@ import {
   fetchCommentsByRequestId,
   createRequestComment,
   mapCommentRowsToUi,
+  deleteComment,
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
@@ -352,6 +354,19 @@ export default function DetailsRequestModal({
     }
   }
 
+  async function handleDeleteComment(commentId) {
+    if (!commentId) return;
+    try {
+      // optimistic UI removal
+      setLocalComments((prev) => prev.filter((c) => c.id !== commentId));
+      await deleteComment(commentId);
+    } catch (e) {
+      // on failure, reload comments and surface error
+      setCommentsError(e?.message || 'Failed to delete comment');
+      await loadCommentsAndUsers(requestId);
+    }
+  }
+
   async function handleArchiveRequest() {
     if (requestId == null || archiving) return;
 
@@ -648,7 +663,25 @@ export default function DetailsRequestModal({
                           <div className="drm-comment-main">
                             <div className="drm-comment-top">
                               <div className="drm-comment-author">{c.author ?? '-'}</div>
-                              <div className="drm-comment-date">{c.date ?? ''}</div>
+                              <div className="drm-comment-meta">
+                                <span className="drm-comment-date">{c.date ?? ''}</span>
+                                {currentUser?.['user_id'] === c.authorUserId ? (
+                                  <button
+                                    className="drm-comment-delete"
+                                    type="button"
+                                    onClick={() => handleDeleteComment(c.id)}
+                                    aria-label="Delete comment"
+                                    title="Delete comment"
+                                  >
+                                    <Icon
+                                      name="trash"
+                                      category="actions"
+                                      size="sm"
+                                      color="#545454"
+                                    />
+                                  </button>
+                                ) : null}
+                              </div>
                             </div>
                             <div className="drm-comment-text">{c.text ?? ''}</div>
                           </div>
