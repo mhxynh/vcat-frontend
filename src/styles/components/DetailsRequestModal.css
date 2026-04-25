@@ -593,9 +593,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid #ededed;
-  border-radius: 12px;
-  padding: 10px 12px;
 }
 
 .drm-addcomment--top {
@@ -603,9 +600,11 @@
 }
 
 .drm-comment-input {
-  border: 0;
-  outline: none;
   flex: 1;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 12px 12px;
+  outline: none;
   font-weight: 400;
   font-size: 12px;
 }
