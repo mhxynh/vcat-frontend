@@ -357,11 +357,9 @@ export default function DetailsRequestModal({
   async function handleDeleteComment(commentId) {
     if (!commentId) return;
     try {
-      // optimistic UI removal
       setLocalComments((prev) => prev.filter((c) => c.id !== commentId));
       await deleteComment(commentId);
     } catch (e) {
-      // on failure, reload comments and surface error
       setCommentsError(e?.message || 'Failed to delete comment');
       await loadCommentsAndUsers(requestId);
     }
