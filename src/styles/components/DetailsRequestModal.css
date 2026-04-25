@@ -506,15 +506,25 @@
 }
 
 .drm-avatar {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  background: #f2f2f2;
-  border: 1px solid #e5e5e5;
+  background: #b21d1d;
+  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
+}
+
+/* match test modal layout for comments */
+.drm-comment-left {
+  flex-shrink: 0;
+}
+
+.drm-comment-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .drm-comment-top {

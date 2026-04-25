@@ -608,7 +608,7 @@ export default function DetailsRequestModal({
                       placeholder="Write a comment…"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
-                      disabled={commentSaving || commentsLoading || !currentUser}
+                      disabled={commentSaving || commentsLoading}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleAddComment();
                       }}
@@ -619,7 +619,7 @@ export default function DetailsRequestModal({
                       onClick={handleAddComment}
                       aria-label="Send"
                       disabled={
-                        commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                        !currentUser || commentSaving || commentsLoading || !commentText.trim()
                       }
                     >
                       {commentSaving ? '...' : '➤'}
@@ -677,30 +677,6 @@ export default function DetailsRequestModal({
               ) : null}
             </div>
           </section>
-
-          {activeTab === 'Comments' ? (
-            <section className="drm-section-addcomment">
-              <div className="drm-addcomment">
-                <input
-                  className="drm-comment-input"
-                  placeholder="Write a comment…"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddComment();
-                  }}
-                />
-                <button
-                  className="drm-send"
-                  type="button"
-                  onClick={handleAddComment}
-                  aria-label="Send"
-                >
-                  ➤
-                </button>
-              </div>
-            </section>
-          ) : null}
 
           <div className="drm-divider" />
 
