@@ -179,7 +179,7 @@ export default function DetailsRequestModal({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen, isArchiveConfirmOpen]);
+  }, [isOpen, onClose, isDeleteConfirmOpen, isArchiveConfirmOpen, isUnarchiveConfirmOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -218,7 +218,7 @@ export default function DetailsRequestModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, requestKey, loadCommentsAndUsers]);
+  }, [isOpen, requestKey, loadCommentsAndUsers, request]);
 
   const controls = useMemo(() => {
     return Array.isArray(localRequest?.controls) ? localRequest.controls : [];

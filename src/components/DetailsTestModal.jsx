@@ -256,6 +256,7 @@ export default function DetailsTestModal({
     onClose,
     isDeleteConfirmOpen,
     isArchiveConfirmOpen,
+    isUnarchiveConfirmOpen,
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
