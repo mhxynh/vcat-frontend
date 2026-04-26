@@ -172,11 +172,11 @@
   color: #545454;
 }
 
-.controls-toolbar__filter-icon-image {
-  width: 15px;
-  height: 15px;
-  object-fit: contain;
+.controls-toolbar__filter-icon-svg {
+  width: 18px;
+  height: 18px;
   display: block;
-  filter: brightness(0) saturate(100%);
+  position: relative;
+  top: 2px;
   opacity: 0.67;
 }

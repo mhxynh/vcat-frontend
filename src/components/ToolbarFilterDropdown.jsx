@@ -1,5 +1,5 @@
 import React from 'react';
-import filterIcon from '../assets/images/filter.png';
+import { ReactComponent as FilterIcon } from '../assets/images/search-bar-icons/filter.svg';
 
 export default function ToolbarFilterDropdown({
   filterPanelId,
@@ -21,7 +21,7 @@ export default function ToolbarFilterDropdown({
         onClick={onToggle}
       >
         <span className="controls-toolbar__filter-icon" aria-hidden="true">
-          <img src={filterIcon} alt="" className="controls-toolbar__filter-icon-image" />
+          <FilterIcon className="controls-toolbar__filter-icon-svg" aria-hidden="true" focusable="false" />
         </span>
         <span className="controls-toolbar__filter-label">Filter</span>
       </button>
