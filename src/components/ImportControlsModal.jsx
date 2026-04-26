@@ -118,9 +118,9 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
         title: onImportSubmit ? 'Import uploaded' : 'Import submitted',
         message: onImportSubmit
           ? [
-              `File uploaded: ${file.name}`,
-              '',
-              'Next: New rows will appear after the server finishes processing (usually within a few seconds).',
+              `Import started for: ${file.name}`,
+              'We received your file and are importing your controls now.',
+              'You should see new rows appear in the catalog in a few seconds.',
             ].join('\n')
           : `${file.name} passed validation.`,
       });
