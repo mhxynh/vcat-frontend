@@ -111,6 +111,11 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
         syncForm(nextInitial);
       } catch (e) {
         if (cancelled) return;
+        const errorMessage = e?.message || 'Failed to load test details.';
+        showErrorToast({
+          title: 'Test Load Failed',
+          message: `An error occurred while loading the test: ${errorMessage}`,
+        });
       } finally {
         if (!cancelled) setLoading(false);
       }

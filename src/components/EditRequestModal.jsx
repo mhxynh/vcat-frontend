@@ -80,6 +80,11 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         setAssociatedTests(normalizeTests(testsData));
         setAllTests(normalizeTests(allTestsData));
       } catch (e) {
+        const errorMessage = e?.message || 'Failed to load request data.';
+        showErrorToast({
+          title: 'Request Load Failed',
+          message: `An error occurred while loading the request: ${errorMessage}`,
+        });
       } finally {
         setLoading(false);
       }
@@ -225,7 +230,15 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         prev.map((t) => ((t.testId ?? t.id) === testId ? { ...t, requestId: null } : t))
       );
       if (onUpdated) await onUpdated();
-    } catch (e) {}
+    } catch (e) {
+      const errorMessage = e?.message || 'Failed to remove control test.';
+
+      showErrorToast({
+        title: 'Control Test Remove from Request Failed',
+        message: `An error occurred while removing the control test from the request: ${errorMessage}`,
+      });
+      
+    }
   };
 
   if (!isOpen) return null;
