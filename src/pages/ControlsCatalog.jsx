@@ -45,7 +45,6 @@ export default function Controls() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
-  const importPollIntervalRef = useRef(null);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -98,40 +97,13 @@ export default function Controls() {
     }
   }
 
-  function stopImportPolling() {
-    if (importPollIntervalRef.current) {
-      clearInterval(importPollIntervalRef.current);
-      importPollIntervalRef.current = null;
-    }
-  }
-
-  function startImportPolling() {
-    stopImportPolling();
-    let attempts = 0;
-    const maxAttempts = 6; // ~12s at 2s interval
-    const intervalMs = 2000;
-
-    // Immediate refresh, then poll a few times in the background.
-    refreshControls();
-    importPollIntervalRef.current = setInterval(async () => {
-      attempts += 1;
-      try {
-        await refreshControls();
-      } finally {
-        if (attempts >= maxAttempts) stopImportPolling();
-      }
-    }, intervalMs);
-  }
-
   async function handleImportControlsCsv(file) {
     await uploadControlsCsvForImport(file);
-    // Close modal/toast quickly; refresh in the background (cancellable on unmount).
-    startImportPolling();
+    await refreshControls();
   }
 
   useEffect(() => {
     loadControls();
-    return () => stopImportPolling();
   }, []);
 
   const filtered = useMemo(() => {
