@@ -21,7 +21,11 @@ export default function ToolbarFilterDropdown({
         onClick={onToggle}
       >
         <span className="controls-toolbar__filter-icon" aria-hidden="true">
-          <FilterIcon className="controls-toolbar__filter-icon-svg" aria-hidden="true" focusable="false" />
+          <FilterIcon
+            className="controls-toolbar__filter-icon-svg"
+            aria-hidden="true"
+            focusable="false"
+          />
         </span>
         <span className="controls-toolbar__filter-label">Filter</span>
       </button>
