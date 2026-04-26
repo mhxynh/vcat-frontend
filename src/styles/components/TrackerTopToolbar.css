@@ -173,10 +173,11 @@
 }
 
 .controls-toolbar__filter-icon-svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   display: block;
   position: relative;
-  top: 2px;
-  opacity: 0.67;
+  top: 1px;
+  opacity: 1;
+  color: inherit;
 }
