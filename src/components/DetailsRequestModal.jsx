@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '../styles/components/DetailsRequestModal.css';
-import DetailsTestModal from './DetailsTestModal';
 import Icon from './common/Icon';
+import DetailsTestModal from './DetailsTestModal';
 import EditRequestModal from './EditRequestModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { deleteRequest, fetchRequestById, mapRequestRowToUi } from '../api/RequestsAPI';
@@ -18,11 +18,13 @@ import { ACTIONS } from '../auth';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
+  deleteRequestComment,
   mapCommentRowsToUi,
   deleteComment,
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 function getRequestYear(req) {
   const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
@@ -77,6 +79,9 @@ export default function DetailsRequestModal({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
+  const [commentDeletingId, setCommentDeletingId] = useState(null);
+  const [isDeleteCommentConfirmOpen, setIsDeleteCommentConfirmOpen] = useState(false);
+  const [pendingCommentDeletion, setPendingCommentDeletion] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -163,19 +168,26 @@ export default function DetailsRequestModal({
           setIsArchiveConfirmOpen(false);
           return;
         }
+        if (isDeleteCommentConfirmOpen) {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+          return;
+        }
         onClose?.();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen, isArchiveConfirmOpen]);
+  }, [isOpen, onClose, isDeleteConfirmOpen, isArchiveConfirmOpen, isDeleteCommentConfirmOpen]);
 
   useEffect(() => {
     if (!isOpen) {
       setIsEditOpen(false);
       setIsArchiveConfirmOpen(false);
       setIsDeleteConfirmOpen(false);
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
     }
   }, [isOpen]);
 
@@ -196,6 +208,9 @@ export default function DetailsRequestModal({
     setHistoryLogs([]);
     setHistoryError('');
     setCommentsError('');
+    setCommentDeletingId(null);
+    setIsDeleteCommentConfirmOpen(false);
+    setPendingCommentDeletion(null);
     setCurrentUser(null);
     setUsersById({});
     setIsArchiveConfirmOpen(false);
@@ -325,7 +340,12 @@ export default function DetailsRequestModal({
     if (!text || requestId == null || commentSaving) return;
 
     if (!currentUser?.['user_id']) {
-      setCommentsError('Could not identify the logged-in user.');
+      const msg = 'Could not identify the logged-in user.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
       return;
     }
 
@@ -347,21 +367,83 @@ export default function DetailsRequestModal({
 
       setLocalComments((prev) => [createdUi, ...prev]);
       setCommentText('');
+      showSuccessToast({
+        title: 'Comment Added',
+        message: 'Your comment was posted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to add comment');
+      const msg = e?.message || 'Failed to add comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
     } finally {
       setCommentSaving(false);
     }
   }
 
-  async function handleDeleteComment(commentId) {
-    if (!commentId) return;
+  async function handleDeleteComment(comment) {
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (requestId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      return;
+    }
+
+    setPendingCommentDeletion(comment);
+    setIsDeleteCommentConfirmOpen(true);
+  }
+
+  async function handleConfirmDeleteComment() {
+    const comment = pendingCommentDeletion;
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (requestId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      return;
+    }
+
     try {
-      setLocalComments((prev) => prev.filter((c) => c.id !== commentId));
-      await deleteComment({ commentId, requestId });
+      setCommentDeletingId(String(commentId));
+      setCommentsError('');
+      await deleteRequestComment({ commentId, requestId });
+      setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      showSuccessToast({
+        title: 'Comment Deleted',
+        message: 'Your comment was deleted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to delete comment');
-      await loadCommentsAndUsers(requestId);
+      const msg = e?.message || 'Failed to delete comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+    } finally {
+      setCommentDeletingId(null);
     }
   }
 
@@ -442,7 +524,7 @@ export default function DetailsRequestModal({
 
   async function refreshLocalRequest() {
     const rid = requestId;
-    if (rid == null) return;
+    if (rid == null) return null;
     try {
       const raw = await fetchRequestById(rid);
       const ui = mapRequestRowToUi(raw);
@@ -455,18 +537,27 @@ export default function DetailsRequestModal({
         console.warn('Failed to refresh tests for request', rid, e);
       }
 
-      setLocalRequest({ ...ui, controls: items });
+      const refreshedRequest = { ...ui, controls: items };
+      setLocalRequest(refreshedRequest);
       await loadCommentsAndUsers(rid);
-
-      try {
-        onUpdated?.(rid, ui, items);
-      } catch (e) {
-        console.warn('Parent onUpdated handler failed', e);
-      }
+      return refreshedRequest;
     } catch (e) {
       console.warn('Failed to refresh request', requestId, e);
+      return null;
     }
   }
+
+  const { refreshInline } = createRefreshHandlers({
+    localRefresh: refreshLocalRequest,
+    parentRefresh: (updatedRequest) => {
+      if (!updatedRequest?.requestId) return;
+      return onUpdated?.(
+        updatedRequest.requestId,
+        updatedRequest,
+        Array.isArray(updatedRequest.controls) ? updatedRequest.controls : []
+      );
+    },
+  });
 
   return (
     <>
@@ -665,21 +756,27 @@ export default function DetailsRequestModal({
                             <div className="drm-comment-top">
                               <div className="drm-comment-author">{c.author ?? '-'}</div>
                               <div className="drm-comment-meta">
-                                <span className="drm-comment-date">{c.date ?? ''}</span>
-                                {currentUser?.['user_id'] === c.authorUserId ? (
+                                <div className="drm-comment-date">{c.date ?? ''}</div>
+                                {currentUser?.['user_id'] != null &&
+                                String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
                                   <button
-                                    className="drm-comment-delete"
+                                    className="drm-comment-action drm-comment-action--delete"
                                     type="button"
-                                    onClick={() => handleDeleteComment(c.id)}
+                                    onClick={() => handleDeleteComment(c)}
+                                    disabled={commentDeletingId != null}
                                     aria-label="Delete comment"
                                     title="Delete comment"
                                   >
-                                    <Icon
-                                      name="trash"
-                                      category="actions"
-                                      size="sm"
-                                      color="#545454"
-                                    />
+                                    {commentDeletingId === String(c.id) ? (
+                                      '...'
+                                    ) : (
+                                      <Icon
+                                        name="trash"
+                                        category="actions"
+                                        size="sm"
+                                        color="#545454"
+                                      />
+                                    )}
                                   </button>
                                 ) : null}
                               </div>
@@ -812,7 +909,7 @@ export default function DetailsRequestModal({
           onClose={closeEdit}
           requestId={requestId}
           onUpdated={async () => {
-            await refreshLocalRequest();
+            await refreshInline();
           }}
         />
         <DetailsTestModal
@@ -829,7 +926,6 @@ export default function DetailsRequestModal({
           }}
           onUpdated={async () => {
             await refreshLocalRequest();
-            closeTestDetails();
           }}
         />
       </div>
@@ -861,6 +957,22 @@ export default function DetailsRequestModal({
         cancelText="Cancel"
         confirmDisabled={deleting}
         cancelDisabled={deleting}
+      />
+
+      <ConfirmActionModal
+        isOpen={isDeleteCommentConfirmOpen}
+        onClose={() => {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+        }}
+        onConfirm={handleConfirmDeleteComment}
+        title="Delete Comment?"
+        message="Are you sure you want to permanently delete this comment?"
+        itemName={String(pendingCommentDeletion?.text || '')}
+        warning="Deleted comments are permanently removed and cannot be recovered."
+        confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={commentDeletingId != null}
       />
     </>
   );

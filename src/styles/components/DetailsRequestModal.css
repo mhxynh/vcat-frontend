@@ -260,6 +260,9 @@
   font-weight: 800;
   color: #666;
   padding: 8px 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .drm-tab--active {
@@ -549,6 +552,12 @@
   gap: 12px;
 }
 
+.drm-comment-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .drm-comment-author {
   font-size: 12px;
   font-weight: 800;
@@ -558,6 +567,31 @@
 .drm-comment-date {
   font-size: 11px;
   color: #888;
+}
+
+.drm-comment-action {
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.drm-comment-action:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.drm-comment-action--delete:hover:not(:disabled) {
+  color: #b91c1c;
+}
+
+.drm-comment-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .drm-comment-text {

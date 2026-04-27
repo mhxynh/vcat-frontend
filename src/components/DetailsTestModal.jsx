@@ -22,14 +22,15 @@ import { fetchAuditLogsByTestId } from '../api/AuditAPI';
 import {
   fetchCommentsByTestId,
   createTestComment,
+  deleteTestComment,
   mapCommentRowsToUi,
-  deleteComment,
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 export default function DetailsTestModal({
   isOpen,
@@ -60,9 +61,6 @@ export default function DetailsTestModal({
   const [isRemoveAttachmentConfirmOpen, setIsRemoveAttachmentConfirmOpen] = useState(false);
   const [pendingAttachmentRemoval, setPendingAttachmentRemoval] = useState(null);
 
-  const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
-  const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
-
   const openArchiveConfirm = () => setIsArchiveConfirmOpen(true);
   const closeArchiveConfirm = () => setIsArchiveConfirmOpen(false);
 
@@ -77,6 +75,10 @@ export default function DetailsTestModal({
 
   const openApproveConfirm = () => setIsApproveConfirmOpen(true);
   const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
+
+  const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
+  const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
+
   const openRemoveAttachmentConfirm = () => setIsRemoveAttachmentConfirmOpen(true);
   const closeRemoveAttachmentConfirm = () => {
     setIsRemoveAttachmentConfirmOpen(false);
@@ -90,6 +92,9 @@ export default function DetailsTestModal({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
+  const [commentDeletingId, setCommentDeletingId] = useState(null);
+  const [isDeleteCommentConfirmOpen, setIsDeleteCommentConfirmOpen] = useState(false);
+  const [pendingCommentDeletion, setPendingCommentDeletion] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -182,6 +187,8 @@ export default function DetailsTestModal({
       setIsRemoveAttachmentConfirmOpen(false);
       setIsAddAttachmentModalOpen(false);
       setPendingAttachmentRemoval(null);
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
     }
   }, [isOpen]);
 
@@ -208,9 +215,12 @@ export default function DetailsTestModal({
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
     setIsApproveConfirmOpen(false);
+    setIsDeleteCommentConfirmOpen(false);
+    setPendingCommentDeletion(null);
     setIsRemoveAttachmentConfirmOpen(false);
     setPendingAttachmentRemoval(null);
     setCommentsError('');
+    setCommentDeletingId(null);
     setCurrentUser(null);
     setUsersById({});
     setLocalTest(objectToCamelCase(test ?? null));
@@ -268,6 +278,12 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isDeleteCommentConfirmOpen) {
+        setIsDeleteCommentConfirmOpen(false);
+        setPendingCommentDeletion(null);
+        return;
+      }
+
       onClose?.();
     };
 
@@ -285,6 +301,7 @@ export default function DetailsTestModal({
     isApproveConfirmOpen,
     isRemoveAttachmentConfirmOpen,
     isAddAttachmentModalOpen,
+    isDeleteCommentConfirmOpen,
   ]);
 
   useEffect(() => {
@@ -321,6 +338,11 @@ export default function DetailsTestModal({
     await onUpdated?.(normalized);
     return normalized;
   }
+
+  const { refreshInline, refreshAndClose } = createRefreshHandlers({
+    localRefresh: refreshTest,
+    parentRefresh: onUpdated,
+  });
 
   const stop = (e) => e.stopPropagation();
 
@@ -632,7 +654,7 @@ export default function DetailsTestModal({
           await updateOet(testId, 'TESTING_READY', 'OET_IN_PROGRESS');
         }
 
-        await refreshTest();
+        await refreshInline();
       });
     } catch (e) {
       alert(e?.message || 'Failed to start work');
@@ -645,7 +667,7 @@ export default function DetailsTestModal({
     try {
       await runBusy('Approving control...', async () => {
         await completeTest(testId);
-        await refreshTest();
+        await refreshInline();
       });
 
       showSuccessToast({
@@ -667,7 +689,7 @@ export default function DetailsTestModal({
 
     await runBusy('Submitting for approval...', async () => {
       await reviewTest(testId);
-      await refreshTest();
+      await refreshInline();
     });
   }
 
@@ -703,7 +725,7 @@ export default function DetailsTestModal({
 
         await runBusy('Updating step...', async () => {
           await setTrackStepApi(track, next, statusForTrack(track));
-          await refreshTest();
+          await refreshInline();
         });
       }
     } catch (e) {
@@ -740,7 +762,7 @@ export default function DetailsTestModal({
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, 'COMPLETED', statusForTrack(track));
-          await refreshTest();
+          await refreshInline();
         });
         return;
       }
@@ -767,7 +789,7 @@ export default function DetailsTestModal({
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, prev, statusValue);
-          await refreshTest();
+          await refreshInline();
         });
       }
     } catch (e) {
@@ -785,7 +807,7 @@ export default function DetailsTestModal({
       await runBusy('Rejecting...', async () => {
         const finalTrack = t?.requiresOet ? 'OET' : 'DAT';
         await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', statusForTrack(finalTrack));
-        await refreshTest();
+        await refreshInline();
       });
     } catch (e) {
       alert(e?.message || 'Failed to reject');
@@ -797,7 +819,12 @@ export default function DetailsTestModal({
     if (!text || testId == null || commentSaving) return;
 
     if (!currentUser?.['user_id']) {
-      setCommentsError('Could not identify the logged-in user.');
+      const msg = 'Could not identify the logged-in user.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
       return;
     }
 
@@ -819,21 +846,83 @@ export default function DetailsTestModal({
 
       setLocalComments((prev) => [createdUi, ...prev]);
       setCommentText('');
+      showSuccessToast({
+        title: 'Comment Added',
+        message: 'Your comment was posted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to add comment');
+      const msg = e?.message || 'Failed to add comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
     } finally {
       setCommentSaving(false);
     }
   }
 
-  async function handleDeleteComment(commentId) {
-    if (!commentId) return;
+  async function handleDeleteComment(comment) {
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (testId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      return;
+    }
+
+    setPendingCommentDeletion(comment);
+    setIsDeleteCommentConfirmOpen(true);
+  }
+
+  async function handleConfirmDeleteComment() {
+    const comment = pendingCommentDeletion;
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (testId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      return;
+    }
+
     try {
-      setLocalComments((prev) => prev.filter((c) => c.id !== commentId));
-      await deleteComment({ commentId, testId });
+      setCommentDeletingId(String(commentId));
+      setCommentsError('');
+      await deleteTestComment({ commentId, testId });
+      setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      showSuccessToast({
+        title: 'Comment Deleted',
+        message: 'Your comment was deleted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to delete comment');
-      if (currentTestId) await loadCommentsAndUsers(currentTestId);
+      const msg = e?.message || 'Failed to delete comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+    } finally {
+      setCommentDeletingId(null);
     }
   }
 
@@ -1134,16 +1223,22 @@ export default function DetailsTestModal({
                           <div className="dtm-comment-top">
                             <div className="dtm-comment-author">{c.author ?? '-'}</div>
                             <div className="dtm-comment-meta">
-                              <span className="dtm-comment-date">{c.date ?? ''}</span>
-                              {currentUser?.['user_id'] === c.authorUserId ? (
+                              <div className="dtm-comment-date">{c.date ?? ''}</div>
+                              {currentUser?.['user_id'] != null &&
+                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
                                 <button
-                                  className="dtm-comment-delete"
+                                  className="dtm-comment-action dtm-comment-action--delete"
                                   type="button"
-                                  onClick={() => handleDeleteComment(c.id)}
+                                  onClick={() => handleDeleteComment(c)}
+                                  disabled={commentDeletingId != null}
                                   aria-label="Delete comment"
                                   title="Delete comment"
                                 >
-                                  <Icon name="trash" category="actions" size="sm" color="#545454" />
+                                  {commentDeletingId === String(c.id) ? (
+                                    '...'
+                                  ) : (
+                                    <Icon name="trash" category="actions" size="sm" />
+                                  )}
                                 </button>
                               ) : null}
                             </div>
@@ -1363,6 +1458,22 @@ export default function DetailsTestModal({
       />
 
       <ConfirmActionModal
+        isOpen={isDeleteCommentConfirmOpen}
+        onClose={() => {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+        }}
+        onConfirm={handleConfirmDeleteComment}
+        title="Delete Comment?"
+        message="Are you sure you want to permanently delete this comment?"
+        itemName={String(pendingCommentDeletion?.text || '')}
+        warning="Deleted comments are permanently removed and cannot be recovered."
+        confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={commentDeletingId != null}
+      />
+
+      <ConfirmActionModal
         isOpen={isRemoveAttachmentConfirmOpen}
         onClose={closeRemoveAttachmentConfirm}
         onConfirm={async () => {
@@ -1454,9 +1565,7 @@ export default function DetailsTestModal({
         onClose={closeEdit}
         test={t}
         onUpdated={async () => {
-          closeEdit();
-          onClose?.();
-          window.location.reload();
+          await refreshAndClose();
         }}
       />
 
