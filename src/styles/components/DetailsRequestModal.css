@@ -601,12 +601,6 @@
   margin-top: 4px;
 }
 
-.drm-comment-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .drm-comment-delete {
   border: 0;
   background: transparent;
