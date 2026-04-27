@@ -10,6 +10,7 @@ const Icon = ({
   viewBox,
   width,
   height,
+  style,
   ...props
 }) => {
   const sizeMap = {
@@ -24,7 +25,7 @@ const Icon = ({
   const w = width ?? dimension;
   const h = height ?? dimension;
 
-  const mergedStyle = { ...(props.style || {}), color };
+  const mergedStyle = { ...(style || {}), color };
 
   return (
     <svg

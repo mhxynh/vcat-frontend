@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';

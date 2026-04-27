@@ -191,6 +191,7 @@ function lineIsExcelCsvSepDirective(rawLine) {
 }
 
 const STRIP_CSV_PEEK_BYTES = 65536;
+const CATALOG_IMPORT_MAX_BYTES = 20 * 1024 * 1024;
 
 function countLeadingLinesToStripFromCsvText(text) {
   const lines = text.split(/\r?\n/);
@@ -371,6 +372,17 @@ export async function uploadControlsCsvForImport(file) {
   }
 
   const importFile = await stripLeadingExcelSepDirectiveFromCsvFile(working);
+  if (importFile.size > CATALOG_IMPORT_MAX_BYTES) {
+    throw new Error(
+      [
+        'File is too large after conversion.',
+        '',
+        'Maximum import size is 20 MB.',
+        'Tip: Delete unused rows/columns, or save/export as CSV to reduce file size.',
+      ].join('\n')
+    );
+  }
+
   const prefixBytes = Math.min(importFile.size, 32768);
   const prefix = await importFile.slice(0, prefixBytes).text();
   assertCatalogImportCsvHeaderPrefix(prefix);
