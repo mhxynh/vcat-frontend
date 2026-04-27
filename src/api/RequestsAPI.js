@@ -1,4 +1,5 @@
 import { parseLocalDate } from '../utils/date';
+import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { objectToSnakeCase } from '../utils/transformer';
 import { authFetch, API_BASE } from './apiClient';
 
@@ -184,7 +185,7 @@ export function buildRequestHistoryForControl(tests, requestRows) {
         : null;
     return {
       key: String(rid),
-      requestId: `REQ-${String(rid).padStart(4, '0')}`,
+      requestId: formatRequestDisplayId(rid, dateRaw),
       /** Localized display string (e.g. Requests table); prefer `dateRaw` + one format pass in UI. */
       date: ui?.requestDate ?? '-',
       /** ISO-ish raw value safe for `new Date()` / `formatDisplayDate` in the control modal */

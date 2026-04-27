@@ -7,20 +7,7 @@ import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
-
-function getRequestYearFromValue(value) {
-  if (!value) return new Date().getFullYear();
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
-
-  return parsed.getFullYear();
-}
-
-function formatRequestDisplayId(requestId, yearSource) {
-  if (requestId == null || requestId === '') return '';
-  return `REQ-${getRequestYearFromValue(yearSource)}-${String(requestId).padStart(4, '0')}`;
-}
+import { formatRequestDisplayId } from '../utils/requestDisplayId';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
