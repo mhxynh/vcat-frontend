@@ -83,7 +83,7 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
               </label>
               <input
                 id="aalm-url"
-                type="text"
+                type="url"
                 className={`aalm-input ${error ? 'aalm-input--error' : ''}`}
                 placeholder="https://example.com/file.pdf"
                 value={url}
