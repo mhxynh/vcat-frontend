@@ -714,7 +714,7 @@ export default function DetailsRequestModal({
                       placeholder="Write a comment…"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
-                      disabled={commentSaving || commentsLoading}
+                      disabled={commentSaving || commentsLoading || !currentUser}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleAddComment();
                       }}

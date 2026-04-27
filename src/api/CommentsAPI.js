@@ -198,28 +198,3 @@ export function mapCommentRowsToUi(rows, usersById = {}) {
       return tb - ta;
     });
 }
-
-export async function deleteComment({ commentId, testId, requestId } = {}) {
-  if (commentId == null) throw new Error('commentId is required');
-
-  const url = new URL(`${API_BASE}/comments`);
-  url.searchParams.set('comment_id', String(commentId));
-  if (testId != null) url.searchParams.set('test_id', String(testId));
-  if (requestId != null) url.searchParams.set('request_id', String(requestId));
-
-  const resp = await authFetch(url.toString(), {
-    method: 'DELETE',
-    headers: { Accept: 'application/json' },
-  });
-
-  if (!resp.ok) {
-    let msg = `Failed to delete comment (HTTP ${resp.status})`;
-    try {
-      const data = await resp.json();
-      msg = data?.error || data?.message || msg;
-    } catch {}
-    throw new Error(msg);
-  }
-
-  return true;
-}
