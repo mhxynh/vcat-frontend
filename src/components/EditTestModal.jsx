@@ -8,6 +8,7 @@ import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 const MODAL_BODY_MIN_HEIGHT = 428;
 
@@ -64,6 +65,11 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+
+  const { refreshAndClose } = createRefreshHandlers({
+    parentRefresh: onUpdated,
+    close: onClose,
+  });
 
   function syncForm(state) {
     setSelectedControlId(state.selectedControlId);
@@ -223,14 +229,12 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       setSubmitting(true);
       await updateTest(originalTestId, payload);
 
-      await onUpdated?.();
+      await refreshAndClose();
 
       showSuccessToast({
         title: 'Control Test Saved',
         message: `${vgcpidForPayload} has been saved successfully.`,
       });
-
-      onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to update test.';
       setError(errorMessage);

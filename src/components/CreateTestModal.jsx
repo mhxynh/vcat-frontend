@@ -5,6 +5,7 @@ import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { createTest } from '../api/TestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -31,6 +32,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+
+  const { refreshAndClose } = createRefreshHandlers({
+    parentRefresh: onCreated,
+    close: onClose,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -179,14 +185,12 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
       setSubmitting(true);
       const created = await createTest(payload);
 
-      await onCreated?.(created);
+      await refreshAndClose(created);
 
       showSuccessToast({
         title: 'Control Test Created',
         message: `${selectedVgcpid} test has been created successfully.`,
       });
-
-      onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to create test.';
       setSubmitError(errorMessage);
