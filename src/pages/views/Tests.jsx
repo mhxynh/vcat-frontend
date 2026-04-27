@@ -60,10 +60,18 @@ function normalizeText(v) {
   return String(v ?? '').toLowerCase();
 }
 
+function getTesterId(t) {
+  return t?.assigned_tester_id ?? t?.assignedTesterId ?? t?.tester_id ?? t?.testerId ?? null;
+}
+
+function getTesterName(t) {
+  return t?.tester_name ?? t?.assigned_tester_name ?? t?.assignedTesterName ?? '';
+}
+
 /** Single lowercase string of display fields for substring search */
 function buildTestSearchHaystack(t) {
   const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '';
-  const testerCell = t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '';
+  const testerCell = getTesterName(t) || getTesterId(t) || '';
   const parts = [
     t?.test_id,
     t?.request_id,
@@ -180,6 +188,7 @@ export default function Tests({
   const filteredTests = useMemo(() => {
     const statusFilter = filters?.status ?? 'all';
     const typeFilter = filters?.testType ?? 'all';
+    const testerFilter = filters?.tester ?? 'all';
     const overdueFilter = filters?.overdue ?? 'all';
 
     const q = normalizeText(String(searchValue).trim());
@@ -195,6 +204,21 @@ export default function Tests({
         if (computed !== typeFilter) return false;
       }
 
+      if (testerFilter !== 'all') {
+        const testerId = getTesterId(t);
+        const testerName = getTesterName(t);
+        const hasTester =
+          testerId != null ||
+          (String(testerName).trim() !== '' &&
+            !['-', 'unassigned'].includes(normalizeText(testerName).trim()));
+
+        if (testerFilter === 'unassigned') {
+          if (hasTester) return false;
+        } else if (String(testerId) !== String(testerFilter)) {
+          return false;
+        }
+      }
+
       if (overdueFilter !== 'all') {
         const due = parseLocalDate(t?.due_date);
         const overdue = due ? isOverdue(due) : false;
@@ -207,7 +231,7 @@ export default function Tests({
 
     if (!q) return base;
     return base.filter((t) => buildTestSearchHaystack(t).includes(q));
-  }, [tests, searchValue, filters?.status, filters?.testType, filters?.overdue]);
+  }, [tests, searchValue, filters?.status, filters?.testType, filters?.tester, filters?.overdue]);
 
   const rowIds = useMemo(
     () => filteredTests.map((t) => t?.test_id).filter((v) => v != null),
@@ -269,8 +293,7 @@ export default function Tests({
                 const id = t.test_id;
 
                 const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '-';
-                const testerCell =
-                  t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '-';
+                const testerCell = getTesterName(t) || getTesterId(t) || '-';
 
                 const testType = testTypeFromFlags(t);
                 const statusLabel = statusToLabel(t?.status);
