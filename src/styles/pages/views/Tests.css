@@ -154,6 +154,10 @@ body {
   text-align: left;
 }
 
+.table--tests {
+  table-layout: fixed;
+}
+
 .table__header-cell {
   padding: 16px;
   font-size: 13px;

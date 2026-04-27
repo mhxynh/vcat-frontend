@@ -24,15 +24,23 @@
   gap: 10px 12px;
 }
 
+.cfp-grid > * {
+  min-width: 0;
+}
+
 .cfp-grid .form-label {
   font-weight: 400;
 }
 
 .cfp-grid .form-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 8px 10px;
   font-size: 13px;
   border-radius: 8px;
   font-weight: 400;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 760px) {

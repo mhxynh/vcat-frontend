@@ -263,7 +263,18 @@ export default function Tests({
         <div className="no-results">No tests found.</div>
       ) : (
         <>
-          <table className="table">
+          <table className="table table--tests">
+            <colgroup>
+              {canBulkAssign ? <col style={{ width: '5%' }} /> : null}
+              <col style={{ width: canBulkAssign ? '12%' : '14%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: canBulkAssign ? '19%' : '22%' }} />
+              <col style={{ width: canBulkAssign ? '11%' : '12%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: canBulkAssign ? '9%' : '8%' }} />
+            </colgroup>
             <thead className="table__head">
               <tr>
                 {canBulkAssign ? (
