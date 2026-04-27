@@ -1,8 +1,9 @@
+import { parseLocalDate } from './date';
+
 function parseYear(value) {
   if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.getFullYear();
+  const date = parseLocalDate(value);
+  return date ? date.getFullYear() : null;
 }
 
 export function getRequestYearFromValue(value, { fallbackYear = new Date().getFullYear() } = {}) {
@@ -33,7 +34,12 @@ function getRequestIdFromRequest(req) {
  * - formatRequestDisplayId(requestId, yearSource, { fallback: '' })
  */
 export function formatRequestDisplayId(input, yearSource, options) {
-  const hasExplicitYearSource = arguments.length >= 2 && typeof yearSource !== 'object';
+  const isOptionsBag =
+    yearSource != null &&
+    typeof yearSource === 'object' &&
+    !Array.isArray(yearSource) &&
+    !(yearSource instanceof Date);
+  const hasExplicitYearSource = arguments.length >= 2 && !isOptionsBag;
   const opts = (hasExplicitYearSource ? options : yearSource) || {};
 
   const { fallback = '', prefix = 'REQ', padLength = 4, includeYear = true } = opts;
