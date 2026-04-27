@@ -20,7 +20,6 @@ import {
   createRequestComment,
   deleteRequestComment,
   mapCommentRowsToUi,
-  deleteComment,
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
