@@ -30,6 +30,7 @@ import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 export default function DetailsTestModal({
   isOpen,
@@ -337,6 +338,11 @@ export default function DetailsTestModal({
     await onUpdated?.(normalized);
     return normalized;
   }
+
+  const { refreshInline, refreshAndClose } = createRefreshHandlers({
+    localRefresh: refreshTest,
+    parentRefresh: onUpdated,
+  });
 
   const stop = (e) => e.stopPropagation();
 
@@ -648,7 +654,7 @@ export default function DetailsTestModal({
           await updateOet(testId, 'TESTING_READY', 'OET_IN_PROGRESS');
         }
 
-        await refreshTest();
+        await refreshInline();
       });
     } catch (e) {
       alert(e?.message || 'Failed to start work');
@@ -661,7 +667,7 @@ export default function DetailsTestModal({
     try {
       await runBusy('Approving control...', async () => {
         await completeTest(testId);
-        await refreshTest();
+        await refreshInline();
       });
 
       showSuccessToast({
@@ -683,7 +689,7 @@ export default function DetailsTestModal({
 
     await runBusy('Submitting for approval...', async () => {
       await reviewTest(testId);
-      await refreshTest();
+      await refreshInline();
     });
   }
 
@@ -719,7 +725,7 @@ export default function DetailsTestModal({
 
         await runBusy('Updating step...', async () => {
           await setTrackStepApi(track, next, statusForTrack(track));
-          await refreshTest();
+          await refreshInline();
         });
       }
     } catch (e) {
@@ -756,7 +762,7 @@ export default function DetailsTestModal({
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, 'COMPLETED', statusForTrack(track));
-          await refreshTest();
+          await refreshInline();
         });
         return;
       }
@@ -783,7 +789,7 @@ export default function DetailsTestModal({
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, prev, statusValue);
-          await refreshTest();
+          await refreshInline();
         });
       }
     } catch (e) {
@@ -801,7 +807,7 @@ export default function DetailsTestModal({
       await runBusy('Rejecting...', async () => {
         const finalTrack = t?.requiresOet ? 'OET' : 'DAT';
         await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', statusForTrack(finalTrack));
-        await refreshTest();
+        await refreshInline();
       });
     } catch (e) {
       alert(e?.message || 'Failed to reject');
@@ -1559,9 +1565,7 @@ export default function DetailsTestModal({
         onClose={closeEdit}
         test={t}
         onUpdated={async () => {
-          closeEdit();
-          onClose?.();
-          window.location.reload();
+          await refreshAndClose();
         }}
       />
 
