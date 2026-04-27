@@ -74,8 +74,6 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
           '',
           'Please select one of these file types:',
           `- ${formatAllowedExtensionsList()}`,
-          '',
-          'Tip: In Excel use File → Save As → “Excel Workbook (*.xlsx)” or “CSV (Comma delimited) (*.csv)”.',
         ].join('\n')
       );
       setFile(null);
