@@ -158,6 +158,16 @@ body {
   table-layout: fixed;
 }
 
+.table--tests .table__header-cell,
+.table--tests .table__cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table--tests .table__cell {
+  white-space: nowrap;
+}
+
 .table__header-cell {
   padding: 16px;
   font-size: 13px;
