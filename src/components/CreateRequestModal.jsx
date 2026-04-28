@@ -23,13 +23,11 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
   const currentYear = new Date().getFullYear();
 
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (!isOpen) return;
 
-    setError('');
     setFieldErrors({});
     setPriority('');
     setRequestedBy('');
@@ -47,7 +45,6 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    setError('');
     setFieldErrors({});
 
     const errs = {};
@@ -82,8 +79,6 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to create request.';
-      setError(errorMessage);
-
       showErrorToast({
         title: 'Request Create Failed',
         message: `An error occurred while creating the request: ${errorMessage}`,
@@ -110,8 +105,6 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
         </div>
 
         <form className="crm-body" onSubmit={handleSubmit}>
-          {error && <div className="crm-error">{error}</div>}
-
           <div className="crm-grid">
             <div className="crm-field">
               <label className="crm-label">

@@ -30,7 +30,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   const { refreshAndClose } = createRefreshHandlers({
@@ -42,7 +41,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     if (!isOpen) return;
 
     setLoadError('');
-    setSubmitError('');
     setFieldErrors({});
     setSelectedVgcpid('');
     setSelectedRequestId('');
@@ -143,7 +141,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   }, [selectedRequestId, requests]);
 
   const handleSubmit = async () => {
-    setSubmitError('');
     setFieldErrors({});
 
     const errs = {};
@@ -158,16 +155,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     }
 
     const flags = flagsFromTestType(testType);
-    if (!flags.requiresDat && !flags.requiresOet) {
-      setSubmitError('Invalid Test Type.');
-      return;
-    }
-
     const matchingControl = controls.find((c) => c.vgcpid === selectedVgcpid);
-    if (!matchingControl) {
-      setSubmitError('Invalid VGCPID selection.');
-      return;
-    }
 
     const payload = {
       vgcpid: selectedVgcpid,
@@ -193,7 +181,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
       });
     } catch (e) {
       const errorMessage = e?.message || 'Failed to create test.';
-      setSubmitError(errorMessage);
 
       showErrorToast({
         title: 'Control Test Create Failed',
@@ -228,7 +215,6 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
         <div className="ctm-body">
           {loadError && <div className="ctm-error">{loadError}</div>}
-          {submitError && <div className="ctm-error">{submitError}</div>}
 
           <div className="ctm-grid">
             <div className="ctm-field">
