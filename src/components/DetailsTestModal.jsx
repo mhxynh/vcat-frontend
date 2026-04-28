@@ -3,6 +3,7 @@ import '../styles/components/DetailsTestModal.css';
 import Icon from './common/Icon';
 import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
+import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
@@ -14,16 +15,23 @@ import {
   completeTest,
   updateDat,
   updateOet,
+  updateTest,
   fetchTestById,
   unarchiveTest,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
-import { fetchCommentsByTestId, createTestComment, mapCommentRowsToUi } from '../api/CommentsAPI';
+import {
+  fetchCommentsByTestId,
+  createTestComment,
+  deleteTestComment,
+  mapCommentRowsToUi,
+} from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
+import { createRefreshHandlers } from '../utils/modalRefresh';
 
 export default function DetailsTestModal({
   isOpen,
@@ -45,12 +53,15 @@ export default function DetailsTestModal({
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
 
+  const [isAddAttachmentModalOpen, setIsAddAttachmentModalOpen] = useState(false);
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
   const [isUnarchiveConfirmOpen, setIsUnarchiveConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+  const [isRemoveAttachmentConfirmOpen, setIsRemoveAttachmentConfirmOpen] = useState(false);
+  const [pendingAttachmentRemoval, setPendingAttachmentRemoval] = useState(null);
 
   const openArchiveConfirm = () => setIsArchiveConfirmOpen(true);
   const closeArchiveConfirm = () => setIsArchiveConfirmOpen(false);
@@ -69,6 +80,15 @@ export default function DetailsTestModal({
   const openApproveConfirm = () => setIsApproveConfirmOpen(true);
   const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
 
+  const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
+  const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
+
+  const openRemoveAttachmentConfirm = () => setIsRemoveAttachmentConfirmOpen(true);
+  const closeRemoveAttachmentConfirm = () => {
+    setIsRemoveAttachmentConfirmOpen(false);
+    setPendingAttachmentRemoval(null);
+  };
+
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
@@ -76,6 +96,9 @@ export default function DetailsTestModal({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentSaving, setCommentSaving] = useState(false);
+  const [commentDeletingId, setCommentDeletingId] = useState(null);
+  const [isDeleteCommentConfirmOpen, setIsDeleteCommentConfirmOpen] = useState(false);
+  const [pendingCommentDeletion, setPendingCommentDeletion] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [usersById, setUsersById] = useState({});
 
@@ -83,6 +106,7 @@ export default function DetailsTestModal({
     () => objectToCamelCase(localTest ?? test ?? null),
     [localTest, test]
   );
+  const attachments = useMemo(() => normalizeAttachments(normalizedTest), [normalizedTest]);
 
   const currentTestId = normalizedTest?.testId ?? null;
 
@@ -165,6 +189,11 @@ export default function DetailsTestModal({
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
+      setIsRemoveAttachmentConfirmOpen(false);
+      setIsAddAttachmentModalOpen(false);
+      setPendingAttachmentRemoval(null);
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
     }
   }, [isOpen]);
 
@@ -191,7 +220,12 @@ export default function DetailsTestModal({
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
     setIsApproveConfirmOpen(false);
+    setIsDeleteCommentConfirmOpen(false);
+    setPendingCommentDeletion(null);
+    setIsRemoveAttachmentConfirmOpen(false);
+    setPendingAttachmentRemoval(null);
     setCommentsError('');
+    setCommentDeletingId(null);
     setCurrentUser(null);
     setUsersById({});
     setLocalTest(objectToCamelCase(test ?? null));
@@ -244,6 +278,22 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isRemoveAttachmentConfirmOpen) {
+        closeRemoveAttachmentConfirm();
+        return;
+      }
+
+      if (isAddAttachmentModalOpen) {
+        closeAddAttachmentModal();
+        return;
+      }
+
+      if (isDeleteCommentConfirmOpen) {
+        setIsDeleteCommentConfirmOpen(false);
+        setPendingCommentDeletion(null);
+        return;
+      }
+
       onClose?.();
     };
 
@@ -260,6 +310,9 @@ export default function DetailsTestModal({
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
+    isRemoveAttachmentConfirmOpen,
+    isAddAttachmentModalOpen,
+    isDeleteCommentConfirmOpen,
   ]);
 
   useEffect(() => {
@@ -293,8 +346,14 @@ export default function DetailsTestModal({
     const normalized = objectToCamelCase(fresh);
     setLocalTest(normalized);
     onEdit?.(normalized);
+    await onUpdated?.(normalized);
     return normalized;
   }
+
+  const { refreshInline, refreshAndClose } = createRefreshHandlers({
+    localRefresh: refreshTest,
+    parentRefresh: onUpdated,
+  });
 
   const stop = (e) => e.stopPropagation();
 
@@ -326,6 +385,116 @@ export default function DetailsTestModal({
       title: 'Permission Denied',
       message: 'Only managers have permission for this action. Contact a manager for access.',
     });
+  }
+
+  function handleAddEvidenceLink() {
+    openAddAttachmentModal();
+  }
+
+  function normalizeEvidenceLinkUrl(nextUrl) {
+    const parsedUrl = new URL(nextUrl);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new Error('Unsupported URL protocol');
+    }
+    return parsedUrl.toString();
+  }
+
+  async function handleAddAttachmentLinkSubmit(nextUrl) {
+    if (testId == null || isBusy) return;
+
+    let normalizedUrl = nextUrl;
+    try {
+      normalizedUrl = normalizeEvidenceLinkUrl(nextUrl);
+    } catch {
+      showErrorToast({
+        title: 'Invalid Link',
+        message: 'Enter a valid http:// or https:// URL.',
+      });
+      return;
+    }
+
+    const existingUrls = attachments.map((attachment) => attachment.url);
+    const normalizedExistingUrls = Array.from(
+      new Set(
+        existingUrls
+          .map((url) => {
+            try {
+              return normalizeEvidenceLinkUrl(url);
+            } catch {
+              return String(url || '').trim();
+            }
+          })
+          .filter(Boolean)
+      )
+    );
+
+    if (normalizedExistingUrls.includes(normalizedUrl)) {
+      showErrorToast({
+        title: 'Link Already Added',
+        message: 'That evidence link is already in the list.',
+      });
+      return;
+    }
+
+    try {
+      await runBusy('Saving attachments...', async () => {
+        await updateTest(testId, {
+          action: 'update_evidence_links',
+          evidenceLinks: [...normalizedExistingUrls, normalizedUrl],
+        });
+        await refreshTest();
+      });
+
+      showSuccessToast({
+        title: 'Evidence Link Added',
+        message: 'The attachment list has been updated.',
+      });
+
+      closeAddAttachmentModal();
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Add Link',
+        message: e?.message || 'An error occurred while saving the evidence link.',
+      });
+    }
+  }
+
+  async function handleRemoveEvidenceLink(url) {
+    if (testId == null || isBusy || !url) return;
+
+    const attachment = attachments.find((item) => item.url === url) || null;
+    setPendingAttachmentRemoval(attachment || { url, title: url });
+    openRemoveAttachmentConfirm();
+  }
+
+  async function handleConfirmRemoveEvidenceLink() {
+    const url = pendingAttachmentRemoval?.url;
+    if (testId == null || isBusy || !url) return;
+
+    const nextLinks = attachments
+      .map((attachment) => attachment.url)
+      .filter((attachmentUrl) => attachmentUrl !== url);
+
+    try {
+      await runBusy('Updating attachments...', async () => {
+        await updateTest(testId, {
+          action: 'update_evidence_links',
+          evidenceLinks: nextLinks,
+        });
+        await refreshTest();
+      });
+
+      showSuccessToast({
+        title: 'Evidence Link Removed',
+        message: 'The attachment list has been updated.',
+      });
+      closeRemoveAttachmentConfirm();
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Remove Link',
+        message: e?.message || 'An error occurred while removing the evidence link.',
+      });
+    }
   }
 
   async function handleArchive() {
@@ -522,7 +691,7 @@ export default function DetailsTestModal({
           await updateOet(testId, 'TESTING_READY', 'OET_IN_PROGRESS');
         }
 
-        await refreshTest();
+        await refreshInline();
       });
     } catch (e) {
       alert(e?.message || 'Failed to start work');
@@ -535,7 +704,7 @@ export default function DetailsTestModal({
     try {
       await runBusy('Approving control...', async () => {
         await completeTest(testId);
-        await refreshTest();
+        await refreshInline();
       });
 
       showSuccessToast({
@@ -557,7 +726,7 @@ export default function DetailsTestModal({
 
     await runBusy('Submitting for approval...', async () => {
       await reviewTest(testId);
-      await refreshTest();
+      await refreshInline();
     });
   }
 
@@ -593,7 +762,7 @@ export default function DetailsTestModal({
 
         await runBusy('Updating step...', async () => {
           await setTrackStepApi(track, next, statusForTrack(track));
-          await refreshTest();
+          await refreshInline();
         });
       }
     } catch (e) {
@@ -630,7 +799,7 @@ export default function DetailsTestModal({
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, 'COMPLETED', statusForTrack(track));
-          await refreshTest();
+          await refreshInline();
         });
         return;
       }
@@ -657,7 +826,7 @@ export default function DetailsTestModal({
 
         await runBusy('Reverting...', async () => {
           await setTrackStepApi(track, prev, statusValue);
-          await refreshTest();
+          await refreshInline();
         });
       }
     } catch (e) {
@@ -675,7 +844,7 @@ export default function DetailsTestModal({
       await runBusy('Rejecting...', async () => {
         const finalTrack = t?.requiresOet ? 'OET' : 'DAT';
         await setTrackStepApi(finalTrack, 'ADDRESSING_COMMENTS', statusForTrack(finalTrack));
-        await refreshTest();
+        await refreshInline();
       });
     } catch (e) {
       alert(e?.message || 'Failed to reject');
@@ -687,7 +856,12 @@ export default function DetailsTestModal({
     if (!text || testId == null || commentSaving) return;
 
     if (!currentUser?.['user_id']) {
-      setCommentsError('Could not identify the logged-in user.');
+      const msg = 'Could not identify the logged-in user.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
       return;
     }
 
@@ -709,10 +883,83 @@ export default function DetailsTestModal({
 
       setLocalComments((prev) => [createdUi, ...prev]);
       setCommentText('');
+      showSuccessToast({
+        title: 'Comment Added',
+        message: 'Your comment was posted successfully.',
+      });
     } catch (e) {
-      setCommentsError(e?.message || 'Failed to add comment');
+      const msg = e?.message || 'Failed to add comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to add comment',
+        message: msg,
+      });
     } finally {
       setCommentSaving(false);
+    }
+  }
+
+  async function handleDeleteComment(comment) {
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (testId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      return;
+    }
+
+    setPendingCommentDeletion(comment);
+    setIsDeleteCommentConfirmOpen(true);
+  }
+
+  async function handleConfirmDeleteComment() {
+    const comment = pendingCommentDeletion;
+    const commentId = comment?.id;
+    const commentAuthorId = comment?.authorUserId;
+
+    if (testId == null || commentId == null || commentDeletingId != null) return;
+
+    const currentUserId = currentUser?.['user_id'];
+    if (currentUserId == null || String(currentUserId) !== String(commentAuthorId ?? '')) {
+      const msg = 'You can only delete comments you posted.';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      return;
+    }
+
+    try {
+      setCommentDeletingId(String(commentId));
+      setCommentsError('');
+      await deleteTestComment({ commentId, testId });
+      setLocalComments((prev) => prev.filter((c) => String(c.id) !== String(commentId)));
+      setIsDeleteCommentConfirmOpen(false);
+      setPendingCommentDeletion(null);
+      showSuccessToast({
+        title: 'Comment Deleted',
+        message: 'Your comment was deleted successfully.',
+      });
+    } catch (e) {
+      const msg = e?.message || 'Failed to delete comment';
+      setCommentsError(msg);
+      showErrorToast({
+        title: 'Failed to delete comment',
+        message: msg,
+      });
+    } finally {
+      setCommentDeletingId(null);
     }
   }
 
@@ -728,6 +975,58 @@ export default function DetailsTestModal({
     return String(statusValue || 'NOT_STARTED')
       .toLowerCase()
       .replaceAll('_', '-');
+  }
+
+  function normalizeAttachments(test) {
+    const raw = test?.evidenceLinks ?? test?.evidence_links ?? [];
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+      .map((item) => {
+        if (item == null) return null;
+
+        const url =
+          typeof item === 'string' ? item.trim() : String(item?.url ?? item?.href ?? '').trim();
+        if (!url) return null;
+
+        const parsed = safeParseUrl(url);
+        const title =
+          typeof item === 'object' && item?.title
+            ? String(item.title).trim()
+            : formatAttachmentTitle(parsed, url);
+        const source = parsed?.hostname ? parsed.hostname : 'External link';
+
+        return {
+          id: url,
+          url,
+          title,
+          meta: source,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function safeParseUrl(url) {
+    try {
+      return new URL(url);
+    } catch {
+      return null;
+    }
+  }
+
+  function formatAttachmentTitle(parsed, fallbackUrl) {
+    if (!parsed) return fallbackUrl;
+
+    const pathParts = String(parsed.pathname || '')
+      .split('/')
+      .filter(Boolean);
+    const fileName = pathParts[pathParts.length - 1] || parsed.hostname || fallbackUrl;
+
+    try {
+      return decodeURIComponent(fileName);
+    } catch {
+      return fileName;
+    }
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
@@ -863,14 +1162,20 @@ export default function DetailsTestModal({
               className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
               onClick={() => setActiveTab('Attachments')}
             >
-              Attachments
+              <span>Attachments</span>
+              {attachments.length > 0 ? (
+                <span className="dtm-tab-count">{attachments.length}</span>
+              ) : null}
             </button>
             <button
               type="button"
               className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
               onClick={() => setActiveTab('Comments')}
             >
-              Comments
+              <span>Comments</span>
+              {localComments.length > 0 ? (
+                <span className="dtm-tab-count">{localComments.length}</span>
+              ) : null}
             </button>
             <button
               type="button"
@@ -954,7 +1259,26 @@ export default function DetailsTestModal({
                         <div className="dtm-comment-main">
                           <div className="dtm-comment-top">
                             <div className="dtm-comment-author">{c.author ?? '-'}</div>
-                            <div className="dtm-comment-date">{c.date ?? ''}</div>
+                            <div className="dtm-comment-meta">
+                              <div className="dtm-comment-date">{c.date ?? ''}</div>
+                              {currentUser?.['user_id'] != null &&
+                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
+                                <button
+                                  className="dtm-comment-action dtm-comment-action--delete"
+                                  type="button"
+                                  onClick={() => handleDeleteComment(c)}
+                                  disabled={commentDeletingId != null}
+                                  aria-label="Delete comment"
+                                  title="Delete comment"
+                                >
+                                  {commentDeletingId === String(c.id) ? (
+                                    '...'
+                                  ) : (
+                                    <Icon name="trash" category="actions" size="sm" />
+                                  )}
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           <div className="dtm-comment-text">{c.text ?? ''}</div>
                         </div>
@@ -973,7 +1297,118 @@ export default function DetailsTestModal({
                 contextVgcpid={vgcpid}
               />
             ) : activeTab === 'Attachments' ? (
-              <div className="dtm-empty">This view is not implemented yet.</div>
+              <div className="dtm-attachments">
+                <div className="dtm-attachments-note" role="note">
+                  <Icon
+                    name="exclamation"
+                    category="deco"
+                    size="sm"
+                    color="#1d4ed8"
+                    className="dtm-attachments-note-icon-svg"
+                  />
+                  <div>
+                    <div className="dtm-attachments-note-title">
+                      Attachments are stored as external links. No files are uploaded or stored
+                      within this application.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dtm-attachments-header">
+                  <div>
+                    <div className="dtm-section-title">Linked Files ({attachments.length})</div>
+                  </div>
+
+                  <button
+                    className="dtm-btn dtm-btn--outline dtm-btn--compact"
+                    type="button"
+                    onClick={handleAddEvidenceLink}
+                    disabled={isBusy}
+                  >
+                    <Icon
+                      name="attach"
+                      category="actions"
+                      size="sm"
+                      color="#96151D"
+                      className="dtm-btn-icon"
+                    />
+                    Add Link
+                  </button>
+                </div>
+
+                {attachments.length === 0 ? (
+                  <div className="dtm-attachments-empty">
+                    <div className="dtm-attachments-empty-title">No links yet</div>
+                    <div className="dtm-attachments-empty-text">
+                      Add a supporting document, screenshot, or other external evidence link to
+                      track test artifacts here.
+                    </div>
+                    <button
+                      className="dtm-btn dtm-btn--primary dtm-btn--compact"
+                      type="button"
+                      onClick={handleAddEvidenceLink}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="attach"
+                        category="actions"
+                        size="sm"
+                        color="#fff"
+                        className="dtm-btn-icon"
+                      />
+                      Add Link
+                    </button>
+                  </div>
+                ) : (
+                  <div className="dtm-attachments-list">
+                    {attachments.map((attachment) => (
+                      <div className="dtm-attachment-card" key={attachment.id}>
+                        <div className="dtm-attachment-link">
+                          <div className="dtm-attachment-media" aria-hidden="true">
+                            <Icon
+                              name="documents"
+                              category="deco"
+                              size="sm"
+                              color="#4b5563"
+                              className="dtm-attachment-media-icon"
+                            />
+                          </div>
+
+                          <div className="dtm-attachment-body">
+                            <div className="dtm-attachment-title-row">
+                              <div className="dtm-attachment-title">{attachment.title}</div>
+                            </div>
+                            <div className="dtm-attachment-meta">{attachment.meta}</div>
+                          </div>
+                        </div>
+
+                        <div className="dtm-attachment-actions">
+                          <a
+                            className="dtm-attachment-action dtm-attachment-action--open"
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open Link"
+                          >
+                            <Icon name="link" category="actions" size="sm" color="#545454" />
+                          </a>
+
+                          <button
+                            className="dtm-attachment-action dtm-attachment-action--delete"
+                            type="button"
+                            onClick={() => handleRemoveEvidenceLink(attachment.url)}
+                            disabled={isBusy}
+                            aria-label={`Remove ${attachment.title}`}
+                            title="Delete Link"
+                          >
+                            <Icon name="trash" category="actions" size="sm" color="#545454" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : null}
           </section>
 
@@ -1072,6 +1507,38 @@ export default function DetailsTestModal({
       />
 
       <ConfirmActionModal
+        isOpen={isDeleteCommentConfirmOpen}
+        onClose={() => {
+          setIsDeleteCommentConfirmOpen(false);
+          setPendingCommentDeletion(null);
+        }}
+        onConfirm={handleConfirmDeleteComment}
+        title="Delete Comment?"
+        message="Are you sure you want to permanently delete this comment?"
+        itemName={String(pendingCommentDeletion?.text || '')}
+        warning="Deleted comments are permanently removed and cannot be recovered."
+        confirmText={commentDeletingId != null ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
+        confirmDisabled={commentDeletingId != null}
+      />
+
+      <ConfirmActionModal
+        isOpen={isRemoveAttachmentConfirmOpen}
+        onClose={closeRemoveAttachmentConfirm}
+        onConfirm={async () => {
+          await handleConfirmRemoveEvidenceLink();
+        }}
+        title="Remove Evidence Link?"
+        message="Are you sure you want to remove this evidence link?"
+        itemName={String(pendingAttachmentRemoval?.title || pendingAttachmentRemoval?.url || '')}
+        warning="This will remove the link from the control test attachments list."
+        confirmText={isBusy ? 'Removing...' : 'Remove'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+      />
+
+      <ConfirmActionModal
         isOpen={isArchiveConfirmOpen}
         onClose={closeArchiveConfirm}
         onConfirm={async () => {
@@ -1164,10 +1631,15 @@ export default function DetailsTestModal({
         onClose={closeEdit}
         test={t}
         onUpdated={async () => {
-          closeEdit();
-          onClose?.();
-          window.location.reload();
+          await refreshAndClose();
         }}
+      />
+
+      <AddAttachmentLinkModal
+        isOpen={isAddAttachmentModalOpen}
+        onClose={closeAddAttachmentModal}
+        onAdd={handleAddAttachmentLinkSubmit}
+        isLoading={isBusy}
       />
     </>
   );
