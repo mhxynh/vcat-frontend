@@ -111,6 +111,15 @@ export default function Tests({
     setSelectedTest(null);
   }
 
+  async function refreshTests() {
+    try {
+      const data = await fetchAllTests();
+      setTests(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error('Failed to refresh tests', e);
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
 
@@ -338,6 +347,7 @@ export default function Tests({
             prev?.test_id === updatedTest.test_id ? { ...prev, ...updatedTest } : prev
           );
         }}
+        onUpdated={refreshTests}
       />
     </div>
   );
