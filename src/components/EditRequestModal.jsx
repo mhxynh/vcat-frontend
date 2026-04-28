@@ -237,7 +237,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         title: 'Control Test Remove from Request Failed',
         message: `An error occurred while removing the control test from the request: ${errorMessage}`,
       });
-      
     }
   };
 
