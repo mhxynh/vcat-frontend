@@ -25,9 +25,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   const [controlSme, setControlSme] = useState('');
   const [escalation, setEscalation] = useState(false);
   const [status, setStatus] = useState('Active');
-
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
@@ -40,7 +38,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
     setEscalation(initial.escalation);
     setStatus(initial.status);
 
-    setError('');
     setSubmitting(false);
     setFieldErrors({});
   }, [isOpen, initial]);
@@ -57,7 +54,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   }, [isOpen, onClose]);
 
   async function handleSave() {
-    setError('');
     setFieldErrors({});
 
     const errs = {};
@@ -102,8 +98,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to update control';
-      setError(errorMessage);
-
       showErrorToast({
         title: 'Control Save Failed',
         message: `An error occurred while saving the control: ${errorMessage}`,
@@ -146,8 +140,6 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
         </div>
 
         <div className="ecm-body">
-          {error && <div className="ecm-error">{error}</div>}
-
           <div className="ecm-grid">
             <div className="ecm-field">
               <label className="ecm-label">

@@ -38,7 +38,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   const searchWrapperRef = useRef(null);
@@ -63,7 +62,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
     const loadRequestData = async () => {
       setLoading(true);
-      setError('');
       setFieldErrors({});
       try {
         const reqData = objectToCamelCase(await fetchRequestById(requestId));
@@ -82,7 +80,11 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         setAssociatedTests(normalizeTests(testsData));
         setAllTests(normalizeTests(allTestsData));
       } catch (e) {
-        setError(e?.message || 'Failed to load request details.');
+        const errorMessage = e?.message || 'Failed to load request data.';
+        showErrorToast({
+          title: 'Request Load Failed',
+          message: `An error occurred while loading the request: ${errorMessage}`,
+        });
       } finally {
         setLoading(false);
       }
@@ -92,7 +94,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   }, [isOpen, requestId]);
 
   const handleSaveChanges = async () => {
-    setError('');
     setFieldErrors({});
 
     const errs = {};
@@ -125,7 +126,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to update request.';
-      setError(errorMessage);
 
       showErrorToast({
         title: 'Request Save Failed',
@@ -203,7 +203,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       });
     } catch (e) {
       const errorMessage = e?.message || 'Failed to add control test.';
-      setError(errorMessage);
 
       showErrorToast({
         title: 'Control Test Add to Request Failed',
@@ -232,7 +231,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       );
       if (onUpdated) await onUpdated();
     } catch (e) {
-      setError(e?.message || 'Failed to remove control test.');
+      const errorMessage = e?.message || 'Failed to remove control test.';
+
+      showErrorToast({
+        title: 'Control Test Remove from Request Failed',
+        message: `An error occurred while removing the control test from the request: ${errorMessage}`,
+      });
     }
   };
 
@@ -279,8 +283,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
             </div>
           ) : (
             <>
-              {error && <div className="ecm-error">{error}</div>}
-
               <div className="erm-summary-card">
                 <div className="erm-summary-left">
                   <div className="erm-summary-id">REQUEST ID</div>

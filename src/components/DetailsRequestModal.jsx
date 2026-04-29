@@ -716,7 +716,16 @@ export default function DetailsRequestModal({
                       onChange={(e) => setCommentText(e.target.value)}
                       disabled={commentSaving || commentsLoading || !currentUser}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleAddComment();
+                        if (
+                          e.key === 'Enter' &&
+                          currentUser &&
+                          !commentSaving &&
+                          !commentsLoading &&
+                          commentText.trim()
+                        ) {
+                          e.preventDefault();
+                          handleAddComment();
+                        }
                       }}
                     />
                     <button
@@ -725,7 +734,7 @@ export default function DetailsRequestModal({
                       onClick={handleAddComment}
                       aria-label="Send"
                       disabled={
-                        commentSaving || commentsLoading || !currentUser || !commentText.trim()
+                        !currentUser || commentSaving || commentsLoading || !commentText.trim()
                       }
                     >
                       {commentSaving ? '...' : '➤'}
