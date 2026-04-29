@@ -159,11 +159,12 @@ export async function fetchTestsByControlId(controlId) {
   return Array.isArray(data) ? data : [];
 }
 
-export async function deleteTest(testId, { hard = false } = {}) {
+export async function deleteTest(testId, { hard = false, archive = true } = {}) {
   if (testId == null) throw new Error('Test ID is required');
 
   const url = new URL(`${API_BASE}/tests/${encodeURIComponent(String(testId))}`);
   if (hard) url.searchParams.set('hard', 'true');
+  if (!archive) url.searchParams.set('archive', 'false');
 
   const resp = await authFetch(url.toString(), {
     method: 'DELETE',
@@ -183,11 +184,15 @@ export async function deleteTest(testId, { hard = false } = {}) {
 }
 
 export async function archiveTest(testId) {
-  return deleteTest(testId, { hard: false });
+  return deleteTest(testId, { hard: false, archive: true });
 }
 
 export async function hardDeleteTest(testId) {
   return deleteTest(testId, { hard: true });
+}
+
+export async function unarchiveTest(testId) {
+  return deleteTest(testId, { hard: false, archive: false });
 }
 
 export function mapTestRowToRequestControlCard(test) {
