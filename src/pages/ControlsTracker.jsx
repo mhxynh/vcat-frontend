@@ -25,6 +25,7 @@ function formatLastUpdated(date) {
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
+  const [visitedTabs, setVisitedTabs] = useState(() => new Set(['Controls']));
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
@@ -47,8 +48,18 @@ export default function ControlsTracker() {
     });
   }
 
-  const renderActiveView = () => {
-    switch (activeTab) {
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => {
+      if (prev.has(tab)) return prev;
+      const next = new Set(prev);
+      next.add(tab);
+      return next;
+    });
+  };
+
+  const renderView = (tab) => {
+    switch (tab) {
       case 'Controls':
         return (
           <Tests
@@ -70,7 +81,7 @@ export default function ControlsTracker() {
       case 'Calendar':
         return <Calendar refreshKey={calendarRefreshKey} />;
       default:
-        return <Tests refreshKey={controlsRefreshKey} />;
+        return null;
     }
   };
 
@@ -108,7 +119,7 @@ export default function ControlsTracker() {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabClick(tab)}
               className={`sub-tab ${activeTab === tab ? 'sub-tab--active' : ''}`}
             >
               {tab}
@@ -208,7 +219,20 @@ export default function ControlsTracker() {
         )}
       </div>
 
-      <div className="tracker__content">{renderActiveView()}</div>
+      <div className="tracker__content">
+        {tabs.map((tab) =>
+          visitedTabs.has(tab) ? (
+            <section
+              key={tab}
+              className="tracker__view-panel"
+              hidden={activeTab !== tab}
+              aria-hidden={activeTab !== tab}
+            >
+              {renderView(tab)}
+            </section>
+          ) : null
+        )}
+      </div>
 
       <CreateTestModal
         isOpen={isCreateTestOpen}
