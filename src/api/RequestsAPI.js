@@ -225,11 +225,12 @@ function formatDate(value) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export async function deleteRequest(requestId, { hard = false } = {}) {
+export async function deleteRequest(requestId, { hard = false, archive = true } = {}) {
   if (requestId == null) throw new Error('Request ID is required');
 
   const url = new URL(`${API_BASE}/requests/${encodeURIComponent(String(requestId))}`);
   if (hard) url.searchParams.set('hard', 'true');
+  if (!archive) url.searchParams.set('archive', 'false');
 
   const resp = await authFetch(url.toString(), {
     method: 'DELETE',
@@ -246,6 +247,10 @@ export async function deleteRequest(requestId, { hard = false } = {}) {
   }
 
   return await resp.json().catch(() => ({}));
+}
+
+export async function unarchiveRequest(requestId) {
+  return deleteRequest(requestId, { hard: false, archive: false });
 }
 
 export async function createRequest(payload) {
