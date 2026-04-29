@@ -119,6 +119,7 @@ export default function ControlsTracker() {
           {tabs.map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => handleTabClick(tab)}
               className={`sub-tab ${activeTab === tab ? 'sub-tab--active' : ''}`}
             >
