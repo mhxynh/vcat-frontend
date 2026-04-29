@@ -282,6 +282,7 @@
   font-size: 11px;
   line-height: 1;
   font-weight: 800;
+  margin-left: 6px;
 }
 
 /* Comments */
@@ -524,15 +525,24 @@
 }
 
 .drm-avatar {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  background: #f2f2f2;
-  border: 1px solid #e5e5e5;
+  background: #b21d1d;
+  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
+}
+
+.drm-comment-left {
+  flex-shrink: 0;
+}
+
+.drm-comment-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .drm-comment-top {
@@ -596,9 +606,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid #ededed;
-  border-radius: 12px;
-  padding: 10px 12px;
 }
 
 .drm-addcomment--top {
@@ -606,18 +613,27 @@
 }
 
 .drm-comment-input {
-  border: 0;
-  outline: none;
   flex: 1;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 12px 12px;
+  outline: none;
   font-weight: 400;
   font-size: 12px;
 }
 
 .drm-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   border: 0;
-  background: transparent;
+  background: #b21d1d;
+  color: white;
   cursor: pointer;
-  font-size: 16px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Footer */
