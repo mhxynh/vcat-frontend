@@ -69,6 +69,7 @@ export async function updateRequest(requestId, payload) {
 
 export function mapRequestRowToUi(row) {
   const startDate = row.start_date ?? null;
+  const requestDateRaw = startDate ?? row.created_at ?? null;
   const dueDate = row.due_date ?? null;
 
   return {
@@ -78,7 +79,8 @@ export function mapRequestRowToUi(row) {
     priority: formatPriority(row.priority),
     requestedBy: row.requestor ?? '-',
 
-    requestDate: formatDate(startDate) || formatDate(row.created_at),
+    requestDate: formatDate(requestDateRaw),
+    requestDateRaw,
 
     dueDate: formatDate(dueDate) || '-',
     overdue: isOverdue(dueDate, row.status),

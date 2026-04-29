@@ -16,8 +16,9 @@ function getYearSourceFromRequest(req) {
     req?.created_at ??
     req?.startDate ??
     req?.start_date ??
-    req?.requestDate ??
+    req?.requestDateRaw ??
     req?.dateRaw ??
+    req?.requestDate ??
     null
   );
 }
