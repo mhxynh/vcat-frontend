@@ -17,6 +17,7 @@ import {
   updateOet,
   updateTest,
   fetchTestById,
+  unarchiveTest,
 } from '../api/TestsAPI';
 import { fetchAuditLogsByTestId } from '../api/AuditAPI';
 import {
@@ -54,6 +55,7 @@ export default function DetailsTestModal({
 
   const [isAddAttachmentModalOpen, setIsAddAttachmentModalOpen] = useState(false);
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [isUnarchiveConfirmOpen, setIsUnarchiveConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
@@ -63,6 +65,8 @@ export default function DetailsTestModal({
 
   const openArchiveConfirm = () => setIsArchiveConfirmOpen(true);
   const closeArchiveConfirm = () => setIsArchiveConfirmOpen(false);
+  const openUnarchiveConfirm = () => setIsUnarchiveConfirmOpen(true);
+  const closeUnarchiveConfirm = () => setIsUnarchiveConfirmOpen(false);
 
   const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
   const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
@@ -180,6 +184,7 @@ export default function DetailsTestModal({
     if (!isOpen) {
       setIsEditOpen(false);
       setIsArchiveConfirmOpen(false);
+      setIsUnarchiveConfirmOpen(false);
       setIsDeleteConfirmOpen(false);
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
@@ -253,6 +258,11 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isUnarchiveConfirmOpen) {
+        closeUnarchiveConfirm();
+        return;
+      }
+
       if (isSubmitConfirmOpen) {
         closeSubmitConfirm();
         return;
@@ -296,6 +306,7 @@ export default function DetailsTestModal({
     onClose,
     isDeleteConfirmOpen,
     isArchiveConfirmOpen,
+    isUnarchiveConfirmOpen,
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
@@ -508,6 +519,32 @@ export default function DetailsTestModal({
       showErrorToast({
         title: 'Control Test Archive Failed',
         message: `An error occurred while archiving the control test: ${errorMessage}`,
+      });
+    }
+  }
+
+  async function handleUnarchive() {
+    if (testId == null) return;
+
+    try {
+      await runBusy('Unarchiving...', async () => {
+        await unarchiveTest(testId);
+        await refreshTest();
+      });
+
+      showSuccessToast({
+        title: 'Control Test Unarchived',
+        message: `${vgcpid} has been unarchived successfully.`,
+      });
+
+      await onUpdated?.();
+      onClose?.();
+    } catch (e) {
+      const errorMessage = e?.message || 'Failed to unarchive control test';
+
+      showErrorToast({
+        title: 'Control Test Unarchive Failed',
+        message: `An error occurred while unarchiving the control test: ${errorMessage}`,
       });
     }
   }
@@ -1383,6 +1420,7 @@ export default function DetailsTestModal({
             </button>
 
             <div className="dtm-footer-right">
+              {/* Archive / Unarchive */}
               <div
                 onClick={(e) => {
                   const blockedWrapper = e.target.closest('.restricted-action--blocked');
@@ -1394,14 +1432,25 @@ export default function DetailsTestModal({
                 }}
               >
                 <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
-                  <button
-                    className="dtm-btn dtm-btn--outline"
-                    type="button"
-                    onClick={openArchiveConfirm}
-                    disabled={isBusy}
-                  >
-                    Archive Control Test
-                  </button>
+                  {statusUpper === 'ARCHIVED' ? (
+                    <button
+                      className="dtm-btn dtm-btn--outline"
+                      type="button"
+                      onClick={openUnarchiveConfirm}
+                      disabled={isBusy}
+                    >
+                      Unarchive Control Test
+                    </button>
+                  ) : (
+                    <button
+                      className="dtm-btn dtm-btn--outline"
+                      type="button"
+                      onClick={openArchiveConfirm}
+                      disabled={isBusy}
+                    >
+                      Archive Control Test
+                    </button>
+                  )}
                 </RestrictedAction>
               </div>
 
@@ -1505,6 +1554,23 @@ export default function DetailsTestModal({
         confirmDisabled={isBusy}
         cancelDisabled={isBusy}
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
+      <ConfirmActionModal
+        isOpen={isUnarchiveConfirmOpen}
+        onClose={closeUnarchiveConfirm}
+        onConfirm={async () => {
+          closeUnarchiveConfirm();
+          await handleUnarchive();
+        }}
+        title="Unarchive Control Test?"
+        message="Are you sure you want to unarchive this control test?"
+        itemName={String(vgcpid)}
+        warning="Unarchived control tests will be returned to active views and set to Not Started."
+        confirmText={isBusy ? 'Unarchiving...' : 'Unarchive'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
       />
 
       <ConfirmActionModal
