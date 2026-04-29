@@ -11,7 +11,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [initialStatus, setInitialStatus] = useState('active');
 
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
@@ -23,7 +22,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
     setControlSme('');
     setEscalation(null);
     setInitialStatus('active');
-    setError('');
     setSubmitting(false);
     setFieldErrors({});
   }, [isOpen]);
@@ -41,7 +39,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
 
   async function handleCreate(e) {
     e?.preventDefault();
-    setError('');
     setFieldErrors({});
 
     const errs = {};
@@ -80,8 +77,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
       onClose();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to create control';
-      setError(errorMessage);
-
       showErrorToast({
         title: 'Control Create Failed',
         message: `An error occurred while creating the control: ${errorMessage}`,
@@ -119,8 +114,6 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
         </div>
 
         <form className="modal-body" onSubmit={handleCreate}>
-          {error && <div className="modal-error">{error}</div>}
-
           <div className="modal-grid">
             <div className="form-field">
               <label className="form-label">
