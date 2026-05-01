@@ -81,6 +81,33 @@
   visibility: visible;
 }
 
+.dashboard-export-button {
+  gap: 8px;
+  min-width: 88px;
+}
+
+.dashboard-export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.dashboard-export-spinner {
+  width: 14px;
+  height: 14px;
+  position: relative;
+  top: -1px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: dashboard-export-spin 0.8s linear infinite;
+}
+
+@keyframes dashboard-export-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .dashboard-summary-grid {
   margin-top: 10px;
   display: grid;

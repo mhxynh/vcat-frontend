@@ -3,7 +3,10 @@ import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
+import { exportTable } from '../api/ExportAPI';
 import DetailsTestModal from '../components/DetailsTestModal';
+import { showErrorToast } from '../utils/toast';
+import { triggerBrowserDownload } from '../utils/download';
 import { ReactComponent as ClipboardIcon } from '../assets/images/dashboard-icons/clipboard.svg';
 import { ReactComponent as FlagIcon } from '../assets/images/dashboard-icons/flag.svg';
 import { ReactComponent as CubeIcon } from '../assets/images/dashboard-icons/cube.svg';
@@ -361,6 +364,7 @@ export default function Dashboard() {
   const [loadError, setLoadError] = useState('');
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
@@ -436,6 +440,22 @@ export default function Dashboard() {
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
+
+  async function handleExport() {
+    setIsExporting(true);
+
+    try {
+      const { downloadUrl, filename } = await exportTable('dashboard', 'dashboard_export.csv');
+      triggerBrowserDownload(downloadUrl, filename);
+    } catch {
+      showErrorToast({
+        title: 'Export Failed',
+        message: 'Failed to generate export. Please try again.',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const summaryCards = useMemo(() => {
     const valuesByKey = {
@@ -566,8 +586,15 @@ export default function Dashboard() {
       }
       actions={
         <>
-          <button className="btn btn--white" type="button">
-            Export
+          <button
+            className="btn btn--white dashboard-export-button"
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            aria-busy={isExporting}
+          >
+            {isExporting && <span className="dashboard-export-spinner" aria-hidden="true" />}
+            {isExporting ? 'Exporting...' : 'Export'}
           </button>
           <button
             className="btn btn--blue"
