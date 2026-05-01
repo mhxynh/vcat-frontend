@@ -17,7 +17,7 @@ function isAllowedImportFilename(filename) {
 }
 
 function formatAllowedExtensionsList() {
-  return 'CSV (.csv) or Excel (.xlsx, .xls)';
+  return 'CSV (.csv) or Excel (.xlsx, .xlsm, .xls, .xlx)';
 }
 
 function downloadCsvTemplate() {
@@ -171,7 +171,8 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
               <ul className="icm-requirements__text icm-requirements__list">
                 <li>
                   Accepted formats: <strong>CSV</strong> (.csv) or <strong>Excel</strong> (.xlsx /
-                  .xls). The first worksheet is used and must match the column template.
+                  .xlsm / .xls / .xlx). The first worksheet is used and must match the column
+                  template.
                 </li>
                 <li>
                   Required columns: Control ID, Description, Control Owner, Control SME, Escalation
@@ -182,7 +183,11 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
             </div>
           </div>
 
-          {error ? <div className="icm-error">{error}</div> : null}
+          {error ? (
+            <div className="icm-error" role="alert" aria-live="polite">
+              {error}
+            </div>
+          ) : null}
 
           <div className="icm-field">
             <label className="icm-field-label" htmlFor="import-controls-file">

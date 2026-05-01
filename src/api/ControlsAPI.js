@@ -363,10 +363,21 @@ async function excelWorkbookFileToCsvFile(file) {
  * Excel (.xlsx, .xls, etc.) is converted to CSV in the browser so the upload stays CSV/text/csv.
  */
 export async function uploadControlsCsvForImport(file) {
+  if (file.size > CATALOG_IMPORT_MAX_BYTES) {
+    throw new Error(
+      [
+        'File is too large.',
+        '',
+        'Maximum import size is 20 MB.',
+        'Tip: Delete unused rows/columns, or save/export as CSV to reduce file size.',
+      ].join('\n')
+    );
+  }
+
   let working = file;
   if (!isCatalogImportCsvFilename(file.name)) {
     if (!isCatalogImportExcelFilename(file.name)) {
-      throw new Error('Please select a CSV or Excel file (.csv, .xlsx, .xls).');
+      throw new Error('Please select a CSV or Excel file (.csv, .xlsx, .xlsm, .xls, .xlx).');
     }
     working = await excelWorkbookFileToCsvFile(file);
   }
