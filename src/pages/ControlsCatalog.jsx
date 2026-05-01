@@ -4,7 +4,7 @@ import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
-import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
+import { exportCatalog, fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
@@ -43,6 +43,7 @@ export default function Controls() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
+  const [isExporting, setIsExporting] = useState(false);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -92,6 +93,34 @@ export default function Controls() {
       setLastUpdatedAt(new Date());
     } catch (e) {
       setError(e?.message || 'Failed to load controls');
+    }
+  }
+
+  function triggerDownload(downloadUrl, filename) {
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename || 'catalog_export.csv';
+    link.rel = 'noopener';
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  async function handleExport() {
+    setIsExporting(true);
+
+    try {
+      const { downloadUrl, filename } = await exportCatalog();
+      triggerDownload(downloadUrl, filename);
+    } catch {
+      showErrorToast({
+        title: 'Export Failed',
+        message: 'Failed to generate export. Please try again.',
+      });
+    } finally {
+      setIsExporting(false);
     }
   }
 
@@ -145,8 +174,15 @@ export default function Controls() {
         }
         actions={
           <>
-            <button className="btn btn--white" type="button">
-              Export
+            <button
+              className="btn btn--white controls-export-button"
+              type="button"
+              onClick={handleExport}
+              disabled={isExporting}
+              aria-busy={isExporting}
+            >
+              {isExporting && <span className="controls-export-spinner" aria-hidden="true" />}
+              {isExporting ? 'Exporting...' : 'Export'}
             </button>
             <button
               className="btn btn--blue"

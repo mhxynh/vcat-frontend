@@ -41,6 +41,33 @@ export async function fetchControls() {
   return data;
 }
 
+export async function exportCatalog() {
+  const url = new URL(`${API_BASE}/export`);
+  url.searchParams.set('table', 'controls');
+
+  const resp = await authFetch(url.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  const data = await resp.json().catch(() => ({}));
+
+  if (!resp.ok) {
+    const msg = data?.error || data?.message || `Failed to generate export (HTTP ${resp.status})`;
+    throw new Error(msg);
+  }
+
+  const downloadUrl = data?.downloadUrl || data?.download_url;
+  if (!downloadUrl) {
+    throw new Error('Export response did not include a download URL');
+  }
+
+  return {
+    downloadUrl,
+    filename: data?.filename || 'catalog_export.csv',
+  };
+}
+
 //schemas are: control_id, vgcpid, description, control_owner, control_sme, escalation, is_active, date_created, last_tested
 
 export function mapControlRowToUi(control) {
