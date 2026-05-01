@@ -93,20 +93,20 @@ export default function Requests({ refreshKey = 0 }) {
   async function handleAssign(requestId, userId, displayName, note) {
     if (!requestId) return;
 
-    let previousBucket = null;
+    const previousBucket = testsByRequestId[requestId] ?? null;
 
     setTestsByRequestId((prev) => {
-      const next = { ...prev };
-      const bucket = next[requestId];
+      const bucket = prev[requestId];
       if (!bucket || !Array.isArray(bucket.items)) return prev;
 
-      previousBucket = bucket;
-      next[requestId] = {
-        ...bucket,
-        error: '',
-        items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+      return {
+        ...prev,
+        [requestId]: {
+          ...bucket,
+          error: '',
+          items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+        },
       };
-      return next;
     });
 
     try {
