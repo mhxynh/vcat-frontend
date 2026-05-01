@@ -8,6 +8,7 @@ import Calendar from './views/Calendar';
 import CreateTestModal from '../components/CreateTestModal';
 import CreateRequestModal from '../components/CreateRequestModal';
 import AssignTestModal from '../components/AssignTestModal';
+import ExportButton from '../components/ExportButton';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
@@ -124,16 +125,11 @@ export default function ControlsTracker() {
         }
         actions={
           <>
-            <button
-              className="btn btn--white tracker-export-button"
-              type="button"
+            <ExportButton
+              isLoading={isExporting}
+              disabled={!activeExportConfig}
               onClick={handleExportClick}
-              disabled={!activeExportConfig || isExporting}
-              aria-busy={isExporting}
-            >
-              {isExporting && <span className="tracker-export-spinner" aria-hidden="true" />}
-              {isExporting ? 'Exporting...' : 'Export'}
-            </button>
+            />
             <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
               Refresh
             </button>

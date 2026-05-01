@@ -3,6 +3,7 @@
 
 @import './components/Navbar.css';
 @import './components/PageHeader.css';
+@import './components/ExportButton.css';
 @import './components/CreateControlModal.css';
 
 @import './pages/ControlsCatalog.css';

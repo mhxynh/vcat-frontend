@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import ExportButton from '../components/ExportButton';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { exportCatalog, fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
@@ -163,16 +164,7 @@ export default function Controls() {
         }
         actions={
           <>
-            <button
-              className="btn btn--white controls-export-button"
-              type="button"
-              onClick={handleExport}
-              disabled={isExporting}
-              aria-busy={isExporting}
-            >
-              {isExporting && <span className="controls-export-spinner" aria-hidden="true" />}
-              {isExporting ? 'Exporting...' : 'Export'}
-            </button>
+            <ExportButton isLoading={isExporting} onClick={handleExport} />
             <button
               className="btn btn--blue"
               type="button"

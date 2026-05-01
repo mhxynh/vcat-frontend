@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
+import ExportButton from '../components/ExportButton';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { exportTable } from '../api/ExportAPI';
@@ -586,16 +587,7 @@ export default function Dashboard() {
       }
       actions={
         <>
-          <button
-            className="btn btn--white dashboard-export-button"
-            type="button"
-            onClick={handleExport}
-            disabled={isExporting}
-            aria-busy={isExporting}
-          >
-            {isExporting && <span className="dashboard-export-spinner" aria-hidden="true" />}
-            {isExporting ? 'Exporting...' : 'Export'}
-          </button>
+          <ExportButton isLoading={isExporting} onClick={handleExport} />
           <button
             className="btn btn--blue"
             type="button"
