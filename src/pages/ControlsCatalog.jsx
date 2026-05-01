@@ -8,6 +8,7 @@ import { exportCatalog, fetchControls, mapControlRowToUi } from '../api/Controls
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
+import { triggerBrowserDownload } from '../utils/download';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -96,24 +97,12 @@ export default function Controls() {
     }
   }
 
-  function triggerDownload(downloadUrl, filename) {
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = filename || 'catalog_export.csv';
-    link.rel = 'noopener';
-    link.style.display = 'none';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
   async function handleExport() {
     setIsExporting(true);
 
     try {
       const { downloadUrl, filename } = await exportCatalog();
-      triggerDownload(downloadUrl, filename);
+      triggerBrowserDownload(downloadUrl, filename);
     } catch {
       showErrorToast({
         title: 'Export Failed',

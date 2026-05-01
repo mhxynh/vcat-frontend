@@ -11,7 +11,9 @@ import AssignTestModal from '../components/AssignTestModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
+import { exportTable } from '../api/ExportAPI';
 import { showErrorToast } from '../utils/toast';
+import { triggerBrowserDownload } from '../utils/download';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -32,6 +34,7 @@ export default function ControlsTracker() {
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
   const [selectedTestRows, setSelectedTestRows] = useState([]);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
@@ -82,6 +85,34 @@ export default function ControlsTracker() {
     if (activeTab === 'Calendar') setCalendarRefreshKey((k) => k + 1);
   };
 
+  const exportConfigByTab = {
+    Controls: { table: 'tests', fallbackFilename: 'test_export.csv' },
+    Requests: { table: 'requests', fallbackFilename: 'request_export.csv' },
+  };
+
+  const activeExportConfig = exportConfigByTab[activeTab];
+
+  async function handleExportClick() {
+    if (!activeExportConfig) return;
+
+    setIsExporting(true);
+
+    try {
+      const { downloadUrl, filename } = await exportTable(
+        activeExportConfig.table,
+        activeExportConfig.fallbackFilename
+      );
+      triggerBrowserDownload(downloadUrl, filename);
+    } catch {
+      showErrorToast({
+        title: 'Export Failed',
+        message: 'Failed to generate export. Please try again.',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return (
     <main className="tracker">
       <PageHeader
@@ -93,8 +124,15 @@ export default function ControlsTracker() {
         }
         actions={
           <>
-            <button className="btn btn--white" type="button">
-              Export
+            <button
+              className="btn btn--white tracker-export-button"
+              type="button"
+              onClick={handleExportClick}
+              disabled={!activeExportConfig || isExporting}
+              aria-busy={isExporting}
+            >
+              {isExporting && <span className="tracker-export-spinner" aria-hidden="true" />}
+              {isExporting ? 'Exporting...' : 'Export'}
             </button>
             <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
               Refresh

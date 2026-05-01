@@ -1,5 +1,6 @@
 import { objectToSnakeCase } from '../utils/transformer';
 import { authFetch, API_BASE } from './apiClient';
+import { exportTable } from './ExportAPI';
 
 export async function deleteControl(vgcpid, { hard = false } = {}) {
   const url = new URL(`${API_BASE}/controls/${encodeURIComponent(vgcpid)}`);
@@ -42,30 +43,7 @@ export async function fetchControls() {
 }
 
 export async function exportCatalog() {
-  const url = new URL(`${API_BASE}/export`);
-  url.searchParams.set('table', 'controls');
-
-  const resp = await authFetch(url.toString(), {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-  });
-
-  const data = await resp.json().catch(() => ({}));
-
-  if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to generate export (HTTP ${resp.status})`;
-    throw new Error(msg);
-  }
-
-  const downloadUrl = data?.downloadUrl || data?.download_url;
-  if (!downloadUrl) {
-    throw new Error('Export response did not include a download URL');
-  }
-
-  return {
-    downloadUrl,
-    filename: data?.filename || 'catalog_export.csv',
-  };
+  return exportTable('controls', 'control_export.csv');
 }
 
 //schemas are: control_id, vgcpid, description, control_owner, control_sme, escalation, is_active, date_created, last_tested
