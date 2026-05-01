@@ -116,7 +116,7 @@ export default function Tests({
       const data = await fetchAllTests();
       setTests(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error('Failed to refresh tests', e);
+      setError(e?.message || 'Failed to refresh tests');
     }
   }
 
