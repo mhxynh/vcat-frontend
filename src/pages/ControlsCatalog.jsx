@@ -8,6 +8,9 @@ import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
+import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
+import TrackerTopToolbar from '../components/TrackerTopToolbar';
+import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -38,6 +41,8 @@ export default function Controls() {
   const PAGE_SIZE = 10;
   const [search, setSearch] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState(DEFAULT_FILTERS);
 
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +67,15 @@ export default function Controls() {
       title: 'Permission Denied',
       message: 'Only managers have permission for this action. Contact a manager for access.',
     });
+  }
+
+  function handleRestrictedOverlayClick(e) {
+    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+    if (blockedWrapper) {
+      e.preventDefault();
+      e.stopPropagation();
+      showPermissionDeniedToast();
+    }
   }
 
   async function loadControls({ setFirstOpen = false } = {}) {
@@ -111,8 +125,36 @@ export default function Controls() {
       result = result.filter((c) => c.id.toLowerCase().includes(q));
     }
 
+    if (advancedFilters.owner.trim() !== '') {
+      const q = advancedFilters.owner.toLowerCase();
+      result = result.filter((c) => (c.owner ?? '').toLowerCase().includes(q));
+    }
+
+    if (advancedFilters.sme.trim() !== '') {
+      const q = advancedFilters.sme.toLowerCase();
+      result = result.filter((c) => (c.sme ?? '').toLowerCase().includes(q));
+    }
+
+    if (advancedFilters.escalation !== 'all') {
+      const want = advancedFilters.escalation === 'yes';
+      result = result.filter((c) => Boolean(c.escalationRequired) === want);
+    }
+
+    if (advancedFilters.tested !== 'all') {
+      const isTested = (c) => {
+        const value = c.testing ?? c.lastTested;
+        if (!value) return false;
+        const s = String(value).toLowerCase();
+        if (s.includes('not tested')) return false;
+        if (s === '-') return false;
+        return true;
+      };
+      const wantTested = advancedFilters.tested === 'tested';
+      result = result.filter((c) => isTested(c) === wantTested);
+    }
+
     return result;
-  }, [controls, filter, search]);
+  }, [controls, filter, search, advancedFilters]);
 
   const onToggle = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
@@ -132,7 +174,19 @@ export default function Controls() {
   useEffect(() => {
     setPage(1);
     setOpenId(null);
-  }, [filter, search]);
+  }, [filter, search, advancedFilters]);
+
+  useEffect(() => {
+    if (!isFilterOpen) return;
+
+    const onMouseDown = (e) => {
+      const panel = e.target.closest?.('.controls-toolbar__filter-wrap');
+      if (!panel) setIsFilterOpen(false);
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [isFilterOpen]);
 
   return (
     <div className="controls-page">
@@ -185,36 +239,37 @@ export default function Controls() {
           </button>
         </div>
 
-        <div className="filter-search">
-          <input
-            type="text"
-            placeholder="Search by ID"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-        </div>
+        <TrackerTopToolbar
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search controls..."
+          searchAriaLabel="Search controls"
+          right={
+            <>
+              <div onClick={handleRestrictedOverlayClick}>
+                <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
+                  <button
+                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
+                  >
+                    <span className="controls-toolbar__add-label">+ Add Control</span>
+                  </button>
+                </RestrictedAction>
+              </div>
 
-        <div
-          onClick={(e) => {
-            const blockedWrapper = e.target.closest('.restricted-action--blocked');
-            if (blockedWrapper) {
-              e.preventDefault();
-              e.stopPropagation();
-              showPermissionDeniedToast();
-            }
-          }}
-        >
-          <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-            <button
-              className="btn btn--red"
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              + New Control
-            </button>
-          </RestrictedAction>
-        </div>
+              <ToolbarFilterDropdown
+                filterPanelId="controls-catalog-filter-panel"
+                isOpen={isFilterOpen}
+                onToggle={() => setIsFilterOpen((v) => !v)}
+                onClose={() => setIsFilterOpen(false)}
+                value={advancedFilters}
+                onChange={setAdvancedFilters}
+                FilterPopover={ControlsFilterPopover}
+              />
+            </>
+          }
+        />
       </div>
 
       {loading ? (
