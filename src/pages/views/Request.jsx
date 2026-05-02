@@ -77,16 +77,20 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters }) 
   async function handleAssign(requestId, userId, displayName, note) {
     if (!requestId) return;
 
+    const previousBucket = testsByRequestId[requestId] ?? null;
+
     setTestsByRequestId((prev) => {
-      const next = { ...prev };
-      const bucket = next[requestId];
+      const bucket = prev[requestId];
       if (!bucket || !Array.isArray(bucket.items)) return prev;
 
-      next[requestId] = {
-        ...bucket,
-        items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+      return {
+        ...prev,
+        [requestId]: {
+          ...bucket,
+          error: '',
+          items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+        },
       };
-      return next;
     });
 
     try {
@@ -110,9 +114,13 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters }) 
         const bucket = next[requestId];
         if (!bucket || !Array.isArray(bucket.items)) return prev;
 
-        next[requestId] = { ...bucket, error: e?.message || 'Failed to assign testers' };
+        next[requestId] = {
+          ...(previousBucket || bucket),
+          error: e?.message || 'Failed to assign testers',
+        };
         return next;
       });
+      throw e;
     }
   }
 
@@ -500,7 +508,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters }) 
         isOpen={isAssignOpen}
         onClose={closeAssignModal}
         request={selectedAssignRequest}
-        onAssign={(requestId, assignee, note) => handleAssign(requestId, assignee, note)}
+        onAssign={(requestId, userId, displayName, note) =>
+          handleAssign(requestId, userId, displayName, note)
+        }
       />
       <DetailsTestModal isOpen={isTestDetailsOpen} onClose={closeTestDetails} test={selectedTest} />
     </div>
