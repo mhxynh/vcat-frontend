@@ -178,7 +178,8 @@ export default function ControlsTracker() {
           <>
             <ExportButton
               isLoading={isExporting}
-              disabled={!activeExportConfig || activeTabLoading}
+              isPageLoading={activeTabLoading}
+              disabled={!activeExportConfig}
               onClick={handleExportClick}
             />
             <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>

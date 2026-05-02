@@ -589,7 +589,7 @@ export default function Dashboard() {
       }
       actions={
         <>
-          <ExportButton isLoading={isExporting} disabled={loading} onClick={handleExport} />
+          <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
           <button
             className="btn btn--blue"
             type="button"
