@@ -16,8 +16,7 @@ import { formatRequestDisplayId } from '../../utils/requestDisplayId';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
-export default function Requests({ refreshKey = 0 }) {
-  const [search, setSearch] = useState('');
+export default function Requests({ refreshKey = 0, searchValue = '', filters }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [requests, setRequests] = useState([]);
 
@@ -240,15 +239,38 @@ export default function Requests({ refreshKey = 0 }) {
   }, [enrichedRequests, isRequestDetailsOpen, selectedRequest?.requestId]);
 
   const filteredRequests = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return enrichedRequests;
+    const priorityFilter = filters?.priority ?? 'all';
+    const overdueFilter = filters?.overdue ?? 'all';
 
-    return enrichedRequests.filter((r) => {
+    const base = enrichedRequests.filter((r) => {
+      if (priorityFilter !== 'all') {
+        const p = String(r.priority || '').toLowerCase();
+        if (p !== priorityFilter) return false;
+      }
+
+      if (overdueFilter !== 'all') {
+        const overdue = Boolean(r.overdue);
+        if (overdueFilter === 'overdue' && !overdue) return false;
+        if (overdueFilter === 'not_overdue' && overdue) return false;
+      }
+
+      return true;
+    });
+
+    const q = String(searchValue).trim().toLowerCase();
+    if (!q) return base;
+
+    return base.filter((r) => {
+      const dispId = formatRequestDisplayId(r).toLowerCase();
       const matchReq =
         String(r.id).toLowerCase().includes(q) ||
+        (dispId && dispId.includes(q)) ||
         String(r.requestedBy).toLowerCase().includes(q) ||
         String(r.priority).toLowerCase().includes(q) ||
-        String(r.status).toLowerCase().includes(q);
+        String(r.status).toLowerCase().includes(q) ||
+        String(r.description ?? '')
+          .toLowerCase()
+          .includes(q);
 
       const matchControl = (r.controls || []).some((c) => {
         const id = String(c.id || '').toLowerCase();
@@ -260,7 +282,7 @@ export default function Requests({ refreshKey = 0 }) {
 
       return matchReq || matchControl;
     });
-  }, [enrichedRequests, search]);
+  }, [enrichedRequests, searchValue, filters?.priority, filters?.overdue]);
 
   function computeProgress(req) {
     const total = (req.controls || []).length;
@@ -273,16 +295,6 @@ export default function Requests({ refreshKey = 0 }) {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
-        <input
-          className="search-input"
-          placeholder="Search requests..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 320 }}
-        />
-      </div>
-
       {loading ? (
         <div className="no-results">Loading requests...</div>
       ) : error ? (
