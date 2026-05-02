@@ -20,9 +20,9 @@
 /* Filter */
 .controls-filters {
   margin-top: 12px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Ensure filter pills in Controls Catalog are not bold (base sets 700 globally) */
@@ -31,22 +31,13 @@
   font-weight: 400;
 }
 
-.filter-search {
-  display: flex;
+/* Catalog-only tweak: Add Control height in toolbar (shared toolbar styles live in TrackerTopToolbar.css) */
+.controls-page .controls-toolbar__action--add {
   justify-content: center;
-}
-
-.search-input {
-  width: 260px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  font-size: 14px;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #4094e6;
+  min-width: 104px;
+  line-height: 1;
+  white-space: nowrap;
+  height: 31px;
 }
 
 /* Accordion */
