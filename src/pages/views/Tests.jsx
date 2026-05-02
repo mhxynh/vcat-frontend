@@ -60,8 +60,39 @@ function normalizeText(v) {
   return String(v ?? '').toLowerCase();
 }
 
+function getTesterId(t) {
+  return t?.assigned_tester_id ?? t?.assignedTesterId ?? t?.tester_id ?? t?.testerId ?? null;
+}
+
+function getTesterName(t) {
+  return t?.tester_name ?? t?.assigned_tester_name ?? t?.assignedTesterName ?? '';
+}
+
+/** Single lowercase string of display fields for substring search */
+function buildTestSearchHaystack(t) {
+  const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '';
+  const testerCell = getTesterName(t) || getTesterId(t) || '';
+  const parts = [
+    t?.test_id,
+    t?.request_id,
+    t?.control_id,
+    vgcpidCell,
+    testerCell,
+    testTypeFromFlags(t),
+    statusToLabel(t?.status),
+    statusToBadgeType(t?.status),
+    stepFromTracks(t),
+    formatDate(t?.updated_at),
+    formatDate(t?.due_date),
+    formatDate(t?.estimated_date),
+  ];
+  return parts.map(normalizeText).join(' ');
+}
+
 export default function Tests({
   refreshKey = 0,
+  searchValue = '',
+  filters,
   selectedRows: propSelectedRows,
   onSelectionChange,
 }) {
@@ -73,7 +104,6 @@ export default function Tests({
     onSelectionChangeRef.current = onSelectionChange;
     propSelectedRowsRef.current = propSelectedRows;
   }, [onSelectionChange, propSelectedRows]);
-  const [search, setSearch] = useState('');
   const [tests, setTests] = useState([]);
   const [localSelectedRows, setLocalSelectedRows] = useState([]);
   const selectedRows = propSelectedRows !== undefined ? propSelectedRows : localSelectedRows;
@@ -156,41 +186,52 @@ export default function Tests({
   }, [refreshKey]);
 
   const filteredTests = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return tests;
+    const statusFilter = filters?.status ?? 'all';
+    const typeFilter = filters?.testType ?? 'all';
+    const testerFilter = filters?.tester ?? 'all';
+    const overdueFilter = filters?.overdue ?? 'all';
 
-    return tests.filter((t) => {
-      const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '';
-      const testerCell = t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '';
-      const testType = testTypeFromFlags(t);
-      const statusLabel = statusToLabel(t?.status);
-      const statusType = statusToBadgeType(t?.status);
-      const step = stepFromTracks(t);
+    const q = normalizeText(String(searchValue).trim());
+    const base = tests.filter((t) => {
+      if (statusFilter !== 'all') {
+        if (String(t?.status || 'NOT_STARTED') !== statusFilter) return false;
+      }
 
-      const lastUpdated = formatDate(t?.updated_at);
-      const dueDate = formatDate(t?.due_date);
-      const etaDate = formatDate(t?.estimated_date);
+      if (typeFilter !== 'all') {
+        const dat = !!t?.requires_dat;
+        const oet = !!t?.requires_oet;
+        const computed = dat && oet ? 'both' : dat ? 'dat' : oet ? 'oet' : 'none';
+        if (computed !== typeFilter) return false;
+      }
 
-      const haystack = [
-        t?.test_id,
-        t?.request_id,
-        t?.control_id,
-        vgcpidCell,
-        testerCell,
-        testType,
-        statusLabel,
-        statusType,
-        step,
-        lastUpdated,
-        dueDate,
-        etaDate,
-      ]
-        .map(normalizeText)
-        .join(' ');
+      if (testerFilter !== 'all') {
+        const testerId = getTesterId(t);
+        const testerName = getTesterName(t);
+        const hasTester =
+          testerId != null ||
+          (String(testerName).trim() !== '' &&
+            !['-', 'unassigned'].includes(normalizeText(testerName).trim()));
 
-      return haystack.includes(q);
+        if (testerFilter === 'unassigned') {
+          if (hasTester) return false;
+        } else if (String(testerId) !== String(testerFilter)) {
+          return false;
+        }
+      }
+
+      if (overdueFilter !== 'all') {
+        const due = parseLocalDate(t?.due_date);
+        const overdue = due ? isOverdue(due) : false;
+        if (overdueFilter === 'overdue' && !overdue) return false;
+        if (overdueFilter === 'not_overdue' && overdue) return false;
+      }
+
+      return true;
     });
-  }, [tests, search]);
+
+    if (!q) return base;
+    return base.filter((t) => buildTestSearchHaystack(t).includes(q));
+  }, [tests, searchValue, filters?.status, filters?.testType, filters?.tester, filters?.overdue]);
 
   const rowIds = useMemo(
     () => filteredTests.map((t) => t?.test_id).filter((v) => v != null),
@@ -214,16 +255,6 @@ export default function Tests({
 
   return (
     <div className="tracker__table-container">
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
-        <input
-          className="search-input"
-          placeholder="Search tests..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 320 }}
-        />
-      </div>
-
       {loading ? (
         <div className="no-results">Loading tests...</div>
       ) : error ? (
@@ -232,7 +263,18 @@ export default function Tests({
         <div className="no-results">No tests found.</div>
       ) : (
         <>
-          <table className="table">
+          <table className="table table--tests">
+            <colgroup>
+              {canBulkAssign ? <col style={{ width: '5%' }} /> : null}
+              <col style={{ width: canBulkAssign ? '12%' : '14%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: canBulkAssign ? '19%' : '22%' }} />
+              <col style={{ width: canBulkAssign ? '11%' : '12%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: canBulkAssign ? '9%' : '8%' }} />
+            </colgroup>
             <thead className="table__head">
               <tr>
                 {canBulkAssign ? (
@@ -262,8 +304,7 @@ export default function Tests({
                 const id = t.test_id;
 
                 const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '-';
-                const testerCell =
-                  t?.tester_name ?? t?.assigned_tester_name ?? t?.assigned_tester_id ?? '-';
+                const testerCell = getTesterName(t) || getTesterId(t) || '-';
 
                 const testType = testTypeFromFlags(t);
                 const statusLabel = statusToLabel(t?.status);

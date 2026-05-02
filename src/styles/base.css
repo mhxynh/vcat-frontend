@@ -16,6 +16,11 @@ body,
   font-weight: 700;
 }
 
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 body {
   background: #f5f5f5;
   margin: 0;
@@ -64,6 +69,16 @@ body * {
 .btn--red {
   background: #96151d;
   color: white;
+}
+
+/* Tracker-style "new" action button (used across app) */
+.btn--new {
+  background: #8a1a23;
+  color: #fff;
+}
+
+.btn--new:hover:not(:disabled) {
+  background: #73151d;
 }
 
 /* Pills */

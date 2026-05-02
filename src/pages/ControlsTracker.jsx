@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import Tests from './views/Tests';
@@ -15,6 +15,14 @@ import { updateTest } from '../api/TestsAPI';
 import { exportTable } from '../api/ExportAPI';
 import { showErrorToast } from '../utils/toast';
 import { triggerBrowserDownload } from '../utils/download';
+import TrackerTopToolbar from '../components/TrackerTopToolbar';
+import TrackerTestsFilterPopover, {
+  DEFAULT_FILTERS as DEFAULT_TESTS_FILTERS,
+} from '../components/TrackerTestsFilterPopover';
+import TrackerRequestsFilterPopover, {
+  DEFAULT_FILTERS as DEFAULT_REQUESTS_FILTERS,
+} from '../components/TrackerRequestsFilterPopover';
+import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -30,6 +38,13 @@ export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
+
+  const [controlsSearch, setControlsSearch] = useState('');
+  const [requestsSearch, setRequestsSearch] = useState('');
+  const [controlsFilters, setControlsFilters] = useState(DEFAULT_TESTS_FILTERS);
+  const [requestsFilters, setRequestsFilters] = useState(DEFAULT_REQUESTS_FILTERS);
+  const [isControlsFilterOpen, setIsControlsFilterOpen] = useState(false);
+  const [isRequestsFilterOpen, setIsRequestsFilterOpen] = useState(false);
 
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
@@ -51,31 +66,38 @@ export default function ControlsTracker() {
     });
   }
 
-  const renderActiveView = () => {
-    switch (activeTab) {
-      case 'Controls':
-        return (
-          <Tests
-            refreshKey={controlsRefreshKey}
-            selectedRows={selectedTestRows}
-            onSelectionChange={setSelectedTestRows}
-          />
-        );
-      case 'Kanban':
-        return <Kanban refreshKey={kanbanRefreshKey} />;
-      case 'Requests':
-        return (
-          <Requests
-            refreshKey={requestsRefreshKey}
-            newRequestToOpen={newRequestToOpen}
-            onNewRequestOpened={() => setNewRequestToOpen(null)}
-          />
-        );
-      case 'Calendar':
-        return <Calendar refreshKey={calendarRefreshKey} />;
-      default:
-        return <Tests refreshKey={controlsRefreshKey} />;
+  function handleRestrictedOverlayClick(e) {
+    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+    if (blockedWrapper) {
+      e.preventDefault();
+      e.stopPropagation();
+      showPermissionDeniedToast();
     }
+  }
+
+  const renderActiveView = () => {
+    if (activeTab === 'Kanban') return <Kanban refreshKey={kanbanRefreshKey} />;
+    if (activeTab === 'Requests') {
+      return (
+        <Requests
+          refreshKey={requestsRefreshKey}
+          searchValue={requestsSearch}
+          filters={requestsFilters}
+          newRequestToOpen={newRequestToOpen}
+          onNewRequestOpened={() => setNewRequestToOpen(null)}
+        />
+      );
+    }
+    if (activeTab === 'Calendar') return <Calendar refreshKey={calendarRefreshKey} />;
+    return (
+      <Tests
+        refreshKey={controlsRefreshKey}
+        searchValue={controlsSearch}
+        filters={controlsFilters}
+        selectedRows={selectedTestRows}
+        onSelectionChange={setSelectedTestRows}
+      />
+    );
   };
 
   const handleRefreshClick = () => {
@@ -114,6 +136,23 @@ export default function ControlsTracker() {
     }
   }
 
+  useEffect(() => {
+    setIsControlsFilterOpen(false);
+    setIsRequestsFilterOpen(false);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!isControlsFilterOpen && !isRequestsFilterOpen) return;
+    const onMouseDown = (e) => {
+      if (!e.target.closest?.('.controls-toolbar__filter-wrap')) {
+        setIsControlsFilterOpen(false);
+        setIsRequestsFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [isControlsFilterOpen, isRequestsFilterOpen]);
+
   return (
     <main className="tracker">
       <PageHeader
@@ -149,98 +188,100 @@ export default function ControlsTracker() {
             </button>
           ))}
         </div>
+      </div>
 
-        {activeTab === 'Controls' && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {selectedTestRows.length > 0 ? (
-              <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    borderRadius: 4,
-                    backgroundColor: 'rgba(150,21,29,0.05)',
-                    padding: '4px 8px',
-                    color: '#96151d',
-                  }}
-                >
-                  <button
-                    aria-label="Clear selection"
-                    onClick={() => setSelectedTestRows([])}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#96151d',
-                      cursor: 'pointer',
-                      padding: 0,
-                      marginRight: 6,
-                      fontSize: 14,
-                      lineHeight: '14px',
-                    }}
-                  >
-                    ×
-                  </button>
-                  <span>{selectedTestRows.length} selected</span>
+      {activeTab === 'Controls' ? (
+        <TrackerTopToolbar
+          searchValue={controlsSearch}
+          onSearchChange={setControlsSearch}
+          searchPlaceholder="Search controls..."
+          searchAriaLabel="Search controls"
+          right={
+            <>
+              {selectedTestRows.length > 0 ? (
+                <div className="tracker-toolbar-selection">
+                  <div className="tracker-toolbar-selection__pill">
+                    <button
+                      type="button"
+                      className="tracker-toolbar-selection__clear"
+                      aria-label="Clear selection"
+                      onClick={() => setSelectedTestRows([])}
+                    >
+                      ×
+                    </button>
+                    <span>{selectedTestRows.length} selected</span>
+                  </div>
+                  <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+                    <button
+                      className="btn btn--new"
+                      type="button"
+                      onClick={() => setIsAssignOpen(true)}
+                    >
+                      Bulk Assign
+                    </button>
+                  </RestrictedAction>
                 </div>
-                <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+              ) : null}
+
+              <div onClick={handleRestrictedOverlayClick}>
+                <RestrictedAction action={ACTIONS.CREATE_TEST}>
                   <button
                     className="btn btn--new"
                     type="button"
-                    onClick={() => setIsAssignOpen(true)}
+                    onClick={() => setIsCreateTestOpen(true)}
                   >
-                    Bulk Assign
+                    + Add Control Test
                   </button>
                 </RestrictedAction>
               </div>
-            ) : null}
 
-            <div
-              onClick={(e) => {
-                const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                if (blockedWrapper) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  showPermissionDeniedToast();
-                }
-              }}
-            >
-              <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                <button
-                  className="btn btn--new"
-                  type="button"
-                  onClick={() => setIsCreateTestOpen(true)}
-                >
-                  + Add Control Test
-                </button>
-              </RestrictedAction>
-            </div>
-          </div>
-        )}
+              <ToolbarFilterDropdown
+                filterPanelId="tracker-controls-filter-panel"
+                isOpen={isControlsFilterOpen}
+                onToggle={() => setIsControlsFilterOpen((v) => !v)}
+                onClose={() => setIsControlsFilterOpen(false)}
+                value={controlsFilters}
+                onChange={setControlsFilters}
+                FilterPopover={TrackerTestsFilterPopover}
+              />
+            </>
+          }
+        />
+      ) : null}
 
-        {activeTab === 'Requests' && (
-          <div
-            onClick={(e) => {
-              const blockedWrapper = e.target.closest('.restricted-action--blocked');
-              if (blockedWrapper) {
-                e.preventDefault();
-                e.stopPropagation();
-                showPermissionDeniedToast();
-              }
-            }}
-          >
-            <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
-              <button
-                className="btn btn--new"
-                type="button"
-                onClick={() => setIsCreateRequestOpen(true)}
-              >
-                + Add Request
-              </button>
-            </RestrictedAction>
-          </div>
-        )}
-      </div>
+      {activeTab === 'Requests' ? (
+        <TrackerTopToolbar
+          searchValue={requestsSearch}
+          onSearchChange={setRequestsSearch}
+          searchPlaceholder="Search requests..."
+          searchAriaLabel="Search requests"
+          right={
+            <>
+              <div onClick={handleRestrictedOverlayClick}>
+                <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
+                  <button
+                    className="btn btn--new"
+                    type="button"
+                    onClick={() => setIsCreateRequestOpen(true)}
+                  >
+                    + Add Request
+                  </button>
+                </RestrictedAction>
+              </div>
+
+              <ToolbarFilterDropdown
+                filterPanelId="tracker-requests-filter-panel"
+                isOpen={isRequestsFilterOpen}
+                onToggle={() => setIsRequestsFilterOpen((v) => !v)}
+                onClose={() => setIsRequestsFilterOpen(false)}
+                value={requestsFilters}
+                onChange={setRequestsFilters}
+                FilterPopover={TrackerRequestsFilterPopover}
+              />
+            </>
+          }
+        />
+      ) : null}
 
       <div className="tracker__content">{renderActiveView()}</div>
 
