@@ -95,6 +95,7 @@ export default function Tests({
   filters,
   selectedRows: propSelectedRows,
   onSelectionChange,
+  onLoadingChange,
 }) {
   const canBulkAssign = useCan(ACTIONS.BULK_ASSIGN_TESTERS);
   const onSelectionChangeRef = React.useRef(onSelectionChange);
@@ -124,6 +125,10 @@ export default function Tests({
 
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   useEffect(() => {
     if (!canBulkAssign && selectedRows.length > 0) {

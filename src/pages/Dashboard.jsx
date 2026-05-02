@@ -443,6 +443,8 @@ export default function Dashboard() {
   }, [loadDashboardData]);
 
   async function handleExport() {
+    if (loading) return;
+
     setIsExporting(true);
 
     try {
@@ -587,7 +589,7 @@ export default function Dashboard() {
       }
       actions={
         <>
-          <ExportButton isLoading={isExporting} onClick={handleExport} />
+          <ExportButton isLoading={isExporting} disabled={loading} onClick={handleExport} />
           <button
             className="btn btn--blue"
             type="button"

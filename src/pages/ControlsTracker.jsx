@@ -56,6 +56,8 @@ export default function ControlsTracker() {
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
   const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
+  const [controlsLoading, setControlsLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(true);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
 
@@ -85,6 +87,7 @@ export default function ControlsTracker() {
           filters={requestsFilters}
           newRequestToOpen={newRequestToOpen}
           onNewRequestOpened={() => setNewRequestToOpen(null)}
+          onLoadingChange={setRequestsLoading}
         />
       );
     }
@@ -96,14 +99,21 @@ export default function ControlsTracker() {
         filters={controlsFilters}
         selectedRows={selectedTestRows}
         onSelectionChange={setSelectedTestRows}
+        onLoadingChange={setControlsLoading}
       />
     );
   };
 
   const handleRefreshClick = () => {
     setLastUpdatedAt(new Date());
-    if (activeTab === 'Controls') setControlsRefreshKey((k) => k + 1);
-    if (activeTab === 'Requests') setRequestsRefreshKey((k) => k + 1);
+    if (activeTab === 'Controls') {
+      setControlsLoading(true);
+      setControlsRefreshKey((k) => k + 1);
+    }
+    if (activeTab === 'Requests') {
+      setRequestsLoading(true);
+      setRequestsRefreshKey((k) => k + 1);
+    }
     if (activeTab === 'Kanban') setKanbanRefreshKey((k) => k + 1);
     if (activeTab === 'Calendar') setCalendarRefreshKey((k) => k + 1);
   };
@@ -114,9 +124,11 @@ export default function ControlsTracker() {
   };
 
   const activeExportConfig = exportConfigByTab[activeTab];
+  const activeTabLoading =
+    activeTab === 'Controls' ? controlsLoading : activeTab === 'Requests' ? requestsLoading : false;
 
   async function handleExportClick() {
-    if (!activeExportConfig) return;
+    if (!activeExportConfig || activeTabLoading) return;
 
     setIsExporting(true);
 
@@ -166,7 +178,7 @@ export default function ControlsTracker() {
           <>
             <ExportButton
               isLoading={isExporting}
-              disabled={!activeExportConfig}
+              disabled={!activeExportConfig || activeTabLoading}
               onClick={handleExportClick}
             />
             <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
