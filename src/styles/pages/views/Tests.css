@@ -140,6 +140,10 @@ body {
   color: white;
 }
 
+.tracker__view-panel[hidden] {
+  display: none;
+}
+
 /* Table */
 .tracker__table-container {
   background-color: var(--color-surface);
