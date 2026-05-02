@@ -5,6 +5,7 @@ import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { createTest } from '../api/TestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 
 function flagsFromTestType(v) {
@@ -87,6 +88,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
         const cleanRequests = (Array.isArray(rawRequests) ? rawRequests : [])
           .map((r) => {
             const id = Number(r.id ?? r.requestId ?? r.request_id ?? r.RequestId);
+            const createdAt = r.start_date ?? r.created_at ?? r.createdAt ?? r.startDate ?? null;
             const dueDateRaw = r.due_date ?? r.dueDate;
             const dueDateDisplay = dueDateRaw
               ? new Date(dueDateRaw).toLocaleDateString(undefined, {
@@ -98,7 +100,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             const requester = r.requestor ?? r.requester ?? r.requestedBy ?? '-';
             return {
               id,
-              label: `REQ-${String(id).padStart(4, '0')} • ${requester} • ${dueDateDisplay}`,
+              label: `${formatRequestDisplayId(id, createdAt)} • ${requester} • ${dueDateDisplay}`,
               dueDate: toDateInput(dueDateRaw),
             };
           })
