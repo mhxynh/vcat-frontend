@@ -2,9 +2,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import ImportControlsModal from '../components/ImportControlsModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
-import { fetchControls, mapControlRowToUi } from '../api/ControlsAPI';
+import { fetchControls, mapControlRowToUi, uploadControlsCsvForImport } from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
@@ -41,6 +42,7 @@ export default function Controls() {
   const PAGE_SIZE = 10;
   const [search, setSearch] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState(DEFAULT_FILTERS);
 
@@ -107,6 +109,11 @@ export default function Controls() {
     } catch (e) {
       setError(e?.message || 'Failed to load controls');
     }
+  }
+
+  async function handleImportControlsCsv(file) {
+    await uploadControlsCsvForImport(file);
+    await refreshControls();
   }
 
   useEffect(() => {
@@ -198,8 +205,28 @@ export default function Controls() {
           </div>
         }
         actions={
-          <>
+          <div
+            onClick={(e) => {
+              const blockedWrapper = e.target.closest('.restricted-action--blocked');
+              if (blockedWrapper) {
+                e.preventDefault();
+                e.stopPropagation();
+                showPermissionDeniedToast();
+              }
+            }}
+          >
+            <RestrictedAction action={ACTIONS.IMPORT_CONTROLS}>
+              <button
+                className="btn btn--import"
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+              >
+                <Icon name="upload" category="actions" size="sm" color="#ffffff" />
+                Import
+              </button>
+            </RestrictedAction>
             <button className="btn btn--white" type="button">
+              <Icon name="download" category="actions" size="sm" color="#ffffff" />
               Export
             </button>
             <button
@@ -208,9 +235,10 @@ export default function Controls() {
               onClick={() => loadControls()}
               disabled={loading}
             >
+              <Icon name="refresh" category="actions" size="sm" color="#ffffff" />
               Refresh
             </button>
-          </>
+          </div>
         }
       />
 
@@ -444,6 +472,12 @@ export default function Controls() {
         onCreated={async () => {
           await loadControls();
         }}
+      />
+
+      <ImportControlsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportSubmit={handleImportControlsCsv}
       />
     </div>
   );
