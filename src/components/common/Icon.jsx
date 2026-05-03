@@ -10,6 +10,7 @@ const Icon = ({
   viewBox,
   width,
   height,
+  style,
   ...props
 }) => {
   const sizeMap = {
@@ -24,10 +25,13 @@ const Icon = ({
   const w = width ?? dimension;
   const h = height ?? dimension;
 
+  const mergedStyle = { ...(style || {}), color };
+
   return (
     <svg
       viewBox={viewBox}
       stroke={color}
+      style={mergedStyle}
       fill="none"
       className={`ui-icon icon-${category}-${name} ${className}`}
       aria-hidden="true"

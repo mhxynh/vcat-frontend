@@ -71,6 +71,11 @@ body * {
   color: white;
 }
 
+.btn--import {
+  background: #ffb01f;
+  color: white;
+}
+
 /* Tracker-style "new" action button (used across app) */
 .btn--new {
   background: #8a1a23;
