@@ -8,10 +8,13 @@ import Calendar from './views/Calendar';
 import CreateTestModal from '../components/CreateTestModal';
 import CreateRequestModal from '../components/CreateRequestModal';
 import AssignTestModal from '../components/AssignTestModal';
+import ExportButton from '../components/ExportButton';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
+import { exportTable } from '../api/ExportAPI';
 import { showErrorToast } from '../utils/toast';
+import { triggerBrowserDownload } from '../utils/download';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import TrackerTestsFilterPopover, {
   DEFAULT_FILTERS as DEFAULT_TESTS_FILTERS,
@@ -48,11 +51,14 @@ export default function ControlsTracker() {
   const [controlsRefreshKey, setControlsRefreshKey] = useState(0);
   const [selectedTestRows, setSelectedTestRows] = useState([]);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
   const [requestsRefreshKey, setRequestsRefreshKey] = useState(0);
   const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
+  const [controlsLoading, setControlsLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(true);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
 
@@ -92,6 +98,7 @@ export default function ControlsTracker() {
             filters={controlsFilters}
             selectedRows={selectedTestRows}
             onSelectionChange={setSelectedTestRows}
+            onLoadingChange={setControlsLoading}
           />
         );
       case 'Kanban':
@@ -104,6 +111,7 @@ export default function ControlsTracker() {
             filters={requestsFilters}
             newRequestToOpen={newRequestToOpen}
             onNewRequestOpened={() => setNewRequestToOpen(null)}
+            onLoadingChange={setRequestsLoading}
           />
         );
       case 'Calendar':
@@ -115,11 +123,47 @@ export default function ControlsTracker() {
 
   const handleRefreshClick = () => {
     setLastUpdatedAt(new Date());
-    if (activeTab === 'Controls') setControlsRefreshKey((k) => k + 1);
-    if (activeTab === 'Requests') setRequestsRefreshKey((k) => k + 1);
+    if (activeTab === 'Controls') {
+      setControlsLoading(true);
+      setControlsRefreshKey((k) => k + 1);
+    }
+    if (activeTab === 'Requests') {
+      setRequestsLoading(true);
+      setRequestsRefreshKey((k) => k + 1);
+    }
     if (activeTab === 'Kanban') setKanbanRefreshKey((k) => k + 1);
     if (activeTab === 'Calendar') setCalendarRefreshKey((k) => k + 1);
   };
+
+  const exportConfigByTab = {
+    Controls: { table: 'tests', fallbackFilename: 'test_export.csv' },
+    Requests: { table: 'requests', fallbackFilename: 'request_export.csv' },
+  };
+
+  const activeExportConfig = exportConfigByTab[activeTab];
+  const activeTabLoading =
+    activeTab === 'Controls' ? controlsLoading : activeTab === 'Requests' ? requestsLoading : false;
+
+  async function handleExportClick() {
+    if (!activeExportConfig || activeTabLoading) return;
+
+    setIsExporting(true);
+
+    try {
+      const { downloadUrl, filename } = await exportTable(
+        activeExportConfig.table,
+        activeExportConfig.fallbackFilename
+      );
+      triggerBrowserDownload(downloadUrl, filename);
+    } catch {
+      showErrorToast({
+        title: 'Export Failed',
+        message: 'Failed to generate export. Please try again.',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   useEffect(() => {
     setIsControlsFilterOpen(false);
@@ -149,9 +193,12 @@ export default function ControlsTracker() {
         }
         actions={
           <>
-            <button className="btn btn--white" type="button">
-              Export
-            </button>
+            <ExportButton
+              isLoading={isExporting}
+              isPageLoading={activeTabLoading}
+              disabled={!activeExportConfig}
+              onClick={handleExportClick}
+            />
             <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
               Refresh
             </button>

@@ -95,6 +95,7 @@ export default function Tests({
   filters,
   selectedRows: propSelectedRows,
   onSelectionChange,
+  onLoadingChange,
 }) {
   const canBulkAssign = useCan(ACTIONS.BULK_ASSIGN_TESTERS);
   const onSelectionChangeRef = React.useRef(onSelectionChange);
@@ -126,6 +127,10 @@ export default function Tests({
   const [selectedTest, setSelectedTest] = useState(null);
 
   useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
+
+  useEffect(() => {
     if (!canBulkAssign && selectedRows.length > 0) {
       updateSelectedRows([]);
     }
@@ -146,7 +151,7 @@ export default function Tests({
       const data = await fetchAllTests();
       setTests(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error('Failed to refresh tests', e);
+      setError(e?.message || 'Failed to refresh tests');
     }
   }
 

@@ -16,7 +16,7 @@ import { formatRequestDisplayId } from '../../utils/requestDisplayId';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 
-export default function Requests({ refreshKey = 0, searchValue = '', filters }) {
+export default function Requests({ refreshKey = 0, searchValue = '', filters, onLoadingChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [requests, setRequests] = useState([]);
 
@@ -32,6 +32,10 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters }) 
   const [selectedAssignRequest, setSelectedAssignRequest] = useState(null);
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   function showPermissionDeniedToast() {
     showErrorToast({

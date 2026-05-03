@@ -2,13 +2,20 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import ExportButton from '../components/ExportButton';
 import ImportControlsModal from '../components/ImportControlsModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
-import { fetchControls, mapControlRowToUi, uploadControlsCsvForImport } from '../api/ControlsAPI';
+import {
+  exportCatalog,
+  fetchControls,
+  mapControlRowToUi,
+  uploadControlsCsvForImport,
+} from '../api/ControlsAPI';
 import DetailsControlModal from '../components/DetailsControlModal';
 import Icon from '../components/common/Icon';
 import { showErrorToast } from '../utils/toast';
+import { triggerBrowserDownload } from '../utils/download';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
@@ -50,6 +57,7 @@ export default function Controls() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
+  const [isExporting, setIsExporting] = useState(false);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -108,6 +116,24 @@ export default function Controls() {
       setLastUpdatedAt(new Date());
     } catch (e) {
       setError(e?.message || 'Failed to load controls');
+    }
+  }
+
+  async function handleExport() {
+    if (loading) return;
+
+    setIsExporting(true);
+
+    try {
+      const { downloadUrl, filename } = await exportCatalog();
+      triggerBrowserDownload(downloadUrl, filename);
+    } catch {
+      showErrorToast({
+        title: 'Export Failed',
+        message: 'Failed to generate export. Please try again.',
+      });
+    } finally {
+      setIsExporting(false);
     }
   }
 
@@ -225,10 +251,7 @@ export default function Controls() {
                 Import
               </button>
             </RestrictedAction>
-            <button className="btn btn--white" type="button">
-              <Icon name="download" category="actions" size="sm" color="#ffffff" />
-              Export
-            </button>
+            <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
             <button
               className="btn btn--blue"
               type="button"

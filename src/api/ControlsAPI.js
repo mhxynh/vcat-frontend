@@ -1,5 +1,6 @@
 import { objectToSnakeCase } from '../utils/transformer';
 import { authFetch } from './apiClient';
+import { exportTable } from './ExportAPI';
 
 async function readJsonSafe(resp, fallback) {
   try {
@@ -74,6 +75,12 @@ export async function fetchControls() {
 
   return data;
 }
+
+export async function exportCatalog() {
+  return exportTable('controls', 'control_export.csv');
+}
+
+//schemas are: control_id, vgcpid, description, control_owner, control_sme, escalation, is_active, date_created, last_tested
 
 export function mapControlRowToUi(control) {
   const lastTested = control.last_tested ?? null;
