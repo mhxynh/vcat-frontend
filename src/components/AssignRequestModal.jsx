@@ -3,22 +3,7 @@ import '../styles/components/AssignRequestModal.css';
 import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-
-function getRequestYear(req) {
-  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
-  if (!raw) return new Date().getFullYear();
-
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
-
-  return parsed.getFullYear();
-}
-
-function formatRequestDisplayId(req) {
-  const id = req?.requestId ?? req?.request_id ?? req?.id;
-  if (id == null || id === '') return '';
-  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
-}
+import { formatRequestDisplayId } from '../utils/requestDisplayId';
 
 export default function AssignRequestModal({ isOpen, onClose, request, onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');

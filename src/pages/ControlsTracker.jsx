@@ -36,6 +36,7 @@ function formatLastUpdated(date) {
 
 export default function ControlsTracker() {
   const [activeTab, setActiveTab] = useState('Controls');
+  const [visitedTabs, setVisitedTabs] = useState(() => new Set(['Controls']));
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const tabs = ['Controls', 'Requests', 'Kanban', 'Calendar'];
 
@@ -77,31 +78,47 @@ export default function ControlsTracker() {
     }
   }
 
-  const renderActiveView = () => {
-    if (activeTab === 'Kanban') return <Kanban refreshKey={kanbanRefreshKey} />;
-    if (activeTab === 'Requests') {
-      return (
-        <Requests
-          refreshKey={requestsRefreshKey}
-          searchValue={requestsSearch}
-          filters={requestsFilters}
-          newRequestToOpen={newRequestToOpen}
-          onNewRequestOpened={() => setNewRequestToOpen(null)}
-          onLoadingChange={setRequestsLoading}
-        />
-      );
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => {
+      if (prev.has(tab)) return prev;
+      const next = new Set(prev);
+      next.add(tab);
+      return next;
+    });
+  };
+
+  const renderView = (tab) => {
+    switch (tab) {
+      case 'Controls':
+        return (
+          <Tests
+            refreshKey={controlsRefreshKey}
+            searchValue={controlsSearch}
+            filters={controlsFilters}
+            selectedRows={selectedTestRows}
+            onSelectionChange={setSelectedTestRows}
+            onLoadingChange={setControlsLoading}
+          />
+        );
+      case 'Kanban':
+        return <Kanban refreshKey={kanbanRefreshKey} />;
+      case 'Requests':
+        return (
+          <Requests
+            refreshKey={requestsRefreshKey}
+            searchValue={requestsSearch}
+            filters={requestsFilters}
+            newRequestToOpen={newRequestToOpen}
+            onNewRequestOpened={() => setNewRequestToOpen(null)}
+            onLoadingChange={setRequestsLoading}
+          />
+        );
+      case 'Calendar':
+        return <Calendar refreshKey={calendarRefreshKey} />;
+      default:
+        return null;
     }
-    if (activeTab === 'Calendar') return <Calendar refreshKey={calendarRefreshKey} />;
-    return (
-      <Tests
-        refreshKey={controlsRefreshKey}
-        searchValue={controlsSearch}
-        filters={controlsFilters}
-        selectedRows={selectedTestRows}
-        onSelectionChange={setSelectedTestRows}
-        onLoadingChange={setControlsLoading}
-      />
-    );
   };
 
   const handleRefreshClick = () => {
@@ -194,7 +211,8 @@ export default function ControlsTracker() {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              type="button"
+              onClick={() => handleTabClick(tab)}
               className={`sub-tab ${activeTab === tab ? 'sub-tab--active' : ''}`}
             >
               {tab}
@@ -296,7 +314,20 @@ export default function ControlsTracker() {
         />
       ) : null}
 
-      <div className="tracker__content">{renderActiveView()}</div>
+      <div className="tracker__content">
+        {tabs.map((tab) =>
+          visitedTabs.has(tab) ? (
+            <section
+              key={tab}
+              className="tracker__view-panel"
+              hidden={activeTab !== tab}
+              aria-hidden={activeTab !== tab}
+            >
+              {renderView(tab)}
+            </section>
+          ) : null
+        )}
+      </div>
 
       <CreateTestModal
         isOpen={isCreateTestOpen}

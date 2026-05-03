@@ -8,6 +8,7 @@ import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
+import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 
 const MODAL_BODY_MIN_HEIGHT = 428;
@@ -159,6 +160,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
       .map((r) => ({
         requestId: r.request_id,
         requestor: r.requestor,
+        createdAt: r.start_date ?? r.created_at ?? r.createdAt ?? r.startDate ?? null,
         dueDate: toDateInput(r.due_date ?? r.dueDate),
       }))
       .sort((a, b) => Number(b.requestId) - Number(a.requestId));
@@ -334,7 +336,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
                       <option
                         key={r.requestId}
                         value={String(r.requestId)}
-                      >{`REQ-${String(r.requestId).padStart(4, '0')} - ${r.requestor ?? '-'} - ${r.dueDate ?? '-'}`}</option>
+                      >{`${formatRequestDisplayId(r.requestId, r.createdAt)} - ${r.requestor ?? '-'} - ${r.dueDate ?? '-'}`}</option>
                     ))}
                   </select>
                   {fieldErrors.selectedRequestId ? (

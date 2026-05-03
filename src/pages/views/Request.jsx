@@ -12,24 +12,9 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 import RestrictedAction from '../../components/RestrictedAction';
 import { ACTIONS } from '../../auth';
 import { showErrorToast } from '../../utils/toast';
+import { formatRequestDisplayId } from '../../utils/requestDisplayId';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
-
-function getRequestYear(req) {
-  const raw = req?.createdAt ?? req?.created_at ?? req?.requestDate ?? null;
-  if (!raw) return new Date().getFullYear();
-
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return new Date().getFullYear();
-
-  return parsed.getFullYear();
-}
-
-function formatRequestDisplayId(req) {
-  const id = req?.requestId ?? req?.id;
-  if (id == null || id === '') return '';
-  return `REQ-${getRequestYear(req)}-${String(id).padStart(4, '0')}`;
-}
 
 export default function Requests({ refreshKey = 0, searchValue = '', filters, onLoadingChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
@@ -96,16 +81,20 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
   async function handleAssign(requestId, userId, displayName, note) {
     if (!requestId) return;
 
+    const previousBucket = testsByRequestId[requestId] ?? null;
+
     setTestsByRequestId((prev) => {
-      const next = { ...prev };
-      const bucket = next[requestId];
+      const bucket = prev[requestId];
       if (!bucket || !Array.isArray(bucket.items)) return prev;
 
-      next[requestId] = {
-        ...bucket,
-        items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+      return {
+        ...prev,
+        [requestId]: {
+          ...bucket,
+          error: '',
+          items: bucket.items.map((c) => ({ ...c, assignee: displayName })),
+        },
       };
-      return next;
     });
 
     try {
@@ -129,9 +118,13 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
         const bucket = next[requestId];
         if (!bucket || !Array.isArray(bucket.items)) return prev;
 
-        next[requestId] = { ...bucket, error: e?.message || 'Failed to assign testers' };
+        next[requestId] = {
+          ...(previousBucket || bucket),
+          error: e?.message || 'Failed to assign testers',
+        };
         return next;
       });
+      throw e;
     }
   }
 
@@ -519,7 +512,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
         isOpen={isAssignOpen}
         onClose={closeAssignModal}
         request={selectedAssignRequest}
-        onAssign={(requestId, assignee, note) => handleAssign(requestId, assignee, note)}
+        onAssign={(requestId, userId, displayName, note) =>
+          handleAssign(requestId, userId, displayName, note)
+        }
       />
       <DetailsTestModal isOpen={isTestDetailsOpen} onClose={closeTestDetails} test={selectedTest} />
     </div>
