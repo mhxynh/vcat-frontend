@@ -62,7 +62,7 @@ export default function ControlsTracker() {
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [kanbanLoading, setKanbanLoading] = useState(true);
   const [calendarLoading, setCalendarLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshingTab, setRefreshingTab] = useState(null);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
 
@@ -144,42 +144,38 @@ export default function ControlsTracker() {
             ? calendarLoading
             : false;
 
-  const handleControlsLoadingChange = useCallback(
-    (loading) => {
-      setControlsLoading(loading);
-      if (activeTab === 'Controls' && !loading) setIsRefreshing(false);
-    },
-    [activeTab]
-  );
+  const handleControlsLoadingChange = useCallback((loading) => {
+    setControlsLoading(loading);
+    if (!loading) {
+      setRefreshingTab((tab) => (tab === 'Controls' ? null : tab));
+    }
+  }, []);
 
-  const handleRequestsLoadingChange = useCallback(
-    (loading) => {
-      setRequestsLoading(loading);
-      if (activeTab === 'Requests' && !loading) setIsRefreshing(false);
-    },
-    [activeTab]
-  );
+  const handleRequestsLoadingChange = useCallback((loading) => {
+    setRequestsLoading(loading);
+    if (!loading) {
+      setRefreshingTab((tab) => (tab === 'Requests' ? null : tab));
+    }
+  }, []);
 
-  const handleKanbanLoadingChange = useCallback(
-    (loading) => {
-      setKanbanLoading(loading);
-      if (activeTab === 'Kanban' && !loading) setIsRefreshing(false);
-    },
-    [activeTab]
-  );
+  const handleKanbanLoadingChange = useCallback((loading) => {
+    setKanbanLoading(loading);
+    if (!loading) {
+      setRefreshingTab((tab) => (tab === 'Kanban' ? null : tab));
+    }
+  }, []);
 
-  const handleCalendarLoadingChange = useCallback(
-    (loading) => {
-      setCalendarLoading(loading);
-      if (activeTab === 'Calendar' && !loading) setIsRefreshing(false);
-    },
-    [activeTab]
-  );
+  const handleCalendarLoadingChange = useCallback((loading) => {
+    setCalendarLoading(loading);
+    if (!loading) {
+      setRefreshingTab((tab) => (tab === 'Calendar' ? null : tab));
+    }
+  }, []);
 
   const handleRefreshClick = () => {
     if (activeTabLoading) return;
 
-    setIsRefreshing(true);
+    setRefreshingTab(activeTab);
     setLastUpdatedAt(new Date());
 
     if (activeTab === 'Controls') {
@@ -219,7 +215,6 @@ export default function ControlsTracker() {
   }
 
   useEffect(() => {
-    setIsRefreshing(false);
     setIsControlsFilterOpen(false);
     setIsRequestsFilterOpen(false);
   }, [activeTab]);
@@ -254,7 +249,7 @@ export default function ControlsTracker() {
               onClick={handleExportClick}
             />
             <RefreshButton
-              isLoading={isRefreshing}
+              isLoading={refreshingTab === activeTab}
               isPageLoading={activeTabLoading}
               onClick={handleRefreshClick}
             />
