@@ -3,6 +3,7 @@ import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
 import ExportButton from '../components/ExportButton';
+import RefreshButton from '../components/RefreshButton';
 import ImportControlsModal from '../components/ImportControlsModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
@@ -58,6 +59,7 @@ export default function Controls() {
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -134,6 +136,18 @@ export default function Controls() {
       });
     } finally {
       setIsExporting(false);
+    }
+  }
+
+  async function handleRefresh() {
+    if (loading) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await loadControls();
+    } finally {
+      setIsRefreshing(false);
     }
   }
 
@@ -252,15 +266,11 @@ export default function Controls() {
               </button>
             </RestrictedAction>
             <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
-            <button
-              className="btn btn--blue"
-              type="button"
-              onClick={() => loadControls()}
-              disabled={loading}
-            >
-              <Icon name="refresh" category="actions" size="sm" color="#ffffff" />
-              Refresh
-            </button>
+            <RefreshButton
+              isLoading={isRefreshing}
+              isPageLoading={loading}
+              onClick={handleRefresh}
+            />
           </div>
         }
       />

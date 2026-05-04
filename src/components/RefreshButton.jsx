@@ -14,12 +14,10 @@ export default function RefreshButton({
       type="button"
       onClick={onClick}
       disabled={isDisabled}
-      aria-busy={isLoading || isPageLoading}
+      aria-busy={isLoading}
     >
-      {(isLoading || isPageLoading) && (
-        <span className="refresh-button__spinner" aria-hidden="true" />
-      )}
-      {isLoading || isPageLoading ? 'Refreshing...' : 'Refresh'}
+      {isLoading && <span className="refresh-button__spinner" aria-hidden="true" />}
+      {isLoading ? 'Refreshing...' : 'Refresh'}
     </button>
   );
 }

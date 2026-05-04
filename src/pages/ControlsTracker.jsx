@@ -62,6 +62,7 @@ export default function ControlsTracker() {
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [kanbanLoading, setKanbanLoading] = useState(true);
   const [calendarLoading, setCalendarLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
 
@@ -144,6 +145,7 @@ export default function ControlsTracker() {
   const handleRefreshClick = () => {
     if (activeTabLoading) return;
 
+    setIsRefreshing(true);
     setLastUpdatedAt(new Date());
 
     if (activeTab === 'Controls') {
@@ -183,6 +185,11 @@ export default function ControlsTracker() {
   }
 
   useEffect(() => {
+    if (!activeTabLoading) setIsRefreshing(false);
+  }, [activeTabLoading]);
+
+  useEffect(() => {
+    setIsRefreshing(false);
     setIsControlsFilterOpen(false);
     setIsRequestsFilterOpen(false);
   }, [activeTab]);
@@ -216,7 +223,11 @@ export default function ControlsTracker() {
               disabled={!activeExportConfig}
               onClick={handleExportClick}
             />
-            <RefreshButton isLoading={activeTabLoading} onClick={handleRefreshClick} />
+            <RefreshButton
+              isLoading={isRefreshing}
+              isPageLoading={activeTabLoading}
+              onClick={handleRefreshClick}
+            />
           </>
         }
       />
