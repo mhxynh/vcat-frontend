@@ -52,6 +52,11 @@
   border-color: #e5e7eb;
 }
 
+.ctm-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Body */
 .ctm-body {
   padding: 18px 22px 10px;
