@@ -444,6 +444,10 @@ export default function Dashboard() {
     loadDashboardData();
   }, [loadDashboardData]);
 
+  useEffect(() => {
+    if (!loading) setIsRefreshing(false);
+  }, [loading]);
+
   async function handleExport() {
     if (loading) return;
 

@@ -160,6 +160,10 @@ export default function Controls() {
     loadControls();
   }, []);
 
+  useEffect(() => {
+    if (!loading) setIsRefreshing(false);
+  }, [loading]);
+
   const filtered = useMemo(() => {
     let result = controls;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import Tests from './views/Tests';
@@ -102,11 +102,11 @@ export default function ControlsTracker() {
             filters={controlsFilters}
             selectedRows={selectedTestRows}
             onSelectionChange={setSelectedTestRows}
-            onLoadingChange={setControlsLoading}
+            onLoadingChange={handleControlsLoadingChange}
           />
         );
       case 'Kanban':
-        return <Kanban refreshKey={kanbanRefreshKey} onLoadingChange={setKanbanLoading} />;
+        return <Kanban refreshKey={kanbanRefreshKey} onLoadingChange={handleKanbanLoadingChange} />;
       case 'Requests':
         return (
           <Requests
@@ -115,11 +115,13 @@ export default function ControlsTracker() {
             filters={requestsFilters}
             newRequestToOpen={newRequestToOpen}
             onNewRequestOpened={() => setNewRequestToOpen(null)}
-            onLoadingChange={setRequestsLoading}
+            onLoadingChange={handleRequestsLoadingChange}
           />
         );
       case 'Calendar':
-        return <Calendar refreshKey={calendarRefreshKey} onLoadingChange={setCalendarLoading} />;
+        return (
+          <Calendar refreshKey={calendarRefreshKey} onLoadingChange={handleCalendarLoadingChange} />
+        );
       default:
         return null;
     }
@@ -141,6 +143,38 @@ export default function ControlsTracker() {
           : activeTab === 'Calendar'
             ? calendarLoading
             : false;
+
+  const handleControlsLoadingChange = useCallback(
+    (loading) => {
+      setControlsLoading(loading);
+      if (activeTab === 'Controls' && !loading) setIsRefreshing(false);
+    },
+    [activeTab]
+  );
+
+  const handleRequestsLoadingChange = useCallback(
+    (loading) => {
+      setRequestsLoading(loading);
+      if (activeTab === 'Requests' && !loading) setIsRefreshing(false);
+    },
+    [activeTab]
+  );
+
+  const handleKanbanLoadingChange = useCallback(
+    (loading) => {
+      setKanbanLoading(loading);
+      if (activeTab === 'Kanban' && !loading) setIsRefreshing(false);
+    },
+    [activeTab]
+  );
+
+  const handleCalendarLoadingChange = useCallback(
+    (loading) => {
+      setCalendarLoading(loading);
+      if (activeTab === 'Calendar' && !loading) setIsRefreshing(false);
+    },
+    [activeTab]
+  );
 
   const handleRefreshClick = () => {
     if (activeTabLoading) return;
@@ -183,10 +217,6 @@ export default function ControlsTracker() {
       setIsExporting(false);
     }
   }
-
-  useEffect(() => {
-    if (!activeTabLoading) setIsRefreshing(false);
-  }, [activeTabLoading]);
 
   useEffect(() => {
     setIsRefreshing(false);
