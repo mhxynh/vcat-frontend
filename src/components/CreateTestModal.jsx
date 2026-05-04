@@ -143,6 +143,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   }, [selectedRequestId, requests]);
 
   const handleSubmit = async () => {
+    if (submitting || loading || loadError) return;
+
     setFieldErrors({});
 
     const errs = {};
@@ -382,7 +384,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             className="ctm-btn ctm-btn--primary"
             type="button"
             onClick={handleSubmit}
-            disabled={submitting || !!loadError}
+            disabled={submitting || loading || !!loadError}
           >
             {submitting ? 'Creating...' : 'Create Control Test'}
           </button>
