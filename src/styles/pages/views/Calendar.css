@@ -2,6 +2,16 @@
 .calendar-shell {
   --calendar-scrollbar-thumb: #c4c4c4;
   --calendar-scrollbar-thumb-hover: #a8a8a8;
+  --calendar-status-not-started-bg: var(--bg-not-started, #f5f5f5);
+  --calendar-status-not-started-text: var(--text-not-started, #616161);
+  --calendar-status-test-in-progress-bg: var(--bg-dat-in-progress, #e6f0fa);
+  --calendar-status-test-in-progress-text: var(--text-dat-in-progress, #1967d2);
+  --calendar-status-in-review-bg: var(--bg-in-review, #fff9c4);
+  --calendar-status-in-review-text: var(--text-in-review, #f57f17);
+  --calendar-status-blocked-bg: var(--bg-blocked, #ffebee);
+  --calendar-status-blocked-text: var(--text-blocked, #c62828);
+  --calendar-status-completed-bg: var(--bg-completed, #e8f5e9);
+  --calendar-status-completed-text: var(--text-completed, #2e7d32);
 
   background: #ffffff;
   border: 1px solid #e8e8e8;
@@ -289,7 +299,7 @@
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
-  transform: translateY(-0.5px);
+  transform: translateY(-1.5px);
 }
 
 .calendar-detail-slot {
@@ -526,11 +536,10 @@
 
 .detail-status {
   font-size: 12px;
-  color: #8a8a8a;
-  background: #efefef;
   border-radius: 999px;
   padding: 3px 8px;
   flex-shrink: 0;
+  font-weight: 500;
 }
 
 .detail-empty {
@@ -586,24 +595,49 @@
   color: #8a8a8a;
 }
 
-.status-notStarted {
-  background-color: #dd5d64;
+.status-not-started {
+  background-color: var(--calendar-status-not-started-text);
 }
 
-.status-inProgress {
-  background-color: #fbe9ea;
+.status-test-in-progress {
+  background-color: var(--calendar-status-test-in-progress-text);
 }
 
-.status-testing {
-  background-color: #e99398;
+.status-in-review {
+  background-color: var(--calendar-status-in-review-text);
 }
 
-.status-addressing {
-  background-color: #f4c9cb;
+.status-blocked {
+  background-color: var(--calendar-status-blocked-text);
 }
 
 .status-completed {
-  background-color: #8fd392;
+  background-color: var(--calendar-status-completed-text);
+}
+
+.detail-status.status-not-started {
+  background-color: var(--calendar-status-not-started-bg);
+  color: var(--calendar-status-not-started-text);
+}
+
+.detail-status.status-test-in-progress {
+  background-color: var(--calendar-status-test-in-progress-bg);
+  color: var(--calendar-status-test-in-progress-text);
+}
+
+.detail-status.status-in-review {
+  background-color: var(--calendar-status-in-review-bg);
+  color: var(--calendar-status-in-review-text);
+}
+
+.detail-status.status-blocked {
+  background-color: var(--calendar-status-blocked-bg);
+  color: var(--calendar-status-blocked-text);
+}
+
+.detail-status.status-completed {
+  background-color: var(--calendar-status-completed-bg);
+  color: var(--calendar-status-completed-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,13 +4,15 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
 import '../../styles/pages/views/Calendar.css';
 
-const STATUS_LABELS = {
-  notStarted: 'Not Started',
-  inProgress: 'In Progress',
-  testing: 'Testing',
-  addressing: 'Addressing',
-  completed: 'Completed',
-};
+const STATUS_META = [
+  { key: 'not-started', label: 'Not Started' },
+  { key: 'test-in-progress', label: 'In Progress' },
+  { key: 'in-review', label: 'In Review' },
+  { key: 'blocked', label: 'Blocked' },
+  { key: 'completed', label: 'Completed' },
+];
+
+const STATUS_LABELS = Object.fromEntries(STATUS_META.map((status) => [status.key, status.label]));
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
@@ -27,19 +29,19 @@ function parseDateOnly(value) {
 function mapApiStatusToCalendarStatus(status) {
   switch (status) {
     case 'NOT_STARTED':
-      return 'notStarted';
+      return 'not-started';
     case 'DAT_IN_PROGRESS':
     case 'OET_IN_PROGRESS':
-      return 'inProgress';
+      return 'test-in-progress';
     case 'IN_REVIEW':
-      return 'testing';
+      return 'in-review';
     case 'COMPLETED':
       return 'completed';
     case 'BLOCKED':
     case 'ARCHIVED':
-      return 'addressing';
+      return 'blocked';
     default:
-      return 'notStarted';
+      return 'not-started';
   }
 }
 
@@ -275,10 +277,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
           </div>
           <div className="calendar-legend-status-group">
             <span className="legend-label">Status:</span>
-            {Object.entries(STATUS_LABELS).map(([status, label]) => (
-              <span key={status} className="legend-item">
-                <span className={`legend-dot status-${status}`} />
-                {label}
+            {STATUS_META.map((status) => (
+              <span key={status.key} className="legend-item">
+                <span className={`legend-dot status-${status.key}`} />
+                {status.label}
               </span>
             ))}
           </div>
@@ -383,7 +385,9 @@ const CalendarView = ({ refreshKey = 0 }) => {
                             <span className="detail-assignee">{event.assigneeInitials}</span>
                             <span className="detail-assignee-name">{event.assigneeName}</span>
                           </span>
-                          <span className="detail-status">{STATUS_LABELS[event.status]}</span>
+                          <span className={`detail-status status-${event.status}`}>
+                            {STATUS_LABELS[event.status]}
+                          </span>
                         </div>
                       </div>
                     </div>
