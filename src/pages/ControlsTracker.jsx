@@ -9,6 +9,7 @@ import CreateTestModal from '../components/CreateTestModal';
 import CreateRequestModal from '../components/CreateRequestModal';
 import AssignTestModal from '../components/AssignTestModal';
 import ExportButton from '../components/ExportButton';
+import RefreshButton from '../components/RefreshButton';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
@@ -59,6 +60,8 @@ export default function ControlsTracker() {
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [controlsLoading, setControlsLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(true);
+  const [kanbanLoading, setKanbanLoading] = useState(true);
+  const [calendarLoading, setCalendarLoading] = useState(true);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
 
@@ -102,7 +105,7 @@ export default function ControlsTracker() {
           />
         );
       case 'Kanban':
-        return <Kanban refreshKey={kanbanRefreshKey} />;
+        return <Kanban refreshKey={kanbanRefreshKey} onLoadingChange={setKanbanLoading} />;
       case 'Requests':
         return (
           <Requests
@@ -115,24 +118,10 @@ export default function ControlsTracker() {
           />
         );
       case 'Calendar':
-        return <Calendar refreshKey={calendarRefreshKey} />;
+        return <Calendar refreshKey={calendarRefreshKey} onLoadingChange={setCalendarLoading} />;
       default:
         return null;
     }
-  };
-
-  const handleRefreshClick = () => {
-    setLastUpdatedAt(new Date());
-    if (activeTab === 'Controls') {
-      setControlsLoading(true);
-      setControlsRefreshKey((k) => k + 1);
-    }
-    if (activeTab === 'Requests') {
-      setRequestsLoading(true);
-      setRequestsRefreshKey((k) => k + 1);
-    }
-    if (activeTab === 'Kanban') setKanbanRefreshKey((k) => k + 1);
-    if (activeTab === 'Calendar') setCalendarRefreshKey((k) => k + 1);
   };
 
   const exportConfigByTab = {
@@ -142,7 +131,35 @@ export default function ControlsTracker() {
 
   const activeExportConfig = exportConfigByTab[activeTab];
   const activeTabLoading =
-    activeTab === 'Controls' ? controlsLoading : activeTab === 'Requests' ? requestsLoading : false;
+    activeTab === 'Controls'
+      ? controlsLoading
+      : activeTab === 'Requests'
+        ? requestsLoading
+        : activeTab === 'Kanban'
+          ? kanbanLoading
+          : activeTab === 'Calendar'
+            ? calendarLoading
+            : false;
+
+  const handleRefreshClick = () => {
+    if (activeTabLoading) return;
+
+    setLastUpdatedAt(new Date());
+
+    if (activeTab === 'Controls') {
+      setControlsLoading(true);
+      setControlsRefreshKey((k) => k + 1);
+    } else if (activeTab === 'Requests') {
+      setRequestsLoading(true);
+      setRequestsRefreshKey((k) => k + 1);
+    } else if (activeTab === 'Kanban') {
+      setKanbanLoading(true);
+      setKanbanRefreshKey((k) => k + 1);
+    } else if (activeTab === 'Calendar') {
+      setCalendarLoading(true);
+      setCalendarRefreshKey((k) => k + 1);
+    }
+  };
 
   async function handleExportClick() {
     if (!activeExportConfig || activeTabLoading) return;
@@ -199,9 +216,7 @@ export default function ControlsTracker() {
               disabled={!activeExportConfig}
               onClick={handleExportClick}
             />
-            <button className="btn btn--blue" type="button" onClick={handleRefreshClick}>
-              Refresh
-            </button>
+            <RefreshButton isLoading={activeTabLoading} onClick={handleRefreshClick} />
           </>
         }
       />
