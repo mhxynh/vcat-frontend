@@ -320,7 +320,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
             filteredRequests.map((req) => {
               const isOpen = expanded.has(req.id);
               const progress = computeProgress(req);
-              const isCompleted = progress.pct === 100 && (req.controls || []).length > 0;
+              const controls = req.controls || [];
+              const isCompleted =
+                controls.length > 0 && controls.every((control) => controls?.completed);
 
               return (
                 <div key={req.id} className="request-card">

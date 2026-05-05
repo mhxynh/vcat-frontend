@@ -186,7 +186,8 @@
 .meta-value--success {
   color: #00a63e;
 }
-x .meta-value--overdue {
+
+.meta-value--overdue {
   color: #96151d;
 }
 
