@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Catalog from './pages/ControlsCatalog';
 import Tracker from './pages/ControlsTracker';
+import HelpCenter from './pages/HelpCenter';
 import '@aws-amplify/ui-react/styles.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/index.css';
@@ -31,6 +32,7 @@ export default function App() {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/catalog" element={<Catalog />} />
                         <Route path="/tracker" element={<Tracker />} />
+                        <Route path="/help" element={<HelpCenter />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
 

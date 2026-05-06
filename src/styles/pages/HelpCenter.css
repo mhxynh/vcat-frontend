@@ -1,0 +1,17 @@
+.help-center-page {
+  max-width: 1120px;
+  margin: 24px auto;
+  padding: 0 16px 24px;
+}
+
+.help-center-page__placeholder {
+  margin-top: 14px;
+}
+
+.help-center-page__placeholder-text {
+  margin: 8px 0 0;
+  color: #555;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+}
