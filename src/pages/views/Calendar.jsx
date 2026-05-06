@@ -13,6 +13,7 @@ const STATUS_META = [
 ];
 
 const STATUS_LABELS = Object.fromEntries(STATUS_META.map((status) => [status.key, status.label]));
+const STATUS_ORDER = Object.fromEntries(STATUS_META.map((status, index) => [status.key, index]));
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
@@ -67,6 +68,12 @@ const DATE_FILTER_OPTIONS = [
   { value: 'both', label: 'Both' },
 ];
 
+function compareTestsForCalendar(a, b) {
+  const aStatus = mapApiStatusToCalendarStatus(a?.status);
+  const bStatus = mapApiStatusToCalendarStatus(b?.status);
+  return (STATUS_ORDER[aStatus] ?? 0) - (STATUS_ORDER[bStatus] ?? 0);
+}
+
 function CalendarNavChevron({ direction }) {
   const d = direction === 'prev' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6';
   return (
@@ -84,7 +91,7 @@ function CalendarNavChevron({ direction }) {
 }
 
 function buildEventsByDay(tests, month, year, dateFilter) {
-  return tests.reduce((acc, test) => {
+  return [...tests].sort(compareTestsForCalendar).reduce((acc, test) => {
     const entriesToAdd = [];
     const dueDate = parseDateOnly(test.due_date);
     const etaDate = parseDateOnly(test.estimated_date);
