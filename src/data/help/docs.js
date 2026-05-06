@@ -1,5 +1,13 @@
 import { ACTIONS, ROLES } from '../../auth';
 
+/**
+ * Future scaling note:
+ * If we add context-aware help later, extend each help doc with `contextKeys`
+ * such as `tracker-requests-tab`, `create-request-modal`, or `calendar-view`.
+ * Then add helpers like `getHelpDocsByContext(contextKey)` so pages, modals,
+ * or onboarding tours can surface related articles without hardcoding links.
+ */
+
 export const HELP_SECTION_TYPES = {
   PARAGRAPH: 'paragraph',
   STEPS: 'steps',
