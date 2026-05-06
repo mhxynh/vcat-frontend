@@ -55,10 +55,6 @@ export function getHelpDocById(docId, docs = HELP_DOCS) {
   return docs.find((doc) => doc.id === docId) || null;
 }
 
-export function getHelpDocsByCategory(categoryId, docs = HELP_DOCS) {
-  return sortHelpDocs(docs).filter((doc) => doc.categoryId === categoryId);
-}
-
 export function getVisibleHelpDocs(role, docs = HELP_DOCS) {
   return sortHelpDocs(docs).filter((doc) => {
     if (!Array.isArray(doc.roles) || doc.roles.length === 0) return true;

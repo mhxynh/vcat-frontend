@@ -279,3 +279,7 @@ export function sortHelpDocs(docs = HELP_DOCS) {
     return left.order - right.order;
   });
 }
+
+export function getHelpDocsByCategory(categoryId, docs = HELP_DOCS) {
+  return sortHelpDocs(docs).filter((doc) => doc.categoryId === categoryId);
+}
