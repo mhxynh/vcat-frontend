@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   getHelpDocAccessLabel,
   getHelpDocsByCategory,
@@ -8,6 +8,11 @@ import {
 
 export default function HelpSidebar({ categories, docs, activeDocId, currentRole, onSelectDoc }) {
   const sortedCategories = sortHelpCategories(categories);
+  const activeLinkRef = useRef(null);
+
+  useEffect(() => {
+    activeLinkRef.current?.scrollIntoView?.({ block: 'nearest' });
+  }, [activeDocId]);
 
   return (
     <aside className="help-sidebar" aria-label="Help documentation navigation">
@@ -30,6 +35,7 @@ export default function HelpSidebar({ categories, docs, activeDocId, currentRole
                     <button
                       key={doc.id}
                       type="button"
+                      ref={activeDocId === doc.id ? activeLinkRef : null}
                       className={`help-sidebar__link ${
                         activeDocId === doc.id ? 'help-sidebar__link--active' : ''
                       } ${isRestricted ? 'help-sidebar__link--restricted' : ''}`}

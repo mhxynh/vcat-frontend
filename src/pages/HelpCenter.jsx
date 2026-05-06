@@ -12,6 +12,7 @@ export default function HelpCenter() {
   const sortedDocs = useMemo(() => sortHelpDocs(HELP_DOCS), []);
   const [selectedDocId, setSelectedDocId] = useState(() => sortedDocs[0]?.id || null);
   const [query, setQuery] = useState('');
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const searchIndex = useMemo(() => buildHelpSearchIndex(HELP_DOCS, HELP_CATEGORIES), []);
   const searchResults = useMemo(() => searchHelpDocs(query, searchIndex), [query, searchIndex]);
@@ -38,6 +39,18 @@ export default function HelpCenter() {
     }
   }
 
+  function handleSelectDoc(docId) {
+    setSelectedDocId(docId);
+    setIsMobileNavOpen(false);
+  }
+
+  function handleClearSearch() {
+    setQuery('');
+    if (!visibleDocIds.has(selectedDocId) && sortedDocs[0]?.id) {
+      setSelectedDocId(sortedDocs[0].id);
+    }
+  }
+
   return (
     <section className="help-center-page">
       <PageHeader title="Help Center" />
@@ -46,18 +59,34 @@ export default function HelpCenter() {
         <HelpSearch
           value={query}
           onChange={handleSearchChange}
+          onClear={handleClearSearch}
           resultCount={searchResults.length}
         />
       </div>
 
+      <button
+        type="button"
+        className="help-center-page__nav-toggle"
+        aria-expanded={isMobileNavOpen}
+        onClick={() => setIsMobileNavOpen((open) => !open)}
+      >
+        Browse docs
+      </button>
+
       <div className="help-center-page__layout">
-        <HelpSidebar
-          categories={HELP_CATEGORIES}
-          docs={visibleDocs}
-          activeDocId={activeDocId}
-          currentRole={role}
-          onSelectDoc={setSelectedDocId}
-        />
+        <div
+          className={`help-center-page__sidebar-wrap ${
+            isMobileNavOpen ? 'help-center-page__sidebar-wrap--open' : ''
+          }`}
+        >
+          <HelpSidebar
+            categories={HELP_CATEGORIES}
+            docs={visibleDocs}
+            activeDocId={activeDocId}
+            currentRole={role}
+            onSelectDoc={handleSelectDoc}
+          />
+        </div>
 
         <main className="help-center-page__content">
           {activeDoc ? (
@@ -68,6 +97,11 @@ export default function HelpCenter() {
               <p className="help-center-page__empty-text">
                 Try searching for a feature, workflow, permission, or role.
               </p>
+              {query ? (
+                <button type="button" className="btn btn--new" onClick={handleClearSearch}>
+                  Clear search
+                </button>
+              ) : null}
             </div>
           )}
         </main>

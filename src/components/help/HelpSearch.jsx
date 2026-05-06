@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function HelpSearch({ value, onChange, resultCount }) {
+export default function HelpSearch({ value, onChange, onClear, resultCount }) {
   return (
     <div className="help-search">
       <div className="help-search__input-wrap">
@@ -23,6 +23,16 @@ export default function HelpSearch({ value, onChange, resultCount }) {
           placeholder="Search help docs..."
           aria-label="Search help docs"
         />
+        {value ? (
+          <button
+            type="button"
+            className="help-search__clear"
+            aria-label="Clear search"
+            onClick={onClear}
+          >
+            Clear
+          </button>
+        ) : null}
       </div>
 
       <span className="help-search__count">
