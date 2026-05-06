@@ -155,6 +155,10 @@
 }
 
 .help-sidebar__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
   min-height: 34px;
   padding: 8px 10px;
@@ -170,6 +174,23 @@
   text-align: left;
 }
 
+.help-sidebar__link-title {
+  min-width: 0;
+}
+
+.help-sidebar__link-badge {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  border: 1px solid #efcdd0;
+  border-radius: 999px;
+  background: #fff7f8;
+  color: #8b0f17;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .help-sidebar__link:hover {
   background: #f7f7f8;
 }
@@ -179,6 +200,10 @@
   background: rgba(139, 15, 23, 0.08);
   color: #8b0f17;
   font-weight: 600;
+}
+
+.help-sidebar__link--restricted {
+  color: #5f6368;
 }
 
 .help-article {
@@ -237,6 +262,18 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
+}
+
+.help-article__chip--available {
+  border-color: #ccefd6;
+  background: #e6f7ea;
+  color: #0f6a2b;
+}
+
+.help-article__chip--restricted {
+  border-color: #efcdd0;
+  background: #fff7f8;
+  color: #8b0f17;
 }
 
 .help-article__body {

@@ -1,6 +1,11 @@
 import React from 'react';
 import { ACTION_MESSAGES } from '../../auth';
-import { HELP_SECTION_TYPES, getHelpCategoryById } from '../../data/help/docs';
+import {
+  HELP_SECTION_TYPES,
+  getHelpCategoryById,
+  getHelpDocAccessLabel,
+  userCanAccessHelpDoc,
+} from '../../data/help/docs';
 import HelpCallout from './HelpCallout';
 import HelpMedia from './HelpMedia';
 
@@ -55,7 +60,7 @@ function renderSection(section, index) {
   return null;
 }
 
-export default function HelpArticle({ doc }) {
+export default function HelpArticle({ doc, currentRole }) {
   if (!doc) {
     return (
       <article className="help-article help-article--empty">
@@ -66,6 +71,8 @@ export default function HelpArticle({ doc }) {
   }
 
   const category = getHelpCategoryById(doc.categoryId);
+  const canAccessDoc = userCanAccessHelpDoc(doc, currentRole);
+  const accessLabel = getHelpDocAccessLabel(doc, currentRole);
 
   return (
     <article className="help-article">
@@ -74,12 +81,27 @@ export default function HelpArticle({ doc }) {
       <p className="help-article__summary">{doc.summary}</p>
 
       <div className="help-article__chips" aria-label="Article metadata">
+        <span
+          className={`help-article__chip ${
+            canAccessDoc ? 'help-article__chip--available' : 'help-article__chip--restricted'
+          }`}
+        >
+          {accessLabel}
+        </span>
+
         {(doc.roles || []).map((role) => (
           <span key={role} className="help-article__chip">
             {role}
           </span>
         ))}
       </div>
+
+      {!canAccessDoc ? (
+        <HelpCallout type="permission">
+          This workflow is outside your current role. You can still read the guidance, but actions
+          in the app may be disabled or require a manager.
+        </HelpCallout>
+      ) : null}
 
       <HelpMedia media={doc.media} />
 

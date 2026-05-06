@@ -3,10 +3,12 @@ import PageHeader from '../components/PageHeader';
 import HelpArticle from '../components/help/HelpArticle';
 import HelpSearch from '../components/help/HelpSearch';
 import HelpSidebar from '../components/help/HelpSidebar';
+import { useRole } from '../auth';
 import { HELP_CATEGORIES, HELP_DOCS, sortHelpDocs } from '../data/help/docs';
 import { buildHelpSearchIndex, getHelpDocById, searchHelpDocs } from '../data/help/searchIndex';
 
 export default function HelpCenter() {
+  const { role } = useRole();
   const sortedDocs = useMemo(() => sortHelpDocs(HELP_DOCS), []);
   const [selectedDocId, setSelectedDocId] = useState(() => sortedDocs[0]?.id || null);
   const [query, setQuery] = useState('');
@@ -53,12 +55,13 @@ export default function HelpCenter() {
           categories={HELP_CATEGORIES}
           docs={visibleDocs}
           activeDocId={activeDocId}
+          currentRole={role}
           onSelectDoc={setSelectedDocId}
         />
 
         <main className="help-center-page__content">
           {activeDoc ? (
-            <HelpArticle doc={activeDoc} />
+            <HelpArticle doc={activeDoc} currentRole={role} />
           ) : (
             <div className="dashboard-panel help-center-page__empty">
               <div className="dashboard-panel__title">No matching docs</div>

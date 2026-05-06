@@ -283,3 +283,15 @@ export function sortHelpDocs(docs = HELP_DOCS) {
 export function getHelpDocsByCategory(categoryId, docs = HELP_DOCS) {
   return sortHelpDocs(docs).filter((doc) => doc.categoryId === categoryId);
 }
+
+export function userCanAccessHelpDoc(doc, role) {
+  if (!doc || !Array.isArray(doc.roles) || doc.roles.length === 0) return true;
+  return doc.roles.includes(role);
+}
+
+export function getHelpDocAccessLabel(doc, role) {
+  if (userCanAccessHelpDoc(doc, role)) return 'Available';
+  if (Array.isArray(doc?.roles) && doc.roles.length === 1) return `${doc.roles[0]} only`;
+  if (Array.isArray(doc?.roles) && doc.roles.length > 1) return `${doc.roles.join(', ')} only`;
+  return 'Restricted';
+}

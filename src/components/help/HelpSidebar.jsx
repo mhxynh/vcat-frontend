@@ -1,7 +1,12 @@
 import React from 'react';
-import { getHelpDocsByCategory, sortHelpCategories } from '../../data/help/docs';
+import {
+  getHelpDocAccessLabel,
+  getHelpDocsByCategory,
+  sortHelpCategories,
+  userCanAccessHelpDoc,
+} from '../../data/help/docs';
 
-export default function HelpSidebar({ categories, docs, activeDocId, onSelectDoc }) {
+export default function HelpSidebar({ categories, docs, activeDocId, currentRole, onSelectDoc }) {
   const sortedCategories = sortHelpCategories(categories);
 
   return (
@@ -18,18 +23,27 @@ export default function HelpSidebar({ categories, docs, activeDocId, onSelectDoc
               <div className="help-sidebar__group-title">{category.title}</div>
 
               <div className="help-sidebar__links">
-                {categoryDocs.map((doc) => (
-                  <button
-                    key={doc.id}
-                    type="button"
-                    className={`help-sidebar__link ${
-                      activeDocId === doc.id ? 'help-sidebar__link--active' : ''
-                    }`}
-                    onClick={() => onSelectDoc?.(doc.id)}
-                  >
-                    {doc.title}
-                  </button>
-                ))}
+                {categoryDocs.map((doc) => {
+                  const isRestricted = !userCanAccessHelpDoc(doc, currentRole);
+
+                  return (
+                    <button
+                      key={doc.id}
+                      type="button"
+                      className={`help-sidebar__link ${
+                        activeDocId === doc.id ? 'help-sidebar__link--active' : ''
+                      } ${isRestricted ? 'help-sidebar__link--restricted' : ''}`}
+                      onClick={() => onSelectDoc?.(doc.id)}
+                    >
+                      <span className="help-sidebar__link-title">{doc.title}</span>
+                      {isRestricted ? (
+                        <span className="help-sidebar__link-badge">
+                          {getHelpDocAccessLabel(doc, currentRole)}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             </section>
           );
