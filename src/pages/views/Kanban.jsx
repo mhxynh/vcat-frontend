@@ -12,7 +12,7 @@ function columnLaneDotColor(statusKey) {
     case 'in_progress':
       return '#1447e6';
     case 'in_review':
-      return '#00bda3';
+      return '#00786F';
     case 'completed':
       return '#008236';
     default:
