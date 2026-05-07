@@ -212,11 +212,29 @@ function polarToCartesian(cx, cy, r, angleDeg) {
 }
 
 function describeDonutSegment(cx, cy, innerR, outerR, startPercent, endPercent) {
+  const percentSpan = endPercent - startPercent;
+  if (percentSpan >= 99.999) {
+    const outerStart = polarToCartesian(cx, cy, outerR, 0);
+    const outerMid = polarToCartesian(cx, cy, outerR, 180);
+    const innerStart = polarToCartesian(cx, cy, innerR, 0);
+    const innerMid = polarToCartesian(cx, cy, innerR, 180);
+
+    return [
+      `M ${outerStart.x} ${outerStart.y}`,
+      `A ${outerR} ${outerR} 0 1 1 ${outerMid.x} ${outerMid.y}`,
+      `A ${outerR} ${outerR} 0 1 1 ${outerStart.x} ${outerStart.y}`,
+      `L ${innerStart.x} ${innerStart.y}`,
+      `A ${innerR} ${innerR} 0 1 0 ${innerMid.x} ${innerMid.y}`,
+      `A ${innerR} ${innerR} 0 1 0 ${innerStart.x} ${innerStart.y}`,
+      'Z',
+    ].join(' ');
+  }
+
   const start = polarToCartesian(cx, cy, outerR, (startPercent / 100) * 360);
   const end = polarToCartesian(cx, cy, outerR, (endPercent / 100) * 360);
   const innerStart = polarToCartesian(cx, cy, innerR, (endPercent / 100) * 360);
   const innerEnd = polarToCartesian(cx, cy, innerR, (startPercent / 100) * 360);
-  const largeArc = endPercent - startPercent > 50 ? 1 : 0;
+  const largeArc = percentSpan > 50 ? 1 : 0;
   return `M ${start.x} ${start.y} A ${outerR} ${outerR} 0 ${largeArc} 1 ${end.x} ${end.y} L ${innerStart.x} ${innerStart.y} A ${innerR} ${innerR} 0 ${largeArc} 0 ${innerEnd.x} ${innerEnd.y} Z`;
 }
 

@@ -644,6 +644,7 @@ export default function DetailsRequestModal({
               </div>
 
               <div className="drm-statusbar-right">
+                <Icon name="graph" category="deco" />
                 <span className="drm-progress">
                   {progress.completed} / {progress.total}
                 </span>
@@ -689,7 +690,7 @@ export default function DetailsRequestModal({
             <div className="drm-section">
               <div className="drm-section-title drm-section-title--withicon">
                 <span className="drm-icon" aria-hidden="true">
-                  ✓
+                  <Icon name="documents" category="deco" size="md" />
                 </span>
                 Associated Controls ({controls.length})
               </div>
