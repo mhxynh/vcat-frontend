@@ -501,7 +501,6 @@ export default function DetailsTestModal({
     if (testId == null || isBusy) return;
 
     try {
-      setBusyMessage('Archiving...');
       setIsBusy(true);
 
       await archiveTest(testId);
