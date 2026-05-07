@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import {
@@ -64,16 +64,11 @@ function getHistoryRowRequestId(historyRow) {
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
   const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
-  const closeDeleteConfirm = () => {
-    if (deleting) return;
-    setIsDeleteConfirmOpen(false);
-  };
-
-  const [deleting, setDeleting] = useState(false);
 
   const [fetchedRequestHistory, setFetchedRequestHistory] = useState([]);
   const [requestHistoryLoading, setRequestHistoryLoading] = useState(false);
@@ -83,6 +78,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestDetailsError, setRequestDetailsError] = useState('');
   const requestDetailsSeq = useRef(0);
+
+  const closeDeleteConfirm = useCallback(() => {
+    if (deleting) return;
+    setIsDeleteConfirmOpen(false);
+  }, [deleting]);
 
   function showPermissionDeniedToast() {
     showErrorToast({
@@ -97,7 +97,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
       if (isDeleteConfirmOpen) {
-        setIsDeleteConfirmOpen(false);
+        closeDeleteConfirm();
         return;
       }
       if (isRequestDetailsOpen) {
@@ -112,7 +112,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen, isRequestDetailsOpen]);
+  }, [isOpen, onClose, isDeleteConfirmOpen, isRequestDetailsOpen, closeDeleteConfirm]);
 
   useEffect(() => {
     if (!isOpen) return;
