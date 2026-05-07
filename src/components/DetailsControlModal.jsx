@@ -489,7 +489,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         confirmText={deleting ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
         confirmDisabled={deleting}
-        cancelDisabled={deleting}
       />
 
       <EditControlModal
