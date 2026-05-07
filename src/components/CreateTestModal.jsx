@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import '../styles/components/CreateTestModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
@@ -31,12 +31,22 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
   const { refreshAndClose } = createRefreshHandlers({
     parentRefresh: onCreated,
     close: onClose,
   });
+
+  useEffect(() => {
+    submittingRef.current = submitting;
+  }, [submitting]);
+
+  const handleClose = useCallback(() => {
+    if (submittingRef.current) return;
+    onClose?.();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -52,7 +62,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     setDescription('');
 
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key === 'Escape') handleClose();
     };
     window.addEventListener('keydown', onKeyDown);
 
@@ -129,7 +139,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
     loadData();
 
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, defaultRequestId]);
+  }, [isOpen, defaultRequestId, handleClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -143,6 +153,8 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   }, [selectedRequestId, requests]);
 
   const handleSubmit = async () => {
+    if (submitting || loading || loadError) return;
+
     setFieldErrors({});
 
     const errs = {};
@@ -198,7 +210,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   return (
     <div
       className="ctm-overlay"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
+      onMouseDown={(e) => e.target === e.currentTarget && handleClose()}
       role="presentation"
     >
       <div
@@ -210,7 +222,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
       >
         <div className="ctm-header">
           <h2 className="ctm-title">Create Control Test</h2>
-          <button className="ctm-close" type="button" onClick={onClose} aria-label="Close">
+          <button
+            className="ctm-close"
+            type="button"
+            onClick={handleClose}
+            aria-label="Close"
+            disabled={submitting}
+          >
             ×
           </button>
         </div>
@@ -373,7 +391,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
           <button
             className="ctm-btn ctm-btn--ghost"
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={submitting}
           >
             Cancel
@@ -382,7 +400,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             className="ctm-btn ctm-btn--primary"
             type="button"
             onClick={handleSubmit}
-            disabled={submitting || !!loadError}
+            disabled={submitting || loading || !!loadError}
           >
             {submitting ? 'Creating...' : 'Create Control Test'}
           </button>

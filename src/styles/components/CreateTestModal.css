@@ -52,6 +52,11 @@
   border-color: #e5e7eb;
 }
 
+.ctm-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Body */
 .ctm-body {
   padding: 18px 22px 10px;
@@ -173,13 +178,18 @@
   border: 1px solid transparent;
 }
 
+.ctm-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .ctm-btn--ghost {
   background: #ffffff;
   border-color: #e5e7eb;
   color: #111827;
 }
 
-.ctm-btn--ghost:hover {
+.ctm-btn--ghost:hover:not(:disabled) {
   background: #f9fafb;
 }
 
@@ -188,7 +198,7 @@
   color: #ffffff;
 }
 
-.ctm-btn--primary:hover {
+.ctm-btn--primary:hover:not(:disabled) {
   background: #7f1d1d;
 }
 
