@@ -538,9 +538,7 @@ export default function DetailsTestModal({
 
       await unarchiveTest(testId);
 
-      const fresh = await refreshTest();
-
-      await onUpdated?.(fresh);
+      await refreshTest();
 
       showSuccessToast({
         title: 'Control Test Unarchived',
