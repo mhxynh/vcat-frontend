@@ -3,6 +3,7 @@ import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
 import ExportButton from '../components/ExportButton';
+import RefreshButton from '../components/RefreshButton';
 import ImportControlsModal from '../components/ImportControlsModal';
 import RestrictedAction from '../components/RestrictedAction';
 import { ACTIONS } from '../auth';
@@ -58,6 +59,7 @@ export default function Controls() {
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState(null);
@@ -137,6 +139,18 @@ export default function Controls() {
     }
   }
 
+  async function handleRefresh() {
+    if (loading) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await loadControls();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
   async function handleImportControlsCsv(file) {
     await uploadControlsCsvForImport(file);
     await refreshControls();
@@ -145,6 +159,10 @@ export default function Controls() {
   useEffect(() => {
     loadControls();
   }, []);
+
+  useEffect(() => {
+    if (!loading) setIsRefreshing(false);
+  }, [loading]);
 
   const filtered = useMemo(() => {
     let result = controls;
@@ -252,15 +270,11 @@ export default function Controls() {
               </button>
             </RestrictedAction>
             <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
-            <button
-              className="btn btn--blue"
-              type="button"
-              onClick={() => loadControls()}
-              disabled={loading}
-            >
-              <Icon name="refresh" category="actions" size="sm" color="#ffffff" />
-              Refresh
-            </button>
+            <RefreshButton
+              isLoading={isRefreshing}
+              isPageLoading={loading}
+              onClick={handleRefresh}
+            />
           </div>
         }
       />

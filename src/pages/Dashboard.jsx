@@ -2,6 +2,7 @@ import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import ExportButton from '../components/ExportButton';
+import RefreshButton from '../components/RefreshButton';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { exportTable } from '../api/ExportAPI';
@@ -384,6 +385,7 @@ export default function Dashboard() {
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
   const [centerProgressDate, setCenterProgressDate] = useState(
@@ -460,6 +462,10 @@ export default function Dashboard() {
     loadDashboardData();
   }, [loadDashboardData]);
 
+  useEffect(() => {
+    if (!loading) setIsRefreshing(false);
+  }, [loading]);
+
   async function handleExport() {
     if (loading) return;
 
@@ -475,6 +481,18 @@ export default function Dashboard() {
       });
     } finally {
       setIsExporting(false);
+    }
+  }
+
+  async function handleRefresh() {
+    if (loading) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await loadDashboardData();
+    } finally {
+      setIsRefreshing(false);
     }
   }
 
@@ -608,14 +626,7 @@ export default function Dashboard() {
       actions={
         <>
           <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
-          <button
-            className="btn btn--blue"
-            type="button"
-            onClick={loadDashboardData}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <RefreshButton isLoading={isRefreshing} isPageLoading={loading} onClick={handleRefresh} />
         </>
       }
     />
