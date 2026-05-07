@@ -46,6 +46,11 @@
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M4.667 1.167V3.5m4.666-2.333V3.5m1.75-1.167H2.917c-.645 0-1.167.523-1.167 1.167v8.167c0 .644.522 1.166 1.167 1.166h8.166c.645 0 1.167-.522 1.167-1.166V3.5c0-.644-.522-1.167-1.167-1.167Zm-9.333 3.5h10.5"/>
   </symbol>
 
+  <symbol id="icon-deco-checkmark" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 14 14">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M12.717 5.833a5.834 5.834 0 1 1-2.8-3.888"/>
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M5.25 6.417 7 8.167l5.833-5.834"/>
+  </symbol>
+
   <symbol id="icon-deco-clock" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 3.5V7l2.333 1.167"/>
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 12.833A5.833 5.833 0 1 0 7 1.167a5.833 5.833 0 0 0 0 11.666Z"/>
@@ -71,9 +76,23 @@
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 12.833A5.833 5.833 0 1 0 7 1.167a5.833 5.833 0 0 0 0 11.666Zm0-8.166V7m0 2.333h.006"/>
   </symbol>
 
+  <symbol id="icon-deco-eye" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 14 14">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M1.202 7.203a.583.583 0 0 1 0-.406 6.27 6.27 0 0 1 11.595 0 .584.584 0 0 1 0 .406 6.27 6.27 0 0 1-11.595 0Z"/>
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 8.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z"/>
+  </symbol>
+
+  <symbol id="icon-deco-graph" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.333" d="M2 2v10.667A1.333 1.333 0 0 0 3.333 14H14m-2-2.667V6m-3.334 5.333v-8m-3.332 8v-2"/>
+  </symbol>
+
+
   <symbol id="icon-deco-history" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M2.5 10A7.5 7.5 0 1 0 10 2.5a8.125 8.125 0 0 0-5.617 2.283L2.5 6.667"/>
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M2.5 2.5v4.167h4.167M10 5.833V10l3.333 1.667"/>
+  </symbol>
+
+  <symbol id="icon-deco-not-started" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 14 14">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M7 12.833A5.833 5.833 0 1 0 7 1.167a5.833 5.833 0 0 0 0 11.666Z"/>
   </symbol>
 
   <symbol id="icon-deco-user" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">

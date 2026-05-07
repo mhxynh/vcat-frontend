@@ -183,6 +183,24 @@
   font-weight: inherit;
 }
 
+.meta-value--success {
+  color: #00a63e;
+}
+
+.meta-value--overdue {
+  color: #96151d;
+}
+
+.meta-value--inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-value-icon {
+  flex: 0 0 auto;
+}
+
 .overdue {
   margin-left: 8px;
   background: #fee2e2;
@@ -228,6 +246,10 @@
 .progress-fill {
   height: 100%;
   background: #991b1b;
+}
+
+.progress-fill--success {
+  background: #00a63e;
 }
 
 .btn-outline {
@@ -326,27 +348,20 @@
   color: #b91c1c;
 }
 
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
+.status-icon {
+  flex: 0 0 auto;
   display: inline-block;
+  vertical-align: middle;
+  overflow: visible;
+  line-height: 0;
 }
 
-.status-dot.completed {
-  background: #22c55e;
-}
-
-.status-dot.in-progress {
-  background: #3b82f6;
-}
-
-.status-dot.in-review {
-  background: #f59e0b;
-}
-
-.status-dot.not-started {
-  background: #9ca3af;
+.status-dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  display: inline-block;
 }
 
 .status-pill {
@@ -373,8 +388,8 @@
 }
 
 .status-pill.in-review {
-  background: #ffedd5;
-  color: #9a3412;
+  background: #f0fdfa;
+  color: #00786f;
 }
 
 .status-pill.not-started {
