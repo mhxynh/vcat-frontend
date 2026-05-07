@@ -68,10 +68,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
   const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
-  const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setIsDeleteConfirmOpen(false);
+  };
 
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
 
   const [fetchedRequestHistory, setFetchedRequestHistory] = useState([]);
   const [requestHistoryLoading, setRequestHistoryLoading] = useState(false);
@@ -95,7 +97,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
       if (isDeleteConfirmOpen) {
-        closeDeleteConfirm();
+        setIsDeleteConfirmOpen(false);
         return;
       }
       if (isRequestDetailsOpen) {
@@ -115,7 +117,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   useEffect(() => {
     if (!isOpen) return;
     setDeleting(false);
-    setDeleteError('');
   }, [isOpen, control]);
 
   useEffect(() => {
@@ -243,11 +244,10 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   }
 
   async function handleDelete() {
-    if (!id) return;
+    if (!id || deleting) return;
 
     try {
       setDeleting(true);
-      setDeleteError('');
 
       await deleteControl(id, { hard: true });
 
@@ -258,10 +258,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         message: `${id} has been deleted successfully.`,
       });
 
+      setIsDeleteConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to delete control';
-      setDeleteError(errorMessage);
+
+      setIsDeleteConfirmOpen(false);
 
       showErrorToast({
         title: 'Control Delete Failed',
@@ -472,8 +474,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                 </button>
               </div>
             </div>
-
-            {deleteError ? <div className="dcm-delete-error">Error: {deleteError}</div> : null}
           </section>
         </div>
       </div>
@@ -481,17 +481,15 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       <ConfirmActionModal
         isOpen={isDeleteConfirmOpen}
         onClose={closeDeleteConfirm}
-        onConfirm={async () => {
-          closeDeleteConfirm();
-          await handleDelete();
-        }}
+        onConfirm={handleDelete}
         title="Delete Control?"
         message="Are you sure you want to permanently delete this control?"
         itemName={id}
         warning="Deleted controls will be permanently removed and cannot be recovered."
-        confirmText={deleting ? 'Deleting…' : 'Delete'}
+        confirmText={deleting ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
         confirmDisabled={deleting}
+        cancelDisabled={deleting}
       />
 
       <EditControlModal

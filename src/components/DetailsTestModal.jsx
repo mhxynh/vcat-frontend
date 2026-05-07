@@ -498,9 +498,12 @@ export default function DetailsTestModal({
   }
 
   async function handleArchive() {
-    if (testId == null) return;
+    if (testId == null || isBusy) return;
 
     try {
+      setBusyMessage('Archiving...');
+      setIsBusy(true);
+
       await archiveTest(testId);
 
       const fresh = await refreshTest();
@@ -512,6 +515,7 @@ export default function DetailsTestModal({
         message: `${vgcpid} has been archived successfully.`,
       });
 
+      setIsArchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to archive control test';
@@ -520,24 +524,30 @@ export default function DetailsTestModal({
         title: 'Control Test Archive Failed',
         message: `An error occurred while archiving the control test: ${errorMessage}`,
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
   async function handleUnarchive() {
-    if (testId == null) return;
+    if (testId == null || isBusy) return;
 
     try {
-      await runBusy('Unarchiving...', async () => {
-        await unarchiveTest(testId);
-        await refreshTest();
-      });
+      setBusyMessage('Unarchiving...');
+      setIsBusy(true);
+
+      await unarchiveTest(testId);
+
+      const fresh = await refreshTest();
+
+      await onUpdated?.(fresh);
 
       showSuccessToast({
         title: 'Control Test Unarchived',
         message: `${vgcpid} has been unarchived successfully.`,
       });
 
-      await onUpdated?.();
+      setIsUnarchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to unarchive control test';
@@ -546,14 +556,20 @@ export default function DetailsTestModal({
         title: 'Control Test Unarchive Failed',
         message: `An error occurred while unarchiving the control test: ${errorMessage}`,
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
   async function handleDelete() {
-    if (testId == null) return;
+    if (testId == null || isBusy) return;
 
     try {
+      setBusyMessage('Deleting...');
+      setIsBusy(true);
+
       await hardDeleteTest(testId);
+
       await onDeleted?.(testId);
 
       showSuccessToast({
@@ -561,6 +577,7 @@ export default function DetailsTestModal({
         message: `${vgcpid} has been deleted successfully.`,
       });
 
+      setIsDeleteConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to delete control test';
@@ -569,6 +586,8 @@ export default function DetailsTestModal({
         title: 'Control Test Delete Failed',
         message: `An error occurred while deleting the control test: ${errorMessage}`,
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -1040,14 +1059,6 @@ export default function DetailsTestModal({
     <>
       <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
         <div className="dtm-modal" onMouseDown={stop}>
-          {isBusy ? (
-            <div className="dtm-busy-overlay" role="status" aria-live="polite">
-              <div className="dtm-busy-card">
-                <div className="dtm-spinner" aria-hidden="true" />
-                <div className="dtm-busy-text">{busyMessage}</div>
-              </div>
-            </div>
-          ) : null}
           <section className="dtm-header">
             <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
             <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
@@ -1494,10 +1505,7 @@ export default function DetailsTestModal({
       <ConfirmActionModal
         isOpen={isDeleteConfirmOpen}
         onClose={closeDeleteConfirm}
-        onConfirm={async () => {
-          closeDeleteConfirm();
-          await handleDelete();
-        }}
+        onConfirm={handleDelete}
         title="Delete Control Test?"
         message="Are you sure you want to permanently delete this control test?"
         itemName={String(vgcpid)}
@@ -1543,10 +1551,7 @@ export default function DetailsTestModal({
       <ConfirmActionModal
         isOpen={isArchiveConfirmOpen}
         onClose={closeArchiveConfirm}
-        onConfirm={async () => {
-          closeArchiveConfirm();
-          await handleArchive();
-        }}
+        onConfirm={handleArchive}
         title="Archive Control Test?"
         message="Are you sure you want to archive this control test?"
         itemName={String(vgcpid)}
@@ -1561,10 +1566,7 @@ export default function DetailsTestModal({
       <ConfirmActionModal
         isOpen={isUnarchiveConfirmOpen}
         onClose={closeUnarchiveConfirm}
-        onConfirm={async () => {
-          closeUnarchiveConfirm();
-          await handleUnarchive();
-        }}
+        onConfirm={handleUnarchive}
         title="Unarchive Control Test?"
         message="Are you sure you want to unarchive this control test?"
         itemName={String(vgcpid)}
