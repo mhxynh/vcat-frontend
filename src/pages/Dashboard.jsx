@@ -436,7 +436,10 @@ export default function Dashboard() {
   }, [visibleWeekStart]);
 
   const triggerWeekSlide = useCallback((direction) => {
-    setVisibleWeekStart((prev) => addDays(prev, direction * 7));
+    const dayOffset = direction * 7;
+
+    setVisibleWeekStart((prev) => addDays(prev, dayOffset));
+    setSelectedProgressDate((prev) => addDays(prev, dayOffset));
   }, []);
 
   const monthLabel = useMemo(() => {
