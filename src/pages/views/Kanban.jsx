@@ -74,13 +74,17 @@ function CalendarGlyph({ className }) {
   );
 }
 
-const KanbanBoard = ({ refreshKey = 0 }) => {
+const KanbanBoard = ({ refreshKey = 0, onLoadingChange }) => {
   const [cards, setCards] = useState([]);
   const [tests, setTests] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   useEffect(() => {
     async function loadBoard() {

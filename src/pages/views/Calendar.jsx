@@ -131,7 +131,7 @@ function buildEventsByDay(tests, month, year, dateFilter) {
   }, {});
 }
 
-const CalendarView = ({ refreshKey = 0 }) => {
+const CalendarView = ({ refreshKey = 0, onLoadingChange }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
@@ -145,6 +145,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   useEffect(() => {
     let isMounted = true;
