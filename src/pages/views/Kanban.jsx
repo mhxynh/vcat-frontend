@@ -149,21 +149,11 @@ const KanbanBoard = ({ refreshKey = 0, onLoadingChange }) => {
   }
 
   if (loading) {
-    return (
-      <div className="kanban-wrap">
-        <div className="kanban-loading">Loading kanban…</div>
-      </div>
-    );
+    return <div className="no-results">Loading kanban...</div>;
   }
 
   if (error) {
-    return (
-      <div className="kanban-wrap">
-        <div className="kanban-error" role="alert">
-          {error}
-        </div>
-      </div>
-    );
+    return <div className="no-results">Error: {error}.</div>;
   }
 
   return (
