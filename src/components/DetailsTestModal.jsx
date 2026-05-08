@@ -348,7 +348,7 @@ export default function DetailsTestModal({
       normalizedTest,
       usersById
     );
-    
+
     setLocalTest(normalized);
     onEdit?.(normalized);
     await onUpdated?.(normalized);

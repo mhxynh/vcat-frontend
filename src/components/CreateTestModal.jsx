@@ -15,6 +15,12 @@ function flagsFromTestType(v) {
   return { requiresDat: false, requiresOet: false };
 }
 
+function isNetworkFetchError(error) {
+  return String(error?.message || error || '')
+    .toLowerCase()
+    .includes('failed to fetch');
+}
+
 export default function CreateTestModal({ isOpen, onClose, onCreated, defaultRequestId }) {
   const [controls, setControls] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -130,7 +136,9 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
         if (defaultRequestId) setSelectedRequestId(String(defaultRequestId));
         setTesters(cleanTesters);
       } catch (e) {
-        setLoadError(e?.message || 'Failed to load dropdown data.');
+        if (!isNetworkFetchError(e)) {
+          setLoadError(e?.message || 'Failed to load dropdown data.');
+        }
       } finally {
         setLoading(false);
       }
