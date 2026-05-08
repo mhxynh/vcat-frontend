@@ -4,8 +4,8 @@
   --calendar-scrollbar-thumb-hover: #a8a8a8;
   --calendar-status-not-started-bg: var(--bg-not-started, #f5f5f5);
   --calendar-status-not-started-text: var(--text-not-started, #616161);
-  --calendar-status-test-in-progress-bg: var(--bg-dat-in-progress, #e6f0fa);
-  --calendar-status-test-in-progress-text: var(--text-dat-in-progress, #1967d2);
+  --calendar-status-in-progress-bg: var(--bg-dat-in-progress, #e6f0fa);
+  --calendar-status-in-progress-text: var(--text-dat-in-progress, #1967d2);
   --calendar-status-in-review-bg: var(--bg-in-review, #fff9c4);
   --calendar-status-in-review-text: var(--text-in-review, #f57f17);
   --calendar-status-blocked-bg: var(--bg-blocked, #ffebee);
@@ -599,8 +599,8 @@
   background-color: var(--calendar-status-not-started-text);
 }
 
-.status-test-in-progress {
-  background-color: var(--calendar-status-test-in-progress-text);
+.status-in-progress {
+  background-color: var(--calendar-status-in-progress-text);
 }
 
 .status-in-review {
@@ -620,9 +620,9 @@
   color: var(--calendar-status-not-started-text);
 }
 
-.detail-status.status-test-in-progress {
-  background-color: var(--calendar-status-test-in-progress-bg);
-  color: var(--calendar-status-test-in-progress-text);
+.detail-status.status-in-progress {
+  background-color: var(--calendar-status-in-progress-bg);
+  color: var(--calendar-status-in-progress-text);
 }
 
 .detail-status.status-in-review {
