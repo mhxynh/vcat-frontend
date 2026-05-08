@@ -236,6 +236,10 @@ const CalendarView = ({ refreshKey = 0, onLoadingChange }) => {
     return <div className="no-results">Loading calendar...</div>;
   }
 
+  if (error) {
+    return <div className="no-results">Error: {error}</div>;
+  }
+
   return (
     <div className="calendar-shell">
       <div className="calendar-month-row">
@@ -347,7 +351,6 @@ const CalendarView = ({ refreshKey = 0, onLoadingChange }) => {
 
       <div className="calendar-detail-slot">
         <div className="calendar-detail-card">
-          {error ? <div className="detail-empty">{error}</div> : null}
           {selectedDay ? (
             <>
               <div className="detail-header">
