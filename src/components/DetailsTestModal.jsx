@@ -670,7 +670,7 @@ export default function DetailsTestModal({
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
     }
-    if (statusUpper === 'IN_REVIEW') return 'Approve Control ✓';
+    if (statusUpper === 'IN_REVIEW') return 'Approve Control';
     if (statusUpper === 'COMPLETED') return '';
     return 'Next Step';
   }
@@ -1030,6 +1030,7 @@ export default function DetailsTestModal({
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+  const isTrackInProgress = statusUpper === 'DAT_IN_PROGRESS' || statusUpper === 'OET_IN_PROGRESS';
   const isLockedStatus = statusUpper === 'COMPLETED';
   const showRevert = statusUpper !== 'NOT_STARTED';
   const showReject = statusUpper === 'IN_REVIEW';
@@ -1078,73 +1079,133 @@ export default function DetailsTestModal({
               </div>
             </div>
 
-            <div className="dtm-step-card">
-              <div className="dtm-step-left">
-                <div className="dtm-step-icon" aria-hidden="true">
-                  ▶
-                </div>
-                <div>
-                  <div className="dtm-step-label">CURRENT STEP</div>
-                  <div className="dtm-step-value">{currentStepLabel}</div>
-                </div>
-              </div>
-
-              <div className="dtm-step-actions-left">
-                {showRevert ? (
-                  <button
-                    className="dtm-btn dtm-btn--outline"
-                    type="button"
-                    onClick={handleRevert}
-                    disabled={isBusy || isLockedStatus}
-                    title={
-                      isBusy
-                        ? 'Action in progress'
-                        : isLockedStatus
-                          ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
-                          : 'Revert this control test to the previous step'
-                    }
-                  >
-                    Revert
-                  </button>
-                ) : null}
-
-                {showReject ? (
-                  <button
-                    className="dtm-btn dtm-btn--danger"
-                    type="button"
-                    onClick={openRejectConfirm}
-                    disabled={isBusy}
-                  >
-                    Reject
-                  </button>
-                ) : null}
-              </div>
-
-              {showNextStepPanel ? (
-                <>
-                  <div className="dtm-step-mid" aria-hidden="true">
-                    →
+            {statusUpper === 'COMPLETED' ? (
+              <div className="dtm-step-card dtm-step-card--completed">
+                <div className="dtm-complete-box">
+                  <div className="dtm-complete-icon" aria-hidden="true">
+                    <Icon name="checkmark" category="deco" size="sm" color="currentColor" />
                   </div>
 
-                  <div className="dtm-step-right">
-                    {primaryLabel ? (
-                      <button
-                        className="dtm-btn dtm-btn--primary"
-                        type="button"
-                        onClick={handlePrimaryAction}
-                        disabled={isBusy}
-                      >
-                        {primaryLabel}
-                      </button>
-                    ) : null}
-
-                    <span className="dtm-next">
-                      <span className="dtm-next-label">Next:</span> {nextStepLabel}
-                    </span>
+                  <div>
+                    <div className="dtm-complete-label">STATUS</div>
+                    <div className="dtm-complete-title">Control Testing Complete</div>
                   </div>
-                </>
-              ) : null}
-            </div>
+                </div>
+              </div>
+            ) : (
+              <div className="dtm-step-card">
+                <div className="dtm-step-left">
+                  <div
+                    className={`dtm-step-icon ${statusUpper === 'IN_REVIEW' ? 'dtm-step-icon--review' : isTrackInProgress ? 'dtm-step-icon--progress' : 'dtm-step-icon--default'}`}
+                    aria-hidden="true"
+                  >
+                    {statusUpper === 'IN_REVIEW' ? (
+                      <Icon name="eye" category="deco" size="sm" color="currentColor" />
+                    ) : isTrackInProgress ? (
+                      <Icon name="control-details" category="deco" size="sm" color="currentColor" />
+                    ) : (
+                      <Icon name="start" category="deco" size="sm" color="currentColor" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="dtm-step-label">CURRENT STEP</div>
+                    <div className="dtm-step-value">{currentStepLabel}</div>
+                  </div>
+                </div>
+
+                <div className="dtm-step-actions-left">
+                  {showRevert ? (
+                    <button
+                      className="dtm-btn dtm-btn--revert"
+                      type="button"
+                      onClick={handleRevert}
+                      disabled={isBusy || isLockedStatus}
+                      title={
+                        isBusy
+                          ? 'Action in progress'
+                          : isLockedStatus
+                            ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
+                            : 'Revert this control test to the previous step'
+                      }
+                    >
+                      <Icon
+                        name="undo"
+                        category="actions"
+                        size="sm"
+                        color="#545454"
+                        className="dtm-btn-icon"
+                      />
+                      Revert
+                    </button>
+                  ) : null}
+
+                  {showReject ? (
+                    <button
+                      className="dtm-btn dtm-btn--secondary"
+                      type="button"
+                      onClick={openRejectConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="reject"
+                        category="actions"
+                        size="sm"
+                        color="#C20029"
+                        className="dtm-btn-icon"
+                      />
+                      Reject
+                    </button>
+                  ) : null}
+                </div>
+
+                {showNextStepPanel ? (
+                  <>
+                    <div className="dtm-step-mid" aria-hidden="true">
+                      <Icon name="arrow" category="deco" size="sm" color="#D1D1D1" />
+                    </div>
+
+                    <div className="dtm-step-right">
+                      {primaryLabel ? (
+                        <button
+                          className="dtm-btn dtm-btn--primary dtm-step-action--approve"
+                          type="button"
+                          onClick={handlePrimaryAction}
+                          disabled={isBusy}
+                        >
+                          {statusUpper === 'IN_REVIEW' ? (
+                            <>
+                              <Icon
+                                name="approve"
+                                category="actions"
+                                size="sm"
+                                color="#fff"
+                                className="dtm-btn-icon"
+                              />
+                              {primaryLabel}
+                            </>
+                          ) : (
+                            <>
+                              {primaryLabel}
+                              <Icon
+                                name="arrow"
+                                category="deco"
+                                size="sm"
+                                color="#fff"
+                                className="dtm-btn-icon dtm-btn-icon--right"
+                              />
+                            </>
+                          )}
+                        </button>
+                      ) : null}
+
+                      <span className="dtm-next">
+                        <span className="dtm-next-label">Next:</span> {nextStepLabel}
+                      </span>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            )}
           </section>
 
           <div className="dtm-divider" />
@@ -1436,7 +1497,7 @@ export default function DetailsTestModal({
                 <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
                   {statusUpper === 'ARCHIVED' ? (
                     <button
-                      className="dtm-btn dtm-btn--outline"
+                      className="dtm-btn dtm-btn--secondary"
                       type="button"
                       onClick={openUnarchiveConfirm}
                       disabled={isBusy}
@@ -1445,7 +1506,7 @@ export default function DetailsTestModal({
                     </button>
                   ) : (
                     <button
-                      className="dtm-btn dtm-btn--outline"
+                      className="dtm-btn dtm-btn--secondary"
                       type="button"
                       onClick={openArchiveConfirm}
                       disabled={isBusy}
@@ -1468,7 +1529,7 @@ export default function DetailsTestModal({
               >
                 <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
                   <button
-                    className="dtm-btn dtm-btn--danger"
+                    className="dtm-btn dtm-btn--secondary"
                     type="button"
                     onClick={openDeleteConfirm}
                     disabled={isBusy}
