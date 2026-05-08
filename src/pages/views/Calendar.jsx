@@ -6,7 +6,7 @@ import '../../styles/pages/views/Calendar.css';
 
 const STATUS_META = [
   { key: 'not-started', label: 'Not Started' },
-  { key: 'test-in-progress', label: 'In Progress' },
+  { key: 'in-progress', label: 'In Progress' },
   { key: 'in-review', label: 'In Review' },
   { key: 'blocked', label: 'Blocked' },
   { key: 'completed', label: 'Completed' },
@@ -28,22 +28,27 @@ function parseDateOnly(value) {
 }
 
 function mapApiStatusToCalendarStatus(status) {
-  switch (status) {
+  const normalizedStatus = String(status || '').toUpperCase();
+
+  switch (normalizedStatus) {
     case 'NOT_STARTED':
       return 'not-started';
     case 'DAT_IN_PROGRESS':
     case 'OET_IN_PROGRESS':
-      return 'test-in-progress';
+      return 'in-progress';
     case 'IN_REVIEW':
       return 'in-review';
     case 'COMPLETED':
       return 'completed';
     case 'BLOCKED':
-    case 'ARCHIVED':
       return 'blocked';
     default:
       return 'not-started';
   }
+}
+
+function isArchivedTest(test) {
+  return String(test?.status || '').toUpperCase() === 'ARCHIVED';
 }
 
 function getAssigneeInfo(test) {
@@ -91,53 +96,56 @@ function CalendarNavChevron({ direction }) {
 }
 
 function buildEventsByDay(tests, month, year, dateFilter) {
-  return [...tests].sort(compareTestsForCalendar).reduce((acc, test) => {
-    const entriesToAdd = [];
-    const dueDate = parseDateOnly(test.due_date);
-    const etaDate = parseDateOnly(test.estimated_date);
+  return tests
+    .filter((test) => !isArchivedTest(test))
+    .sort(compareTestsForCalendar)
+    .reduce((acc, test) => {
+      const entriesToAdd = [];
+      const dueDate = parseDateOnly(test.due_date);
+      const etaDate = parseDateOnly(test.estimated_date);
 
-    if (dateFilter === 'due_date' || dateFilter === 'both') {
-      if (dueDate) entriesToAdd.push({ date: dueDate, dateType: 'due_date' });
-    }
-
-    if (dateFilter === 'eta' || dateFilter === 'both') {
-      if (
-        etaDate &&
-        (dateFilter !== 'both' || !dueDate || etaDate.getTime() !== dueDate.getTime())
-      ) {
-        entriesToAdd.push({ date: etaDate, dateType: 'eta' });
-      }
-    }
-
-    const status = mapApiStatusToCalendarStatus(test.status);
-    const assignee = getAssigneeInfo(test);
-
-    for (const { date, dateType } of entriesToAdd) {
-      if (date.getFullYear() !== year || date.getMonth() !== month) continue;
-
-      const day = date.getDate();
-      const item = {
-        id: `${test.test_id ?? test.vgcpid}-${day}-${dateType}`,
-        displayId: test.vgcpid || `TEST-${test.test_id}`,
-        title: test.description || 'No description',
-        assigneeInitials: assignee.initials,
-        assigneeName: assignee.fullName,
-        status,
-        dateType,
-        test,
-      };
-
-      if (!acc[day]) {
-        acc[day] = { badge: 0, bars: [], items: [] };
+      if (dateFilter === 'due_date' || dateFilter === 'both') {
+        if (dueDate) entriesToAdd.push({ date: dueDate, dateType: 'due_date' });
       }
 
-      acc[day].items.push(item);
-      acc[day].badge = acc[day].items.length;
-      acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
-    }
+      if (dateFilter === 'eta' || dateFilter === 'both') {
+        if (
+          etaDate &&
+          (dateFilter !== 'both' || !dueDate || etaDate.getTime() !== dueDate.getTime())
+        ) {
+          entriesToAdd.push({ date: etaDate, dateType: 'eta' });
+        }
+      }
 
-    return acc;
-  }, {});
+      const status = mapApiStatusToCalendarStatus(test.status);
+      const assignee = getAssigneeInfo(test);
+
+      for (const { date, dateType } of entriesToAdd) {
+        if (date.getFullYear() !== year || date.getMonth() !== month) continue;
+
+        const day = date.getDate();
+        const item = {
+          id: `${test.test_id ?? test.vgcpid}-${day}-${dateType}`,
+          displayId: test.vgcpid || `TEST-${test.test_id}`,
+          title: test.description || 'No description',
+          assigneeInitials: assignee.initials,
+          assigneeName: assignee.fullName,
+          status,
+          dateType,
+          test,
+        };
+
+        if (!acc[day]) {
+          acc[day] = { badge: 0, bars: [], items: [] };
+        }
+
+        acc[day].items.push(item);
+        acc[day].badge = acc[day].items.length;
+        acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
+      }
+
+      return acc;
+    }, {});
 }
 
 const CalendarView = ({ refreshKey = 0, onLoadingChange }) => {
@@ -431,13 +439,15 @@ const CalendarView = ({ refreshKey = 0, onLoadingChange }) => {
         test={selectedTest}
         onArchived={(testId, updatedTest) => {
           setTests((prev) =>
-            prev.map((x) =>
-              x.test_id === testId
-                ? updatedTest
-                  ? { ...x, ...updatedTest }
-                  : { ...x, status: 'ARCHIVED' }
-                : x
-            )
+            prev
+              .map((x) =>
+                x.test_id === testId
+                  ? updatedTest
+                    ? { ...x, ...updatedTest }
+                    : { ...x, status: 'ARCHIVED' }
+                  : x
+              )
+              .filter((test) => !isArchivedTest(test))
           );
         }}
         onDeleted={(testId) => {
