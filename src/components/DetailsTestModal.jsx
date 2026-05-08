@@ -1199,7 +1199,8 @@ export default function DetailsTestModal({
                       ) : null}
 
                       <span className="dtm-next">
-                        <span className="dtm-next-label">Next:</span> {nextStepLabel}
+                        <span className="dtm-next-label">Next: </span>
+                        {nextStepLabel}
                       </span>
                     </div>
                   </>
