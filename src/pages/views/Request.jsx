@@ -15,6 +15,7 @@ import { showErrorToast } from '../../utils/toast';
 import { formatRequestDisplayId } from '../../utils/requestDisplayId';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
+import Icon from '../../components/common/Icon';
 
 export default function Requests({ refreshKey = 0, searchValue = '', filters, onLoadingChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
@@ -319,6 +320,8 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
             filteredRequests.map((req) => {
               const isOpen = expanded.has(req.id);
               const progress = computeProgress(req);
+              const controls = req.controls || [];
+              const isCompleted = controls.length > 0 && progress.pct === 100;
 
               return (
                 <div key={req.id} className="request-card">
@@ -331,14 +334,25 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                     </div>
 
                     <div className="req-meta-grid">
-                      <Meta label="Requested By" value={req.requestedBy} />
-                      <Meta label="Request Date" value={req.requestDate} />
+                      <Meta label="Requested By" icon="user" value={req.requestedBy} />
+                      <Meta label="Request Date" icon="clock" value={req.requestDate} />
                       <Meta
                         label="Due Date"
+                        icon={isCompleted ? 'checkmark' : req.overdue ? 'exclamation' : 'clock'}
+                        iconColor={isCompleted ? '#00A63E' : req.overdue ? '#96151D' : '#6C6C6C'}
+                        valueClassName={
+                          isCompleted
+                            ? 'meta-value--success'
+                            : req.overdue
+                              ? 'meta-value--overdue'
+                              : ''
+                        }
                         value={
                           <>
                             {req.dueDate}{' '}
-                            {req.overdue ? <span className="overdue">Overdue</span> : null}
+                            {!isCompleted && req.overdue ? (
+                              <span className="overdue">Overdue</span>
+                            ) : null}
                           </>
                         }
                       />
@@ -351,7 +365,10 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                           <span className="progress-value">{progress.label}</span>
                         </div>
                         <div className="progress-bar">
-                          <div className="progress-fill" style={{ width: `${progress.pct}%` }} />
+                          <div
+                            className={`progress-fill ${isCompleted ? 'progress-fill--success' : ''}`}
+                            style={{ width: `${progress.pct}%` }}
+                          />
                         </div>
                       </div>
 
@@ -395,11 +412,7 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                           <div key={c.id} className="control-card">
                             <div className="control-top">
                               <div className="control-id-wrap">
-                                <span
-                                  className={`status-dot ${String(c.statusLabel || c.status || '')
-                                    .toLowerCase()
-                                    .replace(/\s+/g, '-')}`}
-                                />
+                                <StatusIcon status={c.statusLabel || c.status} />
                                 <span
                                   className="control-id"
                                   style={{ cursor: 'pointer' }}
@@ -421,12 +434,18 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
 
                             <div className="control-meta">
                               <div className="control-meta-row control-meta-row--assignee">
+                                <Icon
+                                  name="user"
+                                  category="deco"
+                                  size="xs"
+                                  color="#6C6C6C"
+                                  className="control-meta-icon"
+                                />
                                 <span>{c.assignee}</span>
                               </div>
 
                               <div className="control-meta-row control-meta-row--eta-note">
                                 <div className="control-eta">
-                                  <span className="meta-icon">⏱</span>
                                   <span>ETA: {c.eta}</span>
                                 </div>
 
@@ -521,11 +540,67 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
   );
 }
 
-function Meta({ label, value }) {
+function Meta({ label, icon, iconColor = '#6C6C6C', value, valueClassName = '', size = 'sm' }) {
   return (
     <div className="meta">
       <div className="meta-label">{label}</div>
-      <div className="meta-value">{value}</div>
+      <div className={`meta-value ${icon ? 'meta-value--inline' : ''} ${valueClassName}`.trim()}>
+        {icon ? (
+          <Icon
+            name={icon}
+            category="deco"
+            size={size}
+            color={iconColor}
+            className="meta-value-icon"
+          />
+        ) : null}
+        <span>{value}</span>
+      </div>
     </div>
+  );
+}
+
+function StatusIcon({ status }) {
+  const normalized = String(status || 'NOT_STARTED')
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_');
+
+  let iconName = 'not-started';
+  let color = '#9ca3af';
+  let useDot = false;
+
+  if (normalized === 'COMPLETED') {
+    iconName = 'checkmark';
+    color = '#00A63E';
+  } else if (normalized === 'IN_REVIEW') {
+    iconName = 'eye';
+    color = '#00786f';
+  } else if (
+    normalized === 'DAT_IN_PROGRESS' ||
+    normalized === 'OET_IN_PROGRESS' ||
+    normalized === 'IN_PROGRESS'
+  ) {
+    useDot = true;
+    color = '#155DFC';
+  }
+
+  if (useDot) {
+    return (
+      <span
+        className={`status-dot status-dot--${normalized.toLowerCase()}`}
+        aria-hidden="true"
+        style={{ backgroundColor: color }}
+      />
+    );
+  }
+
+  return (
+    <Icon
+      name={iconName}
+      category="deco"
+      size="xs"
+      color={color}
+      className={`status-icon status-icon--${normalized.toLowerCase()}`}
+    />
   );
 }
