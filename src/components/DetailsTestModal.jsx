@@ -1383,7 +1383,7 @@ export default function DetailsTestModal({
 
                   {attachments.length > 0 ? (
                     <button
-                      className="dtm-btn dtm-btn--outline dtm-btn--compact"
+                      className="dtm-btn dtm-btn--compact"
                       type="button"
                       onClick={handleAddEvidenceLink}
                       disabled={isBusy}
@@ -1392,7 +1392,7 @@ export default function DetailsTestModal({
                         name="attach"
                         category="actions"
                         size="sm"
-                        color="#96151D"
+                        color="#232323"
                         className="dtm-btn-icon"
                       />
                       Add Link
