@@ -2,6 +2,7 @@ import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import ExportButton from '../components/ExportButton';
+import RefreshButton from '../components/RefreshButton';
 import { fetchTests, mapTestRowToDashboardRow } from '../api/TestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
 import { exportTable } from '../api/ExportAPI';
@@ -28,6 +29,7 @@ const ChevronLeft = () => (
     <path d="M15 18l-6-6 6-6" />
   </svg>
 );
+
 const ChevronRight = () => (
   <svg
     width="20"
@@ -62,6 +64,7 @@ const DISTRIBUTION_STATUS_META = [
   { key: 'TESTING_BLOCKED', label: 'Testing Blocked' },
   { key: 'TESTING_CANCELED', label: 'Testing Canceled' },
 ];
+
 const OET_EXCLUDED_STATUS_KEYS = new Set(['WALKTHROUGH_SCHEDULED', 'WALKTHROUGH_COMPLETED']);
 
 const STATUS_DISTRIBUTION_COLORS = {
@@ -85,6 +88,7 @@ const WEEKDAY_LABELS = [
   'Friday',
   'Saturday',
 ];
+
 const TEAM_CAPACITY_COLOR = '#96151d';
 const TEAM_CAPACITY_ROLES = new Set(['TESTER', 'MANAGER']);
 
@@ -155,6 +159,13 @@ function addDays(date, days) {
   return value;
 }
 
+function getMonday(date) {
+  const value = new Date(date);
+  const day = value.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  return addDays(value, diff);
+}
+
 function dateKey(date) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
@@ -201,11 +212,29 @@ function polarToCartesian(cx, cy, r, angleDeg) {
 }
 
 function describeDonutSegment(cx, cy, innerR, outerR, startPercent, endPercent) {
+  const percentSpan = endPercent - startPercent;
+  if (percentSpan >= 99.999) {
+    const outerStart = polarToCartesian(cx, cy, outerR, 0);
+    const outerMid = polarToCartesian(cx, cy, outerR, 180);
+    const innerStart = polarToCartesian(cx, cy, innerR, 0);
+    const innerMid = polarToCartesian(cx, cy, innerR, 180);
+
+    return [
+      `M ${outerStart.x} ${outerStart.y}`,
+      `A ${outerR} ${outerR} 0 1 1 ${outerMid.x} ${outerMid.y}`,
+      `A ${outerR} ${outerR} 0 1 1 ${outerStart.x} ${outerStart.y}`,
+      `L ${innerStart.x} ${innerStart.y}`,
+      `A ${innerR} ${innerR} 0 1 0 ${innerMid.x} ${innerMid.y}`,
+      `A ${innerR} ${innerR} 0 1 0 ${innerStart.x} ${innerStart.y}`,
+      'Z',
+    ].join(' ');
+  }
+
   const start = polarToCartesian(cx, cy, outerR, (startPercent / 100) * 360);
   const end = polarToCartesian(cx, cy, outerR, (endPercent / 100) * 360);
   const innerStart = polarToCartesian(cx, cy, innerR, (endPercent / 100) * 360);
   const innerEnd = polarToCartesian(cx, cy, innerR, (startPercent / 100) * 360);
-  const largeArc = endPercent - startPercent > 50 ? 1 : 0;
+  const largeArc = percentSpan > 50 ? 1 : 0;
   return `M ${start.x} ${start.y} A ${outerR} ${outerR} 0 ${largeArc} 1 ${end.x} ${end.y} L ${innerStart.x} ${innerStart.y} A ${innerR} ${innerR} 0 ${largeArc} 0 ${innerEnd.x} ${innerEnd.y} Z`;
 }
 
@@ -366,11 +395,17 @@ export default function Dashboard() {
   const [isTestDetailsOpen, setIsTestDetailsOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
-  const [centerProgressDate, setCenterProgressDate] = useState(
+  const [selectedProgressDate, setSelectedProgressDate] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), today.getDate())
   );
+
+  const [visibleWeekStart, setVisibleWeekStart] = useState(() => {
+    const currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return getMonday(currentDate);
+  });
 
   const updatesByDateKey = useMemo(() => {
     return controls.reduce((accumulator, control) => {
@@ -386,29 +421,40 @@ export default function Dashboard() {
   }, [controls]);
 
   const progressCalendarDays = useMemo(() => {
-    return [-2, -1, 0, 1, 2].map((offset) => {
-      const date = addDays(centerProgressDate, offset);
+    return Array.from({ length: 5 }, (_, index) => {
+      const date = addDays(visibleWeekStart, index);
       const key = dateKey(date);
+
       return {
         key,
         date,
         day: date.getDate(),
         weekday: WEEKDAY_LABELS[date.getDay()],
         shortWeekday: WEEKDAY_LABELS[date.getDay()].slice(0, 3),
-        offset,
       };
     });
-  }, [centerProgressDate]);
+  }, [visibleWeekStart]);
 
-  const triggerDaySlide = useCallback((direction) => {
-    setCenterProgressDate((prev) => addDays(prev, direction));
+  const triggerWeekSlide = useCallback((direction) => {
+    const dayOffset = direction * 7;
+
+    setVisibleWeekStart((prev) => addDays(prev, dayOffset));
+    setSelectedProgressDate((prev) => addDays(prev, dayOffset));
   }, []);
 
   const monthLabel = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
-      centerProgressDate
-    );
-  }, [centerProgressDate]);
+    const weekEnd = addDays(visibleWeekStart, 4);
+    const startLabel = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(visibleWeekStart);
+    const endLabel = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(weekEnd);
+
+    return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
+  }, [visibleWeekStart]);
 
   const lastUpdatedLabel = useMemo(() => {
     return formatLastUpdated(lastUpdatedAt);
@@ -442,6 +488,10 @@ export default function Dashboard() {
     loadDashboardData();
   }, [loadDashboardData]);
 
+  useEffect(() => {
+    if (!loading) setIsRefreshing(false);
+  }, [loading]);
+
   async function handleExport() {
     if (loading) return;
 
@@ -457,6 +507,18 @@ export default function Dashboard() {
       });
     } finally {
       setIsExporting(false);
+    }
+  }
+
+  async function handleRefresh() {
+    if (loading) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await loadDashboardData();
+    } finally {
+      setIsRefreshing(false);
     }
   }
 
@@ -498,7 +560,7 @@ export default function Dashboard() {
   );
 
   const progressItems = useMemo(() => {
-    const selectedDateKey = dateKey(centerProgressDate);
+    const selectedDateKey = dateKey(selectedProgressDate);
     const updatesForDay = updatesByDateKey.get(selectedDateKey) ?? [];
 
     if (!updatesForDay.length) {
@@ -513,7 +575,7 @@ export default function Dashboard() {
         vgcpid: control.vgcpid,
         description: `${control.tester || 'Unassigned'} • ${control.step || 'Pending update'}`,
       }));
-  }, [centerProgressDate, updatesByDateKey]);
+  }, [selectedProgressDate, updatesByDateKey]);
 
   const testsByVgcpid = useMemo(() => {
     return controls.reduce((accumulator, test) => {
@@ -590,14 +652,7 @@ export default function Dashboard() {
       actions={
         <>
           <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
-          <button
-            className="btn btn--blue"
-            type="button"
-            onClick={loadDashboardData}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <RefreshButton isLoading={isRefreshing} isPageLoading={loading} onClick={handleRefresh} />
         </>
       }
     />
@@ -648,44 +703,49 @@ export default function Dashboard() {
         <div className="dashboard-main-grid__right">
           <article className="dashboard-panel dashboard-panel--test-progress">
             <div className="dashboard-panel__title">Test Progress</div>
+
             <div className="dashboard-calendar">
               <div className="dashboard-calendar__header">
                 <span className="dashboard-calendar__month">{monthLabel}</span>
+
                 <div className="dashboard-calendar__nav">
                   <button
                     type="button"
                     className="dashboard-calendar__nav-btn"
-                    onClick={() => triggerDaySlide(-1)}
-                    aria-label="Previous day"
+                    onClick={() => triggerWeekSlide(-1)}
+                    aria-label="Previous week"
                   >
                     <ChevronLeft />
                   </button>
+
                   <button
                     type="button"
                     className="dashboard-calendar__nav-btn"
-                    onClick={() => triggerDaySlide(1)}
-                    aria-label="Next day"
+                    onClick={() => triggerWeekSlide(1)}
+                    aria-label="Next week"
                   >
                     <ChevronRight />
                   </button>
                 </div>
               </div>
+
               <div className="dashboard-calendar__viewport">
                 <div className="dashboard-calendar__strip-track">
                   {progressCalendarDays.map((item) => {
-                    const isSelected = item.offset === 0;
-                    const isClickable = item.offset !== 0;
+                    const isSelected = dateKey(item.date) === dateKey(selectedProgressDate);
+
                     return (
                       <button
-                        key={item.offset}
+                        key={item.key}
                         type="button"
-                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''} ${isClickable ? 'dashboard-calendar__day--clickable' : ''}`}
-                        onClick={() => isClickable && triggerDaySlide(item.offset > 0 ? 1 : -1)}
-                        disabled={!isClickable}
+                        className={`dashboard-calendar__day ${
+                          isSelected ? 'dashboard-calendar__day--active' : ''
+                        } dashboard-calendar__day--clickable`}
+                        onClick={() => setSelectedProgressDate(item.date)}
                         aria-label={
                           isSelected
                             ? `Selected: ${item.weekday} ${item.day}`
-                            : `Go to ${item.offset > 0 ? 'next' : 'previous'} day`
+                            : `Select ${item.weekday} ${item.day}`
                         }
                       >
                         <span className="dashboard-calendar__weekday">{item.shortWeekday}</span>
@@ -697,7 +757,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="dashboard-progress-list" key={dateKey(centerProgressDate)}>
+            <div className="dashboard-progress-list" key={dateKey(selectedProgressDate)}>
               {progressItems.map((item) => (
                 <div key={`${item.id}-${item.description}`} className="dashboard-progress-item">
                   <button
@@ -725,6 +785,7 @@ export default function Dashboard() {
               <span>Team Capacity</span>
               <InfoTooltipIcon tooltip="In-Progress Test/Total Test Assigned" />
             </div>
+
             <div className="dashboard-capacity-list">
               {teamCapacity.length === 0 ? (
                 <div className="dashboard-capacity-item dashboard-capacity-item--empty">

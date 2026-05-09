@@ -258,13 +258,17 @@ export default function Tests({
     updateSelectedRows(next);
   };
 
+  if (loading) {
+    return <div className="no-results">Loading tests...</div>;
+  }
+
+  if (error) {
+    return <div className="no-results">Error: {error}</div>;
+  }
+
   return (
     <div className="tracker__table-container">
-      {loading ? (
-        <div className="no-results">Loading tests...</div>
-      ) : error ? (
-        <div className="no-results">Error: {error}</div>
-      ) : filteredTests.length === 0 ? (
+      {filteredTests.length === 0 ? (
         <div className="no-results">No tests found.</div>
       ) : (
         <>

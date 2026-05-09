@@ -4,6 +4,7 @@
 @import './components/Navbar.css';
 @import './components/PageHeader.css';
 @import './components/ExportButton.css';
+@import './components/RefreshButton.css';
 @import './components/CreateControlModal.css';
 @import './components/ImportControlsModal.css';
 @import './components/TrackerTopToolbar.css';

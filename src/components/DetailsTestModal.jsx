@@ -1319,21 +1319,23 @@ export default function DetailsTestModal({
                     <div className="dtm-section-title">Linked Files ({attachments.length})</div>
                   </div>
 
-                  <button
-                    className="dtm-btn dtm-btn--outline dtm-btn--compact"
-                    type="button"
-                    onClick={handleAddEvidenceLink}
-                    disabled={isBusy}
-                  >
-                    <Icon
-                      name="attach"
-                      category="actions"
-                      size="sm"
-                      color="#96151D"
-                      className="dtm-btn-icon"
-                    />
-                    Add Link
-                  </button>
+                  {attachments.length > 0 ? (
+                    <button
+                      className="dtm-btn dtm-btn--outline dtm-btn--compact"
+                      type="button"
+                      onClick={handleAddEvidenceLink}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="attach"
+                        category="actions"
+                        size="sm"
+                        color="#96151D"
+                        className="dtm-btn-icon"
+                      />
+                      Add Link
+                    </button>
+                  ) : null}
                 </div>
 
                 {attachments.length === 0 ? (

@@ -4,13 +4,16 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
 import '../../styles/pages/views/Calendar.css';
 
-const STATUS_LABELS = {
-  notStarted: 'Not Started',
-  inProgress: 'In Progress',
-  testing: 'Testing',
-  addressing: 'Addressing',
-  completed: 'Completed',
-};
+const STATUS_META = [
+  { key: 'not-started', label: 'Not Started' },
+  { key: 'in-progress', label: 'In Progress' },
+  { key: 'in-review', label: 'In Review' },
+  { key: 'blocked', label: 'Blocked' },
+  { key: 'completed', label: 'Completed' },
+];
+
+const STATUS_LABELS = Object.fromEntries(STATUS_META.map((status) => [status.key, status.label]));
+const STATUS_ORDER = Object.fromEntries(STATUS_META.map((status, index) => [status.key, index]));
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TODAY = new Date();
@@ -25,22 +28,27 @@ function parseDateOnly(value) {
 }
 
 function mapApiStatusToCalendarStatus(status) {
-  switch (status) {
+  const normalizedStatus = String(status || '').toUpperCase();
+
+  switch (normalizedStatus) {
     case 'NOT_STARTED':
-      return 'notStarted';
+      return 'not-started';
     case 'DAT_IN_PROGRESS':
     case 'OET_IN_PROGRESS':
-      return 'inProgress';
+      return 'in-progress';
     case 'IN_REVIEW':
-      return 'testing';
+      return 'in-review';
     case 'COMPLETED':
       return 'completed';
     case 'BLOCKED':
-    case 'ARCHIVED':
-      return 'addressing';
+      return 'blocked';
     default:
-      return 'notStarted';
+      return 'not-started';
   }
+}
+
+function isArchivedTest(test) {
+  return String(test?.status || '').toUpperCase() === 'ARCHIVED';
 }
 
 function getAssigneeInfo(test) {
@@ -65,6 +73,12 @@ const DATE_FILTER_OPTIONS = [
   { value: 'both', label: 'Both' },
 ];
 
+function compareTestsForCalendar(a, b) {
+  const aStatus = mapApiStatusToCalendarStatus(a?.status);
+  const bStatus = mapApiStatusToCalendarStatus(b?.status);
+  return (STATUS_ORDER[aStatus] ?? 0) - (STATUS_ORDER[bStatus] ?? 0);
+}
+
 function CalendarNavChevron({ direction }) {
   const d = direction === 'prev' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6';
   return (
@@ -82,56 +96,59 @@ function CalendarNavChevron({ direction }) {
 }
 
 function buildEventsByDay(tests, month, year, dateFilter) {
-  return tests.reduce((acc, test) => {
-    const entriesToAdd = [];
-    const dueDate = parseDateOnly(test.due_date);
-    const etaDate = parseDateOnly(test.estimated_date);
+  return tests
+    .filter((test) => !isArchivedTest(test))
+    .sort(compareTestsForCalendar)
+    .reduce((acc, test) => {
+      const entriesToAdd = [];
+      const dueDate = parseDateOnly(test.due_date);
+      const etaDate = parseDateOnly(test.estimated_date);
 
-    if (dateFilter === 'due_date' || dateFilter === 'both') {
-      if (dueDate) entriesToAdd.push({ date: dueDate, dateType: 'due_date' });
-    }
-
-    if (dateFilter === 'eta' || dateFilter === 'both') {
-      if (
-        etaDate &&
-        (dateFilter !== 'both' || !dueDate || etaDate.getTime() !== dueDate.getTime())
-      ) {
-        entriesToAdd.push({ date: etaDate, dateType: 'eta' });
-      }
-    }
-
-    const status = mapApiStatusToCalendarStatus(test.status);
-    const assignee = getAssigneeInfo(test);
-
-    for (const { date, dateType } of entriesToAdd) {
-      if (date.getFullYear() !== year || date.getMonth() !== month) continue;
-
-      const day = date.getDate();
-      const item = {
-        id: `${test.test_id ?? test.vgcpid}-${day}-${dateType}`,
-        displayId: test.vgcpid || `TEST-${test.test_id}`,
-        title: test.description || 'No description',
-        assigneeInitials: assignee.initials,
-        assigneeName: assignee.fullName,
-        status,
-        dateType,
-        test,
-      };
-
-      if (!acc[day]) {
-        acc[day] = { badge: 0, bars: [], items: [] };
+      if (dateFilter === 'due_date' || dateFilter === 'both') {
+        if (dueDate) entriesToAdd.push({ date: dueDate, dateType: 'due_date' });
       }
 
-      acc[day].items.push(item);
-      acc[day].badge = acc[day].items.length;
-      acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
-    }
+      if (dateFilter === 'eta' || dateFilter === 'both') {
+        if (
+          etaDate &&
+          (dateFilter !== 'both' || !dueDate || etaDate.getTime() !== dueDate.getTime())
+        ) {
+          entriesToAdd.push({ date: etaDate, dateType: 'eta' });
+        }
+      }
 
-    return acc;
-  }, {});
+      const status = mapApiStatusToCalendarStatus(test.status);
+      const assignee = getAssigneeInfo(test);
+
+      for (const { date, dateType } of entriesToAdd) {
+        if (date.getFullYear() !== year || date.getMonth() !== month) continue;
+
+        const day = date.getDate();
+        const item = {
+          id: `${test.test_id ?? test.vgcpid}-${day}-${dateType}`,
+          displayId: test.vgcpid || `TEST-${test.test_id}`,
+          title: test.description || 'No description',
+          assigneeInitials: assignee.initials,
+          assigneeName: assignee.fullName,
+          status,
+          dateType,
+          test,
+        };
+
+        if (!acc[day]) {
+          acc[day] = { badge: 0, bars: [], items: [] };
+        }
+
+        acc[day].items.push(item);
+        acc[day].badge = acc[day].items.length;
+        acc[day].bars = acc[day].items.slice(0, MAX_BARS_PER_DAY).map((event) => event.status);
+      }
+
+      return acc;
+    }, {});
 }
 
-const CalendarView = ({ refreshKey = 0 }) => {
+const CalendarView = ({ refreshKey = 0, onLoadingChange }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1)
@@ -145,6 +162,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
 
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   useEffect(() => {
     let isMounted = true;
@@ -232,6 +253,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
     return <div className="no-results">Loading calendar...</div>;
   }
 
+  if (error) {
+    return <div className="no-results">Error: {error}</div>;
+  }
+
   return (
     <div className="calendar-shell">
       <div className="calendar-month-row">
@@ -275,10 +300,10 @@ const CalendarView = ({ refreshKey = 0 }) => {
           </div>
           <div className="calendar-legend-status-group">
             <span className="legend-label">Status:</span>
-            {Object.entries(STATUS_LABELS).map(([status, label]) => (
-              <span key={status} className="legend-item">
-                <span className={`legend-dot status-${status}`} />
-                {label}
+            {STATUS_META.map((status) => (
+              <span key={status.key} className="legend-item">
+                <span className={`legend-dot status-${status.key}`} />
+                {status.label}
               </span>
             ))}
           </div>
@@ -343,7 +368,6 @@ const CalendarView = ({ refreshKey = 0 }) => {
 
       <div className="calendar-detail-slot">
         <div className="calendar-detail-card">
-          {error ? <div className="detail-empty">{error}</div> : null}
           {selectedDay ? (
             <>
               <div className="detail-header">
@@ -383,7 +407,9 @@ const CalendarView = ({ refreshKey = 0 }) => {
                             <span className="detail-assignee">{event.assigneeInitials}</span>
                             <span className="detail-assignee-name">{event.assigneeName}</span>
                           </span>
-                          <span className="detail-status">{STATUS_LABELS[event.status]}</span>
+                          <span className={`detail-status status-${event.status}`}>
+                            {STATUS_LABELS[event.status]}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -416,13 +442,15 @@ const CalendarView = ({ refreshKey = 0 }) => {
         test={selectedTest}
         onArchived={(testId, updatedTest) => {
           setTests((prev) =>
-            prev.map((x) =>
-              x.test_id === testId
-                ? updatedTest
-                  ? { ...x, ...updatedTest }
-                  : { ...x, status: 'ARCHIVED' }
-                : x
-            )
+            prev
+              .map((x) =>
+                x.test_id === testId
+                  ? updatedTest
+                    ? { ...x, ...updatedTest }
+                    : { ...x, status: 'ARCHIVED' }
+                  : x
+              )
+              .filter((test) => !isArchivedTest(test))
           );
         }}
         onDeleted={(testId) => {
