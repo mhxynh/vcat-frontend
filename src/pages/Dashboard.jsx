@@ -29,6 +29,7 @@ const ChevronLeft = () => (
     <path d="M15 18l-6-6 6-6" />
   </svg>
 );
+
 const ChevronRight = () => (
   <svg
     width="20"
@@ -63,6 +64,7 @@ const DISTRIBUTION_STATUS_META = [
   { key: 'TESTING_BLOCKED', label: 'Testing Blocked' },
   { key: 'TESTING_CANCELED', label: 'Testing Canceled' },
 ];
+
 const OET_EXCLUDED_STATUS_KEYS = new Set(['WALKTHROUGH_SCHEDULED', 'WALKTHROUGH_COMPLETED']);
 
 const STATUS_DISTRIBUTION_COLORS = {
@@ -86,6 +88,7 @@ const WEEKDAY_LABELS = [
   'Friday',
   'Saturday',
 ];
+
 const TEAM_CAPACITY_COLOR = '#96151d';
 const TEAM_CAPACITY_ROLES = new Set(['TESTER', 'MANAGER']);
 
@@ -154,6 +157,13 @@ function addDays(date, days) {
   const value = new Date(date);
   value.setDate(value.getDate() + days);
   return value;
+}
+
+function getMonday(date) {
+  const value = new Date(date);
+  const day = value.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  return addDays(value, diff);
 }
 
 function dateKey(date) {
@@ -388,9 +398,14 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const today = useMemo(() => new Date(), []);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
-  const [centerProgressDate, setCenterProgressDate] = useState(
+  const [selectedProgressDate, setSelectedProgressDate] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), today.getDate())
   );
+
+  const [visibleWeekStart, setVisibleWeekStart] = useState(() => {
+    const currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return getMonday(currentDate);
+  });
 
   const updatesByDateKey = useMemo(() => {
     return controls.reduce((accumulator, control) => {
@@ -406,29 +421,40 @@ export default function Dashboard() {
   }, [controls]);
 
   const progressCalendarDays = useMemo(() => {
-    return [-2, -1, 0, 1, 2].map((offset) => {
-      const date = addDays(centerProgressDate, offset);
+    return Array.from({ length: 5 }, (_, index) => {
+      const date = addDays(visibleWeekStart, index);
       const key = dateKey(date);
+
       return {
         key,
         date,
         day: date.getDate(),
         weekday: WEEKDAY_LABELS[date.getDay()],
         shortWeekday: WEEKDAY_LABELS[date.getDay()].slice(0, 3),
-        offset,
       };
     });
-  }, [centerProgressDate]);
+  }, [visibleWeekStart]);
 
-  const triggerDaySlide = useCallback((direction) => {
-    setCenterProgressDate((prev) => addDays(prev, direction));
+  const triggerWeekSlide = useCallback((direction) => {
+    const dayOffset = direction * 7;
+
+    setVisibleWeekStart((prev) => addDays(prev, dayOffset));
+    setSelectedProgressDate((prev) => addDays(prev, dayOffset));
   }, []);
 
   const monthLabel = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
-      centerProgressDate
-    );
-  }, [centerProgressDate]);
+    const weekEnd = addDays(visibleWeekStart, 4);
+    const startLabel = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(visibleWeekStart);
+    const endLabel = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(weekEnd);
+
+    return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
+  }, [visibleWeekStart]);
 
   const lastUpdatedLabel = useMemo(() => {
     return formatLastUpdated(lastUpdatedAt);
@@ -534,7 +560,7 @@ export default function Dashboard() {
   );
 
   const progressItems = useMemo(() => {
-    const selectedDateKey = dateKey(centerProgressDate);
+    const selectedDateKey = dateKey(selectedProgressDate);
     const updatesForDay = updatesByDateKey.get(selectedDateKey) ?? [];
 
     if (!updatesForDay.length) {
@@ -549,7 +575,7 @@ export default function Dashboard() {
         vgcpid: control.vgcpid,
         description: `${control.tester || 'Unassigned'} • ${control.step || 'Pending update'}`,
       }));
-  }, [centerProgressDate, updatesByDateKey]);
+  }, [selectedProgressDate, updatesByDateKey]);
 
   const testsByVgcpid = useMemo(() => {
     return controls.reduce((accumulator, test) => {
@@ -677,44 +703,49 @@ export default function Dashboard() {
         <div className="dashboard-main-grid__right">
           <article className="dashboard-panel dashboard-panel--test-progress">
             <div className="dashboard-panel__title">Test Progress</div>
+
             <div className="dashboard-calendar">
               <div className="dashboard-calendar__header">
                 <span className="dashboard-calendar__month">{monthLabel}</span>
+
                 <div className="dashboard-calendar__nav">
                   <button
                     type="button"
                     className="dashboard-calendar__nav-btn"
-                    onClick={() => triggerDaySlide(-1)}
-                    aria-label="Previous day"
+                    onClick={() => triggerWeekSlide(-1)}
+                    aria-label="Previous week"
                   >
                     <ChevronLeft />
                   </button>
+
                   <button
                     type="button"
                     className="dashboard-calendar__nav-btn"
-                    onClick={() => triggerDaySlide(1)}
-                    aria-label="Next day"
+                    onClick={() => triggerWeekSlide(1)}
+                    aria-label="Next week"
                   >
                     <ChevronRight />
                   </button>
                 </div>
               </div>
+
               <div className="dashboard-calendar__viewport">
                 <div className="dashboard-calendar__strip-track">
                   {progressCalendarDays.map((item) => {
-                    const isSelected = item.offset === 0;
-                    const isClickable = item.offset !== 0;
+                    const isSelected = dateKey(item.date) === dateKey(selectedProgressDate);
+
                     return (
                       <button
-                        key={item.offset}
+                        key={item.key}
                         type="button"
-                        className={`dashboard-calendar__day ${isSelected ? 'dashboard-calendar__day--active' : ''} ${isClickable ? 'dashboard-calendar__day--clickable' : ''}`}
-                        onClick={() => isClickable && triggerDaySlide(item.offset > 0 ? 1 : -1)}
-                        disabled={!isClickable}
+                        className={`dashboard-calendar__day ${
+                          isSelected ? 'dashboard-calendar__day--active' : ''
+                        } dashboard-calendar__day--clickable`}
+                        onClick={() => setSelectedProgressDate(item.date)}
                         aria-label={
                           isSelected
                             ? `Selected: ${item.weekday} ${item.day}`
-                            : `Go to ${item.offset > 0 ? 'next' : 'previous'} day`
+                            : `Select ${item.weekday} ${item.day}`
                         }
                       >
                         <span className="dashboard-calendar__weekday">{item.shortWeekday}</span>
@@ -726,7 +757,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="dashboard-progress-list" key={dateKey(centerProgressDate)}>
+            <div className="dashboard-progress-list" key={dateKey(selectedProgressDate)}>
               {progressItems.map((item) => (
                 <div key={`${item.id}-${item.description}`} className="dashboard-progress-item">
                   <button
@@ -754,6 +785,7 @@ export default function Dashboard() {
               <span>Team Capacity</span>
               <InfoTooltipIcon tooltip="In-Progress Test/Total Test Assigned" />
             </div>
+
             <div className="dashboard-capacity-list">
               {teamCapacity.length === 0 ? (
                 <div className="dashboard-capacity-item dashboard-capacity-item--empty">
