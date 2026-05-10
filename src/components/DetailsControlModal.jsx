@@ -459,7 +459,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       disabled={deleting || !id}
                       title={!id ? 'No control selected' : 'Delete this control'}
                     >
-                      {deleting ? 'Deleting…' : 'Delete Control'}
+                      Delete Control
                     </button>
                   </RestrictedAction>
                 </div>
