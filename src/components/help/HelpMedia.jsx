@@ -27,7 +27,7 @@ function HelpMediaPlaceholder({ media }) {
             {media?.title || 'Tutorial media coming soon'}
           </div>
           <div className="help-media__placeholder-text">
-            Drop the final MP4 or GIF into public/help-assets using the exact filename shown above.
+            Drop the final MP4 into public/help-assets using the exact filename shown above.
           </div>
           {expectedName ? (
             <div className="help-media__placeholder-filename">Title the video: {expectedName}</div>
@@ -73,6 +73,10 @@ export default function HelpMedia({ media }) {
             className="help-media__asset"
             src={media.src}
             poster={media.poster}
+            autoPlay
+            loop
+            muted
+            playsInline
             controls
             preload="metadata"
             onError={() => setHasLoadError(true)}
