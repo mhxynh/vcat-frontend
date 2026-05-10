@@ -79,7 +79,6 @@ export default function HelpMedia({ media }) {
             playsInline
             controls
             preload="metadata"
-            onError={() => setHasLoadError(true)}
           />
         </div>
         {caption}
