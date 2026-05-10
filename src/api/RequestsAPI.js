@@ -1,7 +1,7 @@
 import { parseLocalDate } from '../utils/date';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { objectToSnakeCase } from '../utils/transformer';
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 export async function fetchRequests() {
   const resp = await authFetch(`${API_BASE}/requests`, {
@@ -10,7 +10,7 @@ export async function fetchRequests() {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch requests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -31,7 +31,7 @@ export async function fetchRequestById(requestId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch request (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -60,7 +60,7 @@ export async function updateRequest(requestId, payload) {
     const msg =
       data?.error ||
       (Array.isArray(data?.missing) ? `Missing: ${data.missing.join(', ')}` : null) ||
-      `Failed to update request (HTTP ${resp.status})`;
+      getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
@@ -241,7 +241,7 @@ export async function deleteRequest(requestId, { hard = false, archive = true } 
   });
 
   if (!resp.ok) {
-    let msg = `Delete failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -272,7 +272,7 @@ export async function createRequest(payload) {
     const msg =
       data?.error ||
       (Array.isArray(data?.missing) ? `Missing: ${data.missing.join(', ')}` : null) ||
-      `Failed to create request (HTTP ${resp.status})`;
+      getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 

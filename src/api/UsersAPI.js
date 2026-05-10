@@ -1,4 +1,4 @@
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 export async function fetchUsers({ isActive } = {}) {
   const url = new URL(`${API_BASE}/users`);
@@ -10,7 +10,7 @@ export async function fetchUsers({ isActive } = {}) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch users (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -34,7 +34,7 @@ export async function fetchUserByEmail(email) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch user by email (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -54,7 +54,7 @@ export async function fetchUserById(userId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch user (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;

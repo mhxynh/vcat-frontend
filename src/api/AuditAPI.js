@@ -1,4 +1,4 @@
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 async function fetchAuditLogs(params) {
   const search = new URLSearchParams(params);
@@ -7,7 +7,7 @@ async function fetchAuditLogs(params) {
     headers: { Accept: 'application/json' },
   });
   if (!resp.ok) {
-    const msg = `Failed to fetch audit logs (HTTP ${resp.status})`;
+    const msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       throw new Error(data?.error || data?.message || msg);

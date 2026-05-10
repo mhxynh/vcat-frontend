@@ -1,6 +1,6 @@
 import { parseLocalDate } from '../utils/date';
 import { objectToSnakeCase } from '../utils/transformer';
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 function formatDate(value) {
   if (!value) return '';
@@ -97,7 +97,7 @@ export async function fetchAllTests() {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -122,7 +122,7 @@ export async function fetchTestsByRequestId(requestId, { details = true } = {}) 
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -147,7 +147,7 @@ export async function fetchTestsByControlId(controlId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -172,7 +172,7 @@ export async function deleteTest(testId, { hard = false, archive = true } = {}) 
   });
 
   if (!resp.ok) {
-    let msg = `Delete failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -234,7 +234,7 @@ export async function createTest(payload) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to create test (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -257,7 +257,7 @@ export async function updateTest(testId, payload) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to update test (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -278,7 +278,7 @@ export async function startTest(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Start failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -299,7 +299,7 @@ export async function reviewTest(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Review failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -320,7 +320,7 @@ export async function completeTest(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Complete failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -341,7 +341,7 @@ export async function updateDat(testId, datStep, status) {
   });
 
   if (!resp.ok) {
-    let msg = `DAT update failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -362,7 +362,7 @@ export async function updateOet(testId, oetStep, status) {
   });
 
   if (!resp.ok) {
-    let msg = `OET update failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -384,7 +384,7 @@ export async function fetchTestById(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch test (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
