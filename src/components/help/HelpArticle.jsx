@@ -103,7 +103,7 @@ export default function HelpArticle({ doc, currentRole }) {
         </HelpCallout>
       ) : null}
 
-      <HelpMedia media={doc.media} />
+      {doc.media && doc.media.src ? <HelpMedia media={doc.media} /> : null}
 
       <div className="help-article__body">
         {(doc.sections || []).map((section, index) => renderSection(section, index))}
