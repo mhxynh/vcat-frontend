@@ -24,9 +24,11 @@ function isNetworkFetchError(error) {
 
   if (error instanceof TypeError) {
     const normalizedMessage = message.toLowerCase();
-    return normalizedMessage === 'failed to fetch'
-      || normalizedMessage.startsWith('failed to fetch ')
-      || normalizedMessage.includes('networkerror');
+    return (
+      normalizedMessage === 'failed to fetch' ||
+      normalizedMessage.startsWith('failed to fetch ') ||
+      normalizedMessage.includes('networkerror')
+    );
   }
 
   return message.includes('NetworkError');
