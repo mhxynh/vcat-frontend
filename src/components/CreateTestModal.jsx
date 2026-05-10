@@ -16,9 +16,20 @@ function flagsFromTestType(v) {
 }
 
 function isNetworkFetchError(error) {
-  return String(error?.message || error || '')
-    .toLowerCase()
-    .includes('failed to fetch');
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = String(error.message || '').trim();
+
+  if (error instanceof TypeError) {
+    const normalizedMessage = message.toLowerCase();
+    return normalizedMessage === 'failed to fetch'
+      || normalizedMessage.startsWith('failed to fetch ')
+      || normalizedMessage.includes('networkerror');
+  }
+
+  return message.includes('NetworkError');
 }
 
 export default function CreateTestModal({ isOpen, onClose, onCreated, defaultRequestId }) {
