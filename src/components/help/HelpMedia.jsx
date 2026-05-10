@@ -41,6 +41,11 @@ function HelpMediaPlaceholder({ media }) {
 export default function HelpMedia({ media }) {
   const [hasLoadError, setHasLoadError] = useState(false);
 
+  // Reset error state when media source changes
+  React.useEffect(() => {
+    setHasLoadError(false);
+  }, [media?.src]);
+
   if (!media || !media.src || hasLoadError) {
     return <HelpMediaPlaceholder media={media} />;
   }
@@ -70,6 +75,7 @@ export default function HelpMedia({ media }) {
       <figure className="help-media">
         <div className="help-media__frame">
           <video
+            key={media.src}
             className="help-media__asset"
             src={media.src}
             poster={media.poster}
@@ -79,6 +85,7 @@ export default function HelpMedia({ media }) {
             playsInline
             controls
             preload="metadata"
+            onError={() => setHasLoadError(true)}
           />
         </div>
         {caption}
