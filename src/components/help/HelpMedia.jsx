@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { HELP_MEDIA_TYPES } from '../../data/help/docs';
 
+function getExpectedMediaName(media) {
+  if (!media?.src) return null;
+
+  const parts = String(media.src).split('/').filter(Boolean);
+  return parts[parts.length - 1] || null;
+}
+
 function mediaTypeLabel(type) {
   if (type === HELP_MEDIA_TYPES.GIF) return 'GIF walkthrough';
   if (type === HELP_MEDIA_TYPES.VIDEO) return 'Video walkthrough';
@@ -9,6 +16,7 @@ function mediaTypeLabel(type) {
 
 function HelpMediaPlaceholder({ media }) {
   const label = mediaTypeLabel(media?.type);
+  const expectedName = getExpectedMediaName(media);
 
   return (
     <figure className="help-media">
@@ -19,8 +27,11 @@ function HelpMediaPlaceholder({ media }) {
             {media?.title || 'Tutorial media coming soon'}
           </div>
           <div className="help-media__placeholder-text">
-            Drop the final MP4 or GIF into public/help-assets when the walkthrough is ready.
+            Drop the final MP4 or GIF into public/help-assets using the exact filename shown above.
           </div>
+          {expectedName ? (
+            <div className="help-media__placeholder-filename">Title the video: {expectedName}</div>
+          ) : null}
         </div>
       </div>
     </figure>

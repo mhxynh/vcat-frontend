@@ -204,8 +204,8 @@ export const HELP_DOCS = [
     permissions: [ACTIONS.VIEW_SUMMARY, ACTIONS.EXPORT_SUMMARY],
     keywords: ['dashboard', 'summary', 'capacity', 'progress', 'distribution', 'export'],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/using-dashboard.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/using-dashboard.mp4',
       title: 'Dashboard walkthrough',
     },
     sections: [
@@ -426,8 +426,8 @@ export const HELP_DOCS = [
     permissions: [ACTIONS.RETIRE_CONTROL, ACTIONS.DELETE_CONTROL_HARD],
     keywords: ['retire control', 'archive control', 'delete control', 'inactive control'],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/retiring-controls.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/retiring-controls.mp4',
       title: 'Retiring controls walkthrough',
     },
     sections: [
@@ -542,8 +542,8 @@ export const HELP_DOCS = [
       'overdue requests',
     ],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/request-list-and-filters.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/request-list-and-filters.mp4',
       title: 'Requests tab walkthrough',
     },
     sections: [
@@ -683,8 +683,8 @@ export const HELP_DOCS = [
     permissions: [ACTIONS.VIEW_TESTS, ACTIONS.UPDATE_TEST, ACTIONS.COMMENT],
     keywords: ['tests', 'controls tracker', 'assigned tests', 'evidence', 'comments', 'status'],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/working-tests.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/working-tests.mp4',
       title: 'Working tests walkthrough',
     },
     sections: [
@@ -787,8 +787,8 @@ export const HELP_DOCS = [
     permissions: [ACTIONS.UPDATE_TEST],
     keywords: ['update test', 'dat step', 'oet step', 'testing ready', 'walkthrough', 'completed'],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/updating-test-progress.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/updating-test-progress.mp4',
       title: 'Updating test progress walkthrough',
     },
     sections: [
@@ -856,8 +856,8 @@ export const HELP_DOCS = [
     permissions: [ACTIONS.COMMENT],
     keywords: ['comments', 'add comment', 'delete comment', 'request comments', 'test comments'],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/comments.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/comments.mp4',
       title: 'Using comments walkthrough',
     },
     sections: [
@@ -957,8 +957,8 @@ export const HELP_DOCS = [
     permissions: [ACTIONS.BULK_ASSIGN_TESTERS, ACTIONS.ASSIGN_TESTER],
     keywords: ['bulk assign', 'assign tests', 'selected tests', 'tester assignment'],
     media: {
-      type: HELP_MEDIA_TYPES.GIF,
-      src: '/help-assets/bulk-assign-tests.gif',
+      type: HELP_MEDIA_TYPES.VIDEO,
+      src: '/help-assets/bulk-assign-tests.mp4',
       title: 'Bulk assigning tests walkthrough',
     },
     sections: [

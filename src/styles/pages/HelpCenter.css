@@ -418,6 +418,14 @@
   line-height: 1.45;
 }
 
+.help-media__placeholder-filename {
+  margin-top: 8px;
+  color: var(--color-brand-red, #8a1a23);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .help-media__caption {
   margin-top: 8px;
   color: #6b7280;
