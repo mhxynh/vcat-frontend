@@ -79,12 +79,9 @@ export default function HelpMedia({ media }) {
             className="help-media__asset"
             src={media.src}
             poster={media.poster}
-            autoPlay
-            loop
-            muted
             playsInline
             controls
-            preload="metadata"
+            preload="none"
             onError={() => setHasLoadError(true)}
           />
         </div>
