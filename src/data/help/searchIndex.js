@@ -33,8 +33,8 @@ function docToSearchText(doc, category) {
     .join(' ');
 }
 
-export function buildHelpSearchIndex(docs = HELP_DOCS, categories = HELP_CATEGORIES) {
-  const categoryById = new Map(categories.map((category) => [category.id, category]));
+export function buildHelpSearchIndex(docs = HELP_DOCS) {
+  const categoryById = new Map(HELP_CATEGORIES.map((category) => [category.id, category]));
 
   return sortHelpDocs(docs).map((doc) => {
     const category = categoryById.get(doc.categoryId) || null;
