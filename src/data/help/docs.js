@@ -1241,7 +1241,7 @@ export const HELP_DOCS = [
         title: 'Dashboard & Data Issues',
         items: [
           '"Dashboard shows no data or is blank." → Refresh the page and wait 5–10 seconds for data to load. Check your internet connection. If still blank, check the browser console for errors, then contact admin.',
-          '"I see \"404: Page Not Found\"." → The page you tried to access does not exist. Use the top navigation to return to a valid page (Dashboard, Catalog, Tracker, Help).',
+          '"I see "404: Page Not Found"." → The page you tried to access does not exist. Use the top navigation to return to a valid page (Dashboard, Catalog, Tracker, Help).',
           '"Capacity metrics look wrong." → Refresh the page. If metrics are still incorrect, data may be out of sync; contact your admin.',
           '"Progress percentages don\'t add up." → Progress is calculated based on completed tests vs. total tests in a request. Refresh the page to see the latest calculation.',
         ],
@@ -1252,7 +1252,7 @@ export const HELP_DOCS = [
         items: [
           '"Search returns no results for a control I know exists." → Try a shorter search term (e.g., "CTRL" instead of full VGCPID). Check spelling and ensure case matches (search is case-insensitive). If still no results, verify the control exists by asking your manager.',
           '"Filters reset to page 1 when I search." → This is intentional. Your filter is applied, and the view returns to page 1 to show filtered results clearly.',
-          '"Pagination shows \"Page 1 of 0\"." → All records are hidden by current filters. Clear all filters or try a broader search term.',
+          '"Pagination shows "Page 1 of 0"." → All records are hidden by current filters. Clear all filters or try a broader search term.',
         ],
       },
       {
