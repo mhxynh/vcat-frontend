@@ -60,6 +60,8 @@ export default function DetailsTestModal({
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+  const [isBlockConfirmOpen, setIsBlockConfirmOpen] = useState(false);
+  const [isUnblockConfirmOpen, setIsUnblockConfirmOpen] = useState(false);
   const [isRemoveAttachmentConfirmOpen, setIsRemoveAttachmentConfirmOpen] = useState(false);
   const [pendingAttachmentRemoval, setPendingAttachmentRemoval] = useState(null);
 
@@ -79,6 +81,12 @@ export default function DetailsTestModal({
 
   const openApproveConfirm = () => setIsApproveConfirmOpen(true);
   const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
+
+  const openBlockConfirm = () => setIsBlockConfirmOpen(true);
+  const closeBlockConfirm = () => setIsBlockConfirmOpen(false);
+
+  const openUnblockConfirm = () => setIsUnblockConfirmOpen(true);
+  const closeUnblockConfirm = () => setIsUnblockConfirmOpen(false);
 
   const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
   const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
@@ -189,6 +197,8 @@ export default function DetailsTestModal({
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
+      setIsBlockConfirmOpen(false);
+      setIsUnblockConfirmOpen(false);
       setIsRemoveAttachmentConfirmOpen(false);
       setIsAddAttachmentModalOpen(false);
       setPendingAttachmentRemoval(null);
@@ -220,6 +230,8 @@ export default function DetailsTestModal({
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
     setIsApproveConfirmOpen(false);
+    setIsBlockConfirmOpen(false);
+    setIsUnblockConfirmOpen(false);
     setIsDeleteCommentConfirmOpen(false);
     setPendingCommentDeletion(null);
     setIsRemoveAttachmentConfirmOpen(false);
@@ -278,6 +290,16 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isBlockConfirmOpen) {
+        closeBlockConfirm();
+        return;
+      }
+
+      if (isUnblockConfirmOpen) {
+        closeUnblockConfirm();
+        return;
+      }
+
       if (isRemoveAttachmentConfirmOpen) {
         closeRemoveAttachmentConfirm();
         return;
@@ -310,6 +332,8 @@ export default function DetailsTestModal({
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
+    isBlockConfirmOpen,
+    isUnblockConfirmOpen,
     isRemoveAttachmentConfirmOpen,
     isAddAttachmentModalOpen,
     isDeleteCommentConfirmOpen,
@@ -666,6 +690,7 @@ export default function DetailsTestModal({
     const statusUpper = String(testRow?.status || 'NOT_STARTED').toUpperCase();
 
     if (statusUpper === 'NOT_STARTED') return 'Start Work';
+    if (statusUpper === 'BLOCKED') return '';
     if (isInProgress(statusUpper)) {
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
@@ -717,6 +742,54 @@ export default function DetailsTestModal({
       showErrorToast({
         title: 'Control Test Completion Failed',
         message: `An error occurred while completing the control test: ${errorMessage}`,
+      });
+    }
+  }
+
+  async function handleBlock() {
+    if (testId == null) return;
+
+    try {
+      await runBusy('Marking as blocked...', async () => {
+        const track = getActiveTrack(t) || (t?.requiresOet ? 'OET' : 'DAT');
+        if (!track) return;
+
+        await setTrackStepApi(track, 'TESTING_BLOCKED', 'BLOCKED');
+        await refreshInline();
+      });
+
+      showSuccessToast({
+        title: 'Control Test Blocked',
+        message: `${vgcpid} has been marked as blocked.`,
+      });
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Mark Blocked',
+        message: e?.message || 'An error occurred while marking the control test as blocked.',
+      });
+    }
+  }
+
+  async function handleUnblock() {
+    if (testId == null) return;
+
+    try {
+      await runBusy('Unblocking test...', async () => {
+        const track = getActiveTrack(t) || (t?.requiresOet ? 'OET' : 'DAT');
+        if (!track) return;
+
+        await setTrackStepApi(track, 'TESTING_READY', statusForTrack(track));
+        await refreshInline();
+      });
+
+      showSuccessToast({
+        title: 'Control Test Unblocked',
+        message: `${vgcpid} has been unblocked and returned to in progress.`,
+      });
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Unblock Test',
+        message: e?.message || 'An error occurred while unblocking the control test.',
       });
     }
   }
@@ -1031,10 +1104,11 @@ export default function DetailsTestModal({
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
   const isLockedStatus = statusUpper === 'COMPLETED';
-  const showRevert = statusUpper !== 'NOT_STARTED';
+  const isBlockedStatus = statusUpper === 'BLOCKED';
+  const showRevert = statusUpper !== 'NOT_STARTED' && !isBlockedStatus;
   const showReject = statusUpper === 'IN_REVIEW';
   const primaryLabel = getPrimaryActionLabel(t);
-  const showNextStepPanel = statusUpper !== 'COMPLETED';
+  const showNextStepPanel = statusUpper !== 'COMPLETED' && !isBlockedStatus;
 
   return (
     <>
@@ -1105,6 +1179,26 @@ export default function DetailsTestModal({
                     }
                   >
                     Revert
+                  </button>
+                ) : null}
+
+                {isBlockedStatus ? (
+                  <button
+                    className="dtm-btn dtm-btn--primary"
+                    type="button"
+                    onClick={openUnblockConfirm}
+                    disabled={isBusy}
+                  >
+                    Unblock
+                  </button>
+                ) : isInProgress(statusUpper) ? (
+                  <button
+                    className="dtm-btn dtm-btn--danger"
+                    type="button"
+                    onClick={openBlockConfirm}
+                    disabled={isBusy}
+                  >
+                    Mark as Blocked
                   </button>
                 ) : null}
 
@@ -1628,6 +1722,42 @@ export default function DetailsTestModal({
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
       />
 
+      <ConfirmActionModal
+        isOpen={isBlockConfirmOpen}
+        onClose={closeBlockConfirm}
+        onConfirm={async () => {
+          closeBlockConfirm();
+          await handleBlock();
+        }}
+        title="Mark Control Test as Blocked?"
+        message="Are you sure you want to mark this test as blocked?"
+        itemName={String(testTitle)}
+        warning="Blocked tests will be removed from the normal testing flow until they are updated again."
+        confirmText={isBusy ? 'Marking...' : 'Mark Blocked'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
+      <ConfirmActionModal
+        isOpen={isUnblockConfirmOpen}
+        onClose={closeUnblockConfirm}
+        onConfirm={async () => {
+          closeUnblockConfirm();
+          await handleUnblock();
+        }}
+        title="Unblock Control Test?"
+        message="Are you sure you want to unblock this test?"
+        itemName={String(testTitle)}
+        warning="This will return the control test to an in-progress state so work can continue."
+        confirmText={isBusy ? 'Unblocking...' : 'Unblock'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
       <EditTestModal
         isOpen={isEditOpen}
         onClose={closeEdit}
@@ -1683,6 +1813,11 @@ function humanStep(s) {
 }
 
 function computeStepLabels(test) {
+  const statusUpper = String(test?.status || '').toUpperCase();
+  if (statusUpper === 'BLOCKED') {
+    return { currentStepLabel: 'Blocked', nextStepLabel: '-' };
+  }
+
   const requiresDat = !!test?.requiresDat;
   const requiresOet = !!test?.requiresOet;
 
