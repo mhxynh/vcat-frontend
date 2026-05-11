@@ -14,7 +14,7 @@ export default function HelpCenter() {
   const [query, setQuery] = useState('');
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  const searchIndex = useMemo(() => buildHelpSearchIndex(HELP_DOCS, HELP_CATEGORIES), []);
+  const searchIndex = useMemo(() => buildHelpSearchIndex(HELP_DOCS), []);
   const searchResults = useMemo(() => searchHelpDocs(query, searchIndex), [query, searchIndex]);
 
   const visibleDocIds = useMemo(
@@ -68,6 +68,7 @@ export default function HelpCenter() {
         type="button"
         className="help-center-page__nav-toggle"
         aria-expanded={isMobileNavOpen}
+        aria-controls="help-center-sidebar"
         onClick={() => setIsMobileNavOpen((open) => !open)}
       >
         Browse docs
@@ -75,6 +76,7 @@ export default function HelpCenter() {
 
       <div className="help-center-page__layout">
         <div
+          id="help-center-sidebar"
           className={`help-center-page__sidebar-wrap ${
             isMobileNavOpen ? 'help-center-page__sidebar-wrap--open' : ''
           }`}
