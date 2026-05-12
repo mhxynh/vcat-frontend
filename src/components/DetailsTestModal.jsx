@@ -1204,7 +1204,7 @@ export default function DetailsTestModal({
                                 category="deco"
                                 size="sm"
                                 color="#fff"
-                                className="dtm-btn-icon dtm-btn-icon--right"
+                                className="dtm-btn-icon"
                               />
                             </>
                           )}
