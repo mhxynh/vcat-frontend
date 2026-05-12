@@ -903,7 +903,7 @@ export default function DetailsRequestModal({
                         disabled={archiving || deleting || requestId == null}
                         title={requestId == null ? 'No request selected' : 'Unarchive this request'}
                       >
-                        {archiving ? 'Updating…' : 'Unarchive Request'}
+                        Unarchive Request
                       </button>
                     ) : (
                       <button
@@ -919,7 +919,7 @@ export default function DetailsRequestModal({
                               : 'Archive this request'
                         }
                       >
-                        {archiving ? 'Archiving…' : 'Archive Request'}
+                        Archive Request
                       </button>
                     )}
                   </RestrictedAction>
@@ -949,7 +949,7 @@ export default function DetailsRequestModal({
                             : 'Permanently delete this request'
                       }
                     >
-                      {deleting ? 'Deleting…' : 'Delete Request'}
+                      Delete Request
                     </button>
                   </RestrictedAction>
                 </div>

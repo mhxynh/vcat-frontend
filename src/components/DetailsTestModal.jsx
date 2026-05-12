@@ -343,7 +343,12 @@ export default function DetailsTestModal({
     if (testId == null) return null;
 
     const fresh = await fetchTestById(testId);
-    const normalized = objectToCamelCase(fresh);
+    const normalized = preserveAssignedTesterDisplayName(
+      objectToCamelCase(fresh),
+      normalizedTest,
+      usersById
+    );
+
     setLocalTest(normalized);
     onEdit?.(normalized);
     await onUpdated?.(normalized);
@@ -366,7 +371,7 @@ export default function DetailsTestModal({
   const testId = currentTestId;
   const vgcpid = t?.vgcpid ?? t?.controlVgcpid ?? t?.controlId ?? 'Unknown';
   const testTitle = t?.title ?? t?.description ?? String(vgcpid);
-  const assignedName = t?.assignedTesterName ?? t?.testerName ?? String(t?.assignedTesterId ?? '-');
+  const assignedName = getAssignedTesterDisplayName(t, usersById);
 
   const status = t?.status ?? 'NOT_STARTED';
   const typeLabel = testTypeFromFlags(t);
@@ -498,9 +503,11 @@ export default function DetailsTestModal({
   }
 
   async function handleArchive() {
-    if (testId == null) return;
+    if (testId == null || isBusy) return;
 
     try {
+      setIsBusy(true);
+
       await archiveTest(testId);
 
       const fresh = await refreshTest();
@@ -512,6 +519,7 @@ export default function DetailsTestModal({
         message: `${vgcpid} has been archived successfully.`,
       });
 
+      setIsArchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to archive control test';
@@ -520,24 +528,28 @@ export default function DetailsTestModal({
         title: 'Control Test Archive Failed',
         message: `An error occurred while archiving the control test: ${errorMessage}`,
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
   async function handleUnarchive() {
-    if (testId == null) return;
+    if (testId == null || isBusy) return;
 
     try {
-      await runBusy('Unarchiving...', async () => {
-        await unarchiveTest(testId);
-        await refreshTest();
-      });
+      setBusyMessage('Unarchiving...');
+      setIsBusy(true);
+
+      await unarchiveTest(testId);
+
+      await refreshTest();
 
       showSuccessToast({
         title: 'Control Test Unarchived',
         message: `${vgcpid} has been unarchived successfully.`,
       });
 
-      await onUpdated?.();
+      setIsUnarchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to unarchive control test';
@@ -546,14 +558,20 @@ export default function DetailsTestModal({
         title: 'Control Test Unarchive Failed',
         message: `An error occurred while unarchiving the control test: ${errorMessage}`,
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
   async function handleDelete() {
-    if (testId == null) return;
+    if (testId == null || isBusy) return;
 
     try {
+      setBusyMessage('Deleting...');
+      setIsBusy(true);
+
       await hardDeleteTest(testId);
+
       await onDeleted?.(testId);
 
       showSuccessToast({
@@ -561,6 +579,7 @@ export default function DetailsTestModal({
         message: `${vgcpid} has been deleted successfully.`,
       });
 
+      setIsDeleteConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to delete control test';
@@ -569,6 +588,8 @@ export default function DetailsTestModal({
         title: 'Control Test Delete Failed',
         message: `An error occurred while deleting the control test: ${errorMessage}`,
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -1041,14 +1062,6 @@ export default function DetailsTestModal({
     <>
       <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
         <div className="dtm-modal" onMouseDown={stop}>
-          {isBusy ? (
-            <div className="dtm-busy-overlay" role="status" aria-live="polite">
-              <div className="dtm-busy-card">
-                <div className="dtm-spinner" aria-hidden="true" />
-                <div className="dtm-busy-text">{busyMessage}</div>
-              </div>
-            </div>
-          ) : null}
           <section className="dtm-header">
             <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
             <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
@@ -1556,10 +1569,7 @@ export default function DetailsTestModal({
       <ConfirmActionModal
         isOpen={isDeleteConfirmOpen}
         onClose={closeDeleteConfirm}
-        onConfirm={async () => {
-          closeDeleteConfirm();
-          await handleDelete();
-        }}
+        onConfirm={handleDelete}
         title="Delete Control Test?"
         message="Are you sure you want to permanently delete this control test?"
         itemName={String(vgcpid)}
@@ -1605,10 +1615,7 @@ export default function DetailsTestModal({
       <ConfirmActionModal
         isOpen={isArchiveConfirmOpen}
         onClose={closeArchiveConfirm}
-        onConfirm={async () => {
-          closeArchiveConfirm();
-          await handleArchive();
-        }}
+        onConfirm={handleArchive}
         title="Archive Control Test?"
         message="Are you sure you want to archive this control test?"
         itemName={String(vgcpid)}
@@ -1623,10 +1630,7 @@ export default function DetailsTestModal({
       <ConfirmActionModal
         isOpen={isUnarchiveConfirmOpen}
         onClose={closeUnarchiveConfirm}
-        onConfirm={async () => {
-          closeUnarchiveConfirm();
-          await handleUnarchive();
-        }}
+        onConfirm={handleUnarchive}
         title="Unarchive Control Test?"
         message="Are you sure you want to unarchive this control test?"
         itemName={String(vgcpid)}
@@ -1716,6 +1720,64 @@ function DetailItem({ label, value }) {
       <div className="dtm-detail-value">{value ?? '-'}</div>
     </div>
   );
+}
+
+function firstNonBlank(...values) {
+  for (const value of values) {
+    const text = String(value ?? '').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
+function getUserDisplayName(user) {
+  return firstNonBlank(
+    user?.displayName,
+    user?.display_name,
+    user?.fullName,
+    user?.full_name,
+    user?.name,
+    user?.email
+  );
+}
+
+function getAssignedTesterDisplayName(testRow, usersById = {}) {
+  const directName = firstNonBlank(
+    testRow?.assignedTesterName,
+    testRow?.testerName,
+    testRow?.assignee
+  );
+
+  if (directName) return directName;
+
+  const assignedTesterId = testRow?.assignedTesterId;
+  if (assignedTesterId != null) {
+    const resolvedName = getUserDisplayName(usersById[String(assignedTesterId)]);
+    if (resolvedName) return resolvedName;
+  }
+
+  return 'Unassigned';
+}
+
+function preserveAssignedTesterDisplayName(nextTest, previousTest, usersById = {}) {
+  if (!nextTest) return nextTest;
+
+  const nextName = getAssignedTesterDisplayName(nextTest, usersById);
+  if (nextName !== 'Unassigned') return { ...nextTest, assignedTesterName: nextName };
+
+  const nextAssignedTesterId = nextTest?.assignedTesterId;
+  const previousAssignedTesterId = previousTest?.assignedTesterId;
+
+  if (
+    nextAssignedTesterId != null &&
+    previousAssignedTesterId != null &&
+    String(nextAssignedTesterId) === String(previousAssignedTesterId)
+  ) {
+    const previousName = getAssignedTesterDisplayName(previousTest, usersById);
+    if (previousName !== 'Unassigned') return { ...nextTest, assignedTesterName: previousName };
+  }
+
+  return nextTest;
 }
 
 function initials(name) {
