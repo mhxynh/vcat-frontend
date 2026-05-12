@@ -1030,7 +1030,7 @@ export default function DetailsTestModal({
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
-  const isTrackInProgress = statusUpper === 'DAT_IN_PROGRESS' || statusUpper === 'OET_IN_PROGRESS';
+  const isTrackInProgress = isInProgress(statusUpper);
   const isLockedStatus = statusUpper === 'COMPLETED';
   const showRevert = statusUpper !== 'NOT_STARTED';
   const showReject = statusUpper === 'IN_REVIEW';
