@@ -343,7 +343,12 @@ export default function DetailsTestModal({
     if (testId == null) return null;
 
     const fresh = await fetchTestById(testId);
-    const normalized = objectToCamelCase(fresh);
+    const normalized = preserveAssignedTesterDisplayName(
+      objectToCamelCase(fresh),
+      normalizedTest,
+      usersById
+    );
+
     setLocalTest(normalized);
     onEdit?.(normalized);
     await onUpdated?.(normalized);
@@ -366,7 +371,7 @@ export default function DetailsTestModal({
   const testId = currentTestId;
   const vgcpid = t?.vgcpid ?? t?.controlVgcpid ?? t?.controlId ?? 'Unknown';
   const testTitle = t?.title ?? t?.description ?? String(vgcpid);
-  const assignedName = t?.assignedTesterName ?? t?.testerName ?? String(t?.assignedTesterId ?? '-');
+  const assignedName = getAssignedTesterDisplayName(t, usersById);
 
   const status = t?.status ?? 'NOT_STARTED';
   const typeLabel = testTypeFromFlags(t);
@@ -1654,6 +1659,64 @@ function DetailItem({ label, value }) {
       <div className="dtm-detail-value">{value ?? '-'}</div>
     </div>
   );
+}
+
+function firstNonBlank(...values) {
+  for (const value of values) {
+    const text = String(value ?? '').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
+function getUserDisplayName(user) {
+  return firstNonBlank(
+    user?.displayName,
+    user?.display_name,
+    user?.fullName,
+    user?.full_name,
+    user?.name,
+    user?.email
+  );
+}
+
+function getAssignedTesterDisplayName(testRow, usersById = {}) {
+  const directName = firstNonBlank(
+    testRow?.assignedTesterName,
+    testRow?.testerName,
+    testRow?.assignee
+  );
+
+  if (directName) return directName;
+
+  const assignedTesterId = testRow?.assignedTesterId;
+  if (assignedTesterId != null) {
+    const resolvedName = getUserDisplayName(usersById[String(assignedTesterId)]);
+    if (resolvedName) return resolvedName;
+  }
+
+  return 'Unassigned';
+}
+
+function preserveAssignedTesterDisplayName(nextTest, previousTest, usersById = {}) {
+  if (!nextTest) return nextTest;
+
+  const nextName = getAssignedTesterDisplayName(nextTest, usersById);
+  if (nextName !== 'Unassigned') return { ...nextTest, assignedTesterName: nextName };
+
+  const nextAssignedTesterId = nextTest?.assignedTesterId;
+  const previousAssignedTesterId = previousTest?.assignedTesterId;
+
+  if (
+    nextAssignedTesterId != null &&
+    previousAssignedTesterId != null &&
+    String(nextAssignedTesterId) === String(previousAssignedTesterId)
+  ) {
+    const previousName = getAssignedTesterDisplayName(previousTest, usersById);
+    if (previousName !== 'Unassigned') return { ...nextTest, assignedTesterName: previousName };
+  }
+
+  return nextTest;
 }
 
 function initials(name) {
