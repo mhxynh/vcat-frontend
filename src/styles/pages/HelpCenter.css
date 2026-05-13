@@ -354,6 +354,13 @@
   line-height: 1.5;
 }
 
+.help-article__highlight {
+  padding: 0 2px;
+  border-radius: 2px;
+  background: #ffe7a8;
+  color: inherit;
+}
+
 .help-media {
   margin: 22px 0 0;
 }

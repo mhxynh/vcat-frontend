@@ -92,7 +92,7 @@ export default function HelpCenter() {
 
         <main className="help-center-page__content">
           {activeDoc ? (
-            <HelpArticle doc={activeDoc} currentRole={role} />
+            <HelpArticle doc={activeDoc} currentRole={role} searchQuery={query} />
           ) : (
             <div className="dashboard-panel help-center-page__empty">
               <div className="dashboard-panel__title">No matching docs</div>

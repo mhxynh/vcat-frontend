@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getHelpMediaUrl } from '../../api/HelpMediaAPI';
 import { HELP_MEDIA_TYPES } from '../../data/help/docs';
 
 function getExpectedMediaName(media) {
@@ -38,16 +39,66 @@ function HelpMediaPlaceholder({ media }) {
   );
 }
 
+function HelpMediaLoading({ media }) {
+  const label = mediaTypeLabel(media?.type);
+
+  return (
+    <figure className="help-media">
+      <div className="help-media__frame help-media__frame--placeholder">
+        <div className="help-media__placeholder">
+          <div className="help-media__placeholder-label">{label}</div>
+          <div className="help-media__placeholder-title">Loading media</div>
+        </div>
+      </div>
+    </figure>
+  );
+}
+
 export default function HelpMedia({ media }) {
+  const [resolvedSrc, setResolvedSrc] = useState('');
+  const [resolvedPoster, setResolvedPoster] = useState('');
   const [hasLoadError, setHasLoadError] = useState(false);
 
-  // Reset error state when media source changes
   React.useEffect(() => {
+    let ignore = false;
+
     setHasLoadError(false);
-  }, [media?.src]);
+    setResolvedSrc('');
+    setResolvedPoster('');
+
+    if (!media?.src) return undefined;
+
+    async function loadMediaUrls() {
+      try {
+        const [nextSrc, nextPoster] = await Promise.all([
+          getHelpMediaUrl(media.src),
+          media.poster ? getHelpMediaUrl(media.poster) : Promise.resolve(''),
+        ]);
+
+        if (!ignore) {
+          setResolvedSrc(nextSrc);
+          setResolvedPoster(nextPoster);
+        }
+      } catch {
+        if (!ignore) {
+          setHasLoadError(true);
+        }
+      }
+    }
+
+    loadMediaUrls();
+
+    return () => {
+      ignore = true;
+    };
+  }, [media?.poster, media?.src]);
 
   if (!media || !media.src || hasLoadError) {
     return <HelpMediaPlaceholder media={media} />;
+  }
+
+  if (!resolvedSrc) {
+    return <HelpMediaLoading media={media} />;
   }
 
   const caption = media.title ? (
@@ -60,7 +111,7 @@ export default function HelpMedia({ media }) {
         <div className="help-media__frame">
           <img
             className="help-media__asset"
-            src={media.src}
+            src={resolvedSrc}
             alt={media.title || ''}
             onError={() => setHasLoadError(true)}
           />
@@ -75,10 +126,10 @@ export default function HelpMedia({ media }) {
       <figure className="help-media">
         <div className="help-media__frame">
           <video
-            key={media.src}
+            key={resolvedSrc}
             className="help-media__asset"
-            src={media.src}
-            poster={media.poster}
+            src={resolvedSrc}
+            poster={resolvedPoster || undefined}
             playsInline
             controls
             preload="none"

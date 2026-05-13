@@ -9,13 +9,61 @@ import {
 import HelpCallout from './HelpCallout';
 import HelpMedia from './HelpMedia';
 
-function renderSection(section, index) {
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getHighlightTerms(query) {
+  const normalizedQuery = String(query || '').trim();
+  if (!normalizedQuery) return [];
+
+  const terms = new Set();
+  if (normalizedQuery.includes(' ')) {
+    terms.add(normalizedQuery);
+  }
+
+  normalizedQuery
+    .split(/\s+/)
+    .filter(Boolean)
+    .forEach((term) => terms.add(term));
+
+  return Array.from(terms).sort((left, right) => right.length - left.length);
+}
+
+function highlightText(text, query) {
+  if (typeof text !== 'string' || !text) return text;
+
+  const terms = getHighlightTerms(query);
+  if (terms.length === 0) return text;
+
+  const highlightPattern = terms.map(escapeRegExp).join('|');
+  const highlightRegex = new RegExp(`(${highlightPattern})`, 'gi');
+  const splitParts = text.split(highlightRegex);
+
+  if (splitParts.length === 1) return text;
+
+  return splitParts.map((part, index) => {
+    const isMatch = terms.some((term) => term.toLowerCase() === part.toLowerCase());
+
+    if (isMatch) {
+      return (
+        <mark key={`${part}-${index}`} className="help-article__highlight">
+          {part}
+        </mark>
+      );
+    }
+
+    return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+  });
+}
+
+function renderSection(section, index, searchQuery) {
   if (!section) return null;
 
   if (section.type === HELP_SECTION_TYPES.PARAGRAPH) {
     return (
       <p key={index} className="help-article__paragraph">
-        {section.body}
+        {highlightText(section.body, searchQuery)}
       </p>
     );
   }
@@ -23,10 +71,14 @@ function renderSection(section, index) {
   if (section.type === HELP_SECTION_TYPES.STEPS) {
     return (
       <section key={index} className="help-article__section">
-        {section.title ? <h2 className="help-article__section-title">{section.title}</h2> : null}
+        {section.title ? (
+          <h2 className="help-article__section-title">
+            {highlightText(section.title, searchQuery)}
+          </h2>
+        ) : null}
         <ol className="help-article__steps">
-          {(section.items || []).map((item) => (
-            <li key={item}>{item}</li>
+          {(section.items || []).map((item, itemIndex) => (
+            <li key={`${index}-${itemIndex}`}>{highlightText(item, searchQuery)}</li>
           ))}
         </ol>
       </section>
@@ -36,7 +88,7 @@ function renderSection(section, index) {
   if (section.type === HELP_SECTION_TYPES.TIP) {
     return (
       <HelpCallout key={index} type="tip">
-        {section.body}
+        {highlightText(section.body, searchQuery)}
       </HelpCallout>
     );
   }
@@ -44,7 +96,7 @@ function renderSection(section, index) {
   if (section.type === HELP_SECTION_TYPES.WARNING) {
     return (
       <HelpCallout key={index} type="warning">
-        {section.body}
+        {highlightText(section.body, searchQuery)}
       </HelpCallout>
     );
   }
@@ -52,7 +104,7 @@ function renderSection(section, index) {
   if (section.type === HELP_SECTION_TYPES.PERMISSION) {
     return (
       <HelpCallout key={index} type="permission">
-        {section.body || ACTION_MESSAGES[section.action]}
+        {highlightText(section.body || ACTION_MESSAGES[section.action], searchQuery)}
       </HelpCallout>
     );
   }
@@ -60,7 +112,7 @@ function renderSection(section, index) {
   return null;
 }
 
-export default function HelpArticle({ doc, currentRole }) {
+export default function HelpArticle({ doc, currentRole, searchQuery }) {
   if (!doc) {
     return (
       <article className="help-article help-article--empty">
@@ -76,9 +128,11 @@ export default function HelpArticle({ doc, currentRole }) {
 
   return (
     <article className="help-article">
-      <div className="help-article__meta">{category?.title || 'Help'}</div>
-      <h1 className="help-article__title">{doc.title}</h1>
-      <p className="help-article__summary">{doc.summary}</p>
+      <div className="help-article__meta">
+        {highlightText(category?.title || 'Help', searchQuery)}
+      </div>
+      <h1 className="help-article__title">{highlightText(doc.title, searchQuery)}</h1>
+      <p className="help-article__summary">{highlightText(doc.summary, searchQuery)}</p>
 
       <div className="help-article__chips" aria-label="Article metadata">
         <span
@@ -106,7 +160,7 @@ export default function HelpArticle({ doc, currentRole }) {
       {doc.media && doc.media.src ? <HelpMedia media={doc.media} /> : null}
 
       <div className="help-article__body">
-        {(doc.sections || []).map((section, index) => renderSection(section, index))}
+        {(doc.sections || []).map((section, index) => renderSection(section, index, searchQuery))}
       </div>
     </article>
   );
