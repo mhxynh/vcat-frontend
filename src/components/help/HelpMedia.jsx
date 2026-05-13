@@ -28,7 +28,8 @@ function HelpMediaPlaceholder({ media }) {
             {media?.title || 'Tutorial media coming soon'}
           </div>
           <div className="help-media__placeholder-text">
-            Drop the final MP4 into public/help-assets using the exact filename shown above.
+            Upload the final media file to the help videos bucket using the exact filename shown
+            above.
           </div>
           {expectedName ? (
             <div className="help-media__placeholder-filename">Title the video: {expectedName}</div>
