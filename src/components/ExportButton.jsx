@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from './common/Icon';
 
 export default function ExportButton({
   isLoading = false,
@@ -16,7 +17,11 @@ export default function ExportButton({
       disabled={isDisabled}
       aria-busy={isLoading}
     >
-      {isLoading && <span className="export-button__spinner" aria-hidden="true" />}
+      {isLoading ? (
+        <span className="export-button__spinner" aria-hidden="true" />
+      ) : (
+        <Icon name="upload" category="actions" size="sm" color="#ffffff" />
+      )}
       {isLoading ? 'Exporting...' : 'Export'}
     </button>
   );
