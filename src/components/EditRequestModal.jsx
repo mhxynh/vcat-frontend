@@ -331,6 +331,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                   <input
                     className="erm-input"
                     value={requestedBy || ''}
+                    placeholder="Name"
                     onChange={(e) => {
                       setRequestedBy(e.target.value);
                       if (fieldErrors.requestedBy)
