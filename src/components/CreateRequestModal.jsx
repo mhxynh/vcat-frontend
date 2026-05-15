@@ -158,7 +158,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
                 value={requestedBy}
                 onChange={(e) => setRequestedBy(e.target.value)}
                 disabled={submitting}
-                placeholder="Enter requester name..."
+                placeholder="Name"
                 aria-invalid={fieldErrors.requestedBy ? 'true' : 'false'}
               />
               {fieldErrors.requestedBy ? (
