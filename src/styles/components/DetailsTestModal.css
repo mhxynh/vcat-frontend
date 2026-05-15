@@ -76,6 +76,11 @@
   font-weight: 600;
 }
 
+.dtm-status .badge--blocked {
+  background-color: #c20029;
+  color: #fff;
+}
+
 /* Assignee */
 .dtm-assignee {
   text-align: right;
@@ -123,6 +128,24 @@
 .dtm-step-card--completed {
   background: #f0fdf4;
   border-color: #dcfce7;
+}
+
+.dtm-step-card--blocked {
+  background: #fff5f6;
+  border-color: #fee2e2;
+}
+
+.dtm-step-card--blocked .dtm-complete-icon {
+  background: #fdecea;
+  color: #c20029;
+}
+
+.dtm-step-card--blocked .dtm-complete-label {
+  color: #c20029;
+}
+
+.dtm-step-card--blocked .dtm-complete-title {
+  color: #c20029;
 }
 
 .dtm-complete-box {
@@ -434,6 +457,12 @@
 }
 
 .dtm-step-actions-left .dtm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dtm-step-actions-right .dtm-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
