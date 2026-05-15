@@ -1,10 +1,64 @@
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
+import { fetchUserAttributes } from 'aws-amplify/auth';
 import vanguardLogo from '../assets/images/vanguard.png';
+
+function getInitialsFromUser(attrs) {
+  const combinedName = [attrs?.['given_name'], attrs?.['family_name']]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .join(' ');
+  const displayName = String(attrs?.['name'] || combinedName || '').trim();
+  if (displayName) {
+    const parts = displayName.split(/\s+/).filter(Boolean);
+    const first = parts[0]?.[0] || '';
+    const second = parts[1]?.[0] || '';
+    return (first + second).toUpperCase();
+  }
+
+  const email = String(attrs?.email || '').trim();
+  if (email) {
+    return email
+      .split('@')[0]
+      .split(/[._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((token) => token[0]?.toUpperCase())
+      .join('');
+  }
+
+  return 'U';
+}
 
 export default function Navbar() {
   const { signOut, authStatus } = useAuthenticator((ctx) => [ctx.authStatus]);
   const isAuthenticated = authStatus === 'authenticated';
+  const [avatarInitials, setAvatarInitials] = useState('U');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadInitials() {
+      if (!isAuthenticated) {
+        setAvatarInitials('U');
+        return;
+      }
+
+      try {
+        const attrs = await fetchUserAttributes();
+        if (!cancelled) setAvatarInitials(getInitialsFromUser(attrs));
+      } catch {
+        if (!cancelled) setAvatarInitials('U');
+      }
+    }
+
+    void loadInitials();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   return (
     <nav className="navbar">
@@ -53,29 +107,14 @@ export default function Navbar() {
           <>
             <span className="navbar__divider" aria-hidden="true" />
 
-            <button type="button" className="navbar__avatar" title="Sign out" onClick={signOut}>
-              MH
-            </button>
-
             <button
               type="button"
-              className="navbar__bell"
-              aria-label="Notifications"
-              title="Notifications"
+              className="navbar__avatar"
+              title="Sign out"
+              aria-label="Sign out"
+              onClick={signOut}
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
+              {avatarInitials}
             </button>
           </>
         )}
