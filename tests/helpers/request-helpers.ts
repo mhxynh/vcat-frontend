@@ -1,5 +1,6 @@
 import { Page, Locator } from "@playwright/test";
 import { todayISO } from "./test-utils";
+import { loginAsManager } from "./auth-helpers";
 
 export async function createRequest(
   page: Page,
@@ -10,18 +11,7 @@ export async function createRequest(
     date = todayISO(),
   }: { name?: string; priority?: string; purpose?: string; date?: string } = {},
 ): Promise<Locator> {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.getByRole("button", { name: "Requests" }).click();
   await page.locator("text=Loading requests...").waitFor({ state: "hidden" });

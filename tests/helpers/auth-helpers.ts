@@ -1,7 +1,7 @@
 import { Page } from "@playwright/test";
 
 export async function loginAsManager(page: Page) {
-  await page.goto("http://localhost:3000/");
+  await page.goto("/");
   await page.getByRole("textbox", { name: "Email Address" }).click();
   await page
     .getByRole("textbox", { name: "Email Address" })
@@ -16,7 +16,7 @@ export async function loginAsManager(page: Page) {
 }
 
 export async function loginAsTester(page: Page) {
-  await page.goto("http://localhost:3000/");
+  await page.goto("/");
   await page.getByRole("textbox", { name: "Email Address" }).click();
   await page
     .getByRole("textbox", { name: "Email Address" })
