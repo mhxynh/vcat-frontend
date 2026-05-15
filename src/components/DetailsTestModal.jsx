@@ -1148,12 +1148,7 @@ export default function DetailsTestModal({
           <section className="dtm-status">
             <div className="dtm-status-top">
               <div className="dtm-status-left">
-                <span
-                  className={`badge badge--${statusToBadgeType(status)}`}
-                  style={
-                    isBlockedStatus ? { backgroundColor: '#C20029', color: '#fff' } : undefined
-                  }
-                >
+                <span className={`badge badge--${statusToBadgeType(status)}`}>
                   {statusToLabel(status)}
                 </span>
                 <span className="dtm-dot">•</span>
@@ -1262,23 +1257,7 @@ export default function DetailsTestModal({
                     </button>
                   ) : null}
 
-                  {isBlockedStatus ? (
-                    <button
-                      className="dtm-btn dtm-btn--primary"
-                      type="button"
-                      onClick={openUnblockConfirm}
-                      disabled={isBusy}
-                    >
-                      <Icon
-                        name="start"
-                        category="deco"
-                        size="sm"
-                        color="#fff"
-                        className="dtm-btn-icon"
-                      />
-                      Unblock
-                    </button>
-                  ) : isTrackInProgress ? (
+                  {isTrackInProgress ? (
                     <button
                       className="dtm-btn dtm-btn--secondary"
                       type="button"

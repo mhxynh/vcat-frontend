@@ -76,6 +76,11 @@
   font-weight: 600;
 }
 
+.dtm-status .badge--blocked {
+  background-color: #c20029;
+  color: #fff;
+}
+
 /* Assignee */
 .dtm-assignee {
   text-align: right;
