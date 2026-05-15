@@ -29,7 +29,7 @@ import {
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
-import { ACTIONS } from '../auth';
+import { ACTIONS, useRole } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 
@@ -42,6 +42,7 @@ export default function DetailsTestModal({
   onEdit,
   onUpdated,
 }) {
+  const { isManager } = useRole();
   const [activeTab, setActiveTab] = useState('Details');
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState([]);
@@ -746,6 +747,10 @@ export default function DetailsTestModal({
 
   async function handleApproveConfirmAction() {
     if (testId == null) return;
+    if (!isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       await runBusy('Approving control...', async () => {
@@ -829,6 +834,11 @@ export default function DetailsTestModal({
 
     const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
 
+    if (statusUpper === 'IN_REVIEW' && !isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
+
     try {
       if (statusUpper === 'NOT_STARTED') {
         await handleStartWork();
@@ -886,6 +896,10 @@ export default function DetailsTestModal({
 
     const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
     if (statusUpper === 'COMPLETED') return;
+    if (statusUpper === 'IN_REVIEW' && !isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       if (statusUpper === 'IN_REVIEW') {
@@ -933,6 +947,10 @@ export default function DetailsTestModal({
 
     const statusUpper = String(t?.status || '').toUpperCase();
     if (statusUpper !== 'IN_REVIEW') return;
+    if (!isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       await runBusy('Rejecting...', async () => {
@@ -1127,10 +1145,14 @@ export default function DetailsTestModal({
   const isTrackInProgress = isInProgress(statusUpper);
   const isLockedStatus = statusUpper === 'COMPLETED';
   const isBlockedStatus = statusUpper === 'BLOCKED';
-  const showRevert = statusUpper !== 'NOT_STARTED' && !isBlockedStatus;
-  const showReject = statusUpper === 'IN_REVIEW';
+  const showRevert =
+    statusUpper !== 'NOT_STARTED' &&
+    !isBlockedStatus &&
+    !(statusUpper === 'IN_REVIEW' && !isManager);
+  const showReject = statusUpper === 'IN_REVIEW' && isManager;
   const primaryLabel = getPrimaryActionLabel(t);
-  const showNextStepPanel = statusUpper !== 'COMPLETED' && !isBlockedStatus;
+  const showNextStepPanel =
+    statusUpper !== 'COMPLETED' && !isBlockedStatus && !(statusUpper === 'IN_REVIEW' && !isManager);
 
   return (
     <>
