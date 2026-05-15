@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { todayISO } from "./helpers/test-utils";
 
 test("T24 - Create a Request", async ({ page }) => {

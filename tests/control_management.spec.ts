@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 
 test("T1 - View Controls Catalog", async ({ page }) => {
   await page.goto("http://localhost:3000/");
