@@ -5,7 +5,11 @@ import { fetchUserAttributes } from 'aws-amplify/auth';
 import vanguardLogo from '../assets/images/vanguard.png';
 
 function getInitialsFromUser(attrs) {
-  const displayName = String(attrs?.name || attrs?.given_name || attrs?.family_name || '').trim();
+  const combinedName = [attrs?.given_name, attrs?.family_name]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .join(' ');
+  const displayName = String(attrs?.name || combinedName || '').trim();
   if (displayName) {
     const parts = displayName.split(/\s+/).filter(Boolean);
     const first = parts[0]?.[0] || '';
@@ -96,7 +100,13 @@ export default function Navbar() {
           <>
             <span className="navbar__divider" aria-hidden="true" />
 
-            <button type="button" className="navbar__avatar" title="Sign out" onClick={signOut}>
+            <button
+              type="button"
+              className="navbar__avatar"
+              title="Sign out"
+              aria-label="Sign out"
+              onClick={signOut}
+            >
               {avatarInitials}
             </button>
           </>
