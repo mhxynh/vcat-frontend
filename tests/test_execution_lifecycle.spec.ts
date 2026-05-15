@@ -1,18 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { loginAsManager, loginAsTester } from "./helpers/auth-helpers";
 
 test("T14 - Create New Tests", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Control Test" }).click();
@@ -31,18 +21,7 @@ test("T14 - Create New Tests", async ({ page }) => {
 });
 
 test("T18 - Start Work on a Not Started Test", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@test.vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("VcatTest2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsTester(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Filter" }).click();
@@ -65,18 +44,7 @@ test("T18 - Start Work on a Not Started Test", async ({ page }) => {
 });
 
 test("T19 - Advance Test Workflow to Next Step", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@test.vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("VcatTest2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsTester(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Filter" }).click();
@@ -100,18 +68,7 @@ test("T19 - Advance Test Workflow to Next Step", async ({ page }) => {
 });
 
 test("T34 - Approve In-Review Test", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@test.vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("VcatTest2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsTester(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Filter" }).click();
@@ -131,18 +88,7 @@ test("T34 - Approve In-Review Test", async ({ page }) => {
 });
 
 test("T36 - Add Links to Test", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@test.vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("VcatTest2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsTester(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page

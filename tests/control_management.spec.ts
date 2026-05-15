@@ -1,18 +1,8 @@
 import { test } from "@playwright/test";
+import { loginAsManager } from "./helpers/auth-helpers";
 
 test("T1 - View Controls Catalog", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsManager(page);
   await page.getByRole("link", { name: "Catalog" }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Active", exact: true }).click();
@@ -24,18 +14,7 @@ test("T1 - View Controls Catalog", async ({ page }) => {
 });
 
 test("T3 - Create a New Control", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsManager(page);
   await page.getByRole("link", { name: "Catalog" }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Control" }).click();
@@ -53,18 +32,7 @@ test("T3 - Create a New Control", async ({ page }) => {
 });
 
 test("T4 - Update Control Details", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await loginAsManager(page);
   await page.getByRole("link", { name: "Catalog" }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
   await page

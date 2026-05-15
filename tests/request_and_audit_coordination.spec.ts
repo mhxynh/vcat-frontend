@@ -1,66 +1,12 @@
 import { test } from "@playwright/test";
-import { todayISO } from "./helpers/test-utils";
+import { createRequest } from "./helpers/request-helpers";
 
 test("T24 - Create a Request", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.getByRole("link", { name: "Tracker" }).click();
-  await page.getByRole("button", { name: "Requests" }).click();
-  await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "+ Add Request" }).click();
-  await page.getByRole("combobox").selectOption("LOW");
-  await page.getByRole("textbox", { name: "Name" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill("Test Requester");
-  await page.getByRole("textbox").nth(4).fill(todayISO());
-  await page
-    .getByRole("textbox", { name: "Describe the purpose of this" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Describe the purpose of this" })
-    .fill("Test");
-  await page.getByRole("button", { name: "Create Request" }).click();
+  await createRequest(page);
 });
 
 test("T28 - Add Existing Control Test to Request", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
-  await page.getByRole("textbox", { name: "Email Address" }).click();
-  await page
-    .getByRole("textbox", { name: "Email Address" })
-    .fill("moniqueh@vanguard.com");
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Password Forgot password?" })
-    .fill("Vcat2026!");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.getByRole("link", { name: "Tracker" }).click();
-  await page.getByRole("button", { name: "Requests" }).click();
-  await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "+ Add Request" }).click();
-  await page.getByRole("combobox").selectOption("LOW");
-  await page.getByRole("textbox", { name: "Name" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill("Test Requester");
-  await page.getByRole("textbox").nth(4).fill(todayISO());
-  await page
-    .getByRole("textbox", { name: "Describe the purpose of this" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Describe the purpose of this" })
-    .fill("Test");
-  await page.getByRole("button", { name: "Create Request" }).click();
-  const firstRequestCard = page.locator(".requests-list .request-card").first();
-  await firstRequestCard.waitFor({ state: "visible" });
+  const firstRequestCard = await createRequest(page);
   await firstRequestCard.getByRole("button", { name: "Details" }).click();
   await page.getByRole("button", { name: "Edit Request" }).click();
   await page
