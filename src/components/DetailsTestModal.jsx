@@ -1195,6 +1195,24 @@ export default function DetailsTestModal({
                     <div className="dtm-complete-label">STATUS</div>
                     <div className="dtm-complete-title">Control Testing Blocked</div>
                   </div>
+
+                  <div className="dtm-step-actions-right" style={{ marginLeft: 'auto' }}>
+                    <button
+                      className="dtm-btn dtm-btn--primary"
+                      type="button"
+                      onClick={openUnblockConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="start"
+                        category="deco"
+                        size="sm"
+                        color="#fff"
+                        className="dtm-btn-icon"
+                      />
+                      Unblock
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -1206,8 +1224,6 @@ export default function DetailsTestModal({
                   >
                     {statusUpper === 'IN_REVIEW' ? (
                       <Icon name="eye" category="deco" size="sm" color="currentColor" />
-                    ) : isBlockedStatus ? (
-                      <Icon name="block" category="actions" size="sm" color="currentColor" />
                     ) : isTrackInProgress ? (
                       <Icon name="control-details" category="deco" size="sm" color="currentColor" />
                     ) : (
