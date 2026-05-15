@@ -25,7 +25,7 @@ export default defineConfig({
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    headless: process.env.HEADED === "1" ? false : true,
+    headless: false,
     launchOptions: { slowMo: 500 },
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: "http://localhost:3000",

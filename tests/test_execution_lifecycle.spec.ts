@@ -68,7 +68,7 @@ test("T19 - Advance Test Workflow to Next Step", async ({ page }) => {
 });
 
 test("T34 - Approve In-Review Test", async ({ page }) => {
-  await loginAsTester(page);
+  await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Filter" }).click();
