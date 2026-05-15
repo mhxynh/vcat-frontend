@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Authenticator, ThemeProvider } from '@aws-amplify/ui-react';
 import { ToastContainer } from 'react-toastify';
@@ -13,6 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './styles/index.css';
 import './styles/pages/Login.css';
 
+const HelpCenter = lazy(() => import('./pages/HelpCenter'));
 const NotFound = () => <h2>404: Page Not Found</h2>;
 
 export default function App() {
@@ -31,6 +32,14 @@ export default function App() {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/catalog" element={<Catalog />} />
                         <Route path="/tracker" element={<Tracker />} />
+                        <Route
+                          path="/help"
+                          element={
+                            <Suspense fallback={<div className="no-results">Loading help...</div>}>
+                              <HelpCenter />
+                            </Suspense>
+                          }
+                        />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
 
