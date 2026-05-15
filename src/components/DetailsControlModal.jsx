@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import '../styles/components/DetailsControlModal.css';
 import { deleteControl } from '../api/ControlsAPI';
 import {
@@ -64,14 +64,11 @@ function getHistoryRowRequestId(historyRow) {
 export default function DetailsControlModal({ isOpen, onClose, control, onDeleted, onUpdated }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const openEdit = () => setIsEditOpen(true);
   const closeEdit = () => setIsEditOpen(false);
   const openDeleteConfirm = () => setIsDeleteConfirmOpen(true);
-  const closeDeleteConfirm = () => setIsDeleteConfirmOpen(false);
-
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
 
   const [fetchedRequestHistory, setFetchedRequestHistory] = useState([]);
   const [requestHistoryLoading, setRequestHistoryLoading] = useState(false);
@@ -81,6 +78,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestDetailsError, setRequestDetailsError] = useState('');
   const requestDetailsSeq = useRef(0);
+
+  const closeDeleteConfirm = useCallback(() => {
+    if (deleting) return;
+    setIsDeleteConfirmOpen(false);
+  }, [deleting]);
 
   function showPermissionDeniedToast() {
     showErrorToast({
@@ -110,12 +112,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose, isDeleteConfirmOpen, isRequestDetailsOpen]);
+  }, [isOpen, onClose, isDeleteConfirmOpen, isRequestDetailsOpen, closeDeleteConfirm]);
 
   useEffect(() => {
     if (!isOpen) return;
     setDeleting(false);
-    setDeleteError('');
   }, [isOpen, control]);
 
   useEffect(() => {
@@ -243,11 +244,10 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   }
 
   async function handleDelete() {
-    if (!id) return;
+    if (!id || deleting) return;
 
     try {
       setDeleting(true);
-      setDeleteError('');
 
       await deleteControl(id, { hard: true });
 
@@ -258,10 +258,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         message: `${id} has been deleted successfully.`,
       });
 
+      setIsDeleteConfirmOpen(false);
       onClose?.();
     } catch (e) {
       const errorMessage = e?.message || 'Failed to delete control';
-      setDeleteError(errorMessage);
+
+      setIsDeleteConfirmOpen(false);
 
       showErrorToast({
         title: 'Control Delete Failed',
@@ -457,7 +459,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                       disabled={deleting || !id}
                       title={!id ? 'No control selected' : 'Delete this control'}
                     >
-                      {deleting ? 'Deleting…' : 'Delete Control'}
+                      Delete Control
                     </button>
                   </RestrictedAction>
                 </div>
@@ -472,8 +474,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                 </button>
               </div>
             </div>
-
-            {deleteError ? <div className="dcm-delete-error">Error: {deleteError}</div> : null}
           </section>
         </div>
       </div>
@@ -481,15 +481,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       <ConfirmActionModal
         isOpen={isDeleteConfirmOpen}
         onClose={closeDeleteConfirm}
-        onConfirm={async () => {
-          closeDeleteConfirm();
-          await handleDelete();
-        }}
+        onConfirm={handleDelete}
         title="Delete Control?"
         message="Are you sure you want to permanently delete this control?"
         itemName={id}
         warning="Deleted controls will be permanently removed and cannot be recovered."
-        confirmText={deleting ? 'Deleting…' : 'Delete'}
+        confirmText={deleting ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
         confirmDisabled={deleting}
       />
