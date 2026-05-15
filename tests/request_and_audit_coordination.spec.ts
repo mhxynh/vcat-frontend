@@ -13,8 +13,8 @@ test('T24 - Create a Request', async ({ page }) => {
     await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
     await page.getByRole('button', { name: '+ Add Request' }).click();
     await page.getByRole('combobox').selectOption('LOW');
-    await page.getByRole('textbox', { name: 'Enter requester name...' }).click();
-    await page.getByRole('textbox', { name: 'Enter requester name...' }).fill('Test Requester');
+    await page.getByRole('textbox', { name: 'Name' }).click();
+    await page.getByRole('textbox', { name: 'Name' }).fill('Test Requester');
     await page.getByRole('textbox').nth(4).fill(todayISO());
     await page.getByRole('textbox', { name: 'Describe the purpose of this' }).click();
     await page.getByRole('textbox', { name: 'Describe the purpose of this' }).fill('Test');
@@ -33,8 +33,8 @@ test("T28 - Add Existing Control Test to Request", async ({ page }) => {
     await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
     await page.getByRole('button', { name: '+ Add Request' }).click();
     await page.getByRole('combobox').selectOption('LOW');
-    await page.getByRole('textbox', { name: 'Enter requester name...' }).click();
-    await page.getByRole('textbox', { name: 'Enter requester name...' }).fill('Test Requester');
+    await page.getByRole('textbox', { name: 'Name' }).click();
+    await page.getByRole('textbox', { name: 'Name' }).fill('Test Requester');
     await page.getByRole('textbox').nth(4).fill(todayISO());
     await page.getByRole('textbox', { name: 'Describe the purpose of this' }).click();
     await page.getByRole('textbox', { name: 'Describe the purpose of this' }).fill('Test');
