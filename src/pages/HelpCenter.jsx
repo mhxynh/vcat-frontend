@@ -32,11 +32,6 @@ export default function HelpCenter() {
 
   function handleSearchChange(nextQuery) {
     setQuery(nextQuery);
-
-    const nextResults = searchHelpDocs(nextQuery, searchIndex);
-    if (nextResults.length > 0 && !nextResults.some((result) => result.id === selectedDocId)) {
-      setSelectedDocId(nextResults[0].id);
-    }
   }
 
   function handleSelectDoc(docId) {
@@ -46,7 +41,7 @@ export default function HelpCenter() {
 
   function handleClearSearch() {
     setQuery('');
-    if (!visibleDocIds.has(selectedDocId) && sortedDocs[0]?.id) {
+    if (!selectedDocId && sortedDocs[0]?.id) {
       setSelectedDocId(sortedDocs[0].id);
     }
   }
