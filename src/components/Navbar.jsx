@@ -5,11 +5,11 @@ import { fetchUserAttributes } from 'aws-amplify/auth';
 import vanguardLogo from '../assets/images/vanguard.png';
 
 function getInitialsFromUser(attrs) {
-  const combinedName = [attrs?.given_name, attrs?.family_name]
+  const combinedName = [attrs?.['given_name'], attrs?.['family_name']]
     .map((value) => String(value || '').trim())
     .filter(Boolean)
     .join(' ');
-  const displayName = String(attrs?.name || combinedName || '').trim();
+  const displayName = String(attrs?.['name'] || combinedName || '').trim();
   if (displayName) {
     const parts = displayName.split(/\s+/).filter(Boolean);
     const first = parts[0]?.[0] || '';
