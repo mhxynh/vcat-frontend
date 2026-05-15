@@ -125,6 +125,24 @@
   border-color: #dcfce7;
 }
 
+.dtm-step-card--blocked {
+  background: #fff5f6;
+  border-color: #fee2e2;
+}
+
+.dtm-step-card--blocked .dtm-complete-icon {
+  background: #fdecea;
+  color: #c20029;
+}
+
+.dtm-step-card--blocked .dtm-complete-label {
+  color: #c20029;
+}
+
+.dtm-step-card--blocked .dtm-complete-title {
+  color: #c20029;
+}
+
 .dtm-complete-box {
   display: flex;
   align-items: center;

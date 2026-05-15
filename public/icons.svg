@@ -24,6 +24,11 @@
     </defs>
   </symbol>
 
+  <symbol id="icon-actions-block" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ban-icon lucide-ban">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M4.929 4.929 19.07 19.071"/>
+  </symbol>
+
   <symbol id="icon-actions-download" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
     <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
     <polyline stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="7 10 12 15 17 10"/>
@@ -132,7 +137,7 @@
   </symbol>
 
   <symbol id="icon-deco-start" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 14 14">
-    <path fill="#6A7282" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M2.916 2.917a1.167 1.167 0 0 1 1.755-1.008l6.998 4.082a1.166 1.166 0 0 1 .002 2.017l-7 4.083a1.165 1.165 0 0 1-1.755-1.008V2.917Z"/>
+    <path fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.167" d="M2.916 2.917a1.167 1.167 0 0 1 1.755-1.008l6.998 4.082a1.166 1.166 0 0 1 .002 2.017l-7 4.083a1.165 1.165 0 0 1-1.755-1.008V2.917Z"/>
   </symbol>
 
 

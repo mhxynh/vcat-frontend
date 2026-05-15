@@ -1148,7 +1148,12 @@ export default function DetailsTestModal({
           <section className="dtm-status">
             <div className="dtm-status-top">
               <div className="dtm-status-left">
-                <span className={`badge badge--${statusToBadgeType(status)}`}>
+                <span
+                  className={`badge badge--${statusToBadgeType(status)}`}
+                  style={
+                    isBlockedStatus ? { backgroundColor: '#C20029', color: '#fff' } : undefined
+                  }
+                >
                   {statusToLabel(status)}
                 </span>
                 <span className="dtm-dot">•</span>
@@ -1179,6 +1184,19 @@ export default function DetailsTestModal({
                   </div>
                 </div>
               </div>
+            ) : isBlockedStatus ? (
+              <div className="dtm-step-card dtm-step-card--blocked">
+                <div className="dtm-complete-box">
+                  <div className="dtm-complete-icon" aria-hidden="true">
+                    <Icon name="block" category="actions" size="sm" color="currentColor" />
+                  </div>
+
+                  <div>
+                    <div className="dtm-complete-label">STATUS</div>
+                    <div className="dtm-complete-title">Control Testing Blocked</div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="dtm-step-card">
                 <div className="dtm-step-left">
@@ -1188,6 +1206,8 @@ export default function DetailsTestModal({
                   >
                     {statusUpper === 'IN_REVIEW' ? (
                       <Icon name="eye" category="deco" size="sm" color="currentColor" />
+                    ) : isBlockedStatus ? (
+                      <Icon name="block" category="actions" size="sm" color="currentColor" />
                     ) : isTrackInProgress ? (
                       <Icon name="control-details" category="deco" size="sm" color="currentColor" />
                     ) : (
@@ -1223,6 +1243,40 @@ export default function DetailsTestModal({
                         className="dtm-btn-icon"
                       />
                       Revert
+                    </button>
+                  ) : null}
+
+                  {isBlockedStatus ? (
+                    <button
+                      className="dtm-btn dtm-btn--primary"
+                      type="button"
+                      onClick={openUnblockConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="start"
+                        category="deco"
+                        size="sm"
+                        color="#fff"
+                        className="dtm-btn-icon"
+                      />
+                      Unblock
+                    </button>
+                  ) : isTrackInProgress ? (
+                    <button
+                      className="dtm-btn dtm-btn--secondary"
+                      type="button"
+                      onClick={openBlockConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="block"
+                        category="actions"
+                        size="sm"
+                        color="#C20029"
+                        className="dtm-btn-icon"
+                      />
+                      Mark Blocked
                     </button>
                   ) : null}
 
