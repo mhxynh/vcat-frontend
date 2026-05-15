@@ -39,6 +39,13 @@ export default function Navbar() {
             >
               Tracker
             </NavLink>
+
+            <NavLink
+              to="/help"
+              className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+            >
+              Help
+            </NavLink>
           </div>
         )}
 
