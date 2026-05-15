@@ -215,6 +215,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
               </label>
               <input
                 className="ecm-input"
+                placeholder="Last name, first name"
                 value={controlOwner}
                 onChange={(e) => setControlOwner(e.target.value)}
                 aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
@@ -228,6 +229,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
               <label className="ecm-label">Control SME</label>
               <input
                 className="ecm-input"
+                placeholder="Last name, first name"
                 value={controlSme}
                 onChange={(e) => setControlSme(e.target.value)}
               />
