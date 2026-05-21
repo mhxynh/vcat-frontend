@@ -29,7 +29,7 @@ import {
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import RestrictedAction from './RestrictedAction';
-import { ACTIONS } from '../auth';
+import { ACTIONS, useRole } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 
@@ -42,6 +42,7 @@ export default function DetailsTestModal({
   onEdit,
   onUpdated,
 }) {
+  const { isManager } = useRole();
   const [activeTab, setActiveTab] = useState('Details');
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState([]);
@@ -60,6 +61,8 @@ export default function DetailsTestModal({
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+  const [isBlockConfirmOpen, setIsBlockConfirmOpen] = useState(false);
+  const [isUnblockConfirmOpen, setIsUnblockConfirmOpen] = useState(false);
   const [isRemoveAttachmentConfirmOpen, setIsRemoveAttachmentConfirmOpen] = useState(false);
   const [pendingAttachmentRemoval, setPendingAttachmentRemoval] = useState(null);
 
@@ -79,6 +82,12 @@ export default function DetailsTestModal({
 
   const openApproveConfirm = () => setIsApproveConfirmOpen(true);
   const closeApproveConfirm = () => setIsApproveConfirmOpen(false);
+
+  const openBlockConfirm = () => setIsBlockConfirmOpen(true);
+  const closeBlockConfirm = () => setIsBlockConfirmOpen(false);
+
+  const openUnblockConfirm = () => setIsUnblockConfirmOpen(true);
+  const closeUnblockConfirm = () => setIsUnblockConfirmOpen(false);
 
   const openAddAttachmentModal = () => setIsAddAttachmentModalOpen(true);
   const closeAddAttachmentModal = () => setIsAddAttachmentModalOpen(false);
@@ -189,6 +198,8 @@ export default function DetailsTestModal({
       setIsSubmitConfirmOpen(false);
       setIsRejectConfirmOpen(false);
       setIsApproveConfirmOpen(false);
+      setIsBlockConfirmOpen(false);
+      setIsUnblockConfirmOpen(false);
       setIsRemoveAttachmentConfirmOpen(false);
       setIsAddAttachmentModalOpen(false);
       setPendingAttachmentRemoval(null);
@@ -220,6 +231,8 @@ export default function DetailsTestModal({
     setIsSubmitConfirmOpen(false);
     setIsRejectConfirmOpen(false);
     setIsApproveConfirmOpen(false);
+    setIsBlockConfirmOpen(false);
+    setIsUnblockConfirmOpen(false);
     setIsDeleteCommentConfirmOpen(false);
     setPendingCommentDeletion(null);
     setIsRemoveAttachmentConfirmOpen(false);
@@ -278,6 +291,16 @@ export default function DetailsTestModal({
         return;
       }
 
+      if (isBlockConfirmOpen) {
+        closeBlockConfirm();
+        return;
+      }
+
+      if (isUnblockConfirmOpen) {
+        closeUnblockConfirm();
+        return;
+      }
+
       if (isRemoveAttachmentConfirmOpen) {
         closeRemoveAttachmentConfirm();
         return;
@@ -310,6 +333,8 @@ export default function DetailsTestModal({
     isSubmitConfirmOpen,
     isRejectConfirmOpen,
     isApproveConfirmOpen,
+    isBlockConfirmOpen,
+    isUnblockConfirmOpen,
     isRemoveAttachmentConfirmOpen,
     isAddAttachmentModalOpen,
     isDeleteCommentConfirmOpen,
@@ -687,11 +712,12 @@ export default function DetailsTestModal({
     const statusUpper = String(testRow?.status || 'NOT_STARTED').toUpperCase();
 
     if (statusUpper === 'NOT_STARTED') return 'Start Work';
+    if (statusUpper === 'BLOCKED') return '';
     if (isInProgress(statusUpper)) {
       if (isFinalTestingComplete(testRow)) return 'Submit for Approval';
       return 'Next Step';
     }
-    if (statusUpper === 'IN_REVIEW') return 'Approve Control ✓';
+    if (statusUpper === 'IN_REVIEW') return 'Approve Control';
     if (statusUpper === 'COMPLETED') return '';
     return 'Next Step';
   }
@@ -721,6 +747,10 @@ export default function DetailsTestModal({
 
   async function handleApproveConfirmAction() {
     if (testId == null) return;
+    if (!isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       await runBusy('Approving control...', async () => {
@@ -742,6 +772,54 @@ export default function DetailsTestModal({
     }
   }
 
+  async function handleBlock() {
+    if (testId == null) return;
+
+    try {
+      await runBusy('Marking as blocked...', async () => {
+        const track = getActiveTrack(t) || (t?.requiresOet ? 'OET' : 'DAT');
+        if (!track) return;
+
+        await setTrackStepApi(track, 'TESTING_BLOCKED', 'BLOCKED');
+        await refreshInline();
+      });
+
+      showSuccessToast({
+        title: 'Control Test Blocked',
+        message: `${vgcpid} has been marked as blocked.`,
+      });
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Mark Blocked',
+        message: e?.message || 'An error occurred while marking the control test as blocked.',
+      });
+    }
+  }
+
+  async function handleUnblock() {
+    if (testId == null) return;
+
+    try {
+      await runBusy('Unblocking test...', async () => {
+        const track = getActiveTrack(t) || (t?.requiresOet ? 'OET' : 'DAT');
+        if (!track) return;
+
+        await setTrackStepApi(track, 'TESTING_READY', statusForTrack(track));
+        await refreshInline();
+      });
+
+      showSuccessToast({
+        title: 'Control Test Unblocked',
+        message: `${vgcpid} has been unblocked and returned to in progress.`,
+      });
+    } catch (e) {
+      showErrorToast({
+        title: 'Failed to Unblock Test',
+        message: e?.message || 'An error occurred while unblocking the control test.',
+      });
+    }
+  }
+
   async function handleSubmitForApprovalConfirmAction() {
     if (testId == null) return;
 
@@ -755,6 +833,11 @@ export default function DetailsTestModal({
     if (testId == null) return;
 
     const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+
+    if (statusUpper === 'IN_REVIEW' && !isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       if (statusUpper === 'NOT_STARTED') {
@@ -813,6 +896,10 @@ export default function DetailsTestModal({
 
     const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
     if (statusUpper === 'COMPLETED') return;
+    if (statusUpper === 'IN_REVIEW' && !isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       if (statusUpper === 'IN_REVIEW') {
@@ -860,6 +947,10 @@ export default function DetailsTestModal({
 
     const statusUpper = String(t?.status || '').toUpperCase();
     if (statusUpper !== 'IN_REVIEW') return;
+    if (!isManager) {
+      showPermissionDeniedToast();
+      return;
+    }
 
     try {
       await runBusy('Rejecting...', async () => {
@@ -1051,11 +1142,17 @@ export default function DetailsTestModal({
   }
 
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
+  const isTrackInProgress = isInProgress(statusUpper);
   const isLockedStatus = statusUpper === 'COMPLETED';
-  const showRevert = statusUpper !== 'NOT_STARTED';
-  const showReject = statusUpper === 'IN_REVIEW';
+  const isBlockedStatus = statusUpper === 'BLOCKED';
+  const showRevert =
+    statusUpper !== 'NOT_STARTED' &&
+    !isBlockedStatus &&
+    !(statusUpper === 'IN_REVIEW' && !isManager);
+  const showReject = statusUpper === 'IN_REVIEW' && isManager;
   const primaryLabel = getPrimaryActionLabel(t);
-  const showNextStepPanel = statusUpper !== 'COMPLETED';
+  const showNextStepPanel =
+    statusUpper !== 'COMPLETED' && !isBlockedStatus && !(statusUpper === 'IN_REVIEW' && !isManager);
 
   return (
     <>
@@ -1091,73 +1188,183 @@ export default function DetailsTestModal({
               </div>
             </div>
 
-            <div className="dtm-step-card">
-              <div className="dtm-step-left">
-                <div className="dtm-step-icon" aria-hidden="true">
-                  ▶
-                </div>
-                <div>
-                  <div className="dtm-step-label">CURRENT STEP</div>
-                  <div className="dtm-step-value">{currentStepLabel}</div>
-                </div>
-              </div>
-
-              <div className="dtm-step-actions-left">
-                {showRevert ? (
-                  <button
-                    className="dtm-btn dtm-btn--outline"
-                    type="button"
-                    onClick={handleRevert}
-                    disabled={isBusy || isLockedStatus}
-                    title={
-                      isBusy
-                        ? 'Action in progress'
-                        : isLockedStatus
-                          ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
-                          : 'Revert this control test to the previous step'
-                    }
-                  >
-                    Revert
-                  </button>
-                ) : null}
-
-                {showReject ? (
-                  <button
-                    className="dtm-btn dtm-btn--danger"
-                    type="button"
-                    onClick={openRejectConfirm}
-                    disabled={isBusy}
-                  >
-                    Reject
-                  </button>
-                ) : null}
-              </div>
-
-              {showNextStepPanel ? (
-                <>
-                  <div className="dtm-step-mid" aria-hidden="true">
-                    →
+            {statusUpper === 'COMPLETED' ? (
+              <div className="dtm-step-card dtm-step-card--completed">
+                <div className="dtm-complete-box">
+                  <div className="dtm-complete-icon" aria-hidden="true">
+                    <Icon name="checkmark" category="deco" size="sm" color="currentColor" />
                   </div>
 
-                  <div className="dtm-step-right">
-                    {primaryLabel ? (
-                      <button
-                        className="dtm-btn dtm-btn--primary"
-                        type="button"
-                        onClick={handlePrimaryAction}
-                        disabled={isBusy}
-                      >
-                        {primaryLabel}
-                      </button>
-                    ) : null}
-
-                    <span className="dtm-next">
-                      <span className="dtm-next-label">Next:</span> {nextStepLabel}
-                    </span>
+                  <div>
+                    <div className="dtm-complete-label">STATUS</div>
+                    <div className="dtm-complete-title">Control Testing Complete</div>
                   </div>
-                </>
-              ) : null}
-            </div>
+                </div>
+              </div>
+            ) : isBlockedStatus ? (
+              <div className="dtm-step-card dtm-step-card--blocked">
+                <div className="dtm-complete-box">
+                  <div className="dtm-complete-icon" aria-hidden="true">
+                    <Icon name="block" category="actions" size="sm" color="currentColor" />
+                  </div>
+
+                  <div>
+                    <div className="dtm-complete-label">STATUS</div>
+                    <div className="dtm-complete-title">Control Testing Blocked</div>
+                  </div>
+
+                  <div className="dtm-step-actions-right" style={{ marginLeft: 'auto' }}>
+                    <button
+                      className="dtm-btn dtm-btn--primary"
+                      type="button"
+                      onClick={openUnblockConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="start"
+                        category="deco"
+                        size="sm"
+                        color="#fff"
+                        className="dtm-btn-icon"
+                      />
+                      Unblock
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="dtm-step-card">
+                <div className="dtm-step-left">
+                  <div
+                    className={`dtm-step-icon ${statusUpper === 'IN_REVIEW' ? 'dtm-step-icon--review' : isTrackInProgress ? 'dtm-step-icon--progress' : 'dtm-step-icon--default'}`}
+                    aria-hidden="true"
+                  >
+                    {statusUpper === 'IN_REVIEW' ? (
+                      <Icon name="eye" category="deco" size="sm" color="currentColor" />
+                    ) : isTrackInProgress ? (
+                      <Icon name="control-details" category="deco" size="sm" color="currentColor" />
+                    ) : (
+                      <Icon name="start" category="deco" size="sm" color="currentColor" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="dtm-step-label">CURRENT STEP</div>
+                    <div className="dtm-step-value">{currentStepLabel}</div>
+                  </div>
+                </div>
+
+                <div className="dtm-step-actions-left">
+                  {showRevert ? (
+                    <button
+                      className="dtm-btn dtm-btn--revert"
+                      type="button"
+                      onClick={handleRevert}
+                      disabled={isBusy || isLockedStatus}
+                      title={
+                        isBusy
+                          ? 'Action in progress'
+                          : isLockedStatus
+                            ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
+                            : 'Revert this control test to the previous step'
+                      }
+                    >
+                      <Icon
+                        name="undo"
+                        category="actions"
+                        size="sm"
+                        color="#545454"
+                        className="dtm-btn-icon"
+                      />
+                      Revert
+                    </button>
+                  ) : null}
+
+                  {isTrackInProgress ? (
+                    <button
+                      className="dtm-btn dtm-btn--secondary"
+                      type="button"
+                      onClick={openBlockConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="block"
+                        category="actions"
+                        size="sm"
+                        color="#C20029"
+                        className="dtm-btn-icon"
+                      />
+                      Mark Blocked
+                    </button>
+                  ) : null}
+
+                  {showReject ? (
+                    <button
+                      className="dtm-btn dtm-btn--secondary"
+                      type="button"
+                      onClick={openRejectConfirm}
+                      disabled={isBusy}
+                    >
+                      <Icon
+                        name="reject"
+                        category="actions"
+                        size="sm"
+                        color="#C20029"
+                        className="dtm-btn-icon"
+                      />
+                      Reject
+                    </button>
+                  ) : null}
+                </div>
+
+                {showNextStepPanel ? (
+                  <>
+                    <div className="dtm-step-mid" aria-hidden="true">
+                      <Icon name="arrow" category="deco" size="sm" color="#D1D1D1" />
+                    </div>
+
+                    <div className="dtm-step-right">
+                      {primaryLabel ? (
+                        <button
+                          className="dtm-btn dtm-btn--primary dtm-step-action--approve"
+                          type="button"
+                          onClick={handlePrimaryAction}
+                          disabled={isBusy}
+                        >
+                          {statusUpper === 'IN_REVIEW' ? (
+                            <>
+                              <Icon
+                                name="approve"
+                                category="actions"
+                                size="sm"
+                                color="#fff"
+                                className="dtm-btn-icon"
+                              />
+                              {primaryLabel}
+                            </>
+                          ) : (
+                            <>
+                              {primaryLabel}
+                              <Icon
+                                name="arrow"
+                                category="deco"
+                                size="sm"
+                                color="#fff"
+                                className="dtm-btn-icon"
+                              />
+                            </>
+                          )}
+                        </button>
+                      ) : null}
+
+                      <span className="dtm-next">
+                        <span className="dtm-next-label">Next: </span>
+                        {nextStepLabel}
+                      </span>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            )}
           </section>
 
           <div className="dtm-divider" />
@@ -1334,7 +1541,7 @@ export default function DetailsTestModal({
 
                   {attachments.length > 0 ? (
                     <button
-                      className="dtm-btn dtm-btn--outline dtm-btn--compact"
+                      className="dtm-btn dtm-btn--compact"
                       type="button"
                       onClick={handleAddEvidenceLink}
                       disabled={isBusy}
@@ -1343,7 +1550,7 @@ export default function DetailsTestModal({
                         name="attach"
                         category="actions"
                         size="sm"
-                        color="#96151D"
+                        color="#232323"
                         className="dtm-btn-icon"
                       />
                       Add Link
@@ -1449,7 +1656,7 @@ export default function DetailsTestModal({
                 <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
                   {statusUpper === 'ARCHIVED' ? (
                     <button
-                      className="dtm-btn dtm-btn--outline"
+                      className="dtm-btn dtm-btn--secondary"
                       type="button"
                       onClick={openUnarchiveConfirm}
                       disabled={isBusy}
@@ -1458,7 +1665,7 @@ export default function DetailsTestModal({
                     </button>
                   ) : (
                     <button
-                      className="dtm-btn dtm-btn--outline"
+                      className="dtm-btn dtm-btn--secondary"
                       type="button"
                       onClick={openArchiveConfirm}
                       disabled={isBusy}
@@ -1481,7 +1688,7 @@ export default function DetailsTestModal({
               >
                 <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
                   <button
-                    className="dtm-btn dtm-btn--danger"
+                    className="dtm-btn dtm-btn--secondary"
                     type="button"
                     onClick={openDeleteConfirm}
                     disabled={isBusy}
@@ -1632,6 +1839,42 @@ export default function DetailsTestModal({
         confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
       />
 
+      <ConfirmActionModal
+        isOpen={isBlockConfirmOpen}
+        onClose={closeBlockConfirm}
+        onConfirm={async () => {
+          closeBlockConfirm();
+          await handleBlock();
+        }}
+        title="Mark Control Test as Blocked?"
+        message="Are you sure you want to mark this test as blocked?"
+        itemName={String(testTitle)}
+        warning="Blocked tests will be removed from the normal testing flow until they are updated again."
+        confirmText={isBusy ? 'Marking...' : 'Mark Blocked'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
+      <ConfirmActionModal
+        isOpen={isUnblockConfirmOpen}
+        onClose={closeUnblockConfirm}
+        onConfirm={async () => {
+          closeUnblockConfirm();
+          await handleUnblock();
+        }}
+        title="Unblock Control Test?"
+        message="Are you sure you want to unblock this test?"
+        itemName={String(testTitle)}
+        warning="This will return the control test to an in-progress state so work can continue."
+        confirmText={isBusy ? 'Unblocking...' : 'Unblock'}
+        cancelText="Cancel"
+        confirmDisabled={isBusy}
+        cancelDisabled={isBusy}
+        confirmButtonClassName="dcm-confirm-btn dcm-confirm-btn--delete"
+      />
+
       <EditTestModal
         isOpen={isEditOpen}
         onClose={closeEdit}
@@ -1745,6 +1988,11 @@ function humanStep(s) {
 }
 
 function computeStepLabels(test) {
+  const statusUpper = String(test?.status || '').toUpperCase();
+  if (statusUpper === 'BLOCKED') {
+    return { currentStepLabel: 'Blocked', nextStepLabel: '-' };
+  }
+
   const requiresDat = !!test?.requiresDat;
   const requiresOet = !!test?.requiresOet;
 

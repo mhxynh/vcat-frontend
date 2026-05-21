@@ -176,7 +176,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
               </label>
               <input
                 className="form-input"
-                placeholder="Name"
+                placeholder="Last name, first name"
                 value={controlOwner}
                 onChange={(e) => setControlOwner(e.target.value)}
                 aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
@@ -190,7 +190,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
               <label className="form-label">Control SME</label>
               <input
                 className="form-input"
-                placeholder="Name"
+                placeholder="Last name, first name"
                 value={controlSme}
                 onChange={(e) => setControlSme(e.target.value)}
               />

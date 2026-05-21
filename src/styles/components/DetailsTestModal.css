@@ -76,6 +76,11 @@
   font-weight: 600;
 }
 
+.dtm-status .badge--blocked {
+  background-color: #c20029;
+  color: #fff;
+}
+
 /* Assignee */
 .dtm-assignee {
   text-align: right;
@@ -120,6 +125,61 @@
   gap: 14px;
 }
 
+.dtm-step-card--completed {
+  background: #f0fdf4;
+  border-color: #dcfce7;
+}
+
+.dtm-step-card--blocked {
+  background: #fff5f6;
+  border-color: #fee2e2;
+}
+
+.dtm-step-card--blocked .dtm-complete-icon {
+  background: #fdecea;
+  color: #c20029;
+}
+
+.dtm-step-card--blocked .dtm-complete-label {
+  color: #c20029;
+}
+
+.dtm-step-card--blocked .dtm-complete-title {
+  color: #c20029;
+}
+
+.dtm-complete-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.dtm-complete-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dff6e9;
+  color: #0f6a2b;
+  flex-shrink: 0;
+}
+
+.dtm-complete-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #008236;
+  letter-spacing: 0.03em;
+}
+
+.dtm-complete-title {
+  font-weight: 700;
+  color: #008236;
+  font-size: 14px;
+}
+
 .dtm-step-left {
   display: flex;
   align-items: center;
@@ -132,11 +192,33 @@
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: #f2f2f2;
-  display: grid;
-  place-items: center;
-  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
   font-size: 14px;
+}
+
+.dtm-step-icon .ui-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.dtm-step-icon--default {
+  color: #6a7282;
+  background: #eceff3;
+}
+
+.dtm-step-icon--review {
+  color: #00bda3;
+  background: #e6f8f5;
+}
+
+.dtm-step-icon--progress {
+  color: #155dfc;
+  background: #e8efff;
 }
 
 .dtm-step-label {
@@ -176,6 +258,12 @@
   align-items: center;
 }
 
+.dtm-step-action--approve {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Next label */
 .dtm-next {
   font-size: 12px;
@@ -185,8 +273,6 @@
 
 .dtm-next-label {
   color: #999;
-  font-weight: 700;
-  margin-right: 6px;
   opacity: 0.9;
 }
 
@@ -368,6 +454,18 @@
   flex-shrink: 0;
   width: 16px;
   height: 16px;
+}
+
+.dtm-step-actions-left .dtm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dtm-step-actions-right .dtm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dtm-attachment-media {
@@ -642,13 +740,13 @@
 
 /* Buttons */
 .dtm-btn {
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid #eaeaea;
   background: #fff;
   border-radius: 10px;
-  padding: 8px 12px;
-  font-weight: 700;
+  padding: 5px 12px;
+  font-weight: 400;
   cursor: pointer;
-  line-height: 1;
+  line-height: 24px;
 }
 
 .dtm-btn:hover:not(:disabled) {
@@ -661,22 +759,23 @@
   filter: none;
 }
 
-.dtm-btn--outline {
-  border-color: #f0bcbc;
-  color: #b21d1d;
+.dtm-btn--revert {
+  border-color: #eaeaea;
+  color: #545454;
   background: #fff;
 }
 
-.dtm-btn--danger {
-  background: #fee2e2;
-  border-color: #fecaca;
-  color: #b21d1d;
+.dtm-btn--secondary {
+  border-color: #f0bcbc;
+  color: #c20029;
+  background: #fff;
 }
 
 .dtm-btn--primary {
   border: 0;
-  background: #b21d1d;
+  background: #96151d;
   color: #fff;
+  padding: 8px 17px;
 }
 
 .dtm-date-with-icon {
