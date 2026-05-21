@@ -64,8 +64,6 @@ export default function ControlsTracker() {
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [refreshingTab, setRefreshingTab] = useState(null);
 
-  const [newRequestToOpen, setNewRequestToOpen] = useState(null);
-
   function showPermissionDeniedToast() {
     showErrorToast({
       title: 'Permission Denied',
@@ -113,8 +111,6 @@ export default function ControlsTracker() {
             refreshKey={requestsRefreshKey}
             searchValue={requestsSearch}
             filters={requestsFilters}
-            newRequestToOpen={newRequestToOpen}
-            onNewRequestOpened={() => setNewRequestToOpen(null)}
             onLoadingChange={handleRequestsLoadingChange}
           />
         );
@@ -415,10 +411,17 @@ export default function ControlsTracker() {
       <CreateRequestModal
         isOpen={isCreateRequestOpen}
         onClose={() => setIsCreateRequestOpen(false)}
-        onCreated={(created) => {
+        onCreated={() => {
           setIsCreateRequestOpen(false);
+          setActiveTab('Requests');
+          setVisitedTabs((prev) => {
+            if (prev.has('Requests')) return prev;
+            const next = new Set(prev);
+            next.add('Requests');
+            return next;
+          });
+          setRequestsLoading(true);
           setRequestsRefreshKey((k) => k + 1);
-          setNewRequestToOpen(created);
         }}
       />
     </main>

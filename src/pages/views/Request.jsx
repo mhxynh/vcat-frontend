@@ -185,7 +185,8 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
 
       setRequests(ui);
 
-      if (ui[0]?.id) setExpanded((prev) => (prev.size === 0 ? new Set([ui[0].id]) : prev));
+      const firstRequestId = ui[0]?.id ?? null;
+      setExpanded(firstRequestId == null ? new Set() : new Set([firstRequestId]));
 
       await preloadAllTests(ui);
     } catch (e) {

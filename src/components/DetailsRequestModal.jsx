@@ -226,7 +226,12 @@ export default function DetailsRequestModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, requestKey, loadCommentsAndUsers, request]);
+  }, [isOpen, requestKey, loadCommentsAndUsers]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLocalRequest(request || null);
+  }, [isOpen, requestKey, request]);
 
   const controls = useMemo(() => {
     return Array.isArray(localRequest?.controls) ? localRequest.controls : [];

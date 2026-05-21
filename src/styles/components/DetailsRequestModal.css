@@ -772,3 +772,170 @@
     transform: rotate(360deg);
   }
 }
+
+/* Hover and focus effects */
+.drm-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #545454;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.drm-close:hover,
+.drm-close:focus-visible {
+  background: #f3f4f6;
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+}
+
+.drm-tab {
+  position: relative;
+  border-radius: 8px 8px 0 0;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.drm-tab::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -9px;
+  height: 2px;
+  border-radius: 999px;
+  background: transparent;
+  transition:
+    background-color 140ms ease,
+    transform 140ms ease;
+  transform: scaleX(0.65);
+}
+
+.drm-tab:hover:not(.drm-tab--active),
+.drm-tab:focus-visible:not(.drm-tab--active) {
+  background: #fef5f5;
+  color: #8b0f17;
+  transform: translateY(-1px);
+}
+
+.drm-tab:hover::after,
+.drm-tab:focus-visible::after,
+.drm-tab--active::after {
+  background: #8b0f17;
+  transform: scaleX(1);
+}
+
+.drm-tab:hover .drm-tab-count,
+.drm-tab:focus-visible .drm-tab-count,
+.drm-tab--active .drm-tab-count {
+  background: #fdecec;
+  color: #8b0f17;
+}
+
+.drm-btn {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease,
+    filter 140ms ease;
+}
+
+.drm-btn:hover:not(:disabled),
+.drm-btn:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
+}
+
+.drm-btn--ghost:hover:not(:disabled),
+.drm-btn--ghost:focus-visible:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d7dce4;
+  color: #111827;
+}
+
+.drm-btn--outline:hover:not(:disabled),
+.drm-btn--outline:focus-visible:not(:disabled) {
+  background: #fef5f5;
+  border-color: #e7a6ad;
+  color: #7f1018;
+}
+
+.drm-btn--primary:hover:not(:disabled),
+.drm-btn--primary:focus-visible:not(:disabled) {
+  background: #7f1018;
+  box-shadow: 0 8px 18px rgba(139, 15, 23, 0.24);
+}
+
+.drm-btn:active:not(:disabled),
+.drm-close:active,
+.drm-tab:active,
+.drm-send:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.drm-addcomment {
+  border-radius: 12px;
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.drm-addcomment:focus-within {
+  background: #fafafa;
+}
+
+.drm-comment-input {
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+.drm-comment-input:hover:not(:disabled) {
+  border-color: #d7dce4;
+  background: #fff;
+}
+
+.drm-comment-input:focus {
+  border-color: #e7a6ad;
+  box-shadow: 0 0 0 3px rgba(178, 29, 29, 0.12);
+}
+
+.drm-comment-input:disabled {
+  background: #f6f6f6;
+  cursor: not-allowed;
+}
+
+.drm-send {
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease,
+    opacity 140ms ease;
+}
+
+.drm-send:hover:not(:disabled),
+.drm-send:focus-visible:not(:disabled) {
+  background: #8b0f17;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(178, 29, 29, 0.24);
+}
+
+.drm-send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
