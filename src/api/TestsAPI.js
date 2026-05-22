@@ -197,14 +197,27 @@ export async function unarchiveTest(testId) {
 
 export function mapTestRowToRequestControlCard(test) {
   const statusLabel = mapTestStatusToUi(test?.status);
+  const testId = test?.test_id ?? test?.testId ?? null;
+  const controlId = test?.control_id ?? test?.controlId ?? null;
 
   return {
     ...test,
-    id: test?.vgcpid ?? (test?.control_id != null ? `CONTROL-${test.control_id}` : 'UNKNOWN'),
-    testId: test?.test_id ?? null,
-    title: test?.control_description ?? test?.description ?? 'No description',
-    assignee: test?.assigned_tester_name ?? test?.tester_name ?? '-',
-    eta: formatShortDate(test?.estimated_date ?? test?.due_date ?? null),
+    id: test?.vgcpid ?? (controlId != null ? `CONTROL-${controlId}` : 'UNKNOWN'),
+    testId,
+    title:
+      test?.control_description ??
+      test?.controlDescription ??
+      test?.description ??
+      'No description',
+    assignee:
+      test?.assigned_tester_name ??
+      test?.assignedTesterName ??
+      test?.tester_name ??
+      test?.testerName ??
+      '-',
+    eta: formatShortDate(
+      test?.estimated_date ?? test?.estimatedDate ?? test?.due_date ?? test?.dueDate ?? null
+    ),
     statusLabel,
   };
 }
