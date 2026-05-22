@@ -204,7 +204,6 @@ export default function DetailsRequestModal({
 
     setActiveTab('Comments');
     setCommentText('');
-    setLocalRequest(request || null);
     setArchiving(false);
     setDeleting(false);
     setDeleteError('');

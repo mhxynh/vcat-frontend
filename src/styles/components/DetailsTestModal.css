@@ -12,7 +12,8 @@
 .dtm-modal {
   width: min(980px, 96vw);
   max-height: 92vh;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
@@ -282,6 +283,8 @@
   gap: 16px;
   padding: 12px 22px;
   border-bottom: 1px solid #eee;
+  position: relative;
+  overflow: hidden;
 }
 
 .dtm-tab {
@@ -295,6 +298,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  position: relative;
 }
 
 .dtm-tab--active {
@@ -872,7 +876,7 @@
   position: absolute;
   left: 2px;
   right: 2px;
-  bottom: -13px;
+  bottom: -1px;
   height: 2px;
   border-radius: 999px;
   background: transparent;
