@@ -413,13 +413,7 @@ export default function ControlsTracker() {
         onClose={() => setIsCreateRequestOpen(false)}
         onCreated={() => {
           setIsCreateRequestOpen(false);
-          setActiveTab('Requests');
-          setVisitedTabs((prev) => {
-            if (prev.has('Requests')) return prev;
-            const next = new Set(prev);
-            next.add('Requests');
-            return next;
-          });
+          handleTabClick('Requests');
           setRequestsLoading(true);
           setRequestsRefreshKey((k) => k + 1);
         }}
