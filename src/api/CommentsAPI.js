@@ -1,4 +1,4 @@
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 import { objectToCamelCase, objectToSnakeCase } from '../utils/transformer';
 
 function toUiComment(row, usersById = {}) {
@@ -39,7 +39,7 @@ export async function fetchCommentsByRequestId(requestId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch comments (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -64,7 +64,7 @@ export async function fetchCommentsByTestId(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch comments (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -93,7 +93,7 @@ export async function createRequestComment({ requestId, commentText }) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to create comment (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -121,7 +121,7 @@ export async function createTestComment({ testId, commentText }) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to create comment (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -147,7 +147,7 @@ export async function deleteRequestComment({ commentId, requestId }) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to delete comment (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -173,7 +173,7 @@ export async function deleteTestComment({ commentId, testId }) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to delete comment (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;

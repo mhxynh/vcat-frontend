@@ -1,5 +1,5 @@
 import { objectToSnakeCase } from '../utils/transformer';
-import { authFetch } from './apiClient';
+import { authFetch, getFriendlyHttpErrorMessage } from './apiClient';
 import { exportTable } from './ExportAPI';
 
 async function readJsonSafe(resp, fallback) {
@@ -47,7 +47,7 @@ export async function deleteControl(vgcpid, { hard = false } = {}) {
   });
 
   if (!resp.ok) {
-    let msg = `Delete failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -67,7 +67,7 @@ export async function fetchControls() {
   });
 
   if (!resp.ok) {
-    throw new Error(`Failed to fetch controls (HTTP ${resp.status})`);
+    throw new Error(getFriendlyHttpErrorMessage(resp.status));
   }
 
   const data = await resp.json();
@@ -114,7 +114,7 @@ export async function createControl(payload) {
     const msg =
       data?.error ||
       (Array.isArray(data?.missing) ? `Missing: ${data.missing.join(', ')}` : null) ||
-      `Failed to create control (HTTP ${resp.status})`;
+      getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
@@ -133,7 +133,7 @@ export async function updateControl(vgcpid, updates) {
   const data = await readJsonSafe(resp, null);
 
   if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to update control (HTTP ${resp.status})`;
+    const msg = data?.error || data?.message || getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
@@ -148,7 +148,7 @@ export async function retireControl(vgcpid) {
   const data = await readJsonSafe(resp, null);
 
   if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to retire control (HTTP ${resp.status})`;
+    const msg = data?.error || data?.message || getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
@@ -163,7 +163,7 @@ export async function fetchControlByVgcpid(vgcpid) {
   const data = await readJsonSafe(resp, null);
 
   if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to fetch control (HTTP ${resp.status})`;
+    const msg = data?.error || data?.message || getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
@@ -432,7 +432,7 @@ export async function uploadControlsCsvForImport(file) {
   const data = await readJsonSafe(resp, {});
 
   if (!resp.ok) {
-    const msg = data?.error || data?.message || `Could not start import (HTTP ${resp.status})`;
+    const msg = data?.error || data?.message || getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
