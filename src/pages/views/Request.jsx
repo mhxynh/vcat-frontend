@@ -79,6 +79,51 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
     setSelectedTest(null);
   }
 
+  function handleTestUpdate(updatedTest) {
+    const updatedTestId =
+      updatedTest?.testId ?? updatedTest?.test_id ?? updatedTest?.vgcpid ?? null;
+    if (!updatedTestId) return;
+
+    const updatedCard = mapTestRowToRequestControlCard(updatedTest);
+    setTestsByRequestId((prev) => {
+      const next = { ...prev };
+      let changed = false;
+
+      for (const requestId of Object.keys(prev)) {
+        const bucket = prev[requestId];
+        if (!bucket || !Array.isArray(bucket.items)) continue;
+
+        const items = bucket.items.map((item) => {
+          const itemTestId = item.testId ?? item.test_id ?? item.id ?? null;
+          if (itemTestId === updatedTestId) {
+            changed = true;
+            return { ...item, ...updatedCard };
+          }
+          return item;
+        });
+
+        next[requestId] = { ...bucket, items };
+      }
+
+      return changed ? next : prev;
+    });
+
+    const testKey =
+      updatedTest?.vgcpid ??
+      updatedTest?.testId ??
+      (updatedTest?.controlId != null ? `CONTROL-${updatedTest.controlId}` : null) ??
+      (updatedTest?.control_id != null ? `CONTROL-${updatedTest.control_id}` : null);
+    if (testKey) {
+      setFullTestsById((prev) => ({ ...prev, [testKey]: updatedTest }));
+    }
+
+    setSelectedTest((prev) =>
+      prev?.testId === updatedTestId || prev?.test_id === updatedTestId
+        ? { ...prev, ...updatedTest }
+        : prev
+    );
+  }
+
   async function handleAssign(requestId, userId, displayName, note) {
     if (!requestId) return;
 
@@ -536,7 +581,21 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
           handleAssign(requestId, userId, displayName, note)
         }
       />
-      <DetailsTestModal isOpen={isTestDetailsOpen} onClose={closeTestDetails} test={selectedTest} />
+      <DetailsTestModal
+        isOpen={isTestDetailsOpen}
+        onClose={closeTestDetails}
+        test={selectedTest}
+        onEdit={(updatedTest) => {
+          if (!updatedTest?.testId) return;
+
+          handleTestUpdate(updatedTest);
+        }}
+        onUpdated={async (updatedTest) => {
+          if (!updatedTest?.testId) return;
+
+          handleTestUpdate(updatedTest);
+        }}
+      />
     </div>
   );
 }

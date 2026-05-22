@@ -101,6 +101,7 @@ export default function ControlsTracker() {
             selectedRows={selectedTestRows}
             onSelectionChange={setSelectedTestRows}
             onLoadingChange={handleControlsLoadingChange}
+            onTestUpdated={handleTestUpdated}
           />
         );
       case 'Kanban':
@@ -152,6 +153,10 @@ export default function ControlsTracker() {
     if (!loading) {
       setRefreshingTab((tab) => (tab === 'Requests' ? null : tab));
     }
+  }, []);
+
+  const handleTestUpdated = useCallback(() => {
+    setRequestsRefreshKey((k) => k + 1);
   }, []);
 
   const handleKanbanLoadingChange = useCallback((loading) => {

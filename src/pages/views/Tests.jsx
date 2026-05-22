@@ -96,6 +96,7 @@ export default function Tests({
   selectedRows: propSelectedRows,
   onSelectionChange,
   onLoadingChange,
+  onTestUpdated,
 }) {
   const canBulkAssign = useCan(ACTIONS.BULK_ASSIGN_TESTERS);
   const onSelectionChangeRef = React.useRef(onSelectionChange);
@@ -397,7 +398,10 @@ export default function Tests({
             prev?.test_id === updatedTest.test_id ? { ...prev, ...updatedTest } : prev
           );
         }}
-        onUpdated={refreshTests}
+        onUpdated={async (updatedTest) => {
+          await refreshTests();
+          await onTestUpdated?.(updatedTest);
+        }}
       />
     </div>
   );

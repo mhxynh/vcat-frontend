@@ -1,6 +1,6 @@
 import { parseLocalDate } from '../utils/date';
 import { objectToSnakeCase } from '../utils/transformer';
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 function formatDate(value) {
   if (!value) return '';
@@ -97,7 +97,7 @@ export async function fetchAllTests() {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -122,7 +122,7 @@ export async function fetchTestsByRequestId(requestId, { details = true } = {}) 
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -147,7 +147,7 @@ export async function fetchTestsByControlId(controlId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch tests (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -172,7 +172,7 @@ export async function deleteTest(testId, { hard = false, archive = true } = {}) 
   });
 
   if (!resp.ok) {
-    let msg = `Delete failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -197,14 +197,27 @@ export async function unarchiveTest(testId) {
 
 export function mapTestRowToRequestControlCard(test) {
   const statusLabel = mapTestStatusToUi(test?.status);
+  const testId = test?.test_id ?? test?.testId ?? null;
+  const controlId = test?.control_id ?? test?.controlId ?? null;
 
   return {
     ...test,
-    id: test?.vgcpid ?? (test?.control_id != null ? `CONTROL-${test.control_id}` : 'UNKNOWN'),
-    testId: test?.test_id ?? null,
-    title: test?.control_description ?? test?.description ?? 'No description',
-    assignee: test?.assigned_tester_name ?? test?.tester_name ?? '-',
-    eta: formatShortDate(test?.estimated_date ?? test?.due_date ?? null),
+    id: test?.vgcpid ?? (controlId != null ? `CONTROL-${controlId}` : 'UNKNOWN'),
+    testId,
+    title:
+      test?.control_description ??
+      test?.controlDescription ??
+      test?.description ??
+      'No description',
+    assignee:
+      test?.assigned_tester_name ??
+      test?.assignedTesterName ??
+      test?.tester_name ??
+      test?.testerName ??
+      '-',
+    eta: formatShortDate(
+      test?.estimated_date ?? test?.estimatedDate ?? test?.due_date ?? test?.dueDate ?? null
+    ),
     statusLabel,
   };
 }
@@ -234,7 +247,7 @@ export async function createTest(payload) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to create test (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -257,7 +270,7 @@ export async function updateTest(testId, payload) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to update test (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -278,7 +291,7 @@ export async function startTest(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Start failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -299,7 +312,7 @@ export async function reviewTest(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Review failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -320,7 +333,7 @@ export async function completeTest(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Complete failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -341,7 +354,7 @@ export async function updateDat(testId, datStep, status) {
   });
 
   if (!resp.ok) {
-    let msg = `DAT update failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -362,7 +375,7 @@ export async function updateOet(testId, oetStep, status) {
   });
 
   if (!resp.ok) {
-    let msg = `OET update failed (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;
@@ -384,7 +397,7 @@ export async function fetchTestById(testId) {
   });
 
   if (!resp.ok) {
-    let msg = `Failed to fetch test (HTTP ${resp.status})`;
+    let msg = getFriendlyHttpErrorMessage(resp.status);
     try {
       const data = await resp.json();
       msg = data?.error || data?.message || msg;

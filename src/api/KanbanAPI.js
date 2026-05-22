@@ -1,5 +1,5 @@
 import { parseLocalDate } from '../utils/date';
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 /** Maps API priority to a CSS suffix; colors are `var(--priority-*)` in base.css (global) */
 function priorityVariant(priorityRaw) {
@@ -48,7 +48,7 @@ export async function fetchKanban({ requestId, controlId, details } = {}) {
   }
 
   if (!resp.ok) {
-    throw new Error(`Failed to fetch kanban data (HTTP ${resp.status})`);
+    throw new Error(getFriendlyHttpErrorMessage(resp.status));
   }
   const data = await resp.json();
   if (!Array.isArray(data)) return [];
