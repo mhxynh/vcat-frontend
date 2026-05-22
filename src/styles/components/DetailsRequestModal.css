@@ -843,16 +843,6 @@
   color: #8b0f17;
 }
 
-.drm-btn {
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease,
-    box-shadow 140ms ease,
-    transform 140ms ease,
-    filter 140ms ease;
-}
-
 .drm-btn:hover:not(:disabled),
 .drm-btn:focus-visible:not(:disabled) {
   transform: translateY(-1px);
