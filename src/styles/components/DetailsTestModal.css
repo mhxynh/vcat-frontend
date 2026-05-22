@@ -867,45 +867,6 @@
 }
 
 /* Request-modal aligned hover, button, tab, input, and send styles */
-.dtm-close {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #545454;
-  transition:
-    background-color 140ms ease,
-    color 140ms ease,
-    transform 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.dtm-close:hover,
-.dtm-close:focus-visible {
-  background: #f3f4f6;
-  color: #111827;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
-}
-
-.dtm-tabs {
-  gap: 14px;
-  padding-bottom: 8px;
-}
-
-.dtm-tab {
-  position: relative;
-  border-radius: 8px 8px 0 0;
-  border-bottom-color: transparent;
-  transition:
-    background-color 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
-}
-
 .dtm-tab::after {
   content: '';
   position: absolute;
