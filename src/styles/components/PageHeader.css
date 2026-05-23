@@ -4,10 +4,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border: 1px solid #e8e8e8;
-  border-radius: 10px;
-  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px var(--space-4);
   min-height: 52px;
   box-sizing: border-box;
 }
@@ -30,6 +30,6 @@
 .page-header__actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
   flex-shrink: 0;
 }

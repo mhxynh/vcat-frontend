@@ -22,7 +22,8 @@ html {
 }
 
 body {
-  background: #f5f5f5;
+  color: var(--color-text);
+  background: var(--color-surface-muted);
   margin: 0;
 }
 
@@ -48,8 +49,8 @@ body * {
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
   font-weight: inherit;
   cursor: pointer;
   background: #f4f4f4;
@@ -57,61 +58,61 @@ body * {
 }
 
 .btn--white {
-  background: #57be5b;
-  color: white;
+  background: var(--color-success);
+  color: var(--color-text-inverse);
 }
 
 .btn--blue {
-  background: #4094e6;
-  color: white;
+  background: var(--color-info);
+  color: var(--color-text-inverse);
 }
 
 .btn--red {
-  background: #96151d;
-  color: white;
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
 }
 
 .btn--import {
-  background: #ffb01f;
-  color: white;
+  background: var(--color-warning);
+  color: var(--color-text-inverse);
 }
 
 /* Tracker-style "new" action button (used across app) */
 .btn--new {
-  background: #8a1a23;
-  color: #fff;
+  background: var(--color-brand);
+  color: var(--color-text-inverse);
 }
 
 .btn--new:hover:not(:disabled) {
-  background: #73151d;
+  background: var(--color-brand-hover);
 }
 
 /* Pills */
 .pill-group {
   display: flex;
-  gap: 8px;
-  padding: 6px;
+  gap: var(--space-2);
+  padding: var(--radius-sm);
 }
 
 .pill {
-  border: 1px solid #e6e6e6;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 6px 10px;
   cursor: pointer;
-  background: #ffffff;
+  background: var(--color-surface);
   font-weight: inherit;
 }
 
 .pill--active {
-  background: #8b0f17;
-  color: white;
+  background: var(--color-brand);
+  color: var(--color-text-inverse);
 }
 
 /* Badges */
 .badge {
   font-size: 12px;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid transparent;
   white-space: nowrap;
 }
