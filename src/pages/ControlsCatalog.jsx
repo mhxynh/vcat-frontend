@@ -319,7 +319,7 @@ export default function Controls() {
               <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
                   <button
-                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
+                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add modal-action-primary"
                     type="button"
                     onClick={() => setIsCreateModalOpen(true)}
                   >

@@ -473,7 +473,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                 <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
                                   <button
                                     type="button"
-                                    className="erm-add-btn"
+                                    className="erm-add-btn modal-action-primary"
                                     onClick={() => handleAddTest(test)}
                                     title="Link to this request"
                                   >
@@ -545,7 +545,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                     <RestrictedAction action={ACTIONS.CREATE_TEST}>
                       <button
                         type="button"
-                        className={`erm-create-control-link ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
+                        className={`erm-create-control-link modal-action-primary ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
                         onClick={() => {
                           if (!saving) setIsCreateTestOpen(true);
                         }}

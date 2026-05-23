@@ -465,7 +465,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                 </div>
 
                 <button
-                  className="dcm-btn dcm-btn--primary"
+                  className="dcm-btn dcm-btn--primary modal-action-primary"
                   type="button"
                   onClick={openEdit}
                   disabled={!control?.id}

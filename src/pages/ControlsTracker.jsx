@@ -300,7 +300,7 @@ export default function ControlsTracker() {
                   </div>
                   <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
                     <button
-                      className="btn btn--new"
+                      className="btn btn--new modal-action-primary"
                       type="button"
                       onClick={() => setIsAssignOpen(true)}
                     >
@@ -313,7 +313,7 @@ export default function ControlsTracker() {
               <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_TEST}>
                   <button
-                    className="btn btn--new"
+                    className="btn btn--new modal-action-primary"
                     type="button"
                     onClick={() => setIsCreateTestOpen(true)}
                   >
@@ -347,7 +347,7 @@ export default function ControlsTracker() {
               <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
                   <button
-                    className="btn btn--new"
+                    className="btn btn--new modal-action-primary"
                     type="button"
                     onClick={() => setIsCreateRequestOpen(true)}
                   >

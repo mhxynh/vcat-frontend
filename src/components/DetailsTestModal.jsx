@@ -1215,7 +1215,7 @@ export default function DetailsTestModal({
 
                   <div className="dtm-step-actions-right" style={{ marginLeft: 'auto' }}>
                     <button
-                      className="dtm-btn dtm-btn--primary"
+                      className="dtm-btn dtm-btn--primary modal-action-primary"
                       type="button"
                       onClick={openUnblockConfirm}
                       disabled={isBusy}
@@ -1256,7 +1256,7 @@ export default function DetailsTestModal({
                 <div className="dtm-step-actions-left">
                   {showRevert ? (
                     <button
-                      className="dtm-btn dtm-btn--revert"
+                      className="dtm-btn dtm-btn--revert modal-action-cancel"
                       type="button"
                       onClick={handleRevert}
                       disabled={isBusy || isLockedStatus}
@@ -1281,7 +1281,7 @@ export default function DetailsTestModal({
 
                   {isTrackInProgress ? (
                     <button
-                      className="dtm-btn dtm-btn--secondary"
+                      className="dtm-btn dtm-btn--secondary modal-action-cancel"
                       type="button"
                       onClick={openBlockConfirm}
                       disabled={isBusy}
@@ -1299,7 +1299,7 @@ export default function DetailsTestModal({
 
                   {showReject ? (
                     <button
-                      className="dtm-btn dtm-btn--secondary"
+                      className="dtm-btn dtm-btn--secondary modal-action-cancel"
                       type="button"
                       onClick={openRejectConfirm}
                       disabled={isBusy}
@@ -1325,7 +1325,7 @@ export default function DetailsTestModal({
                     <div className="dtm-step-right">
                       {primaryLabel ? (
                         <button
-                          className="dtm-btn dtm-btn--primary dtm-step-action--approve"
+                          className="dtm-btn dtm-btn--primary dtm-step-action--approve modal-action-primary"
                           type="button"
                           onClick={handlePrimaryAction}
                           disabled={isBusy}
@@ -1541,7 +1541,7 @@ export default function DetailsTestModal({
 
                   {attachments.length > 0 ? (
                     <button
-                      className="dtm-btn dtm-btn--compact"
+                      className="dtm-btn dtm-btn--compact modal-action-primary"
                       type="button"
                       onClick={handleAddEvidenceLink}
                       disabled={isBusy}
@@ -1550,7 +1550,7 @@ export default function DetailsTestModal({
                         name="attach"
                         category="actions"
                         size="sm"
-                        color="#232323"
+                        color="#fff"
                         className="dtm-btn-icon"
                       />
                       Add Link
@@ -1566,7 +1566,7 @@ export default function DetailsTestModal({
                       track test artifacts here.
                     </div>
                     <button
-                      className="dtm-btn dtm-btn--primary dtm-btn--compact"
+                      className="dtm-btn dtm-btn--primary dtm-btn--compact modal-action-primary"
                       type="button"
                       onClick={handleAddEvidenceLink}
                       disabled={isBusy}
@@ -1699,7 +1699,7 @@ export default function DetailsTestModal({
               </div>
 
               <button
-                className="dtm-btn dtm-btn--primary"
+                className="dtm-btn dtm-btn--primary modal-action-primary"
                 type="button"
                 onClick={openEdit}
                 disabled={!testId}
