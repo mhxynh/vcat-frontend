@@ -4,8 +4,6 @@
   --modal-action-red: #8b0f17;
   --modal-action-red-hover: #6d0b12;
   --modal-action-red-soft: #fdecec;
-  --modal-action-border-width: 1px;
-  --modal-action-radius: 8px;
 }
 
 .modal-action-cancel,
@@ -23,10 +21,8 @@
 .icm-btn-cancel,
 .dcm-confirm-btn.dcm-confirm-btn--cancel {
   background: #ffffff !important;
-  border: var(--modal-action-border-width) solid var(--modal-action-red) !important;
-  border-radius: var(--modal-action-radius) !important;
+  border-color: var(--modal-action-red) !important;
   color: var(--modal-action-red) !important;
-  box-sizing: border-box;
 }
 
 .modal-action-cancel:hover:not(:disabled),
@@ -61,10 +57,8 @@
 .icm-btn-import,
 .dcm-confirm-btn.dcm-confirm-btn--delete {
   background: var(--modal-action-red) !important;
-  border: var(--modal-action-border-width) solid var(--modal-action-red) !important;
-  border-radius: var(--modal-action-radius) !important;
+  border-color: var(--modal-action-red) !important;
   color: #ffffff !important;
-  box-sizing: border-box;
 }
 
 .modal-action-primary:hover:not(:disabled),
