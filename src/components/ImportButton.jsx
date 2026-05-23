@@ -7,7 +7,7 @@ export default function ImportButton({ isPageLoading = false, disabled = false, 
 
   return (
     <Button className="btn btn--import" variant="warning" onClick={onClick} disabled={isDisabled}>
-      <Icon name="upload" category="actions" size="sm" color="#ffffff" />
+      <Icon name="download" category="actions" size="sm" color="#ffffff" />
       Import
     </Button>
   );
