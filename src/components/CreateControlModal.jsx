@@ -237,13 +237,18 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
         </form>
 
         <div className="modal-footer">
-          <button type="button" className="btn btn--white" onClick={onClose} disabled={submitting}>
+          <button
+            type="button"
+            className="btn btn--white modal-action-cancel"
+            onClick={onClose}
+            disabled={submitting}
+          >
             Cancel
           </button>
 
           <button
             type="button"
-            className="btn btn--red"
+            className="btn btn--red modal-action-primary"
             onClick={handleCreate}
             disabled={submitting}
           >

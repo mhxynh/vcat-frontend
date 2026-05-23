@@ -410,7 +410,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
 
         <div className="ctm-footer">
           <button
-            className="ctm-btn ctm-btn--ghost"
+            className="ctm-btn ctm-btn--ghost modal-action-cancel"
             type="button"
             onClick={handleClose}
             disabled={submitting}
@@ -418,7 +418,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             Cancel
           </button>
           <button
-            className="ctm-btn ctm-btn--primary"
+            className="ctm-btn ctm-btn--primary modal-action-primary"
             type="button"
             onClick={handleSubmit}
             disabled={submitting || loading || !!loadError}

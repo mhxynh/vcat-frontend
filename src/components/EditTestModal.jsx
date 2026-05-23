@@ -435,7 +435,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
         <div className="ctm-footer">
           <button
             type="button"
-            className="ecm-btn ecm-btn--outline"
+            className="ecm-btn ecm-btn--outline modal-action-cancel"
             onClick={onClose}
             disabled={submitting}
           >
@@ -444,7 +444,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
           <button
             type="button"
-            className="btn btn--red"
+            className="btn btn--red modal-action-primary"
             onClick={handleSave}
             disabled={submitting || loading}
           >

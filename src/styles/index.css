@@ -16,3 +16,5 @@
 @import './pages/Dashboard.css';
 @import './pages/HelpCenter.css';
 @import './pages/views/Tests.css';
+
+@import './components/ModalActionButtons.css';

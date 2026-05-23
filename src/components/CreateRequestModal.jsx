@@ -226,7 +226,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
 
         <div className="crm-footer">
           <button
-            className="crm-btn crm-btn--ghost"
+            className="crm-btn crm-btn--ghost modal-action-cancel"
             type="button"
             onClick={onClose}
             disabled={submitting}
@@ -235,7 +235,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
           </button>
 
           <button
-            className="crm-btn crm-btn--primary"
+            className="crm-btn crm-btn--primary modal-action-primary"
             type="submit"
             onClick={handleSubmit}
             disabled={submitting}

@@ -129,10 +129,10 @@ export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssig
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button className="arm-btn arm-btn-ghost" onClick={onClose}>
+          <button className="arm-btn arm-btn-ghost modal-action-cancel" onClick={onClose}>
             Cancel
           </button>
-          <button className="arm-btn arm-btn-primary" onClick={handleAssign}>
+          <button className="arm-btn arm-btn-primary modal-action-primary" onClick={handleAssign}>
             Assign Selected Tests
           </button>
         </footer>

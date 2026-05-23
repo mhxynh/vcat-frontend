@@ -238,12 +238,17 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
         </div>
 
         <div className="icm-footer">
-          <button type="button" className="icm-btn-cancel" onClick={onClose} disabled={submitting}>
+          <button
+            type="button"
+            className="icm-btn-cancel modal-action-cancel"
+            onClick={onClose}
+            disabled={submitting}
+          >
             Cancel
           </button>
           <button
             type="button"
-            className="icm-btn-import"
+            className="icm-btn-import modal-action-primary"
             onClick={handleImport}
             disabled={submitting || !file}
           >

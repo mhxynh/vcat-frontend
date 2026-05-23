@@ -897,7 +897,7 @@ export default function DetailsRequestModal({
                   <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
                     {statusUpper === 'ARCHIVED' ? (
                       <button
-                        className="drm-btn drm-btn--outline"
+                        className="drm-btn drm-btn--outline modal-action-primary"
                         type="button"
                         onClick={openUnarchive}
                         disabled={archiving || deleting || requestId == null}
@@ -907,7 +907,7 @@ export default function DetailsRequestModal({
                       </button>
                     ) : (
                       <button
-                        className="drm-btn drm-btn--outline"
+                        className="drm-btn drm-btn--outline modal-action-primary"
                         type="button"
                         onClick={() => setIsArchiveConfirmOpen(true)}
                         disabled={archiving || deleting || requestId == null || isCompleted}
@@ -937,7 +937,7 @@ export default function DetailsRequestModal({
                 >
                   <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
                     <button
-                      className="drm-btn drm-btn--outline"
+                      className="drm-btn drm-btn--outline modal-action-primary"
                       type="button"
                       onClick={() => setIsDeleteConfirmOpen(true)}
                       disabled={deleting || archiving || requestId == null || isCompleted}

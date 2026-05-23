@@ -157,11 +157,15 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button className="arm-btn arm-btn-ghost" onClick={onClose} disabled={assigning}>
+          <button
+            className="arm-btn arm-btn-ghost modal-action-cancel"
+            onClick={onClose}
+            disabled={assigning}
+          >
             Cancel
           </button>
           <button
-            className="arm-btn arm-btn-primary"
+            className="arm-btn arm-btn-primary modal-action-primary"
             onClick={handleAssign}
             disabled={assigning || loadingUsers}
           >

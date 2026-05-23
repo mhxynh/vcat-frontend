@@ -453,7 +453,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                 >
                   <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
                     <button
-                      className="dcm-btn dcm-btn--outline"
+                      className="dcm-btn dcm-btn--outline modal-action-cancel"
                       type="button"
                       onClick={openDeleteConfirm}
                       disabled={deleting || !id}

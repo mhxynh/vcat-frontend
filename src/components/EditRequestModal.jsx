@@ -565,7 +565,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         <div className="erm-footer">
           <button
             type="button"
-            className="erm-btn erm-btn--ghost"
+            className="erm-btn erm-btn--ghost modal-action-cancel"
             onClick={onClose}
             disabled={saving}
           >
@@ -573,7 +573,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
           </button>
           <button
             type="button"
-            className="erm-btn erm-btn--primary"
+            className="erm-btn erm-btn--primary modal-action-primary"
             onClick={handleSaveChanges}
             disabled={saving || loading}
           >

@@ -97,13 +97,17 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
             <div className="aalm-footer">
               <button
                 type="button"
-                className="aalm-btn aalm-btn--cancel"
+                className="aalm-btn aalm-btn--cancel modal-action-cancel"
                 onClick={handleCancel}
                 disabled={isLoading}
               >
                 Cancel
               </button>
-              <button type="submit" className="aalm-btn aalm-btn--primary" disabled={isLoading}>
+              <button
+                type="submit"
+                className="aalm-btn aalm-btn--primary modal-action-primary"
+                disabled={isLoading}
+              >
                 {isLoading ? 'Adding...' : 'Add Link'}
               </button>
             </div>

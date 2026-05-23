@@ -1656,7 +1656,7 @@ export default function DetailsTestModal({
                 <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
                   {statusUpper === 'ARCHIVED' ? (
                     <button
-                      className="dtm-btn dtm-btn--secondary"
+                      className="dtm-btn dtm-btn--secondary modal-action-cancel"
                       type="button"
                       onClick={openUnarchiveConfirm}
                       disabled={isBusy}
@@ -1665,7 +1665,7 @@ export default function DetailsTestModal({
                     </button>
                   ) : (
                     <button
-                      className="dtm-btn dtm-btn--secondary"
+                      className="dtm-btn dtm-btn--secondary modal-action-cancel"
                       type="button"
                       onClick={openArchiveConfirm}
                       disabled={isBusy}
@@ -1688,7 +1688,7 @@ export default function DetailsTestModal({
               >
                 <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
                   <button
-                    className="dtm-btn dtm-btn--secondary"
+                    className="dtm-btn dtm-btn--secondary modal-action-cancel"
                     type="button"
                     onClick={openDeleteConfirm}
                     disabled={isBusy}

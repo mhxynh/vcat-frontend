@@ -13,6 +13,7 @@ export default function ConfirmActionModal({
   confirmButtonClassName = 'dcm-confirm-btn dcm-confirm-btn--delete',
   cancelButtonClassName = 'dcm-confirm-btn dcm-confirm-btn--cancel',
   confirmDisabled = false,
+  cancelDisabled = false,
   closeOnOverlay = true,
 }) {
   useEffect(() => {
@@ -66,16 +67,16 @@ export default function ConfirmActionModal({
         <div className="dcm-confirm-actions">
           <button
             type="button"
-            className={cancelButtonClassName}
+            className={`${cancelButtonClassName} modal-action-cancel`}
             onClick={onClose}
-            disabled={confirmDisabled}
+            disabled={cancelDisabled}
           >
             {cancelText}
           </button>
 
           <button
             type="button"
-            className={confirmButtonClassName}
+            className={`${confirmButtonClassName} modal-action-primary`}
             onClick={onConfirm}
             disabled={confirmDisabled}
           >

@@ -270,7 +270,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
         <div className="ecm-footer">
           <button
             type="button"
-            className="ecm-btn ecm-btn--outline"
+            className="ecm-btn ecm-btn--outline modal-action-cancel"
             onClick={onClose}
             disabled={submitting}
           >
@@ -279,7 +279,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
           <button
             type="button"
-            className="ecm-btn ecm-btn--primary"
+            className="ecm-btn ecm-btn--primary modal-action-primary"
             onClick={handleSave}
             disabled={submitting}
           >
