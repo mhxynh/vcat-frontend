@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import ImportButton from '../components/ImportButton';
 import ExportButton from '../components/ExportButton';
 import RefreshButton from '../components/RefreshButton';
 import ImportControlsModal from '../components/ImportControlsModal';
@@ -260,14 +261,7 @@ export default function Controls() {
             }}
           >
             <RestrictedAction action={ACTIONS.IMPORT_CONTROLS}>
-              <button
-                className="btn btn--import"
-                type="button"
-                onClick={() => setIsImportModalOpen(true)}
-              >
-                <Icon name="upload" category="actions" size="sm" color="#ffffff" />
-                Import
-              </button>
+              <ImportButton isPageLoading={loading} onClick={() => setIsImportModalOpen(true)} />
             </RestrictedAction>
             <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
             <RefreshButton
