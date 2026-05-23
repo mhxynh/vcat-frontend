@@ -59,6 +59,7 @@ export default function Controls() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
+  const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -153,8 +154,14 @@ export default function Controls() {
   }
 
   async function handleImportControlsCsv(file) {
-    await uploadControlsCsvForImport(file);
-    await refreshControls();
+    setIsImporting(true);
+
+    try {
+      await uploadControlsCsvForImport(file);
+      await refreshControls();
+    } finally {
+      setIsImporting(false);
+    }
   }
 
   useEffect(() => {
@@ -261,7 +268,11 @@ export default function Controls() {
             }}
           >
             <RestrictedAction action={ACTIONS.IMPORT_CONTROLS}>
-              <ImportButton isPageLoading={loading} onClick={() => setIsImportModalOpen(true)} />
+              <ImportButton
+                isLoading={isImporting}
+                isPageLoading={loading}
+                onClick={() => setIsImportModalOpen(true)}
+              />
             </RestrictedAction>
             <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
             <RefreshButton
