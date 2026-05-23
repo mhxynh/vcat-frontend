@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createControl } from '../api/ControlsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { ActionButton } from './ui';
 
 export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [vgcpid, setVgcpid] = useState('');
@@ -237,23 +238,24 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
         </form>
 
         <div className="modal-footer">
-          <button
+          <ActionButton
             type="button"
-            className="btn btn--white modal-action-cancel"
+            variant="cancel"
+            className="btn btn--white"
             onClick={onClose}
             disabled={submitting}
           >
             Cancel
-          </button>
+          </ActionButton>
 
-          <button
+          <ActionButton
             type="button"
-            className="btn btn--red modal-action-primary"
+            className="btn btn--red"
             onClick={handleCreate}
             disabled={submitting}
           >
             {submitting ? 'Creating...' : 'Create Control'}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

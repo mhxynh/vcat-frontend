@@ -19,6 +19,7 @@ import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
+import { ActionButton } from './ui';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -452,26 +453,27 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                   }}
                 >
                   <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
-                    <button
-                      className="dcm-btn dcm-btn--outline modal-action-cancel"
+                    <ActionButton
+                      className="dcm-btn dcm-btn--outline"
+                      variant="cancel"
                       type="button"
                       onClick={openDeleteConfirm}
                       disabled={deleting || !id}
                       title={!id ? 'No control selected' : 'Delete this control'}
                     >
                       Delete Control
-                    </button>
+                    </ActionButton>
                   </RestrictedAction>
                 </div>
 
-                <button
-                  className="dcm-btn dcm-btn--primary modal-action-primary"
+                <ActionButton
+                  className="dcm-btn dcm-btn--primary"
                   type="button"
                   onClick={openEdit}
                   disabled={!control?.id}
                 >
                   Edit Control
-                </button>
+                </ActionButton>
               </div>
             </div>
           </section>

@@ -10,6 +10,7 @@ import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+import { ActionButton } from './ui';
 
 const MODAL_BODY_MIN_HEIGHT = 428;
 
@@ -433,23 +434,24 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
         </div>
 
         <div className="ctm-footer">
-          <button
+          <ActionButton
             type="button"
-            className="ecm-btn ecm-btn--outline modal-action-cancel"
+            variant="cancel"
+            className="ecm-btn ecm-btn--outline"
             onClick={onClose}
             disabled={submitting}
           >
             Cancel
-          </button>
+          </ActionButton>
 
-          <button
+          <ActionButton
             type="button"
-            className="btn btn--red modal-action-primary"
+            className="btn btn--red"
             onClick={handleSave}
             disabled={submitting || loading}
           >
             {submitting ? 'Saving...' : 'Save Changes'}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

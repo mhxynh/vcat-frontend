@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/CreateRequestModal.css';
 import { createRequest } from '../api/RequestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { ActionButton } from './ui';
 
 function todayIso() {
   const d = new Date();
@@ -225,23 +226,24 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
         </form>
 
         <div className="crm-footer">
-          <button
-            className="crm-btn crm-btn--ghost modal-action-cancel"
+          <ActionButton
+            className="crm-btn crm-btn--ghost"
+            variant="cancel"
             type="button"
             onClick={onClose}
             disabled={submitting}
           >
             Cancel
-          </button>
+          </ActionButton>
 
-          <button
-            className="crm-btn crm-btn--primary modal-action-primary"
+          <ActionButton
+            className="crm-btn crm-btn--primary"
             type="submit"
             onClick={handleSubmit}
             disabled={submitting}
           >
             {submitting ? 'Creating...' : 'Create Request'}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

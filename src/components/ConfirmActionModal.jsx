@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ActionButton } from './ui';
 
 export default function ConfirmActionModal({
   isOpen,
@@ -65,23 +66,24 @@ export default function ConfirmActionModal({
         </div>
 
         <div className="dcm-confirm-actions">
-          <button
+          <ActionButton
             type="button"
-            className={`${cancelButtonClassName} modal-action-cancel`}
+            variant="cancel"
+            className={cancelButtonClassName}
             onClick={onClose}
             disabled={cancelDisabled}
           >
             {cancelText}
-          </button>
+          </ActionButton>
 
-          <button
+          <ActionButton
             type="button"
-            className={`${confirmButtonClassName} modal-action-primary`}
+            className={confirmButtonClassName}
             onClick={onConfirm}
             disabled={confirmDisabled}
           >
             {confirmText}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

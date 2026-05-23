@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { ActionButton } from './ui';
 
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB limit
 const ALLOWED_EXTENSIONS = ['.csv', '.xlsx', '.xlsm', '.xls', '.xlx'];
@@ -238,23 +239,24 @@ export default function ImportControlsModal({ isOpen, onClose, onImportSubmit })
         </div>
 
         <div className="icm-footer">
-          <button
+          <ActionButton
             type="button"
-            className="icm-btn-cancel modal-action-cancel"
+            variant="cancel"
+            className="icm-btn-cancel"
             onClick={onClose}
             disabled={submitting}
           >
             Cancel
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             type="button"
-            className="icm-btn-import modal-action-primary"
+            className="icm-btn-import"
             onClick={handleImport}
             disabled={submitting || !file}
           >
             <Icon name="upload" category="actions" size="sm" color="#ffffff" />
             Import Controls
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

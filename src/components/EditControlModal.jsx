@@ -3,6 +3,7 @@ import { updateControl, retireControl } from '../api/ControlsAPI';
 import { useRole, ACTIONS } from '../auth';
 import '../styles/components/EditControlModal.css';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { ActionButton } from './ui';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
@@ -268,23 +269,24 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
         </div>
 
         <div className="ecm-footer">
-          <button
+          <ActionButton
             type="button"
-            className="ecm-btn ecm-btn--outline modal-action-cancel"
+            variant="cancel"
+            className="ecm-btn ecm-btn--outline"
             onClick={onClose}
             disabled={submitting}
           >
             Cancel
-          </button>
+          </ActionButton>
 
-          <button
+          <ActionButton
             type="button"
-            className="ecm-btn ecm-btn--primary modal-action-primary"
+            className="ecm-btn ecm-btn--primary"
             onClick={handleSave}
             disabled={submitting}
           >
             {submitting ? 'Saving...' : 'Save Changes'}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

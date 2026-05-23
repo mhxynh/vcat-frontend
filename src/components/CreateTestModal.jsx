@@ -7,6 +7,7 @@ import { createTest } from '../api/TestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+import { ActionButton } from './ui';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -409,22 +410,23 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
         </div>
 
         <div className="ctm-footer">
-          <button
-            className="ctm-btn ctm-btn--ghost modal-action-cancel"
+          <ActionButton
+            className="ctm-btn ctm-btn--ghost"
+            variant="cancel"
             type="button"
             onClick={handleClose}
             disabled={submitting}
           >
             Cancel
-          </button>
-          <button
-            className="ctm-btn ctm-btn--primary modal-action-primary"
+          </ActionButton>
+          <ActionButton
+            className="ctm-btn ctm-btn--primary"
             type="button"
             onClick={handleSubmit}
             disabled={submitting || loading || !!loadError}
           >
             {submitting ? 'Creating...' : 'Create Control Test'}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

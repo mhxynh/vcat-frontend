@@ -21,6 +21,7 @@ import { triggerBrowserDownload } from '../utils/download';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
+import { ActionButton } from '../components/ui';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -318,13 +319,13 @@ export default function Controls() {
             <>
               <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-                  <button
-                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add modal-action-primary"
+                  <ActionButton
+                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
                     type="button"
                     onClick={() => setIsCreateModalOpen(true)}
                   >
                     <span className="controls-toolbar__add-label">+ Add Control</span>
-                  </button>
+                  </ActionButton>
                 </RestrictedAction>
               </div>
 

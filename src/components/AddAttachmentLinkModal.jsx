@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/components/AddAttachmentLinkModal.css';
+import { ActionButton } from './ui';
 
 export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoading }) {
   const [url, setUrl] = useState('');
@@ -95,21 +96,22 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
             </div>
 
             <div className="aalm-footer">
-              <button
+              <ActionButton
                 type="button"
-                className="aalm-btn aalm-btn--cancel modal-action-cancel"
+                variant="cancel"
+                className="aalm-btn aalm-btn--cancel"
                 onClick={handleCancel}
                 disabled={isLoading}
               >
                 Cancel
-              </button>
-              <button
+              </ActionButton>
+              <ActionButton
                 type="submit"
-                className="aalm-btn aalm-btn--primary modal-action-primary"
+                className="aalm-btn aalm-btn--primary"
                 disabled={isLoading}
               >
                 {isLoading ? 'Adding...' : 'Add Link'}
-              </button>
+              </ActionButton>
             </div>
           </form>
         </div>

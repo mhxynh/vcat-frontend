@@ -21,6 +21,7 @@ import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
+import { ActionButton } from './ui';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -896,18 +897,18 @@ export default function DetailsRequestModal({
                 >
                   <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
                     {statusUpper === 'ARCHIVED' ? (
-                      <button
-                        className="drm-btn drm-btn--outline modal-action-primary"
+                      <ActionButton
+                        className="drm-btn drm-btn--outline"
                         type="button"
                         onClick={openUnarchive}
                         disabled={archiving || deleting || requestId == null}
                         title={requestId == null ? 'No request selected' : 'Unarchive this request'}
                       >
                         Unarchive Request
-                      </button>
+                      </ActionButton>
                     ) : (
-                      <button
-                        className="drm-btn drm-btn--outline modal-action-primary"
+                      <ActionButton
+                        className="drm-btn drm-btn--outline"
                         type="button"
                         onClick={() => setIsArchiveConfirmOpen(true)}
                         disabled={archiving || deleting || requestId == null || isCompleted}
@@ -920,7 +921,7 @@ export default function DetailsRequestModal({
                         }
                       >
                         Archive Request
-                      </button>
+                      </ActionButton>
                     )}
                   </RestrictedAction>
                 </div>
@@ -936,8 +937,8 @@ export default function DetailsRequestModal({
                   }}
                 >
                   <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
-                    <button
-                      className="drm-btn drm-btn--outline modal-action-primary"
+                    <ActionButton
+                      className="drm-btn drm-btn--outline"
                       type="button"
                       onClick={() => setIsDeleteConfirmOpen(true)}
                       disabled={deleting || archiving || requestId == null || isCompleted}
@@ -950,7 +951,7 @@ export default function DetailsRequestModal({
                       }
                     >
                       Delete Request
-                    </button>
+                    </ActionButton>
                   </RestrictedAction>
                 </div>
                 <div

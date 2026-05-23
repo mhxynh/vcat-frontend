@@ -4,6 +4,7 @@ import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
+import { ActionButton } from './ui';
 
 export default function AssignRequestModal({ isOpen, onClose, request, onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
@@ -157,20 +158,21 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button
-            className="arm-btn arm-btn-ghost modal-action-cancel"
+          <ActionButton
+            className="arm-btn arm-btn-ghost"
+            variant="cancel"
             onClick={onClose}
             disabled={assigning}
           >
             Cancel
-          </button>
-          <button
-            className="arm-btn arm-btn-primary modal-action-primary"
+          </ActionButton>
+          <ActionButton
+            className="arm-btn arm-btn-primary"
             onClick={handleAssign}
             disabled={assigning || loadingUsers}
           >
             {assigning ? 'Assigning...' : 'Assign All Controls'}
-          </button>
+          </ActionButton>
         </footer>
       </div>
     </div>

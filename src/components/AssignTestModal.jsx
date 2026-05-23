@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/AssignRequestModal.css';
 import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
+import { ActionButton } from './ui';
 
 export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
@@ -129,12 +130,12 @@ export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssig
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button className="arm-btn arm-btn-ghost modal-action-cancel" onClick={onClose}>
+          <ActionButton className="arm-btn arm-btn-ghost" variant="cancel" onClick={onClose}>
             Cancel
-          </button>
-          <button className="arm-btn arm-btn-primary modal-action-primary" onClick={handleAssign}>
+          </ActionButton>
+          <ActionButton className="arm-btn arm-btn-primary" onClick={handleAssign}>
             Assign Selected Tests
-          </button>
+          </ActionButton>
         </footer>
       </div>
     </div>

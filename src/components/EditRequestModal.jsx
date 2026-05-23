@@ -8,6 +8,7 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
+import { ActionButton } from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
@@ -471,14 +472,14 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                   </div>
                                 </div>
                                 <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                                  <button
+                                  <ActionButton
                                     type="button"
-                                    className="erm-add-btn modal-action-primary"
+                                    className="erm-add-btn"
                                     onClick={() => handleAddTest(test)}
                                     title="Link to this request"
                                   >
                                     +
-                                  </button>
+                                  </ActionButton>
                                 </RestrictedAction>
                               </div>
                             );
@@ -543,9 +544,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
                   <div className="erm-create-control-row">
                     <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                      <button
+                      <ActionButton
                         type="button"
-                        className={`erm-create-control-link modal-action-primary ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
+                        className={`erm-create-control-link ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
                         onClick={() => {
                           if (!saving) setIsCreateTestOpen(true);
                         }}
@@ -553,7 +554,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                         title="Create New Control for this Request"
                       >
                         + Create New Control for this Request
-                      </button>
+                      </ActionButton>
                     </RestrictedAction>
                   </div>
                 </div>
@@ -563,22 +564,23 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
         </div>
 
         <div className="erm-footer">
-          <button
+          <ActionButton
             type="button"
-            className="erm-btn erm-btn--ghost modal-action-cancel"
+            variant="cancel"
+            className="erm-btn erm-btn--ghost"
             onClick={onClose}
             disabled={saving}
           >
             Cancel
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             type="button"
-            className="erm-btn erm-btn--primary modal-action-primary"
+            className="erm-btn erm-btn--primary"
             onClick={handleSaveChanges}
             disabled={saving || loading}
           >
             {saving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </ActionButton>
         </div>
       </div>
 

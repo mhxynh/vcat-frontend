@@ -24,6 +24,7 @@ import TrackerRequestsFilterPopover, {
   DEFAULT_FILTERS as DEFAULT_REQUESTS_FILTERS,
 } from '../components/TrackerRequestsFilterPopover';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
+import { ActionButton } from '../components/ui';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -299,26 +300,26 @@ export default function ControlsTracker() {
                     <span>{selectedTestRows.length} selected</span>
                   </div>
                   <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
-                    <button
-                      className="btn btn--new modal-action-primary"
+                    <ActionButton
+                      className="btn btn--new"
                       type="button"
                       onClick={() => setIsAssignOpen(true)}
                     >
                       Bulk Assign
-                    </button>
+                    </ActionButton>
                   </RestrictedAction>
                 </div>
               ) : null}
 
               <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                  <button
-                    className="btn btn--new modal-action-primary"
+                  <ActionButton
+                    className="btn btn--new"
                     type="button"
                     onClick={() => setIsCreateTestOpen(true)}
                   >
                     + Add Control Test
-                  </button>
+                  </ActionButton>
                 </RestrictedAction>
               </div>
 
@@ -346,13 +347,13 @@ export default function ControlsTracker() {
             <>
               <div onClick={handleRestrictedOverlayClick}>
                 <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
-                  <button
-                    className="btn btn--new modal-action-primary"
+                  <ActionButton
+                    className="btn btn--new"
                     type="button"
                     onClick={() => setIsCreateRequestOpen(true)}
                   >
                     + Add Request
-                  </button>
+                  </ActionButton>
                 </RestrictedAction>
               </div>
 
