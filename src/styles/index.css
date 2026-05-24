@@ -3,6 +3,7 @@
 @import './base.css';
 
 @import './components/Button.css';
+@import './components/SegmentedControl.css';
 @import './components/Navbar.css';
 @import './components/PageHeader.css';
 @import './components/ExportButton.css';

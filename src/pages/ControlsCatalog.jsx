@@ -21,7 +21,7 @@ import { triggerBrowserDownload } from '../utils/download';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
-import { ActionButton } from '../components/ui';
+import { ActionButton, SegmentedControl } from '../components/ui';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -286,29 +286,15 @@ export default function Controls() {
       />
 
       <div className="controls-filters">
-        <div className="pill-group">
-          <button
-            type="button"
-            className={`pill ${filter === 'All' ? 'pill--active' : ''}`}
-            onClick={() => setFilter('All')}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            className={`pill ${filter === 'Active' ? 'pill--active' : ''}`}
-            onClick={() => setFilter('Active')}
-          >
-            Active
-          </button>
-          <button
-            type="button"
-            className={`pill ${filter === 'Retired' ? 'pill--active' : ''}`}
-            onClick={() => setFilter('Retired')}
-          >
-            Retired
-          </button>
-        </div>
+        <SegmentedControl
+          options={['All', 'Active', 'Retired']}
+          value={filter}
+          onChange={setFilter}
+          className="pill-group"
+          buttonClassName="pill"
+          activeButtonClassName="pill--active"
+          ariaLabel="Filter controls by status"
+        />
 
         <TrackerTopToolbar
           searchValue={search}

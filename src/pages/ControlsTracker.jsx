@@ -24,7 +24,7 @@ import TrackerRequestsFilterPopover, {
   DEFAULT_FILTERS as DEFAULT_REQUESTS_FILTERS,
 } from '../components/TrackerRequestsFilterPopover';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
-import { ActionButton } from '../components/ui';
+import { ActionButton, SegmentedControl } from '../components/ui';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -264,18 +264,15 @@ export default function ControlsTracker() {
       />
 
       <div className="sub-page-tabs">
-        <div className="tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => handleTabClick(tab)}
-              className={`sub-tab ${activeTab === tab ? 'sub-tab--active' : ''}`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={tabs}
+          value={activeTab}
+          onChange={handleTabClick}
+          className="pill-group tabs"
+          buttonClassName="pill"
+          activeButtonClassName="pill--active"
+          ariaLabel="Select tracker view"
+        />
       </div>
 
       {activeTab === 'Controls' ? (
