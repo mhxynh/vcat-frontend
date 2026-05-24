@@ -21,7 +21,7 @@ import { triggerBrowserDownload } from '../utils/download';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
-import { ActionButton, SegmentedControl } from '../components/ui';
+import { ActionButton, Badge, SegmentedControl } from '../components/ui';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -356,19 +356,15 @@ export default function Controls() {
                       </div>
 
                       <div className="acc-header__right">
-                        <span
-                          className={`badge ${
-                            control.status === 'Active' ? 'badge--active' : 'badge--retired'
-                          }`}
-                        >
+                        <Badge tone={control.status === 'Active' ? 'active' : 'retired'}>
                           {control.status}
-                        </span>
+                        </Badge>
 
-                        <span className="badge badge--neutral">
+                        <Badge tone="neutral">
                           {control.testing && control.testing !== 'Not Tested Yet'
                             ? `Last Tested ${formatDisplayDate(control.testing)}`
                             : (control.testing ?? 'Not Tested Yet')}
-                        </span>
+                        </Badge>
 
                         <span className={`chev ${isOpen ? 'chev--open' : ''}`}>
                           {isOpen ? '▴' : '▾'}

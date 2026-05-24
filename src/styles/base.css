@@ -115,24 +115,56 @@ body * {
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
   white-space: nowrap;
+  font-weight: 400;
 }
 
 .badge--active {
-  background: #e6f7ea;
-  color: #0f6a2b;
-  border-color: #ccefd6;
+  background: var(--badge-success-bg);
+  color: var(--badge-success-text);
+  border-color: var(--badge-success-border);
 }
 
 .badge--retired {
-  background: #fdecec;
-  color: #8b0f17;
-  border-color: #f7caca;
+  background: var(--badge-danger-bg);
+  color: var(--badge-danger-text);
+  border-color: var(--badge-danger-border);
 }
 
 .badge--neutral {
-  background: #f2f2f2;
-  color: #444;
-  border-color: #e5e5e5;
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border-color: var(--badge-neutral-border);
+}
+
+.badge--not-started {
+  background: var(--bg-not-started);
+  color: var(--text-not-started);
+  border-color: var(--border-not-started);
+}
+
+.badge--dat-in-progress,
+.badge--oet-in-progress {
+  background: var(--badge-info-bg);
+  color: var(--badge-info-text);
+  border-color: var(--badge-info-border);
+}
+
+.badge--in-review {
+  background: var(--badge-warning-bg);
+  color: var(--badge-warning-text);
+  border-color: var(--badge-warning-border);
+}
+
+.badge--blocked {
+  background: var(--badge-danger-bg);
+  color: var(--badge-danger-text);
+  border-color: var(--badge-danger-border);
+}
+
+.badge--completed {
+  background: var(--badge-success-bg);
+  color: var(--badge-success-text);
+  border-color: var(--badge-success-border);
 }
 
 /* Chevron */

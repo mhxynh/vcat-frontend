@@ -19,7 +19,7 @@ import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton } from './ui';
+import { ActionButton, Badge } from './ui';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -289,10 +289,8 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             </div>
 
             <div className="dcm-status-row">
-              <span className={`badge ${status === 'Active' ? 'badge--active' : 'badge--retired'}`}>
-                {status}
-              </span>
-              <span className="badge badge--neutral">{testing}</span>
+              <Badge tone={status === 'Active' ? 'active' : 'retired'}>{status}</Badge>
+              <Badge tone="neutral">{testing}</Badge>
             </div>
           </section>
 

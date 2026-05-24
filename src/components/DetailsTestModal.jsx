@@ -5,7 +5,7 @@ import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { ActionButton } from './ui';
+import { ActionButton, Badge } from './ui';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -1087,7 +1087,8 @@ export default function DetailsTestModal({
   function statusToBadgeType(statusValue) {
     return String(statusValue || 'NOT_STARTED')
       .toLowerCase()
-      .replaceAll('_', '-');
+      .replaceAll('_', '-')
+      .replace(/\s+/g, '-');
   }
 
   function normalizeAttachments(test) {
@@ -1171,9 +1172,7 @@ export default function DetailsTestModal({
           <section className="dtm-status">
             <div className="dtm-status-top">
               <div className="dtm-status-left">
-                <span className={`badge badge--${statusToBadgeType(status)}`}>
-                  {statusToLabel(status)}
-                </span>
+                <Badge tone={statusToBadgeType(status)}>{statusToLabel(status)}</Badge>
                 <span className="dtm-dot">•</span>
                 <span className="dtm-subtle">{typeLabel}</span>
               </div>

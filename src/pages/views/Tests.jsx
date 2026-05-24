@@ -3,6 +3,7 @@ import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
+import { Badge } from '../../components/ui';
 import { isOverdue, parseLocalDate } from '../../utils/date.js';
 import { ACTIONS, useCan } from '../../auth';
 
@@ -356,7 +357,7 @@ export default function Tests({
                     <td className="table__cell">{testType}</td>
 
                     <td className="table__cell">
-                      <span className={`badge badge--${statusType}`}>{statusLabel}</span>
+                      <Badge tone={statusType}>{statusLabel}</Badge>
                     </td>
 
                     <td className="table__cell">{step}</td>

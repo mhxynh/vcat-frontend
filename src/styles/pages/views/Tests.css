@@ -7,20 +7,6 @@
   --color-export-green: #5cb85c;
   --color-refresh-blue: #4a90e2;
 
-  /* Badge Colors */
-  --bg-not-started: #f5f5f5;
-  --text-not-started: #616161;
-  --bg-dat-in-progress: #e6f0fa;
-  --text-dat-in-progress: #1967d2;
-  --bg-oet-in-progress: #e6f0fa;
-  --text-oet-in-progress: #1967d2;
-  --bg-in-review: #fff9c4;
-  --text-in-review: #f57f17;
-  --bg-blocked: #ffebee;
-  --text-blocked: #c62828;
-  --bg-completed: #e8f5e9;
-  --text-completed: #2e7d32;
-
   /* Neutrals & Borders */
   --color-bg-app: #f4f5f7;
   --color-surface: #ffffff;
@@ -205,45 +191,6 @@ body {
 
 .icon-overdue {
   flex-shrink: 0;
-}
-
-/* Status Badges */
-.badge {
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  font-size: 12px;
-  font-weight: 500;
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.badge--not-started {
-  background-color: var(--bg-not-started);
-  color: var(--text-not-started);
-}
-.badge--dat-in-progress {
-  background-color: var(--bg-dat-in-progress);
-  color: var(--text-dat-in-progress);
-}
-
-.badge--oet-in-progress {
-  background-color: var(--bg-oet-in-progress);
-  color: var(--text-oet-in-progress);
-}
-
-.badge--in-review {
-  background-color: var(--bg-in-review);
-  color: var(--text-in-review);
-}
-
-.badge--blocked {
-  background-color: var(--bg-blocked);
-  color: var(--text-blocked);
-}
-
-.badge--completed {
-  background-color: var(--bg-completed);
-  color: var(--text-completed);
 }
 
 .vgcpid-link {

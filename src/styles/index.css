@@ -18,4 +18,5 @@
 @import './pages/HelpCenter.css';
 @import './pages/views/Tests.css';
 
+@import './components/Badge.css';
 @import './components/ModalActionButtons.css';

@@ -19,6 +19,41 @@
   --color-warning: #ffb01f;
   --color-warning-hover: #e79a12;
 
+  --badge-neutral-bg: #f2f2f2;
+  --badge-neutral-text: #444444;
+  --badge-neutral-border: #e5e5e5;
+  --badge-success-bg: #e6f7ea;
+  --badge-success-text: #0f6a2b;
+  --badge-success-border: #ccefd6;
+  --badge-danger-bg: #fdecec;
+  --badge-danger-text: #8b0f17;
+  --badge-danger-border: #f7caca;
+  --badge-info-bg: #e6f0fa;
+  --badge-info-text: #1967d2;
+  --badge-info-border: #cfe1f5;
+  --badge-warning-bg: #fff9c4;
+  --badge-warning-text: #8a5a00;
+  --badge-warning-border: #f6e58a;
+
+  --bg-not-started: var(--badge-neutral-bg);
+  --text-not-started: var(--badge-neutral-text);
+  --border-not-started: var(--badge-neutral-border);
+  --bg-dat-in-progress: var(--badge-info-bg);
+  --text-dat-in-progress: var(--badge-info-text);
+  --border-dat-in-progress: var(--badge-info-border);
+  --bg-oet-in-progress: var(--badge-info-bg);
+  --text-oet-in-progress: var(--badge-info-text);
+  --border-oet-in-progress: var(--badge-info-border);
+  --bg-in-review: var(--badge-warning-bg);
+  --text-in-review: var(--badge-warning-text);
+  --border-in-review: var(--badge-warning-border);
+  --bg-blocked: var(--badge-danger-bg);
+  --text-blocked: var(--badge-danger-text);
+  --border-blocked: var(--badge-danger-border);
+  --bg-completed: var(--badge-success-bg);
+  --text-completed: var(--badge-success-text);
+  --border-completed: var(--badge-success-border);
+
   --priority-low: #0f6a2b;
   --priority-medium: #8a5a00;
   --priority-high: #8b0f17;
