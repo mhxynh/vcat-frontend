@@ -23,6 +23,7 @@
   background: #ffffff !important;
   border-color: var(--modal-action-red) !important;
   color: var(--modal-action-red) !important;
+  font-weight: 400 !important;
 }
 
 .modal-action-cancel:hover:not(:disabled),
@@ -59,6 +60,7 @@
   background: var(--modal-action-red) !important;
   border-color: var(--modal-action-red) !important;
   color: #ffffff !important;
+  font-weight: 400 !important;
 }
 
 .modal-action-primary:hover:not(:disabled),
@@ -80,4 +82,15 @@
   border-color: var(--modal-action-red-hover) !important;
   color: #ffffff !important;
   filter: none !important;
+}
+
+.dtm-btn.modal-action-cancel,
+.dtm-btn.modal-action-primary {
+  padding: 5px 12px !important;
+  line-height: 24px;
+}
+
+.dtm-btn.modal-action-primary {
+  border-width: 1px;
+  border-style: solid;
 }
