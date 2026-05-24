@@ -323,6 +323,7 @@ export default function Controls() {
                     className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
                     type="button"
                     onClick={() => setIsCreateModalOpen(true)}
+                    isPageLoading={loading}
                   >
                     <span className="controls-toolbar__add-label">+ Add Control</span>
                   </ActionButton>

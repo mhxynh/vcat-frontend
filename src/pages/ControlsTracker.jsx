@@ -304,6 +304,7 @@ export default function ControlsTracker() {
                       className="btn btn--new"
                       type="button"
                       onClick={() => setIsAssignOpen(true)}
+                      isPageLoading={activeTabLoading}
                     >
                       Bulk Assign
                     </ActionButton>
@@ -317,6 +318,7 @@ export default function ControlsTracker() {
                     className="btn btn--new"
                     type="button"
                     onClick={() => setIsCreateTestOpen(true)}
+                    isPageLoading={activeTabLoading}
                   >
                     + Add Control Test
                   </ActionButton>
@@ -351,6 +353,7 @@ export default function ControlsTracker() {
                     className="btn btn--new"
                     type="button"
                     onClick={() => setIsCreateRequestOpen(true)}
+                    isPageLoading={activeTabLoading}
                   >
                     + Add Request
                   </ActionButton>
