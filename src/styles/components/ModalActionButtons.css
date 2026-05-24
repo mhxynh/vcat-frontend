@@ -56,6 +56,7 @@
 .aalm-btn.aalm-btn--primary,
 .arm-btn.arm-btn-primary,
 .icm-btn-import,
+.dtm-send.modal-action-primary,
 .dcm-confirm-btn.dcm-confirm-btn--delete {
   background: var(--modal-action-red) !important;
   border-color: var(--modal-action-red) !important;
@@ -77,6 +78,7 @@
 .aalm-btn.aalm-btn--primary:hover:not(:disabled),
 .arm-btn.arm-btn-primary:hover:not(:disabled),
 .icm-btn-import:hover:not(:disabled),
+.dtm-send.modal-action-primary:hover:not(:disabled),
 .dcm-confirm-btn.dcm-confirm-btn--delete:hover:not(:disabled) {
   background: var(--modal-action-red-hover) !important;
   border-color: var(--modal-action-red-hover) !important;
@@ -93,4 +95,9 @@
 .dtm-btn.modal-action-primary {
   border-width: 1px;
   border-style: solid;
+}
+
+.dtm-send-icon {
+  display: inline-block;
+  transform: translateY(1.5px);
 }

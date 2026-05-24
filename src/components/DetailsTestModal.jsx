@@ -1447,17 +1447,18 @@ export default function DetailsTestModal({
                       if (e.key === 'Enter') handleAddComment();
                     }}
                   />
-                  <button
+                  <ActionButton
                     className="dtm-send"
                     type="button"
                     onClick={handleAddComment}
                     aria-label="Send"
+                    isLoading={commentSaving}
                     disabled={
                       !currentUser || commentSaving || commentsLoading || !commentText.trim()
                     }
                   >
-                    {commentSaving ? '...' : '➤'}
-                  </button>
+                    <span className="dtm-send-icon">{commentSaving ? '...' : '➤'}</span>
+                  </ActionButton>
                 </div>
 
                 <div className="dtm-comments">
