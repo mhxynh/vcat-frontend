@@ -24,10 +24,10 @@ import { ACTIONS } from '../auth';
 import {
   ActionButton,
   CommentsComposer,
+  CommentsList,
   DataTable,
   EmptyState,
   ErrorState,
-  IconButton,
   LoadingState,
   MetadataItem,
   Modal,
@@ -798,59 +798,34 @@ export default function DetailsRequestModal({
                   isSubmitting={commentSaving}
                 />
 
-                <div className="drm-comments">
-                  {commentsLoading ? (
-                    <LoadingState className="drm-empty">Loading comments...</LoadingState>
-                  ) : commentsError ? (
-                    <ErrorState className="drm-empty">{commentsError}</ErrorState>
-                  ) : localComments.length === 0 ? (
-                    <EmptyState className="drm-empty">No comments found.</EmptyState>
-                  ) : (
-                    localComments.map((c) => (
-                      <div className="drm-comment" key={c.id}>
-                        <div className="drm-comment-left">
-                          <div className="drm-avatar" aria-hidden="true">
-                            {String(c.author || '?')
-                              .trim()
-                              .slice(0, 1)
-                              .toUpperCase()}
-                          </div>
-                        </div>
-
-                        <div className="drm-comment-main">
-                          <div className="drm-comment-top">
-                            <div className="drm-comment-author">{c.author ?? '-'}</div>
-                            <div className="drm-comment-meta">
-                              <div className="drm-comment-date">{c.date ?? ''}</div>
-                              {currentUser?.['user_id'] != null &&
-                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                                <IconButton
-                                  className="drm-comment-action drm-comment-action--delete"
-                                  onClick={() => handleDeleteComment(c)}
-                                  disabled={commentDeletingId != null}
-                                  label="Delete comment"
-                                  title="Delete comment"
-                                >
-                                  {commentDeletingId === String(c.id) ? (
-                                    '...'
-                                  ) : (
-                                    <Icon
-                                      name="trash"
-                                      category="actions"
-                                      size="sm"
-                                      color="#545454"
-                                    />
-                                  )}
-                                </IconButton>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="drm-comment-text">{c.text ?? ''}</div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                {commentsLoading ? (
+                  <LoadingState className="drm-empty">Loading comments...</LoadingState>
+                ) : commentsError ? (
+                  <ErrorState className="drm-empty">{commentsError}</ErrorState>
+                ) : localComments.length === 0 ? (
+                  <EmptyState className="drm-empty">No comments found.</EmptyState>
+                ) : (
+                  <CommentsList
+                    comments={localComments}
+                    currentUserId={currentUser?.['user_id']}
+                    deletingId={commentDeletingId}
+                    onDelete={handleDeleteComment}
+                    className="drm-comments"
+                    itemClassName="drm-comment"
+                    leftClassName="drm-comment-left"
+                    avatarClassName="drm-avatar"
+                    mainClassName="drm-comment-main"
+                    topClassName="drm-comment-top"
+                    authorClassName="drm-comment-author"
+                    metaClassName="drm-comment-meta"
+                    dateClassName="drm-comment-date"
+                    actionClassName="drm-comment-action drm-comment-action--delete"
+                    textClassName="drm-comment-text"
+                    renderDeleteIcon={() => (
+                      <Icon name="trash" category="actions" size="sm" color="#545454" />
+                    )}
+                  />
+                )}
               </>
             ) : null}
 

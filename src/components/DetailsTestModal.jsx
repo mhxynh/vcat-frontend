@@ -9,6 +9,7 @@ import {
   ActionButton,
   Badge,
   CommentsComposer,
+  CommentsList,
   EmptyState,
   ErrorState,
   IconButton,
@@ -1486,54 +1487,32 @@ export default function DetailsTestModal({
                 isSubmitting={commentSaving}
               />
 
-              <div className="dtm-comments">
-                {commentsLoading ? (
-                  <LoadingState className="dtm-empty">Loading comments...</LoadingState>
-                ) : commentsError ? (
-                  <ErrorState className="dtm-empty">{commentsError}</ErrorState>
-                ) : localComments.length === 0 ? (
-                  <EmptyState className="dtm-empty">No comments found.</EmptyState>
-                ) : (
-                  localComments.map((c) => (
-                    <div className="dtm-comment" key={c.id}>
-                      <div className="dtm-comment-left">
-                        <div className="dtm-avatar" aria-hidden="true">
-                          {String(c.author || '?')
-                            .trim()
-                            .slice(0, 1)
-                            .toUpperCase()}
-                        </div>
-                      </div>
-
-                      <div className="dtm-comment-main">
-                        <div className="dtm-comment-top">
-                          <div className="dtm-comment-author">{c.author ?? '-'}</div>
-                          <div className="dtm-comment-meta">
-                            <div className="dtm-comment-date">{c.date ?? ''}</div>
-                            {currentUser?.['user_id'] != null &&
-                            String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                              <IconButton
-                                className="dtm-comment-action dtm-comment-action--delete"
-                                onClick={() => handleDeleteComment(c)}
-                                disabled={commentDeletingId != null}
-                                label="Delete comment"
-                                title="Delete comment"
-                              >
-                                {commentDeletingId === String(c.id) ? (
-                                  '...'
-                                ) : (
-                                  <Icon name="trash" category="actions" size="sm" />
-                                )}
-                              </IconButton>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="dtm-comment-text">{c.text ?? ''}</div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              {commentsLoading ? (
+                <LoadingState className="dtm-empty">Loading comments...</LoadingState>
+              ) : commentsError ? (
+                <ErrorState className="dtm-empty">{commentsError}</ErrorState>
+              ) : localComments.length === 0 ? (
+                <EmptyState className="dtm-empty">No comments found.</EmptyState>
+              ) : (
+                <CommentsList
+                  comments={localComments}
+                  currentUserId={currentUser?.['user_id']}
+                  deletingId={commentDeletingId}
+                  onDelete={handleDeleteComment}
+                  className="dtm-comments"
+                  itemClassName="dtm-comment"
+                  leftClassName="dtm-comment-left"
+                  avatarClassName="dtm-avatar"
+                  mainClassName="dtm-comment-main"
+                  topClassName="dtm-comment-top"
+                  authorClassName="dtm-comment-author"
+                  metaClassName="dtm-comment-meta"
+                  dateClassName="dtm-comment-date"
+                  actionClassName="dtm-comment-action dtm-comment-action--delete"
+                  textClassName="dtm-comment-text"
+                  renderDeleteIcon={() => <Icon name="trash" category="actions" size="sm" />}
+                />
+              )}
             </>
           ) : activeTab === 'History' ? (
             <AuditHistoryView

@@ -10,6 +10,7 @@ export { default as Panel } from './Panel';
 export { default as Tabs } from './Tabs';
 export { default as SearchInput } from './SearchInput';
 export { default as CommentsComposer } from './CommentsComposer';
+export { default as CommentsList } from './CommentsList';
 export { default as DataTable } from './DataTable';
 export { EmptyState, ErrorState, LoadingState } from './FeedbackState';
 export { FormField, FormGrid, FormInput, FormSelect, FormTextarea } from './Form';
