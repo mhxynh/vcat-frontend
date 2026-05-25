@@ -32,59 +32,6 @@ body {
   margin: 0 auto;
 }
 
-.tracker__header {
-  background-color: var(--color-surface);
-  padding: 16px 24px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.tracker__title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-text-main);
-}
-
-.tracker__actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* Buttons */
-.btn {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 21.33px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 4px 16px;
-  border-radius: var(--radius-md);
-  gap: 8px;
-  color: #fff;
-}
-
-.btn:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.btn--export {
-  background-color: var(--color-export-green);
-}
-.btn--refresh {
-  background-color: var(--color-refresh-blue);
-}
-
 /* Tabs */
 
 .sub-page-tabs {
@@ -101,29 +48,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.sub-tab {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 20px;
-  min-width: 90px;
-  height: 38px;
-  padding: 8px 16px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  background: #f0f1f3;
-  color: var(--color-text-main);
-  text-align: center;
-}
-
-.sub-tab--active {
-  background: var(--color-brand-red);
-  color: white;
 }
 
 .tracker__view-panel[hidden] {
@@ -174,11 +98,6 @@ body {
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.table__cell--fw-bold {
-  font-weight: 500;
-  color: var(--color-text-main);
-}
-
 .table__cell--vgcpid {
   color: var(--color-brand-red-hover, #73151d);
   font-weight: 600;
@@ -187,10 +106,6 @@ body {
 .table__cell--due-date {
   align-items: center;
   gap: 6px;
-}
-
-.icon-overdue {
-  flex-shrink: 0;
 }
 
 .vgcpid-link {
@@ -202,29 +117,6 @@ body {
   color: inherit;
   font-weight: 800;
   text-decoration: underline;
-}
-
-/* Selection bar when rows are selected */
-.selection-bar {
-  background: transparent;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.selection-badge {
-  border-radius: 4px;
-  background-color: rgba(150, 21, 29, 0.05);
-  border: 1px solid rgba(150, 21, 29, 0.1);
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  gap: 8px;
-  text-align: left;
-  font-size: 14px;
-  color: #96151d;
-}
-
-.selection-count {
-  line-height: 16px;
 }
 
 .due-date-content {

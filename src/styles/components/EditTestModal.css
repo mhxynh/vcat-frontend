@@ -68,22 +68,6 @@
   min-width: 0;
 }
 
-.ctm-field--full {
-  grid-column: 1 / -1;
-}
-
-.ctm-label {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 6px;
-  color: #444;
-}
-
-.ctm-req {
-  color: #b91c1c;
-  margin-left: 3px;
-}
-
 .ctm-input,
 .ctm-textarea,
 .ctm-select {
@@ -119,19 +103,6 @@
   background: #f7f7f7;
   color: #777;
   cursor: not-allowed;
-}
-
-.ctm-radio-row {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-}
-
-.ctm-radio-item {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 14px;
 }
 
 .ctm-error {

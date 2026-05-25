@@ -42,3 +42,27 @@
   color: var(--badge-warning-text);
   border-color: var(--badge-warning-border);
 }
+
+.badge.badge--low {
+  background: #e6f7ea;
+  color: var(--priority-low);
+  border-color: #ccefd6;
+}
+
+.badge.badge--medium {
+  background: #fff4dd;
+  color: var(--priority-medium);
+  border-color: #ffe2a8;
+}
+
+.badge.badge--high {
+  background: #fdecec;
+  color: var(--priority-high);
+  border-color: #f7caca;
+}
+
+.badge.badge--critical {
+  background: #f3e8ff;
+  color: var(--priority-critical);
+  border-color: #e0ccff;
+}

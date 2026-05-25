@@ -89,28 +89,6 @@
   }
 }
 
-.ctm-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.ctm-field--full {
-  grid-column: 1 / -1;
-}
-
-.ctm-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.ctm-req {
-  color: #b91c1c;
-  margin-left: 3px;
-}
-
 .ctm-input,
 .ctm-textarea,
 .ctm-select {

@@ -78,17 +78,3 @@
 .navbar__avatar:hover {
   background: #7a1518;
 }
-
-.navbar__bell {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #333;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-}
-
-.navbar__bell:hover {
-  color: #921a1d;
-}

@@ -350,17 +350,6 @@
   color: #ffffff;
 }
 
-.dcm-delete-error {
-  margin-top: 10px;
-  padding: 10px 12px;
-  border: 1px solid #f7caca;
-  background: #fdecec;
-  color: #8b0f17;
-  border-radius: 10px;
-  font-weight: 400;
-  font-size: 13px;
-}
-
 /* Delete confirmation modal */
 .dcm-confirm-overlay {
   position: fixed;
@@ -402,11 +391,6 @@
 
 .dcm-confirm-question strong {
   color: #1a1a1a;
-}
-
-.dcm-confirm-bold-black {
-  color: #1a1a1a !important;
-  font-weight: 700;
 }
 
 .dcm-confirm-id {

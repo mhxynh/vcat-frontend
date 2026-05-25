@@ -57,23 +57,6 @@
   min-width: 0;
 }
 
-.ecm-field--full {
-  grid-column: 1 / -1;
-}
-
-/*Form controls*/
-.ecm-label {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 6px;
-  color: #444;
-}
-
-.ecm-req {
-  color: #b91c1c;
-  margin-left: 3px;
-}
-
 .ecm-input,
 .ecm-textarea,
 .ecm-select {
@@ -135,17 +118,6 @@
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  font-size: 14px;
-}
-
-/*Error */
-.ecm-error {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(180, 0, 0, 0.25);
-  background: rgba(180, 0, 0, 0.06);
-  color: #7a0000;
   font-size: 14px;
 }
 

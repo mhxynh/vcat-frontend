@@ -16,6 +16,7 @@ import { formatRequestDisplayId } from '../../utils/requestDisplayId';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 import Icon from '../../components/common/Icon';
+import { Badge } from '../../components/ui';
 
 export default function Requests({ refreshKey = 0, searchValue = '', filters, onLoadingChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
@@ -379,9 +380,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                   <div className="request-row">
                     <div className="req-left">
                       <div style={{ fontWeight: 800 }}>{formatRequestDisplayId(req)}</div>
-                      <div className={`badge badge-${String(req.priority || '').toLowerCase()}`}>
+                      <Badge tone={String(req.priority || 'medium').toLowerCase()}>
                         {req.priority}
-                      </div>
+                      </Badge>
                     </div>
 
                     <div className="req-meta-grid">
@@ -472,13 +473,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                                   {c.id}
                                 </span>
                               </div>
-                              <span
-                                className={`status-pill ${String(c.statusLabel || c.status || '')
-                                  .toLowerCase()
-                                  .replace(/\s+/g, '-')}`}
-                              >
+                              <Badge tone={statusTone(c.statusLabel || c.status)}>
                                 {c.statusLabel || c.status}
-                              </span>
+                              </Badge>
                             </div>
 
                             <div className="control-title">{c.title}</div>
@@ -603,6 +600,12 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
       />
     </div>
   );
+}
+
+function statusTone(status) {
+  return String(status || 'not-started')
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-');
 }
 
 function Meta({ label, icon, iconColor = '#6C6C6C', value, valueClassName = '', size = 'sm' }) {
