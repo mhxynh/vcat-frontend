@@ -627,16 +627,16 @@ export default function DetailsRequestModal({
   return (
     <>
       <Modal className="drm-modal" overlayClassName="drm-overlay" onClose={onClose}>
-        <section className="drm-section-header">
+        <Modal.Section className="drm-section-header">
           <div className="drm-header">
             <div className="drm-title">Request Details: {requestTitle}</div>
             <ModalCloseButton className="drm-close" onClick={onClose} />
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-        <section className="drm-section-statusbar">
+        <Modal.Section className="drm-section-statusbar">
           <div className="drm-statusbar">
             <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
               {formatPriority(priority)}
@@ -655,11 +655,11 @@ export default function DetailsRequestModal({
               <span className="drm-progress-label">Controls Completed</span>
             </div>
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-        <section className="drm-section-description-details">
+        <Modal.Section className="drm-section-description-details">
           <div className="drm-section">
             <div className="drm-section-title">Description</div>
             <div className="drm-description">{description}</div>
@@ -686,11 +686,11 @@ export default function DetailsRequestModal({
               </div>
             </Panel>
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-        <section className="drm-section-associated">
+        <Modal.Section className="drm-section-associated">
           <div className="drm-section">
             <div className="drm-section-title drm-section-title--withicon">
               <span className="drm-icon" aria-hidden="true">
@@ -742,11 +742,11 @@ export default function DetailsRequestModal({
               </div>
             )}
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-        <section className="drm-section-tabs">
+        <Modal.Section className="drm-section-tabs">
           <Tabs className="drm-tabs">
             <Tabs.Tab
               className="drm-tab"
@@ -877,11 +877,11 @@ export default function DetailsRequestModal({
               />
             ) : null}
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-        <section className="drm-section-footer">
+        <Modal.Section className="drm-section-footer">
           <div className="drm-footer">
             <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
               Close
@@ -986,7 +986,7 @@ export default function DetailsRequestModal({
           </div>
 
           {deleteError ? <ErrorState className="drm-delete-error">{deleteError}</ErrorState> : null}
-        </section>
+        </Modal.Section>
       </Modal>
 
       <EditRequestModal

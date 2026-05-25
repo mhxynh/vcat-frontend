@@ -68,12 +68,26 @@ function ModalBody({ as: Component = 'div', children, className = '', ...props }
   );
 }
 
+function ModalSection({ as: Component = 'section', children, className = '', ...props }) {
+  return (
+    <Component className={cx('app-modal-section', className)} {...props}>
+      {children}
+    </Component>
+  );
+}
+
+function ModalDivider({ className = '', ...props }) {
+  return <div className={cx('app-modal-divider', className)} {...props} />;
+}
+
 function ModalFooter({ children, className = '' }) {
   return <div className={cx('app-modal-footer', className)}>{children}</div>;
 }
 
 Modal.Header = ModalHeader;
 Modal.Body = ModalBody;
+Modal.Section = ModalSection;
+Modal.Divider = ModalDivider;
 Modal.Footer = ModalFooter;
 
 export default Modal;

@@ -285,7 +285,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
   return (
     <>
       <Modal className="dcm-modal" overlayClassName="dcm-overlay" onClose={onClose}>
-        <section className="dcm-section-header">
+        <Modal.Section className="dcm-section-header">
           <div className="dcm-header">
             <div className="dcm-title">{id}</div>
 
@@ -296,18 +296,18 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             <Badge tone={status === 'Active' ? 'active' : 'retired'}>{status}</Badge>
             <Badge tone="neutral">{testing}</Badge>
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="dcm-divider" />
+        <Modal.Divider className="dcm-divider" />
 
-        <section className="dcm-section-description">
+        <Modal.Section className="dcm-section-description">
           <div className="dcm-section">
             <div className="dcm-section-title">Description</div>
             <div className="dcm-description">{description}</div>
           </div>
-        </section>
+        </Modal.Section>
 
-        <section className="dcm-section-details">
+        <Modal.Section className="dcm-section-details">
           <Panel className="dcm-details-card" tone="subtle">
             <div className="dcm-detail-item">
               <div className="dcm-detail-label">Owner</div>
@@ -334,11 +334,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               <div className="dcm-detail-value">{escalationRequired}</div>
             </div>
           </Panel>
-        </section>
+        </Modal.Section>
 
-        <div className="dcm-divider" />
+        <Modal.Divider className="dcm-divider" />
 
-        <section className="dcm-section-request-history">
+        <Modal.Section className="dcm-section-request-history">
           <div className="dcm-section">
             <div className="dcm-section-title dcm-section-title--withicon">
               <Icon name="documents" category="deco" className="dcm-icon--doc" />
@@ -410,11 +410,11 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </ErrorState>
             ) : null}
           </div>
-        </section>
+        </Modal.Section>
 
-        <div className="dcm-divider" />
+        <Modal.Divider className="dcm-divider" />
 
-        <section className="dcm-section-logs">
+        <Modal.Section className="dcm-section-logs">
           <div className="dcm-section">
             <div className="dcm-section-title dcm-section-title--withicon">
               <Icon name="history" category="deco" />
@@ -441,9 +441,9 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </div>
             )}
           </div>
-        </section>
+        </Modal.Section>
 
-        <section className="dcm-section-footer">
+        <Modal.Section className="dcm-section-footer">
           <div className="dcm-footer">
             <button className="dcm-btn dcm-btn--ghost" type="button" onClick={onClose}>
               Close
@@ -484,7 +484,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               </ActionButton>
             </div>
           </div>
-        </section>
+        </Modal.Section>
       </Modal>
 
       <ConfirmActionModal

@@ -50,6 +50,15 @@
   overflow-y: auto;
 }
 
+.app-modal-section {
+  flex-shrink: 0;
+}
+
+.app-modal-divider {
+  height: 1px;
+  background: #ededed;
+}
+
 .app-modal-footer {
   flex-shrink: 0;
   display: flex;

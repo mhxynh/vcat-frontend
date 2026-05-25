@@ -1167,14 +1167,14 @@ export default function DetailsTestModal({
   return (
     <>
       <Modal className="dtm-modal" overlayClassName="dtm-overlay" onClose={onClose}>
-        <section className="dtm-header">
+        <Modal.Section className="dtm-header">
           <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
           <ModalCloseButton className="dtm-close" onClick={onClose} />
-        </section>
+        </Modal.Section>
 
-        <div className="dtm-divider" />
+        <Modal.Divider className="dtm-divider" />
 
-        <section className="dtm-status">
+        <Modal.Section className="dtm-status">
           <div className="dtm-status-top">
             <div className="dtm-status-left">
               <Badge tone={statusToBadgeType(status)}>{statusToLabel(status)}</Badge>
@@ -1373,9 +1373,9 @@ export default function DetailsTestModal({
               ) : null}
             </div>
           )}
-        </section>
+        </Modal.Section>
 
-        <div className="dtm-divider" />
+        <Modal.Divider className="dtm-divider" />
 
         <Tabs className="dtm-tabs">
           <Tabs.Tab
@@ -1416,7 +1416,7 @@ export default function DetailsTestModal({
           </Tabs.Tab>
         </Tabs>
 
-        <section className="dtm-body">
+        <Modal.Section className="dtm-body">
           {activeTab === 'Details' ? (
             <>
               <div className="dtm-details-grid">
@@ -1434,7 +1434,7 @@ export default function DetailsTestModal({
                 <DetailItem label="ETA" value={etaDate} />
               </div>
 
-              <div className="dtm-divider dtm-divider--soft" />
+              <Modal.Divider className="dtm-divider dtm-divider--soft" />
 
               <div className="dtm-desc">
                 <div className="dtm-section-title">Test Description</div>
@@ -1641,11 +1641,11 @@ export default function DetailsTestModal({
               )}
             </div>
           ) : null}
-        </section>
+        </Modal.Section>
 
-        <div className="dtm-divider" />
+        <Modal.Divider className="dtm-divider" />
 
-        <section className="dtm-footer">
+        <Modal.Section className="dtm-footer">
           <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
             Close
           </button>
@@ -1719,7 +1719,7 @@ export default function DetailsTestModal({
               Edit Control Test
             </ActionButton>
           </div>
-        </section>
+        </Modal.Section>
       </Modal>
 
       <ConfirmActionModal
