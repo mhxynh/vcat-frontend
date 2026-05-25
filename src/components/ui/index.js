@@ -8,6 +8,7 @@ export { default as Modal } from './Modal';
 export { default as Panel } from './Panel';
 export { default as Tabs } from './Tabs';
 export { default as SearchInput } from './SearchInput';
+export { default as CommentsComposer } from './CommentsComposer';
 export { EmptyState, ErrorState, LoadingState } from './FeedbackState';
 export { FormField, FormGrid, FormInput, FormSelect, FormTextarea } from './Form';
 export { MetadataGrid, MetadataItem } from './Metadata';

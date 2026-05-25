@@ -23,6 +23,7 @@ import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
 import {
   ActionButton,
+  CommentsComposer,
   EmptyState,
   ErrorState,
   IconButton,
@@ -781,38 +782,19 @@ export default function DetailsRequestModal({
           <div className="drm-tab-content">
             {activeTab === 'Comments' ? (
               <>
-                <div className="drm-addcomment drm-addcomment--top">
-                  <input
-                    className="drm-comment-input"
-                    placeholder="Write a comment…"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    disabled={commentSaving || commentsLoading || !currentUser}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === 'Enter' &&
-                        currentUser &&
-                        !commentSaving &&
-                        !commentsLoading &&
-                        commentText.trim()
-                      ) {
-                        e.preventDefault();
-                        handleAddComment();
-                      }
-                    }}
-                  />
-                  <button
-                    className="drm-send"
-                    type="button"
-                    onClick={handleAddComment}
-                    aria-label="Send"
-                    disabled={
-                      !currentUser || commentSaving || commentsLoading || !commentText.trim()
-                    }
-                  >
-                    {commentSaving ? '...' : '➤'}
-                  </button>
-                </div>
+                <CommentsComposer
+                  className="drm-addcomment drm-addcomment--top"
+                  inputClassName="drm-comment-input"
+                  buttonClassName="drm-send"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onSubmit={handleAddComment}
+                  inputDisabled={commentSaving || commentsLoading || !currentUser}
+                  submitDisabled={
+                    !currentUser || commentSaving || commentsLoading || !commentText.trim()
+                  }
+                  isSubmitting={commentSaving}
+                />
 
                 <div className="drm-comments">
                   {commentsLoading ? (

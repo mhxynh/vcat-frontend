@@ -8,6 +8,7 @@ import ConfirmActionModal from './ConfirmActionModal';
 import {
   ActionButton,
   Badge,
+  CommentsComposer,
   EmptyState,
   ErrorState,
   IconButton,
@@ -1465,28 +1466,20 @@ export default function DetailsTestModal({
             </>
           ) : activeTab === 'Comments' ? (
             <>
-              <div className="dtm-addcomment dtm-addcomment--top">
-                <input
-                  className="dtm-comment-input"
-                  placeholder="Write a comment…"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  disabled={commentSaving || commentsLoading}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddComment();
-                  }}
-                />
-                <ActionButton
-                  className="dtm-send"
-                  type="button"
-                  onClick={handleAddComment}
-                  aria-label="Send"
-                  isLoading={commentSaving}
-                  disabled={!currentUser || commentSaving || commentsLoading || !commentText.trim()}
-                >
-                  <span className="dtm-send-icon">{commentSaving ? '...' : '➤'}</span>
-                </ActionButton>
-              </div>
+              <CommentsComposer
+                className="dtm-addcomment dtm-addcomment--top"
+                inputClassName="dtm-comment-input"
+                buttonClassName="dtm-send"
+                iconClassName="dtm-send-icon"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onSubmit={handleAddComment}
+                inputDisabled={commentSaving || commentsLoading}
+                submitDisabled={
+                  !currentUser || commentSaving || commentsLoading || !commentText.trim()
+                }
+                isSubmitting={commentSaving}
+              />
 
               <div className="dtm-comments">
                 {commentsLoading ? (
