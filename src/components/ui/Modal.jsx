@@ -60,11 +60,11 @@ function ModalHeader({
   );
 }
 
-function ModalBody({ children, className = '', ...props }) {
+function ModalBody({ as: Component = 'div', children, className = '', ...props }) {
   return (
-    <div className={cx('app-modal-body', className)} {...props}>
+    <Component className={cx('app-modal-body', className)} {...props}>
       {children}
-    </div>
+    </Component>
   );
 }
 

@@ -7,7 +7,15 @@ import { createTest } from '../api/TestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
-import { ActionButton, ModalCloseButton } from './ui';
+import {
+  ActionButton,
+  FormField,
+  FormGrid,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  Modal,
+} from './ui';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -230,197 +238,159 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
   if (!isOpen) return null;
 
   return (
-    <div
-      className="ctm-overlay"
-      onMouseDown={(e) => e.target === e.currentTarget && handleClose()}
-      role="presentation"
+    <Modal
+      className="ctm-modal"
+      overlayClassName="ctm-overlay"
+      labelledBy="create-test-title"
+      onClose={handleClose}
     >
-      <div
-        className="ctm-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Create Control Test"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="ctm-header">
-          <h2 className="ctm-title">Create Control Test</h2>
-          <ModalCloseButton className="ctm-close" onClick={handleClose} disabled={submitting} />
-        </div>
+      <Modal.Header
+        className="ctm-header"
+        titleClassName="ctm-title"
+        closeClassName="ctm-close"
+        title="Create Control Test"
+        titleId="create-test-title"
+        onClose={handleClose}
+        closeDisabled={submitting}
+      />
 
-        <div className="ctm-body">
-          {loadError && <div className="ctm-error">{loadError}</div>}
+      <Modal.Body className="ctm-body">
+        {loadError && <div className="ctm-error">{loadError}</div>}
 
-          <div className="ctm-grid">
-            <div className="ctm-field">
-              <label className="ctm-label" htmlFor="vgcpid">
-                VGCPID<span className="ctm-req">*</span>
-              </label>
-              <select
-                id="vgcpid"
-                className="ctm-select"
-                value={selectedVgcpid}
-                onChange={(e) => setSelectedVgcpid(e.target.value)}
-                disabled={loading || !!loadError}
-                aria-invalid={fieldErrors.selectedVgcpid ? 'true' : 'false'}
-              >
-                <option value="" disabled>
-                  {loading ? 'Loading...' : 'Select VGCPID'}
+        <FormGrid className="ctm-grid">
+          <FormField label="VGCPID" required error={fieldErrors.selectedVgcpid}>
+            <FormSelect
+              id="vgcpid"
+              className="ctm-select"
+              value={selectedVgcpid}
+              onChange={(e) => setSelectedVgcpid(e.target.value)}
+              disabled={loading || !!loadError}
+              aria-invalid={fieldErrors.selectedVgcpid ? 'true' : 'false'}
+            >
+              <option value="" disabled>
+                {loading ? 'Loading...' : 'Select VGCPID'}
+              </option>
+              {controls.map((c) => (
+                <option key={`ctrl-${c.id}`} value={c.vgcpid}>
+                  {c.vgcpid}
                 </option>
-                {controls.map((c) => (
-                  <option key={`ctrl-${c.id}`} value={c.vgcpid}>
-                    {c.vgcpid}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.selectedVgcpid ? (
-                <div className="field-error">{fieldErrors.selectedVgcpid}</div>
-              ) : null}
-            </div>
+              ))}
+            </FormSelect>
+          </FormField>
 
-            <div className="ctm-field">
-              <label className="ctm-label" htmlFor="requestId">
-                Link to Request
-              </label>
-              <select
-                id="requestId"
-                className="ctm-select"
-                value={selectedRequestId}
-                onChange={(e) => setSelectedRequestId(e.target.value)}
-                disabled={loading || !!loadError}
-                aria-invalid={fieldErrors.selectedRequestId ? 'true' : 'false'}
-              >
-                <option value="" disabled>
-                  {loading ? 'Loading...' : 'Select request'}
+          <FormField label="Link to Request" error={fieldErrors.selectedRequestId}>
+            <FormSelect
+              id="requestId"
+              className="ctm-select"
+              value={selectedRequestId}
+              onChange={(e) => setSelectedRequestId(e.target.value)}
+              disabled={loading || !!loadError}
+              aria-invalid={fieldErrors.selectedRequestId ? 'true' : 'false'}
+            >
+              <option value="" disabled>
+                {loading ? 'Loading...' : 'Select request'}
+              </option>
+              {requests.map((r) => (
+                <option key={`req-${r.id}`} value={String(r.id)}>
+                  {r.label}
                 </option>
-                {requests.map((r) => (
-                  <option key={`req-${r.id}`} value={String(r.id)}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.selectedRequestId ? (
-                <div className="field-error">{fieldErrors.selectedRequestId}</div>
-              ) : null}
-            </div>
+              ))}
+            </FormSelect>
+          </FormField>
 
-            <div className="ctm-field">
-              <label className="ctm-label" htmlFor="tester">
-                Tester
-              </label>
-              <select
-                id="tester"
-                className="ctm-select"
-                value={selectedTesterId}
-                onChange={(e) => setSelectedTesterId(e.target.value)}
-                disabled={loading || !!loadError}
-              >
-                <option value="">Unassigned</option>
-                {testers.map((t) => (
-                  <option key={`tester-${t.id}`} value={String(t.id)}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="ctm-field">
-              <label className="ctm-label" htmlFor="testType">
-                Test Type<span className="ctm-req">*</span>
-              </label>
-              <select
-                id="testType"
-                className="ctm-select"
-                value={testType}
-                onChange={(e) => setTestType(e.target.value)}
-                disabled={!!loadError}
-                aria-invalid={fieldErrors.testType ? 'true' : 'false'}
-              >
-                <option value="" disabled>
-                  Select test type
+          <FormField label="Tester">
+            <FormSelect
+              id="tester"
+              className="ctm-select"
+              value={selectedTesterId}
+              onChange={(e) => setSelectedTesterId(e.target.value)}
+              disabled={loading || !!loadError}
+            >
+              <option value="">Unassigned</option>
+              {testers.map((t) => (
+                <option key={`tester-${t.id}`} value={String(t.id)}>
+                  {t.name}
                 </option>
-                <option value="DAT Only">DAT Only</option>
-                <option value="OET Only">OET Only</option>
-                <option value="DAT & OET">DAT &amp; OET</option>
-              </select>
-              {fieldErrors.testType ? (
-                <div className="field-error">{fieldErrors.testType}</div>
-              ) : null}
-            </div>
+              ))}
+            </FormSelect>
+          </FormField>
 
-            <div className="ctm-field">
-              <label className="ctm-label" htmlFor="dueDate">
-                Due Date<span className="ctm-req">*</span>
-              </label>
-              <input
-                id="dueDate"
-                className="ctm-input"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                disabled={!!loadError}
-                readOnly={!!selectedRequestId}
-                title={selectedRequestId ? 'Matches the selected request' : undefined}
-                aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
-              />
-              {fieldErrors.dueDate ? (
-                <div className="field-error">{fieldErrors.dueDate}</div>
-              ) : null}
-            </div>
+          <FormField label="Test Type" required error={fieldErrors.testType}>
+            <FormSelect
+              id="testType"
+              className="ctm-select"
+              value={testType}
+              onChange={(e) => setTestType(e.target.value)}
+              disabled={!!loadError}
+              aria-invalid={fieldErrors.testType ? 'true' : 'false'}
+            >
+              <option value="" disabled>
+                Select test type
+              </option>
+              <option value="DAT Only">DAT Only</option>
+              <option value="OET Only">OET Only</option>
+              <option value="DAT & OET">DAT &amp; OET</option>
+            </FormSelect>
+          </FormField>
 
-            <div className="ctm-field">
-              <label className="ctm-label" htmlFor="etaDate">
-                ETA Date
-              </label>
-              <input
-                id="etaDate"
-                className="ctm-input"
-                type="date"
-                value={etaDate}
-                onChange={(e) => setEtaDate(e.target.value)}
-                disabled={!!loadError}
-              />
-            </div>
+          <FormField label="Due Date" required error={fieldErrors.dueDate}>
+            <FormInput
+              id="dueDate"
+              className="ctm-input"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              disabled={!!loadError}
+              readOnly={!!selectedRequestId}
+              title={selectedRequestId ? 'Matches the selected request' : undefined}
+              aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
+            />
+          </FormField>
 
-            <div className="ctm-field ctm-field--full">
-              <label className="ctm-label" htmlFor="description">
-                Description<span className="ctm-req">*</span>
-              </label>
-              <textarea
-                id="description"
-                className="ctm-textarea"
-                placeholder="Enter test description..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={!!loadError}
-                aria-invalid={fieldErrors.description ? 'true' : 'false'}
-              />
-              {fieldErrors.description ? (
-                <div className="field-error">{fieldErrors.description}</div>
-              ) : null}
-            </div>
-          </div>
-        </div>
+          <FormField label="ETA Date">
+            <FormInput
+              id="etaDate"
+              className="ctm-input"
+              type="date"
+              value={etaDate}
+              onChange={(e) => setEtaDate(e.target.value)}
+              disabled={!!loadError}
+            />
+          </FormField>
 
-        <div className="ctm-footer">
-          <ActionButton
-            className="ctm-btn ctm-btn--ghost"
-            variant="cancel"
-            type="button"
-            onClick={handleClose}
-            disabled={submitting}
-          >
-            Cancel
-          </ActionButton>
-          <ActionButton
-            className="ctm-btn ctm-btn--primary"
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting || loading || !!loadError}
-          >
-            {submitting ? 'Creating...' : 'Create Control Test'}
-          </ActionButton>
-        </div>
-      </div>
-    </div>
+          <FormField label="Description" required error={fieldErrors.description} full>
+            <FormTextarea
+              id="description"
+              className="ctm-textarea"
+              placeholder="Enter test description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={!!loadError}
+              aria-invalid={fieldErrors.description ? 'true' : 'false'}
+            />
+          </FormField>
+        </FormGrid>
+      </Modal.Body>
+
+      <Modal.Footer className="ctm-footer">
+        <ActionButton
+          className="ctm-btn ctm-btn--ghost"
+          variant="cancel"
+          type="button"
+          onClick={handleClose}
+          disabled={submitting}
+        >
+          Cancel
+        </ActionButton>
+        <ActionButton
+          className="ctm-btn ctm-btn--primary"
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitting || loading || !!loadError}
+        >
+          {submitting ? 'Creating...' : 'Create Control Test'}
+        </ActionButton>
+      </Modal.Footer>
+    </Modal>
   );
 }
