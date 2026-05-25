@@ -16,6 +16,7 @@ import {
   MetadataGrid,
   MetadataItem,
   Modal,
+  ModalBusyOverlay,
   ModalCloseButton,
   Tabs,
 } from './ui';
@@ -1170,6 +1171,8 @@ export default function DetailsTestModal({
   return (
     <>
       <Modal className="dtm-modal" overlayClassName="dtm-overlay" onClose={onClose}>
+        <ModalBusyOverlay visible={isBusy} message={busyMessage} />
+
         <Modal.Section className="dtm-header">
           <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
           <ModalCloseButton className="dtm-close" onClick={onClose} />
@@ -1460,7 +1463,9 @@ export default function DetailsTestModal({
               <Modal.Divider className="dtm-divider dtm-divider--soft" />
 
               <div className="dtm-desc">
-                <div className="dtm-section-title">Test Description</div>
+                <Modal.SectionTitle className="dtm-section-title">
+                  Test Description
+                </Modal.SectionTitle>
                 <div className="dtm-desc-text">{description}</div>
               </div>
             </>
@@ -1559,7 +1564,9 @@ export default function DetailsTestModal({
 
               <div className="dtm-attachments-header">
                 <div>
-                  <div className="dtm-section-title">Linked Files ({attachments.length})</div>
+                  <Modal.SectionTitle className="dtm-section-title">
+                    Linked Files ({attachments.length})
+                  </Modal.SectionTitle>
                 </div>
 
                 {attachments.length > 0 ? (

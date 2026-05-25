@@ -80,6 +80,19 @@ function ModalDivider({ className = '', ...props }) {
   return <div className={cx('app-modal-divider', className)} {...props} />;
 }
 
+function ModalSectionTitle({ children, className = '', icon = null, iconClassName = '' }) {
+  return (
+    <div className={cx('app-modal-section-title', className)}>
+      {icon ? (
+        <span className={cx('app-modal-section-title-icon', iconClassName)} aria-hidden="true">
+          {icon}
+        </span>
+      ) : null}
+      {children}
+    </div>
+  );
+}
+
 function ModalFooter({ children, className = '' }) {
   return <div className={cx('app-modal-footer', className)}>{children}</div>;
 }
@@ -88,6 +101,7 @@ Modal.Header = ModalHeader;
 Modal.Body = ModalBody;
 Modal.Section = ModalSection;
 Modal.Divider = ModalDivider;
+Modal.SectionTitle = ModalSectionTitle;
 Modal.Footer = ModalFooter;
 
 export default Modal;

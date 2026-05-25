@@ -664,7 +664,7 @@ export default function DetailsRequestModal({
 
         <Modal.Section className="drm-section-description-details">
           <div className="drm-section">
-            <div className="drm-section-title">Description</div>
+            <Modal.SectionTitle className="drm-section-title">Description</Modal.SectionTitle>
             <div className="drm-description">{description}</div>
 
             <Panel className="drm-details-card">
@@ -704,12 +704,13 @@ export default function DetailsRequestModal({
 
         <Modal.Section className="drm-section-associated">
           <div className="drm-section">
-            <div className="drm-section-title drm-section-title--withicon">
-              <span className="drm-icon" aria-hidden="true">
-                <Icon name="documents" category="deco" size="md" />
-              </span>
+            <Modal.SectionTitle
+              className="drm-section-title drm-section-title--withicon"
+              iconClassName="drm-icon"
+              icon={<Icon name="documents" category="deco" size="md" />}
+            >
               Associated Controls ({controls.length})
-            </div>
+            </Modal.SectionTitle>
 
             {controls.length === 0 ? (
               <EmptyState className="drm-empty">No tests found for this request.</EmptyState>

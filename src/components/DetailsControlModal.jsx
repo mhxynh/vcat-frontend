@@ -304,7 +304,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
         <Modal.Section className="dcm-section-description">
           <div className="dcm-section">
-            <div className="dcm-section-title">Description</div>
+            <Modal.SectionTitle className="dcm-section-title">Description</Modal.SectionTitle>
             <div className="dcm-description">{description}</div>
           </div>
         </Modal.Section>
@@ -353,10 +353,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
         <Modal.Section className="dcm-section-request-history">
           <div className="dcm-section">
-            <div className="dcm-section-title dcm-section-title--withicon">
-              <Icon name="documents" category="deco" className="dcm-icon--doc" />
+            <Modal.SectionTitle
+              className="dcm-section-title dcm-section-title--withicon"
+              icon={<Icon name="documents" category="deco" className="dcm-icon--doc" />}
+            >
               Request History
-            </div>
+            </Modal.SectionTitle>
 
             <DataTable.Wrap className="dcm-request-table-wrap">
               {requestHistoryError ? (
@@ -429,10 +431,12 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
         <Modal.Section className="dcm-section-logs">
           <div className="dcm-section">
-            <div className="dcm-section-title dcm-section-title--withicon">
-              <Icon name="history" category="deco" />
+            <Modal.SectionTitle
+              className="dcm-section-title dcm-section-title--withicon"
+              icon={<Icon name="history" category="deco" />}
+            >
               History & Logs
-            </div>
+            </Modal.SectionTitle>
 
             {logs.length === 0 ? (
               <EmptyState className="dcm-empty">No logs found.</EmptyState>

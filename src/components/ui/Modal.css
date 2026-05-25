@@ -10,6 +10,7 @@
 }
 
 .app-modal {
+  position: relative;
   width: min(900px, 100%);
   max-height: 90vh;
   display: flex;
@@ -57,6 +58,16 @@
 .app-modal-divider {
   height: 1px;
   background: #ededed;
+}
+
+.app-modal-section-title {
+  display: block;
+}
+
+.app-modal-section-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-modal-footer {
