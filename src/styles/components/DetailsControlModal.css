@@ -102,9 +102,6 @@
 
 /* details */
 .dcm-details-card {
-  border: 1px solid #ededed;
-  background: #fafafa;
-  border-radius: 12px;
   padding: 14px;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -211,7 +208,7 @@
   border-radius: 999px;
   border: 0;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .dcm-request-status-badge--good {

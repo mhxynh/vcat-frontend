@@ -46,8 +46,8 @@
 }
 
 .drm-title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .drm-close {
@@ -183,8 +183,6 @@
 
 /* Details card */
 .drm-details-card {
-  border: 1px solid #ededed;
-  border-radius: 12px;
   padding: 12px;
   display: grid;
   grid-template-columns: 1fr 1fr;

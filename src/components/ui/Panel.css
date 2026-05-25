@@ -1,0 +1,21 @@
+.app-panel {
+  border: 1px solid #ededed;
+  border-radius: 12px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.app-panel--subtle {
+  background: #fafafa;
+}
+
+.app-panel--muted {
+  border-color: #e5e7eb;
+  background: #f3f4f6;
+}
+
+.app-panel--dashed {
+  border-style: dashed;
+  border-color: #d7dce4;
+  background: linear-gradient(180deg, #ffffff, #fafbfc);
+}

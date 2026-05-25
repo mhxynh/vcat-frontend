@@ -27,6 +27,7 @@ import {
   LoadingState,
   Modal,
   ModalCloseButton,
+  Panel,
 } from './ui';
 
 function formatDisplayDate(value) {
@@ -307,7 +308,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         </section>
 
         <section className="dcm-section-details">
-          <div className="dcm-details-card">
+          <Panel className="dcm-details-card" tone="subtle">
             <div className="dcm-detail-item">
               <div className="dcm-detail-label">Owner</div>
               <div className="dcm-detail-value">{owner}</div>
@@ -332,7 +333,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               <div className="dcm-detail-label">Escalation</div>
               <div className="dcm-detail-value">{escalationRequired}</div>
             </div>
-          </div>
+          </Panel>
         </section>
 
         <div className="dcm-divider" />

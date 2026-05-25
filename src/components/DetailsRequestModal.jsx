@@ -29,6 +29,7 @@ import {
   LoadingState,
   Modal,
   ModalCloseButton,
+  Panel,
   Tabs,
 } from './ui';
 import {
@@ -663,7 +664,7 @@ export default function DetailsRequestModal({
             <div className="drm-section-title">Description</div>
             <div className="drm-description">{description}</div>
 
-            <div className="drm-details-card">
+            <Panel className="drm-details-card">
               <div className="drm-detail-item">
                 <div className="drm-detail-label">Requested By</div>
                 <div className="drm-detail-value">{requestedBy}</div>
@@ -683,7 +684,7 @@ export default function DetailsRequestModal({
                 <div className="drm-detail-label">Due Date</div>
                 <div className="drm-detail-value drm-date-warn">{dueDate}</div>
               </div>
-            </div>
+            </Panel>
           </div>
         </section>
 

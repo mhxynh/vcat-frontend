@@ -15,6 +15,7 @@ import {
   LoadingState,
   FormGrid,
   Modal,
+  Panel,
   SearchInput,
 } from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
@@ -402,7 +403,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
               <div className="erm-divider" />
 
-              <div className="erm-section erm-section--associated-controls">
+              <Panel className="erm-section erm-section--associated-controls" tone="muted">
                 <h3 className="erm-section-title">Associated Controls*</h3>
                 {!isManager ? (
                   <div className="erm-restriction-note">{updateRequestRestriction}</div>
@@ -551,7 +552,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                     </RestrictedAction>
                   </div>
                 </div>
-              </div>
+              </Panel>
             </>
           )}
         </Modal.Body>
