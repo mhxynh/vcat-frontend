@@ -78,3 +78,14 @@
   padding: 18px 22px;
   border-top: 1px solid #eeeeee;
 }
+
+.app-modal-action-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-modal-action-footer-actions {
+  display: flex;
+  align-items: center;
+}

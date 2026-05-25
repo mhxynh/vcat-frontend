@@ -711,6 +711,10 @@
   padding: 16px 22px;
 }
 
+.dtm-footer-inner {
+  width: 100%;
+}
+
 .dtm-footer-right {
   display: flex;
   gap: 10px;

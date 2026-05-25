@@ -851,108 +851,112 @@ export default function DetailsRequestModal({
         <Modal.Divider className="drm-divider" />
 
         <Modal.Section className="drm-section-footer">
-          <div className="drm-footer">
-            <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
-              Close
-            </button>
+          <Modal.ActionFooter
+            className="drm-footer"
+            actionsClassName="drm-footer-right"
+            actions={
+              <>
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
+                    }
+                  }}
+                >
+                  <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
+                    {statusUpper === 'ARCHIVED' ? (
+                      <ActionButton
+                        className="drm-btn drm-btn--outline"
+                        variant="cancel"
+                        type="button"
+                        onClick={openUnarchive}
+                        disabled={archiving || deleting || requestId == null}
+                        title={requestId == null ? 'No request selected' : 'Unarchive this request'}
+                      >
+                        Unarchive Request
+                      </ActionButton>
+                    ) : (
+                      <ActionButton
+                        className="drm-btn drm-btn--outline"
+                        variant="cancel"
+                        type="button"
+                        onClick={() => setIsArchiveConfirmOpen(true)}
+                        disabled={archiving || deleting || requestId == null || isCompleted}
+                        title={
+                          requestId == null
+                            ? 'No request selected'
+                            : isCompleted
+                              ? 'Cannot archive a completed request'
+                              : 'Archive this request'
+                        }
+                      >
+                        Archive Request
+                      </ActionButton>
+                    )}
+                  </RestrictedAction>
+                </div>
 
-            <div className="drm-footer-right">
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
-                  {statusUpper === 'ARCHIVED' ? (
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
+                    }
+                  }}
+                >
+                  <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
                     <ActionButton
                       className="drm-btn drm-btn--outline"
                       variant="cancel"
                       type="button"
-                      onClick={openUnarchive}
-                      disabled={archiving || deleting || requestId == null}
-                      title={requestId == null ? 'No request selected' : 'Unarchive this request'}
-                    >
-                      Unarchive Request
-                    </ActionButton>
-                  ) : (
-                    <ActionButton
-                      className="drm-btn drm-btn--outline"
-                      variant="cancel"
-                      type="button"
-                      onClick={() => setIsArchiveConfirmOpen(true)}
-                      disabled={archiving || deleting || requestId == null || isCompleted}
+                      onClick={() => setIsDeleteConfirmOpen(true)}
+                      disabled={deleting || archiving || requestId == null || isCompleted}
                       title={
                         requestId == null
                           ? 'No request selected'
                           : isCompleted
-                            ? 'Cannot archive a completed request'
-                            : 'Archive this request'
+                            ? 'Cannot delete a completed request'
+                            : 'Permanently delete this request'
                       }
                     >
-                      Archive Request
+                      Delete Request
                     </ActionButton>
-                  )}
-                </RestrictedAction>
-              </div>
-
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
-                  <ActionButton
-                    className="drm-btn drm-btn--outline"
-                    variant="cancel"
-                    type="button"
-                    onClick={() => setIsDeleteConfirmOpen(true)}
-                    disabled={deleting || archiving || requestId == null || isCompleted}
-                    title={
-                      requestId == null
-                        ? 'No request selected'
-                        : isCompleted
-                          ? 'Cannot delete a completed request'
-                          : 'Permanently delete this request'
+                  </RestrictedAction>
+                </div>
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
                     }
-                  >
-                    Delete Request
-                  </ActionButton>
-                </RestrictedAction>
-              </div>
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                  <button
-                    className="drm-btn drm-btn--primary"
-                    type="button"
-                    onClick={openEdit}
-                    disabled={!requestId}
-                    title={requestId ? 'Edit this request' : 'No request selected'}
-                  >
-                    Edit Request
-                  </button>
-                </RestrictedAction>
-              </div>
-            </div>
-          </div>
+                  }}
+                >
+                  <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                    <button
+                      className="drm-btn drm-btn--primary"
+                      type="button"
+                      onClick={openEdit}
+                      disabled={!requestId}
+                      title={requestId ? 'Edit this request' : 'No request selected'}
+                    >
+                      Edit Request
+                    </button>
+                  </RestrictedAction>
+                </div>
+              </>
+            }
+          >
+            <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
+              Close
+            </button>
+          </Modal.ActionFooter>
 
           {deleteError ? <ErrorState className="drm-delete-error">{deleteError}</ErrorState> : null}
         </Modal.Section>

@@ -461,46 +461,50 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
         </Modal.Section>
 
         <Modal.Section className="dcm-section-footer">
-          <div className="dcm-footer">
+          <Modal.ActionFooter
+            className="dcm-footer"
+            actionsClassName="dcm-footer-right"
+            actions={
+              <>
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
+                    }
+                  }}
+                >
+                  <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
+                    <ActionButton
+                      className="dcm-btn dcm-btn--outline"
+                      variant="cancel"
+                      type="button"
+                      onClick={openDeleteConfirm}
+                      disabled={deleting || !id}
+                      title={!id ? 'No control selected' : 'Delete this control'}
+                    >
+                      Delete Control
+                    </ActionButton>
+                  </RestrictedAction>
+                </div>
+
+                <ActionButton
+                  className="dcm-btn dcm-btn--primary"
+                  type="button"
+                  onClick={openEdit}
+                  disabled={!control?.id}
+                >
+                  Edit Control
+                </ActionButton>
+              </>
+            }
+          >
             <button className="dcm-btn dcm-btn--ghost" type="button" onClick={onClose}>
               Close
             </button>
-
-            <div className="dcm-footer-right">
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
-                  <ActionButton
-                    className="dcm-btn dcm-btn--outline"
-                    variant="cancel"
-                    type="button"
-                    onClick={openDeleteConfirm}
-                    disabled={deleting || !id}
-                    title={!id ? 'No control selected' : 'Delete this control'}
-                  >
-                    Delete Control
-                  </ActionButton>
-                </RestrictedAction>
-              </div>
-
-              <ActionButton
-                className="dcm-btn dcm-btn--primary"
-                type="button"
-                onClick={openEdit}
-                disabled={!control?.id}
-              >
-                Edit Control
-              </ActionButton>
-            </div>
-          </div>
+          </Modal.ActionFooter>
         </Modal.Section>
       </Modal>
 

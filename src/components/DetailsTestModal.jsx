@@ -1647,79 +1647,85 @@ export default function DetailsTestModal({
         <Modal.Divider className="dtm-divider" />
 
         <Modal.Section className="dtm-footer">
-          <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
-            Close
-          </button>
-
-          <div className="dtm-footer-right">
-            {/* Archive / Unarchive */}
-            <div
-              onClick={(e) => {
-                const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                if (blockedWrapper) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  showPermissionDeniedToast();
-                }
-              }}
-            >
-              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
-                {statusUpper === 'ARCHIVED' ? (
-                  <ActionButton
-                    className="dtm-btn dtm-btn--secondary"
-                    variant="cancel"
-                    type="button"
-                    onClick={openUnarchiveConfirm}
-                    disabled={isBusy}
-                  >
-                    Unarchive Control Test
-                  </ActionButton>
-                ) : (
-                  <ActionButton
-                    className="dtm-btn dtm-btn--secondary"
-                    variant="cancel"
-                    type="button"
-                    onClick={openArchiveConfirm}
-                    disabled={isBusy}
-                  >
-                    Archive Control Test
-                  </ActionButton>
-                )}
-              </RestrictedAction>
-            </div>
-
-            <div
-              onClick={(e) => {
-                const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                if (blockedWrapper) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  showPermissionDeniedToast();
-                }
-              }}
-            >
-              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
-                <ActionButton
-                  className="dtm-btn dtm-btn--secondary"
-                  variant="cancel"
-                  type="button"
-                  onClick={openDeleteConfirm}
-                  disabled={isBusy}
+          <Modal.ActionFooter
+            className="dtm-footer-inner"
+            actionsClassName="dtm-footer-right"
+            actions={
+              <>
+                {/* Archive / Unarchive */}
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
+                    }
+                  }}
                 >
-                  Delete Control Test
-                </ActionButton>
-              </RestrictedAction>
-            </div>
+                  <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                    {statusUpper === 'ARCHIVED' ? (
+                      <ActionButton
+                        className="dtm-btn dtm-btn--secondary"
+                        variant="cancel"
+                        type="button"
+                        onClick={openUnarchiveConfirm}
+                        disabled={isBusy}
+                      >
+                        Unarchive Control Test
+                      </ActionButton>
+                    ) : (
+                      <ActionButton
+                        className="dtm-btn dtm-btn--secondary"
+                        variant="cancel"
+                        type="button"
+                        onClick={openArchiveConfirm}
+                        disabled={isBusy}
+                      >
+                        Archive Control Test
+                      </ActionButton>
+                    )}
+                  </RestrictedAction>
+                </div>
 
-            <ActionButton
-              className="dtm-btn dtm-btn--primary"
-              type="button"
-              onClick={openEdit}
-              disabled={!testId}
-            >
-              Edit Control Test
-            </ActionButton>
-          </div>
+                <div
+                  onClick={(e) => {
+                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                    if (blockedWrapper) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showPermissionDeniedToast();
+                    }
+                  }}
+                >
+                  <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                    <ActionButton
+                      className="dtm-btn dtm-btn--secondary"
+                      variant="cancel"
+                      type="button"
+                      onClick={openDeleteConfirm}
+                      disabled={isBusy}
+                    >
+                      Delete Control Test
+                    </ActionButton>
+                  </RestrictedAction>
+                </div>
+
+                <ActionButton
+                  className="dtm-btn dtm-btn--primary"
+                  type="button"
+                  onClick={openEdit}
+                  disabled={!testId}
+                >
+                  Edit Control Test
+                </ActionButton>
+              </>
+            }
+          >
+            <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
+              Close
+            </button>
+          </Modal.ActionFooter>
         </Modal.Section>
       </Modal>
 

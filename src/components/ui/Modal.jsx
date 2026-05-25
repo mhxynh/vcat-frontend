@@ -97,11 +97,21 @@ function ModalFooter({ children, className = '' }) {
   return <div className={cx('app-modal-footer', className)}>{children}</div>;
 }
 
+function ModalActionFooter({ children, actions, className = '', actionsClassName = '' }) {
+  return (
+    <div className={cx('app-modal-action-footer', className)}>
+      {children}
+      <div className={cx('app-modal-action-footer-actions', actionsClassName)}>{actions}</div>
+    </div>
+  );
+}
+
 Modal.Header = ModalHeader;
 Modal.Body = ModalBody;
 Modal.Section = ModalSection;
 Modal.Divider = ModalDivider;
 Modal.SectionTitle = ModalSectionTitle;
 Modal.Footer = ModalFooter;
+Modal.ActionFooter = ModalActionFooter;
 
 export default Modal;
