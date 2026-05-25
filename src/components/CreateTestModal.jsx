@@ -9,6 +9,7 @@ import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 import {
   ActionButton,
+  ErrorState,
   FormField,
   FormGrid,
   FormInput,
@@ -255,7 +256,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
       />
 
       <Modal.Body className="ctm-body">
-        {loadError && <div className="ctm-error">{loadError}</div>}
+        {loadError && (
+          <ErrorState className="ctm-error" prefix="">
+            {loadError}
+          </ErrorState>
+        )}
 
         <FormGrid className="ctm-grid">
           <FormField label="VGCPID" required error={fieldErrors.selectedVgcpid}>

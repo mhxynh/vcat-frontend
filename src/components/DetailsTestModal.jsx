@@ -5,7 +5,16 @@ import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { ActionButton, Badge, Modal, ModalCloseButton, Tabs } from './ui';
+import {
+  ActionButton,
+  Badge,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Modal,
+  ModalCloseButton,
+  Tabs,
+} from './ui';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -1458,11 +1467,11 @@ export default function DetailsTestModal({
 
               <div className="dtm-comments">
                 {commentsLoading ? (
-                  <div className="dtm-empty">Loading comments...</div>
+                  <LoadingState className="dtm-empty">Loading comments...</LoadingState>
                 ) : commentsError ? (
-                  <div className="dtm-empty">Error: {commentsError}</div>
+                  <ErrorState className="dtm-empty">{commentsError}</ErrorState>
                 ) : localComments.length === 0 ? (
-                  <div className="dtm-empty">No comments found.</div>
+                  <EmptyState className="dtm-empty">No comments found.</EmptyState>
                 ) : (
                   localComments.map((c) => (
                     <div className="dtm-comment" key={c.id}>

@@ -5,4 +5,6 @@ export { default as SegmentedControl } from './SegmentedControl';
 export { default as ModalCloseButton } from './ModalCloseButton';
 export { default as Modal } from './Modal';
 export { default as Tabs } from './Tabs';
+export { default as SearchInput } from './SearchInput';
+export { EmptyState, ErrorState, LoadingState } from './FeedbackState';
 export { FormField, FormGrid, FormInput, FormSelect, FormTextarea } from './Form';

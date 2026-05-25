@@ -143,7 +143,9 @@
 
 .erm-search:disabled,
 .erm-search-input-wrap--disabled,
-.erm-search-input-wrap--disabled .erm-search-icon {
+.erm-search-input-wrap--disabled .erm-search-icon,
+.erm-search-input-wrap.app-search-input--disabled,
+.erm-search-input-wrap.app-search-input--disabled .erm-search-icon {
   cursor: not-allowed;
 }
 
@@ -206,7 +208,7 @@
   flex: 1;
 }
 
-.erm-search-input-wrap .erm-search {
+.erm-search-input-wrap .app-search-input__control.erm-search {
   padding-left: 34px;
 }
 

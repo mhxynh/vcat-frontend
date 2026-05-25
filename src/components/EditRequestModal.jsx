@@ -8,7 +8,7 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
-import { ActionButton, FormGrid, Modal } from './ui';
+import { ActionButton, EmptyState, LoadingState, FormGrid, Modal, SearchInput } from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
@@ -254,9 +254,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
         <Modal.Body className="erm-body">
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+            <LoadingState style={{ padding: '40px', textAlign: 'center' }}>
               Loading request details...
-            </div>
+            </LoadingState>
           ) : (
             <>
               <div className="erm-summary-card">
@@ -402,34 +402,31 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
                 <div className="erm-search-row">
                   <div className="erm-search-wrapper" ref={searchWrapperRef}>
-                    <div
-                      className={`erm-search-input-wrap ${searchDisabled ? 'erm-search-input-wrap--disabled' : ''}`}
-                    >
-                      <span className="erm-search-icon" aria-hidden="true">
-                        🔍
-                      </span>
-                      <input
-                        className="erm-search"
-                        placeholder="Search Controls to add..."
-                        value={searchQuery || ''}
-                        onChange={(e) => {
-                          if (!isManager) return;
-                          setSearchQuery(e.target.value);
-                          setShowSearchResults(true);
-                        }}
-                        onFocus={() => {
-                          if (!isManager) return;
-                          setShowSearchResults(true);
-                        }}
-                        disabled={searchDisabled}
-                        title={!isManager ? updateRequestRestriction : undefined}
-                      />
-                    </div>
+                    <SearchInput
+                      className="erm-search-input-wrap"
+                      iconClassName="erm-search-icon"
+                      inputClassName="erm-search"
+                      placeholder="Search Controls to add..."
+                      value={searchQuery || ''}
+                      onChange={(nextValue) => {
+                        if (!isManager) return;
+                        setSearchQuery(nextValue);
+                        setShowSearchResults(true);
+                      }}
+                      onFocus={() => {
+                        if (!isManager) return;
+                        setShowSearchResults(true);
+                      }}
+                      disabled={searchDisabled}
+                      title={!isManager ? updateRequestRestriction : undefined}
+                    />
 
                     {isManager && showSearchResults && (
                       <div className="erm-search-dropdown">
                         {searchResults.length === 0 ? (
-                          <div className="erm-search-empty">No matching controls found.</div>
+                          <EmptyState className="erm-search-empty">
+                            No matching controls found.
+                          </EmptyState>
                         ) : (
                           searchResults.map((test) => {
                             const id = test.testId ?? test.id;
@@ -480,7 +477,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
                 <div className="erm-test-list">
                   {filteredTests.length === 0 ? (
-                    <div
+                    <EmptyState
                       style={{
                         padding: '20px',
                         textAlign: 'center',
@@ -491,7 +488,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       }}
                     >
                       No tests match your search.
-                    </div>
+                    </EmptyState>
                   ) : (
                     filteredTests.map((test) => {
                       const statusClass = String(test.status || 'NOT_STARTED')

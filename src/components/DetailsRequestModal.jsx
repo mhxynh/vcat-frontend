@@ -21,7 +21,15 @@ import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton, Modal, ModalCloseButton, Tabs } from './ui';
+import {
+  ActionButton,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Modal,
+  ModalCloseButton,
+  Tabs,
+} from './ui';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -690,7 +698,7 @@ export default function DetailsRequestModal({
             </div>
 
             {controls.length === 0 ? (
-              <div className="drm-empty">No tests found for this request.</div>
+              <EmptyState className="drm-empty">No tests found for this request.</EmptyState>
             ) : (
               <div className="drm-table-wrap">
                 <table className="drm-table">
@@ -796,11 +804,11 @@ export default function DetailsRequestModal({
 
                 <div className="drm-comments">
                   {commentsLoading ? (
-                    <div className="drm-empty">Loading comments...</div>
+                    <LoadingState className="drm-empty">Loading comments...</LoadingState>
                   ) : commentsError ? (
-                    <div className="drm-empty">Error: {commentsError}</div>
+                    <ErrorState className="drm-empty">{commentsError}</ErrorState>
                   ) : localComments.length === 0 ? (
-                    <div className="drm-empty">No comments found.</div>
+                    <EmptyState className="drm-empty">No comments found.</EmptyState>
                   ) : (
                     localComments.map((c) => (
                       <div className="drm-comment" key={c.id}>
@@ -976,7 +984,7 @@ export default function DetailsRequestModal({
             </div>
           </div>
 
-          {deleteError ? <div className="drm-delete-error">Error: {deleteError}</div> : null}
+          {deleteError ? <ErrorState className="drm-delete-error">{deleteError}</ErrorState> : null}
         </section>
       </Modal>
 

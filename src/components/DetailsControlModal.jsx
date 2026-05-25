@@ -19,7 +19,15 @@ import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton, Badge, Modal, ModalCloseButton } from './ui';
+import {
+  ActionButton,
+  Badge,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Modal,
+  ModalCloseButton,
+} from './ui';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -338,11 +346,13 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
             <div className="dcm-request-table-wrap">
               {requestHistoryError ? (
-                <div className="dcm-empty">{requestHistoryError}</div>
+                <ErrorState className="dcm-empty" prefix="">
+                  {requestHistoryError}
+                </ErrorState>
               ) : requestHistoryLoading ? (
-                <div className="dcm-empty">Loading request history…</div>
+                <LoadingState className="dcm-empty">Loading request history…</LoadingState>
               ) : requestHistory.length === 0 ? (
-                <div className="dcm-empty">No request history found.</div>
+                <EmptyState className="dcm-empty">No request history found.</EmptyState>
               ) : (
                 <table className="dcm-request-table">
                   <thead>
@@ -390,9 +400,13 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               )}
             </div>
             {requestDetailsError ? (
-              <div className="dcm-empty" style={{ paddingLeft: 0, paddingRight: 0 }}>
+              <ErrorState
+                className="dcm-empty"
+                prefix=""
+                style={{ paddingLeft: 0, paddingRight: 0 }}
+              >
                 {requestDetailsError}
-              </div>
+              </ErrorState>
             ) : null}
           </div>
         </section>
@@ -407,7 +421,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             </div>
 
             {logs.length === 0 ? (
-              <div className="dcm-empty">No logs found.</div>
+              <EmptyState className="dcm-empty">No logs found.</EmptyState>
             ) : (
               <div className="dcm-logs">
                 {logs.map((log, idx) => (
