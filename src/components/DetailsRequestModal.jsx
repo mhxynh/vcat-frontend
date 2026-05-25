@@ -25,6 +25,7 @@ import {
   ActionButton,
   EmptyState,
   ErrorState,
+  IconButton,
   LoadingState,
   Modal,
   ModalCloseButton,
@@ -828,12 +829,11 @@ export default function DetailsRequestModal({
                               <div className="drm-comment-date">{c.date ?? ''}</div>
                               {currentUser?.['user_id'] != null &&
                               String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                                <button
+                                <IconButton
                                   className="drm-comment-action drm-comment-action--delete"
-                                  type="button"
                                   onClick={() => handleDeleteComment(c)}
                                   disabled={commentDeletingId != null}
-                                  aria-label="Delete comment"
+                                  label="Delete comment"
                                   title="Delete comment"
                                 >
                                   {commentDeletingId === String(c.id) ? (
@@ -846,7 +846,7 @@ export default function DetailsRequestModal({
                                       color="#545454"
                                     />
                                   )}
-                                </button>
+                                </IconButton>
                               ) : null}
                             </div>
                           </div>

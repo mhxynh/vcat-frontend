@@ -571,27 +571,15 @@
 }
 
 .drm-comment-action {
-  border: 0;
-  background: transparent;
   color: #6b7280;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  cursor: pointer;
   padding: 2px 4px;
   border-radius: 6px;
 }
 
-.drm-comment-action:hover:not(:disabled) {
-  background: #fef2f2;
-}
-
-.drm-comment-action--delete:hover:not(:disabled) {
-  color: #b91c1c;
-}
-
 .drm-comment-action:disabled {
-  cursor: not-allowed;
   opacity: 0.6;
 }
 

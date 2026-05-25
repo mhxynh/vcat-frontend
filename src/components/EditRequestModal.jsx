@@ -8,7 +8,15 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
-import { ActionButton, EmptyState, LoadingState, FormGrid, Modal, SearchInput } from './ui';
+import {
+  ActionButton,
+  EmptyState,
+  IconButton,
+  LoadingState,
+  FormGrid,
+  Modal,
+  SearchInput,
+} from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
@@ -512,15 +520,15 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                             </div>
                           </div>
                           <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                            <button
-                              type="button"
+                            <IconButton
                               className="erm-x"
                               onClick={() => handleRemoveTest(test)}
                               disabled={saving}
+                              label="Remove Control"
                               title="Remove Control"
                             >
                               ×
-                            </button>
+                            </IconButton>
                           </RestrictedAction>
                         </div>
                       );

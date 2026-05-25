@@ -10,6 +10,7 @@ import {
   Badge,
   EmptyState,
   ErrorState,
+  IconButton,
   LoadingState,
   Modal,
   ModalCloseButton,
@@ -1491,12 +1492,11 @@ export default function DetailsTestModal({
                             <div className="dtm-comment-date">{c.date ?? ''}</div>
                             {currentUser?.['user_id'] != null &&
                             String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                              <button
+                              <IconButton
                                 className="dtm-comment-action dtm-comment-action--delete"
-                                type="button"
                                 onClick={() => handleDeleteComment(c)}
                                 disabled={commentDeletingId != null}
-                                aria-label="Delete comment"
+                                label="Delete comment"
                                 title="Delete comment"
                               >
                                 {commentDeletingId === String(c.id) ? (
@@ -1504,7 +1504,7 @@ export default function DetailsTestModal({
                                 ) : (
                                   <Icon name="trash" category="actions" size="sm" />
                                 )}
-                              </button>
+                              </IconButton>
                             ) : null}
                           </div>
                         </div>
@@ -1613,26 +1613,27 @@ export default function DetailsTestModal({
                       </div>
 
                       <div className="dtm-attachment-actions">
-                        <a
+                        <IconButton
+                          as="a"
                           className="dtm-attachment-action dtm-attachment-action--open"
                           href={attachment.url}
                           target="_blank"
                           rel="noopener noreferrer"
+                          label="Open Link"
                           title="Open Link"
                         >
                           <Icon name="link" category="actions" size="sm" color="#545454" />
-                        </a>
+                        </IconButton>
 
-                        <button
+                        <IconButton
                           className="dtm-attachment-action dtm-attachment-action--delete"
-                          type="button"
                           onClick={() => handleRemoveEvidenceLink(attachment.url)}
                           disabled={isBusy}
-                          aria-label={`Remove ${attachment.title}`}
+                          label={`Remove ${attachment.title}`}
                           title="Delete Link"
                         >
                           <Icon name="trash" category="actions" size="sm" color="#545454" />
-                        </button>
+                        </IconButton>
                       </div>
                     </div>
                   ))}

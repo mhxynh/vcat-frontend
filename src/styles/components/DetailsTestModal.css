@@ -520,31 +520,11 @@
 }
 
 .dtm-attachment-action {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
   color: #545454;
-  display: inline-grid;
-  place-items: center;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.dtm-attachment-action:hover {
-  background: #e5e7eb;
-}
-
-.dtm-attachment-action--delete:hover:not(:disabled) {
-  background: #fef2f2;
-  color: #dc2626;
 }
 
 .dtm-attachment-action:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .dtm-attachments-empty {
@@ -835,27 +815,15 @@
 }
 
 .dtm-comment-action {
-  border: 0;
-  background: transparent;
   color: #6b7280;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  cursor: pointer;
   padding: 2px 4px;
   border-radius: 6px;
 }
 
-.dtm-comment-action:hover:not(:disabled) {
-  background: #fef2f2;
-}
-
-.dtm-comment-action--delete:hover:not(:disabled) {
-  color: #b91c1c;
-}
-
 .dtm-comment-action:disabled {
-  cursor: not-allowed;
   opacity: 0.6;
 }
 

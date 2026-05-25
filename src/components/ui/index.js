@@ -3,6 +3,7 @@ export { default as ActionButton } from './ActionButton';
 export { default as Badge } from './Badge';
 export { default as SegmentedControl } from './SegmentedControl';
 export { default as ModalCloseButton } from './ModalCloseButton';
+export { default as IconButton } from './IconButton';
 export { default as Modal } from './Modal';
 export { default as Tabs } from './Tabs';
 export { default as SearchInput } from './SearchInput';
