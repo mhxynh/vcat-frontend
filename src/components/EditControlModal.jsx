@@ -2,9 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { updateControl, retireControl } from '../api/ControlsAPI';
 import { useRole, ACTIONS } from '../auth';
 import '../styles/components/EditControlModal.css';
-import '../styles/components/EditModal.css';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import { ActionButton, ModalCloseButton } from './ui';
+import {
+  ActionButton,
+  FormField,
+  FormGrid,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  Modal,
+} from './ui';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
@@ -117,177 +124,131 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
   const statusFieldTitle = !isManager ? restrictionMessage(ACTIONS.RETIRE_CONTROL) : undefined;
 
   return (
-    <div
-      className="ecm-overlay edit-modal-overlay"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
-      }}
+    <Modal
+      className="ecm-modal"
+      overlayClassName="ecm-overlay"
+      labelledBy="edit-control-title"
+      onClose={onClose}
     >
-      <div
-        className="ecm-modal edit-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-control-title"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="ecm-header">
-          <h2 className="ecm-title" id="edit-control-title">
-            Edit Control: {originalVgcpid}
-          </h2>
+      <Modal.Header
+        className="ecm-header"
+        titleClassName="ecm-title"
+        closeClassName="ecm-close"
+        title={`Edit Control: ${originalVgcpid}`}
+        titleId="edit-control-title"
+        onClose={onClose}
+      />
 
-          <ModalCloseButton className="ecm-close" onClick={onClose} />
-        </div>
+      <Modal.Body className="ecm-body">
+        <FormGrid className="ecm-grid">
+          <FormField label="Control ID" required error={fieldErrors.vgcpid}>
+            <FormInput
+              className="ecm-input"
+              value={vgcpid}
+              onChange={(e) => setVgcpid(e.target.value)}
+              placeholder="e.g. VGCP-123456"
+              disabled={!isManager}
+              title={controlIdFieldTitle}
+              aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
+            />
+          </FormField>
 
-        <div className="ecm-body">
-          <div className="ecm-grid">
-            <div className="ecm-field">
-              <label className="ecm-label">
-                Control ID{' '}
-                <span className="ecm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="ecm-input"
-                value={vgcpid}
-                onChange={(e) => setVgcpid(e.target.value)}
-                placeholder="e.g. VGCP-123456"
-                disabled={!isManager}
-                title={controlIdFieldTitle}
-                aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
-              />
-              {fieldErrors.vgcpid ? <div className="field-error">{fieldErrors.vgcpid}</div> : null}
-            </div>
-
-            <div className="ecm-field">
-              <label className="ecm-label">
-                Status{' '}
-                <span className="ecm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <select
-                className="ecm-select"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                disabled={!isManager}
-                title={statusFieldTitle}
-              >
-                {isManager ? (
-                  <>
-                    <option value="Active">Active</option>
-                    <option value="Retired">Retired</option>
-                  </>
-                ) : initial.status === 'Retired' ? (
-                  <option value="Retired">Retired</option>
-                ) : (
+          <FormField label="Status" required>
+            <FormSelect
+              className="ecm-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={!isManager}
+              title={statusFieldTitle}
+            >
+              {isManager ? (
+                <>
                   <option value="Active">Active</option>
-                )}
-              </select>
-            </div>
+                  <option value="Retired">Retired</option>
+                </>
+              ) : initial.status === 'Retired' ? (
+                <option value="Retired">Retired</option>
+              ) : (
+                <option value="Active">Active</option>
+              )}
+            </FormSelect>
+          </FormField>
 
-            <div className="ecm-field ecm-field--full">
-              <label className="ecm-label">
-                Description{' '}
-                <span className="ecm-req" aria-hidden="true">
-                  *
-                </span>
+          <FormField label="Description" required error={fieldErrors.description} full>
+            <FormTextarea
+              className="ecm-textarea"
+              placeholder="Enter detailed control description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              aria-invalid={fieldErrors.description ? 'true' : 'false'}
+            />
+          </FormField>
+
+          <FormField label="Control Owner" required error={fieldErrors.controlOwner}>
+            <FormInput
+              className="ecm-input"
+              placeholder="Last name, first name"
+              value={controlOwner}
+              onChange={(e) => setControlOwner(e.target.value)}
+              aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
+            />
+          </FormField>
+
+          <FormField label="Control SME">
+            <FormInput
+              className="ecm-input"
+              placeholder="Last name, first name"
+              value={controlSme}
+              onChange={(e) => setControlSme(e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Escalation Required?" required full>
+            <div className="ecm-radio-row" role="radiogroup" aria-label="Escalation Required">
+              <label className="ecm-radio-item">
+                <input
+                  type="radio"
+                  name="edit-escalation"
+                  checked={escalation === true}
+                  onChange={() => setEscalation(true)}
+                />
+                <span>Yes</span>
               </label>
-              <textarea
-                className="ecm-textarea"
-                placeholder="Enter detailed control description..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                aria-invalid={fieldErrors.description ? 'true' : 'false'}
-              />
-              {fieldErrors.description ? (
-                <div className="field-error">{fieldErrors.description}</div>
-              ) : null}
-            </div>
 
-            <div className="ecm-field">
-              <label className="ecm-label">
-                Control Owner{' '}
-                <span className="ecm-req" aria-hidden="true">
-                  *
-                </span>
+              <label className="ecm-radio-item">
+                <input
+                  type="radio"
+                  name="edit-escalation"
+                  checked={escalation === false}
+                  onChange={() => setEscalation(false)}
+                />
+                <span>No</span>
               </label>
-              <input
-                className="ecm-input"
-                placeholder="Last name, first name"
-                value={controlOwner}
-                onChange={(e) => setControlOwner(e.target.value)}
-                aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
-              />
-              {fieldErrors.controlOwner ? (
-                <div className="field-error">{fieldErrors.controlOwner}</div>
-              ) : null}
             </div>
+          </FormField>
+        </FormGrid>
+      </Modal.Body>
 
-            <div className="ecm-field">
-              <label className="ecm-label">Control SME</label>
-              <input
-                className="ecm-input"
-                placeholder="Last name, first name"
-                value={controlSme}
-                onChange={(e) => setControlSme(e.target.value)}
-              />
-            </div>
+      <Modal.Footer className="ecm-footer">
+        <ActionButton
+          type="button"
+          variant="cancel"
+          className="ecm-btn ecm-btn--outline"
+          onClick={onClose}
+          disabled={submitting}
+        >
+          Cancel
+        </ActionButton>
 
-            <div className="ecm-field ecm-field--full">
-              <label className="ecm-label">
-                Escalation Required?{' '}
-                <span className="ecm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <div className="ecm-radio-row" role="radiogroup" aria-label="Escalation Required">
-                <label className="ecm-radio-item">
-                  <input
-                    type="radio"
-                    name="edit-escalation"
-                    checked={escalation === true}
-                    onChange={() => setEscalation(true)}
-                  />
-                  <span>Yes</span>
-                </label>
-
-                <label className="ecm-radio-item">
-                  <input
-                    type="radio"
-                    name="edit-escalation"
-                    checked={escalation === false}
-                    onChange={() => setEscalation(false)}
-                  />
-                  <span>No</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="ecm-footer">
-          <ActionButton
-            type="button"
-            variant="cancel"
-            className="ecm-btn ecm-btn--outline"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            Cancel
-          </ActionButton>
-
-          <ActionButton
-            type="button"
-            className="ecm-btn ecm-btn--primary"
-            onClick={handleSave}
-            disabled={submitting}
-          >
-            {submitting ? 'Saving...' : 'Save Changes'}
-          </ActionButton>
-        </div>
-      </div>
-    </div>
+        <ActionButton
+          type="button"
+          className="ecm-btn ecm-btn--primary"
+          onClick={handleSave}
+          disabled={submitting}
+        >
+          {submitting ? 'Saving...' : 'Save Changes'}
+        </ActionButton>
+      </Modal.Footer>
+    </Modal>
   );
 }

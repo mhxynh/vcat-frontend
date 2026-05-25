@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import '../styles/components/EditRequestModal.css';
-import '../styles/components/EditModal.css';
 import { fetchRequestById, updateRequest } from '../api/RequestsAPI';
 import { fetchTestsByRequestId, fetchTests, updateTest } from '../api/TestsAPI';
 import CreateTestModal from './CreateTestModal';
@@ -9,7 +8,7 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
-import { ActionButton, ModalCloseButton } from './ui';
+import { ActionButton, FormGrid, Modal } from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
@@ -236,28 +235,24 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   const searchDisabled = saving || !isManager;
 
   return (
-    <div
-      className="erm-overlay edit-modal-overlay"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
-      }}
-    >
-      <div
-        className="erm-modal edit-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-request-title"
-        onMouseDown={(e) => e.stopPropagation()}
+    <>
+      <Modal
+        className="erm-modal"
+        overlayClassName="erm-overlay"
+        labelledBy="edit-request-title"
+        onClose={onClose}
       >
-        <div className="erm-header">
-          <h2 className="erm-title" id="edit-request-title">
-            Edit Request
-          </h2>
-          <ModalCloseButton className="erm-close" onClick={onClose} disabled={saving} />
-        </div>
+        <Modal.Header
+          className="erm-header"
+          titleClassName="erm-title"
+          closeClassName="erm-close"
+          title="Edit Request"
+          titleId="edit-request-title"
+          onClose={onClose}
+          closeDisabled={saving}
+        />
 
-        <div className="erm-body">
+        <Modal.Body className="erm-body">
           {loading ? (
             <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
               Loading request details...
@@ -276,7 +271,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                 </div>
               </div>
 
-              <div className="erm-grid">
+              <FormGrid className="erm-grid">
                 <div className="erm-field">
                   <label className="erm-label">
                     Request ID{' '}
@@ -395,7 +390,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                     <div className="field-error">{fieldErrors.description}</div>
                   )}
                 </div>
-              </div>
+              </FormGrid>
 
               <div className="erm-divider" />
 
@@ -554,9 +549,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
               </div>
             </>
           )}
-        </div>
+        </Modal.Body>
 
-        <div className="erm-footer">
+        <Modal.Footer className="erm-footer">
           <ActionButton
             type="button"
             variant="cancel"
@@ -574,8 +569,8 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </ActionButton>
-        </div>
-      </div>
+        </Modal.Footer>
+      </Modal>
 
       <CreateTestModal
         isOpen={isCreateTestOpen}
@@ -596,7 +591,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
           if (onUpdated) await onUpdated(updated);
         }}
       />
-    </div>
+    </>
   );
 }
 
