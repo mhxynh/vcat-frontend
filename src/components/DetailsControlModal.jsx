@@ -22,6 +22,7 @@ import { ACTIONS } from '../auth';
 import {
   ActionButton,
   Badge,
+  DataTable,
   EmptyState,
   ErrorState,
   LoadingState,
@@ -357,7 +358,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               Request History
             </div>
 
-            <div className="dcm-request-table-wrap">
+            <DataTable.Wrap className="dcm-request-table-wrap">
               {requestHistoryError ? (
                 <ErrorState className="dcm-empty" prefix="">
                   {requestHistoryError}
@@ -367,20 +368,20 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
               ) : requestHistory.length === 0 ? (
                 <EmptyState className="dcm-empty">No request history found.</EmptyState>
               ) : (
-                <table className="dcm-request-table">
-                  <thead>
-                    <tr>
-                      <th>Request ID</th>
-                      <th>Date</th>
-                      <th>Requester</th>
-                      <th>Status</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <DataTable className="dcm-request-table">
+                  <DataTable.Head>
+                    <DataTable.Row>
+                      <DataTable.HeaderCell>Request ID</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Date</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Requester</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Status</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Description</DataTable.HeaderCell>
+                    </DataTable.Row>
+                  </DataTable.Head>
+                  <DataTable.Body>
                     {requestHistory.map((r) => (
-                      <tr key={r.key ?? r.requestId}>
-                        <td className="dcm-request-id">
+                      <DataTable.Row key={r.key ?? r.requestId}>
+                        <DataTable.Cell className="dcm-request-id">
                           {getHistoryRowRequestId(r) != null ? (
                             <button
                               type="button"
@@ -393,10 +394,10 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                           ) : (
                             <span>{r.requestId}</span>
                           )}
-                        </td>
-                        <td>{formatRequestHistoryTableDate(r)}</td>
-                        <td>{r.requester ?? '-'}</td>
-                        <td>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{formatRequestHistoryTableDate(r)}</DataTable.Cell>
+                        <DataTable.Cell>{r.requester ?? '-'}</DataTable.Cell>
+                        <DataTable.Cell>
                           <span
                             className={`dcm-request-status-badge ${requestStatusBadgeClass(
                               r.status
@@ -404,14 +405,14 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                           >
                             {r.status ?? '-'}
                           </span>
-                        </td>
-                        <td>{r.description ?? '-'}</td>
-                      </tr>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{r.description ?? '-'}</DataTable.Cell>
+                      </DataTable.Row>
                     ))}
-                  </tbody>
-                </table>
+                  </DataTable.Body>
+                </DataTable>
               )}
-            </div>
+            </DataTable.Wrap>
             {requestDetailsError ? (
               <ErrorState
                 className="dcm-empty"

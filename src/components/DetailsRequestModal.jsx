@@ -24,6 +24,7 @@ import { ACTIONS } from '../auth';
 import {
   ActionButton,
   CommentsComposer,
+  DataTable,
   EmptyState,
   ErrorState,
   IconButton,
@@ -713,21 +714,21 @@ export default function DetailsRequestModal({
             {controls.length === 0 ? (
               <EmptyState className="drm-empty">No tests found for this request.</EmptyState>
             ) : (
-              <div className="drm-table-wrap">
-                <table className="drm-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Status</th>
-                      <th>Assignee</th>
-                      <th>ETA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+              <DataTable.Wrap className="drm-table-wrap">
+                <DataTable className="drm-table">
+                  <DataTable.Head>
+                    <DataTable.Row>
+                      <DataTable.HeaderCell>ID</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Name</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Status</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Assignee</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>ETA</DataTable.HeaderCell>
+                    </DataTable.Row>
+                  </DataTable.Head>
+                  <DataTable.Body>
                     {controls.map((c) => (
-                      <tr key={c.test_id || c.id}>
-                        <td className="drm-mono">
+                      <DataTable.Row key={c.test_id || c.id}>
+                        <DataTable.Cell className="drm-mono">
                           <button
                             type="button"
                             className="vgcpid-link"
@@ -735,22 +736,22 @@ export default function DetailsRequestModal({
                           >
                             {c.vgcpid || c.id}
                           </button>
-                        </td>
-                        <td>{c.title || c.description || '-'}</td>
-                        <td>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{c.title || c.description || '-'}</DataTable.Cell>
+                        <DataTable.Cell>
                           <span
                             className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
                           >
                             {c.statusLabel || formatStatus(c.status)}
                           </span>
-                        </td>
-                        <td>{c.assignee ?? '-'}</td>
-                        <td>{c.eta ?? '-'}</td>
-                      </tr>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{c.assignee ?? '-'}</DataTable.Cell>
+                        <DataTable.Cell>{c.eta ?? '-'}</DataTable.Cell>
+                      </DataTable.Row>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </DataTable.Body>
+                </DataTable>
+              </DataTable.Wrap>
             )}
           </div>
         </Modal.Section>
