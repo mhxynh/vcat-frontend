@@ -5,7 +5,7 @@ import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { ActionButton, Badge, ModalCloseButton } from './ui';
+import { ActionButton, Badge, Modal, ModalCloseButton } from './ui';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -385,8 +385,6 @@ export default function DetailsTestModal({
     localRefresh: refreshTest,
     parentRefresh: onUpdated,
   });
-
-  const stop = (e) => e.stopPropagation();
 
   const t = useMemo(() => normalizedTest ?? {}, [normalizedTest]);
 
@@ -1158,563 +1156,559 @@ export default function DetailsTestModal({
 
   return (
     <>
-      <div className="dtm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
-        <div className="dtm-modal" onMouseDown={stop}>
-          <section className="dtm-header">
-            <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
-            <ModalCloseButton className="dtm-close" onClick={onClose} />
-          </section>
+      <Modal className="dtm-modal" overlayClassName="dtm-overlay" onClose={onClose}>
+        <section className="dtm-header">
+          <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
+          <ModalCloseButton className="dtm-close" onClick={onClose} />
+        </section>
 
-          <div className="dtm-divider" />
+        <div className="dtm-divider" />
 
-          <section className="dtm-status">
-            <div className="dtm-status-top">
-              <div className="dtm-status-left">
-                <Badge tone={statusToBadgeType(status)}>{statusToLabel(status)}</Badge>
-                <span className="dtm-dot">•</span>
-                <span className="dtm-subtle">{typeLabel}</span>
+        <section className="dtm-status">
+          <div className="dtm-status-top">
+            <div className="dtm-status-left">
+              <Badge tone={statusToBadgeType(status)}>{statusToLabel(status)}</Badge>
+              <span className="dtm-dot">•</span>
+              <span className="dtm-subtle">{typeLabel}</span>
+            </div>
+
+            <div className="dtm-assignee">
+              <div className="dtm-assignee-label">Assigned To</div>
+              <div className="dtm-assignee-row">
+                <div className="dtm-avatar" aria-hidden="true">
+                  {initials(assignedName)}
+                </div>
+                <div className="dtm-assignee-name">{assignedName}</div>
               </div>
+            </div>
+          </div>
 
-              <div className="dtm-assignee">
-                <div className="dtm-assignee-label">Assigned To</div>
-                <div className="dtm-assignee-row">
-                  <div className="dtm-avatar" aria-hidden="true">
-                    {initials(assignedName)}
-                  </div>
-                  <div className="dtm-assignee-name">{assignedName}</div>
+          {statusUpper === 'COMPLETED' ? (
+            <div className="dtm-step-card dtm-step-card--completed">
+              <div className="dtm-complete-box">
+                <div className="dtm-complete-icon" aria-hidden="true">
+                  <Icon name="checkmark" category="deco" size="sm" color="currentColor" />
+                </div>
+
+                <div>
+                  <div className="dtm-complete-label">STATUS</div>
+                  <div className="dtm-complete-title">Control Testing Complete</div>
                 </div>
               </div>
             </div>
-
-            {statusUpper === 'COMPLETED' ? (
-              <div className="dtm-step-card dtm-step-card--completed">
-                <div className="dtm-complete-box">
-                  <div className="dtm-complete-icon" aria-hidden="true">
-                    <Icon name="checkmark" category="deco" size="sm" color="currentColor" />
-                  </div>
-
-                  <div>
-                    <div className="dtm-complete-label">STATUS</div>
-                    <div className="dtm-complete-title">Control Testing Complete</div>
-                  </div>
-                </div>
-              </div>
-            ) : isBlockedStatus ? (
-              <div className="dtm-step-card dtm-step-card--blocked">
-                <div className="dtm-complete-box">
-                  <div className="dtm-complete-icon" aria-hidden="true">
-                    <Icon name="block" category="actions" size="sm" color="currentColor" />
-                  </div>
-
-                  <div>
-                    <div className="dtm-complete-label">STATUS</div>
-                    <div className="dtm-complete-title">Control Testing Blocked</div>
-                  </div>
-
-                  <div className="dtm-step-actions-right" style={{ marginLeft: 'auto' }}>
-                    <ActionButton
-                      className="dtm-btn dtm-btn--primary"
-                      type="button"
-                      onClick={openUnblockConfirm}
-                      disabled={isBusy}
-                    >
-                      <Icon
-                        name="start"
-                        category="deco"
-                        size="sm"
-                        color="#fff"
-                        className="dtm-btn-icon"
-                      />
-                      Unblock
-                    </ActionButton>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="dtm-step-card">
-                <div className="dtm-step-left">
-                  <div
-                    className={`dtm-step-icon ${statusUpper === 'IN_REVIEW' ? 'dtm-step-icon--review' : isTrackInProgress ? 'dtm-step-icon--progress' : 'dtm-step-icon--default'}`}
-                    aria-hidden="true"
-                  >
-                    {statusUpper === 'IN_REVIEW' ? (
-                      <Icon name="eye" category="deco" size="sm" color="currentColor" />
-                    ) : isTrackInProgress ? (
-                      <Icon name="control-details" category="deco" size="sm" color="currentColor" />
-                    ) : (
-                      <Icon name="start" category="deco" size="sm" color="currentColor" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="dtm-step-label">CURRENT STEP</div>
-                    <div className="dtm-step-value">{currentStepLabel}</div>
-                  </div>
+          ) : isBlockedStatus ? (
+            <div className="dtm-step-card dtm-step-card--blocked">
+              <div className="dtm-complete-box">
+                <div className="dtm-complete-icon" aria-hidden="true">
+                  <Icon name="block" category="actions" size="sm" color="currentColor" />
                 </div>
 
-                <div className="dtm-step-actions-left">
-                  {showRevert ? (
-                    <ActionButton
-                      className="dtm-btn dtm-btn--revert"
-                      variant="cancel"
-                      type="button"
-                      onClick={handleRevert}
-                      disabled={isBusy || isLockedStatus}
-                      title={
-                        isBusy
-                          ? 'Action in progress'
-                          : isLockedStatus
-                            ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
-                            : 'Revert this control test to the previous step'
-                      }
-                    >
-                      <Icon
-                        name="undo"
-                        category="actions"
-                        size="sm"
-                        color="#545454"
-                        className="dtm-btn-icon"
-                      />
-                      Revert
-                    </ActionButton>
-                  ) : null}
-
-                  {isTrackInProgress ? (
-                    <ActionButton
-                      className="dtm-btn dtm-btn--secondary"
-                      variant="cancel"
-                      type="button"
-                      onClick={openBlockConfirm}
-                      disabled={isBusy}
-                    >
-                      <Icon
-                        name="block"
-                        category="actions"
-                        size="sm"
-                        color="#C20029"
-                        className="dtm-btn-icon"
-                      />
-                      Mark Blocked
-                    </ActionButton>
-                  ) : null}
-
-                  {showReject ? (
-                    <ActionButton
-                      className="dtm-btn dtm-btn--secondary"
-                      variant="cancel"
-                      type="button"
-                      onClick={openRejectConfirm}
-                      disabled={isBusy}
-                    >
-                      <Icon
-                        name="reject"
-                        category="actions"
-                        size="sm"
-                        color="#C20029"
-                        className="dtm-btn-icon"
-                      />
-                      Reject
-                    </ActionButton>
-                  ) : null}
+                <div>
+                  <div className="dtm-complete-label">STATUS</div>
+                  <div className="dtm-complete-title">Control Testing Blocked</div>
                 </div>
 
-                {showNextStepPanel ? (
-                  <>
-                    <div className="dtm-step-mid" aria-hidden="true">
-                      <Icon name="arrow" category="deco" size="sm" color="#D1D1D1" />
-                    </div>
-
-                    <div className="dtm-step-right">
-                      {primaryLabel ? (
-                        <ActionButton
-                          className="dtm-btn dtm-btn--primary dtm-step-action--approve"
-                          type="button"
-                          onClick={handlePrimaryAction}
-                          disabled={isBusy}
-                        >
-                          {statusUpper === 'IN_REVIEW' ? (
-                            <>
-                              <Icon
-                                name="approve"
-                                category="actions"
-                                size="sm"
-                                color="#fff"
-                                className="dtm-btn-icon"
-                              />
-                              {primaryLabel}
-                            </>
-                          ) : (
-                            <>
-                              {primaryLabel}
-                              <Icon
-                                name="arrow"
-                                category="deco"
-                                size="sm"
-                                color="#fff"
-                                className="dtm-btn-icon"
-                              />
-                            </>
-                          )}
-                        </ActionButton>
-                      ) : null}
-
-                      <span className="dtm-next">
-                        <span className="dtm-next-label">Next: </span>
-                        {nextStepLabel}
-                      </span>
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            )}
-          </section>
-
-          <div className="dtm-divider" />
-
-          <section className="dtm-tabs">
-            <button
-              type="button"
-              className={`dtm-tab ${activeTab === 'Details' ? 'dtm-tab--active' : ''}`}
-              onClick={() => setActiveTab('Details')}
-            >
-              Details
-            </button>
-            <button
-              type="button"
-              className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
-              onClick={() => setActiveTab('Attachments')}
-            >
-              <span>Attachments</span>
-              {attachments.length > 0 ? (
-                <span className="dtm-tab-count">{attachments.length}</span>
-              ) : null}
-            </button>
-            <button
-              type="button"
-              className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
-              onClick={() => setActiveTab('Comments')}
-            >
-              <span>Comments</span>
-              {localComments.length > 0 ? (
-                <span className="dtm-tab-count">{localComments.length}</span>
-              ) : null}
-            </button>
-            <button
-              type="button"
-              className={`dtm-tab ${activeTab === 'History' ? 'dtm-tab--active' : ''}`}
-              onClick={() => setActiveTab('History')}
-            >
-              History
-            </button>
-          </section>
-
-          <section className="dtm-body">
-            {activeTab === 'Details' ? (
-              <>
-                <div className="dtm-details-grid">
-                  <DetailItem label="DATE UPDATED" value={updatedAt} />
-                  <DetailItem
-                    label="DUE DATE"
-                    value={
-                      <span className="dtm-date-with-icon">
-                        <span>{dueDate}</span>
-                        {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
-                      </span>
-                    }
-                  />
-                  <DetailItem label="CURRENT STEP" value={currentStepLabel} />
-                  <DetailItem label="ETA" value={etaDate} />
-                </div>
-
-                <div className="dtm-divider dtm-divider--soft" />
-
-                <div className="dtm-desc">
-                  <div className="dtm-section-title">Test Description</div>
-                  <div className="dtm-desc-text">{description}</div>
-                </div>
-              </>
-            ) : activeTab === 'Comments' ? (
-              <>
-                <div className="dtm-addcomment dtm-addcomment--top">
-                  <input
-                    className="dtm-comment-input"
-                    placeholder="Write a comment…"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    disabled={commentSaving || commentsLoading}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddComment();
-                    }}
-                  />
+                <div className="dtm-step-actions-right" style={{ marginLeft: 'auto' }}>
                   <ActionButton
-                    className="dtm-send"
+                    className="dtm-btn dtm-btn--primary"
                     type="button"
-                    onClick={handleAddComment}
-                    aria-label="Send"
-                    isLoading={commentSaving}
-                    disabled={
-                      !currentUser || commentSaving || commentsLoading || !commentText.trim()
-                    }
+                    onClick={openUnblockConfirm}
+                    disabled={isBusy}
                   >
-                    <span className="dtm-send-icon">{commentSaving ? '...' : '➤'}</span>
+                    <Icon
+                      name="start"
+                      category="deco"
+                      size="sm"
+                      color="#fff"
+                      className="dtm-btn-icon"
+                    />
+                    Unblock
                   </ActionButton>
                 </div>
-
-                <div className="dtm-comments">
-                  {commentsLoading ? (
-                    <div className="dtm-empty">Loading comments...</div>
-                  ) : commentsError ? (
-                    <div className="dtm-empty">Error: {commentsError}</div>
-                  ) : localComments.length === 0 ? (
-                    <div className="dtm-empty">No comments found.</div>
+              </div>
+            </div>
+          ) : (
+            <div className="dtm-step-card">
+              <div className="dtm-step-left">
+                <div
+                  className={`dtm-step-icon ${statusUpper === 'IN_REVIEW' ? 'dtm-step-icon--review' : isTrackInProgress ? 'dtm-step-icon--progress' : 'dtm-step-icon--default'}`}
+                  aria-hidden="true"
+                >
+                  {statusUpper === 'IN_REVIEW' ? (
+                    <Icon name="eye" category="deco" size="sm" color="currentColor" />
+                  ) : isTrackInProgress ? (
+                    <Icon name="control-details" category="deco" size="sm" color="currentColor" />
                   ) : (
-                    localComments.map((c) => (
-                      <div className="dtm-comment" key={c.id}>
-                        <div className="dtm-comment-left">
-                          <div className="dtm-avatar" aria-hidden="true">
-                            {String(c.author || '?')
-                              .trim()
-                              .slice(0, 1)
-                              .toUpperCase()}
-                          </div>
-                        </div>
-
-                        <div className="dtm-comment-main">
-                          <div className="dtm-comment-top">
-                            <div className="dtm-comment-author">{c.author ?? '-'}</div>
-                            <div className="dtm-comment-meta">
-                              <div className="dtm-comment-date">{c.date ?? ''}</div>
-                              {currentUser?.['user_id'] != null &&
-                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                                <button
-                                  className="dtm-comment-action dtm-comment-action--delete"
-                                  type="button"
-                                  onClick={() => handleDeleteComment(c)}
-                                  disabled={commentDeletingId != null}
-                                  aria-label="Delete comment"
-                                  title="Delete comment"
-                                >
-                                  {commentDeletingId === String(c.id) ? (
-                                    '...'
-                                  ) : (
-                                    <Icon name="trash" category="actions" size="sm" />
-                                  )}
-                                </button>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="dtm-comment-text">{c.text ?? ''}</div>
-                        </div>
-                      </div>
-                    ))
+                    <Icon name="start" category="deco" size="sm" color="currentColor" />
                   )}
                 </div>
-              </>
-            ) : activeTab === 'History' ? (
-              <AuditHistoryView
-                logs={historyLogs}
-                loading={historyLoading}
-                error={historyError}
-                overlayTitle={`Test History: ${vgcpid}`}
-                showContent={true}
-                contextVgcpid={vgcpid}
-              />
-            ) : activeTab === 'Attachments' ? (
-              <div className="dtm-attachments">
-                <div className="dtm-attachments-note" role="note">
-                  <Icon
-                    name="exclamation"
-                    category="deco"
-                    size="sm"
-                    color="#1d4ed8"
-                    className="dtm-attachments-note-icon-svg"
-                  />
-                  <div>
-                    <div className="dtm-attachments-note-title">
-                      Attachments are stored as external links. No files are uploaded or stored
-                      within this application.
-                    </div>
-                  </div>
+                <div>
+                  <div className="dtm-step-label">CURRENT STEP</div>
+                  <div className="dtm-step-value">{currentStepLabel}</div>
                 </div>
-
-                <div className="dtm-attachments-header">
-                  <div>
-                    <div className="dtm-section-title">Linked Files ({attachments.length})</div>
-                  </div>
-
-                  {attachments.length > 0 ? (
-                    <ActionButton
-                      className="dtm-btn dtm-btn--compact"
-                      type="button"
-                      onClick={handleAddEvidenceLink}
-                      disabled={isBusy}
-                    >
-                      <Icon
-                        name="attach"
-                        category="actions"
-                        size="sm"
-                        color="#fff"
-                        className="dtm-btn-icon"
-                      />
-                      Add Link
-                    </ActionButton>
-                  ) : null}
-                </div>
-
-                {attachments.length === 0 ? (
-                  <div className="dtm-attachments-empty">
-                    <div className="dtm-attachments-empty-title">No links yet</div>
-                    <div className="dtm-attachments-empty-text">
-                      Add a supporting document, screenshot, or other external evidence link to
-                      track test artifacts here.
-                    </div>
-                    <ActionButton
-                      className="dtm-btn dtm-btn--primary dtm-btn--compact"
-                      type="button"
-                      onClick={handleAddEvidenceLink}
-                      disabled={isBusy}
-                    >
-                      <Icon
-                        name="attach"
-                        category="actions"
-                        size="sm"
-                        color="#fff"
-                        className="dtm-btn-icon"
-                      />
-                      Add Link
-                    </ActionButton>
-                  </div>
-                ) : (
-                  <div className="dtm-attachments-list">
-                    {attachments.map((attachment) => (
-                      <div className="dtm-attachment-card" key={attachment.id}>
-                        <div className="dtm-attachment-link">
-                          <div className="dtm-attachment-media" aria-hidden="true">
-                            <Icon
-                              name="documents"
-                              category="deco"
-                              size="sm"
-                              color="#4b5563"
-                              className="dtm-attachment-media-icon"
-                            />
-                          </div>
-
-                          <div className="dtm-attachment-body">
-                            <div className="dtm-attachment-title-row">
-                              <div className="dtm-attachment-title">{attachment.title}</div>
-                            </div>
-                            <div className="dtm-attachment-meta">{attachment.meta}</div>
-                          </div>
-                        </div>
-
-                        <div className="dtm-attachment-actions">
-                          <a
-                            className="dtm-attachment-action dtm-attachment-action--open"
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Open Link"
-                          >
-                            <Icon name="link" category="actions" size="sm" color="#545454" />
-                          </a>
-
-                          <button
-                            className="dtm-attachment-action dtm-attachment-action--delete"
-                            type="button"
-                            onClick={() => handleRemoveEvidenceLink(attachment.url)}
-                            disabled={isBusy}
-                            aria-label={`Remove ${attachment.title}`}
-                            title="Delete Link"
-                          >
-                            <Icon name="trash" category="actions" size="sm" color="#545454" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </section>
-
-          <div className="dtm-divider" />
-
-          <section className="dtm-footer">
-            <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
-              Close
-            </button>
-
-            <div className="dtm-footer-right">
-              {/* Archive / Unarchive */}
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
-                  {statusUpper === 'ARCHIVED' ? (
-                    <ActionButton
-                      className="dtm-btn dtm-btn--secondary"
-                      variant="cancel"
-                      type="button"
-                      onClick={openUnarchiveConfirm}
-                      disabled={isBusy}
-                    >
-                      Unarchive Control Test
-                    </ActionButton>
-                  ) : (
-                    <ActionButton
-                      className="dtm-btn dtm-btn--secondary"
-                      variant="cancel"
-                      type="button"
-                      onClick={openArchiveConfirm}
-                      disabled={isBusy}
-                    >
-                      Archive Control Test
-                    </ActionButton>
-                  )}
-                </RestrictedAction>
               </div>
 
-              <div
-                onClick={(e) => {
-                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                  if (blockedWrapper) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPermissionDeniedToast();
-                  }
-                }}
-              >
-                <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+              <div className="dtm-step-actions-left">
+                {showRevert ? (
+                  <ActionButton
+                    className="dtm-btn dtm-btn--revert"
+                    variant="cancel"
+                    type="button"
+                    onClick={handleRevert}
+                    disabled={isBusy || isLockedStatus}
+                    title={
+                      isBusy
+                        ? 'Action in progress'
+                        : isLockedStatus
+                          ? `Cannot revert a ${statusUpper.toLowerCase()} control test`
+                          : 'Revert this control test to the previous step'
+                    }
+                  >
+                    <Icon
+                      name="undo"
+                      category="actions"
+                      size="sm"
+                      color="#545454"
+                      className="dtm-btn-icon"
+                    />
+                    Revert
+                  </ActionButton>
+                ) : null}
+
+                {isTrackInProgress ? (
                   <ActionButton
                     className="dtm-btn dtm-btn--secondary"
                     variant="cancel"
                     type="button"
-                    onClick={openDeleteConfirm}
+                    onClick={openBlockConfirm}
                     disabled={isBusy}
                   >
-                    Delete Control Test
+                    <Icon
+                      name="block"
+                      category="actions"
+                      size="sm"
+                      color="#C20029"
+                      className="dtm-btn-icon"
+                    />
+                    Mark Blocked
                   </ActionButton>
-                </RestrictedAction>
+                ) : null}
+
+                {showReject ? (
+                  <ActionButton
+                    className="dtm-btn dtm-btn--secondary"
+                    variant="cancel"
+                    type="button"
+                    onClick={openRejectConfirm}
+                    disabled={isBusy}
+                  >
+                    <Icon
+                      name="reject"
+                      category="actions"
+                      size="sm"
+                      color="#C20029"
+                      className="dtm-btn-icon"
+                    />
+                    Reject
+                  </ActionButton>
+                ) : null}
               </div>
 
-              <ActionButton
-                className="dtm-btn dtm-btn--primary"
-                type="button"
-                onClick={openEdit}
-                disabled={!testId}
-              >
-                Edit Control Test
-              </ActionButton>
+              {showNextStepPanel ? (
+                <>
+                  <div className="dtm-step-mid" aria-hidden="true">
+                    <Icon name="arrow" category="deco" size="sm" color="#D1D1D1" />
+                  </div>
+
+                  <div className="dtm-step-right">
+                    {primaryLabel ? (
+                      <ActionButton
+                        className="dtm-btn dtm-btn--primary dtm-step-action--approve"
+                        type="button"
+                        onClick={handlePrimaryAction}
+                        disabled={isBusy}
+                      >
+                        {statusUpper === 'IN_REVIEW' ? (
+                          <>
+                            <Icon
+                              name="approve"
+                              category="actions"
+                              size="sm"
+                              color="#fff"
+                              className="dtm-btn-icon"
+                            />
+                            {primaryLabel}
+                          </>
+                        ) : (
+                          <>
+                            {primaryLabel}
+                            <Icon
+                              name="arrow"
+                              category="deco"
+                              size="sm"
+                              color="#fff"
+                              className="dtm-btn-icon"
+                            />
+                          </>
+                        )}
+                      </ActionButton>
+                    ) : null}
+
+                    <span className="dtm-next">
+                      <span className="dtm-next-label">Next: </span>
+                      {nextStepLabel}
+                    </span>
+                  </div>
+                </>
+              ) : null}
             </div>
-          </section>
-        </div>
-      </div>
+          )}
+        </section>
+
+        <div className="dtm-divider" />
+
+        <section className="dtm-tabs">
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'Details' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('Details')}
+          >
+            Details
+          </button>
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('Attachments')}
+          >
+            <span>Attachments</span>
+            {attachments.length > 0 ? (
+              <span className="dtm-tab-count">{attachments.length}</span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('Comments')}
+          >
+            <span>Comments</span>
+            {localComments.length > 0 ? (
+              <span className="dtm-tab-count">{localComments.length}</span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            className={`dtm-tab ${activeTab === 'History' ? 'dtm-tab--active' : ''}`}
+            onClick={() => setActiveTab('History')}
+          >
+            History
+          </button>
+        </section>
+
+        <section className="dtm-body">
+          {activeTab === 'Details' ? (
+            <>
+              <div className="dtm-details-grid">
+                <DetailItem label="DATE UPDATED" value={updatedAt} />
+                <DetailItem
+                  label="DUE DATE"
+                  value={
+                    <span className="dtm-date-with-icon">
+                      <span>{dueDate}</span>
+                      {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
+                    </span>
+                  }
+                />
+                <DetailItem label="CURRENT STEP" value={currentStepLabel} />
+                <DetailItem label="ETA" value={etaDate} />
+              </div>
+
+              <div className="dtm-divider dtm-divider--soft" />
+
+              <div className="dtm-desc">
+                <div className="dtm-section-title">Test Description</div>
+                <div className="dtm-desc-text">{description}</div>
+              </div>
+            </>
+          ) : activeTab === 'Comments' ? (
+            <>
+              <div className="dtm-addcomment dtm-addcomment--top">
+                <input
+                  className="dtm-comment-input"
+                  placeholder="Write a comment…"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  disabled={commentSaving || commentsLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddComment();
+                  }}
+                />
+                <ActionButton
+                  className="dtm-send"
+                  type="button"
+                  onClick={handleAddComment}
+                  aria-label="Send"
+                  isLoading={commentSaving}
+                  disabled={!currentUser || commentSaving || commentsLoading || !commentText.trim()}
+                >
+                  <span className="dtm-send-icon">{commentSaving ? '...' : '➤'}</span>
+                </ActionButton>
+              </div>
+
+              <div className="dtm-comments">
+                {commentsLoading ? (
+                  <div className="dtm-empty">Loading comments...</div>
+                ) : commentsError ? (
+                  <div className="dtm-empty">Error: {commentsError}</div>
+                ) : localComments.length === 0 ? (
+                  <div className="dtm-empty">No comments found.</div>
+                ) : (
+                  localComments.map((c) => (
+                    <div className="dtm-comment" key={c.id}>
+                      <div className="dtm-comment-left">
+                        <div className="dtm-avatar" aria-hidden="true">
+                          {String(c.author || '?')
+                            .trim()
+                            .slice(0, 1)
+                            .toUpperCase()}
+                        </div>
+                      </div>
+
+                      <div className="dtm-comment-main">
+                        <div className="dtm-comment-top">
+                          <div className="dtm-comment-author">{c.author ?? '-'}</div>
+                          <div className="dtm-comment-meta">
+                            <div className="dtm-comment-date">{c.date ?? ''}</div>
+                            {currentUser?.['user_id'] != null &&
+                            String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
+                              <button
+                                className="dtm-comment-action dtm-comment-action--delete"
+                                type="button"
+                                onClick={() => handleDeleteComment(c)}
+                                disabled={commentDeletingId != null}
+                                aria-label="Delete comment"
+                                title="Delete comment"
+                              >
+                                {commentDeletingId === String(c.id) ? (
+                                  '...'
+                                ) : (
+                                  <Icon name="trash" category="actions" size="sm" />
+                                )}
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="dtm-comment-text">{c.text ?? ''}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          ) : activeTab === 'History' ? (
+            <AuditHistoryView
+              logs={historyLogs}
+              loading={historyLoading}
+              error={historyError}
+              overlayTitle={`Test History: ${vgcpid}`}
+              showContent={true}
+              contextVgcpid={vgcpid}
+            />
+          ) : activeTab === 'Attachments' ? (
+            <div className="dtm-attachments">
+              <div className="dtm-attachments-note" role="note">
+                <Icon
+                  name="exclamation"
+                  category="deco"
+                  size="sm"
+                  color="#1d4ed8"
+                  className="dtm-attachments-note-icon-svg"
+                />
+                <div>
+                  <div className="dtm-attachments-note-title">
+                    Attachments are stored as external links. No files are uploaded or stored within
+                    this application.
+                  </div>
+                </div>
+              </div>
+
+              <div className="dtm-attachments-header">
+                <div>
+                  <div className="dtm-section-title">Linked Files ({attachments.length})</div>
+                </div>
+
+                {attachments.length > 0 ? (
+                  <ActionButton
+                    className="dtm-btn dtm-btn--compact"
+                    type="button"
+                    onClick={handleAddEvidenceLink}
+                    disabled={isBusy}
+                  >
+                    <Icon
+                      name="attach"
+                      category="actions"
+                      size="sm"
+                      color="#fff"
+                      className="dtm-btn-icon"
+                    />
+                    Add Link
+                  </ActionButton>
+                ) : null}
+              </div>
+
+              {attachments.length === 0 ? (
+                <div className="dtm-attachments-empty">
+                  <div className="dtm-attachments-empty-title">No links yet</div>
+                  <div className="dtm-attachments-empty-text">
+                    Add a supporting document, screenshot, or other external evidence link to track
+                    test artifacts here.
+                  </div>
+                  <ActionButton
+                    className="dtm-btn dtm-btn--primary dtm-btn--compact"
+                    type="button"
+                    onClick={handleAddEvidenceLink}
+                    disabled={isBusy}
+                  >
+                    <Icon
+                      name="attach"
+                      category="actions"
+                      size="sm"
+                      color="#fff"
+                      className="dtm-btn-icon"
+                    />
+                    Add Link
+                  </ActionButton>
+                </div>
+              ) : (
+                <div className="dtm-attachments-list">
+                  {attachments.map((attachment) => (
+                    <div className="dtm-attachment-card" key={attachment.id}>
+                      <div className="dtm-attachment-link">
+                        <div className="dtm-attachment-media" aria-hidden="true">
+                          <Icon
+                            name="documents"
+                            category="deco"
+                            size="sm"
+                            color="#4b5563"
+                            className="dtm-attachment-media-icon"
+                          />
+                        </div>
+
+                        <div className="dtm-attachment-body">
+                          <div className="dtm-attachment-title-row">
+                            <div className="dtm-attachment-title">{attachment.title}</div>
+                          </div>
+                          <div className="dtm-attachment-meta">{attachment.meta}</div>
+                        </div>
+                      </div>
+
+                      <div className="dtm-attachment-actions">
+                        <a
+                          className="dtm-attachment-action dtm-attachment-action--open"
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open Link"
+                        >
+                          <Icon name="link" category="actions" size="sm" color="#545454" />
+                        </a>
+
+                        <button
+                          className="dtm-attachment-action dtm-attachment-action--delete"
+                          type="button"
+                          onClick={() => handleRemoveEvidenceLink(attachment.url)}
+                          disabled={isBusy}
+                          aria-label={`Remove ${attachment.title}`}
+                          title="Delete Link"
+                        >
+                          <Icon name="trash" category="actions" size="sm" color="#545454" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </section>
+
+        <div className="dtm-divider" />
+
+        <section className="dtm-footer">
+          <button className="dtm-btn" type="button" onClick={onClose} disabled={isBusy}>
+            Close
+          </button>
+
+          <div className="dtm-footer-right">
+            {/* Archive / Unarchive */}
+            <div
+              onClick={(e) => {
+                const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                if (blockedWrapper) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showPermissionDeniedToast();
+                }
+              }}
+            >
+              <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                {statusUpper === 'ARCHIVED' ? (
+                  <ActionButton
+                    className="dtm-btn dtm-btn--secondary"
+                    variant="cancel"
+                    type="button"
+                    onClick={openUnarchiveConfirm}
+                    disabled={isBusy}
+                  >
+                    Unarchive Control Test
+                  </ActionButton>
+                ) : (
+                  <ActionButton
+                    className="dtm-btn dtm-btn--secondary"
+                    variant="cancel"
+                    type="button"
+                    onClick={openArchiveConfirm}
+                    disabled={isBusy}
+                  >
+                    Archive Control Test
+                  </ActionButton>
+                )}
+              </RestrictedAction>
+            </div>
+
+            <div
+              onClick={(e) => {
+                const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                if (blockedWrapper) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showPermissionDeniedToast();
+                }
+              }}
+            >
+              <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                <ActionButton
+                  className="dtm-btn dtm-btn--secondary"
+                  variant="cancel"
+                  type="button"
+                  onClick={openDeleteConfirm}
+                  disabled={isBusy}
+                >
+                  Delete Control Test
+                </ActionButton>
+              </RestrictedAction>
+            </div>
+
+            <ActionButton
+              className="dtm-btn dtm-btn--primary"
+              type="button"
+              onClick={openEdit}
+              disabled={!testId}
+            >
+              Edit Control Test
+            </ActionButton>
+          </div>
+        </section>
+      </Modal>
 
       <ConfirmActionModal
         isOpen={isDeleteConfirmOpen}

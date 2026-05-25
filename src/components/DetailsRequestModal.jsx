@@ -21,7 +21,7 @@ import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton, ModalCloseButton } from './ui';
+import { ActionButton, Modal, ModalCloseButton } from './ui';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -335,8 +335,6 @@ export default function DetailsRequestModal({
 
   const requestId = localRequest?.requestId ?? request?.requestId;
 
-  const stop = (e) => e.stopPropagation();
-
   function showPermissionDeniedToast() {
     showErrorToast({
       title: 'Permission Denied',
@@ -618,394 +616,393 @@ export default function DetailsRequestModal({
 
   return (
     <>
-      <div className="drm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
-        <div className="drm-modal" onMouseDown={stop}>
-          <section className="drm-section-header">
-            <div className="drm-header">
-              <div className="drm-title">Request Details: {requestTitle}</div>
-              <ModalCloseButton className="drm-close" onClick={onClose} />
+      <Modal className="drm-modal" overlayClassName="drm-overlay" onClose={onClose}>
+        <section className="drm-section-header">
+          <div className="drm-header">
+            <div className="drm-title">Request Details: {requestTitle}</div>
+            <ModalCloseButton className="drm-close" onClick={onClose} />
+          </div>
+        </section>
+
+        <div className="drm-divider" />
+
+        <section className="drm-section-statusbar">
+          <div className="drm-statusbar">
+            <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
+              {formatPriority(priority)}
+            </span>
+
+            <div className="drm-statusbar-mid">
+              <span className="drm-status-label">Status:</span>
+              <span className={`drm-pill ${statusBadgeClass(status)}`}>{formatStatus(status)}</span>
             </div>
-          </section>
 
-          <div className="drm-divider" />
-
-          <section className="drm-section-statusbar">
-            <div className="drm-statusbar">
-              <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
-                {formatPriority(priority)}
+            <div className="drm-statusbar-right">
+              <Icon name="graph" category="deco" />
+              <span className="drm-progress">
+                {progress.completed} / {progress.total}
               </span>
+              <span className="drm-progress-label">Controls Completed</span>
+            </div>
+          </div>
+        </section>
 
-              <div className="drm-statusbar-mid">
-                <span className="drm-status-label">Status:</span>
-                <span className={`drm-pill ${statusBadgeClass(status)}`}>
-                  {formatStatus(status)}
-                </span>
+        <div className="drm-divider" />
+
+        <section className="drm-section-description-details">
+          <div className="drm-section">
+            <div className="drm-section-title">Description</div>
+            <div className="drm-description">{description}</div>
+
+            <div className="drm-details-card">
+              <div className="drm-detail-item">
+                <div className="drm-detail-label">Requested By</div>
+                <div className="drm-detail-value">{requestedBy}</div>
               </div>
 
-              <div className="drm-statusbar-right">
-                <Icon name="graph" category="deco" />
-                <span className="drm-progress">
-                  {progress.completed} / {progress.total}
-                </span>
-                <span className="drm-progress-label">Controls Completed</span>
+              <div className="drm-detail-item">
+                <div className="drm-detail-label">Priority Level</div>
+                <div className="drm-detail-value">{formatPriority(priority)}</div>
+              </div>
+
+              <div className="drm-detail-item">
+                <div className="drm-detail-label">Request Date</div>
+                <div className="drm-detail-value">{requestDate}</div>
+              </div>
+
+              <div className="drm-detail-item">
+                <div className="drm-detail-label">Due Date</div>
+                <div className="drm-detail-value drm-date-warn">{dueDate}</div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <div className="drm-divider" />
+        <div className="drm-divider" />
 
-          <section className="drm-section-description-details">
-            <div className="drm-section">
-              <div className="drm-section-title">Description</div>
-              <div className="drm-description">{description}</div>
-
-              <div className="drm-details-card">
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Requested By</div>
-                  <div className="drm-detail-value">{requestedBy}</div>
-                </div>
-
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Priority Level</div>
-                  <div className="drm-detail-value">{formatPriority(priority)}</div>
-                </div>
-
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Request Date</div>
-                  <div className="drm-detail-value">{requestDate}</div>
-                </div>
-
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Due Date</div>
-                  <div className="drm-detail-value drm-date-warn">{dueDate}</div>
-                </div>
-              </div>
+        <section className="drm-section-associated">
+          <div className="drm-section">
+            <div className="drm-section-title drm-section-title--withicon">
+              <span className="drm-icon" aria-hidden="true">
+                <Icon name="documents" category="deco" size="md" />
+              </span>
+              Associated Controls ({controls.length})
             </div>
-          </section>
 
-          <div className="drm-divider" />
-
-          <section className="drm-section-associated">
-            <div className="drm-section">
-              <div className="drm-section-title drm-section-title--withicon">
-                <span className="drm-icon" aria-hidden="true">
-                  <Icon name="documents" category="deco" size="md" />
-                </span>
-                Associated Controls ({controls.length})
-              </div>
-
-              {controls.length === 0 ? (
-                <div className="drm-empty">No tests found for this request.</div>
-              ) : (
-                <div className="drm-table-wrap">
-                  <table className="drm-table">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Assignee</th>
-                        <th>ETA</th>
+            {controls.length === 0 ? (
+              <div className="drm-empty">No tests found for this request.</div>
+            ) : (
+              <div className="drm-table-wrap">
+                <table className="drm-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Assignee</th>
+                      <th>ETA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {controls.map((c) => (
+                      <tr key={c.test_id || c.id}>
+                        <td className="drm-mono">
+                          <button
+                            type="button"
+                            className="vgcpid-link"
+                            onClick={() => openTestDetails(c)}
+                          >
+                            {c.vgcpid || c.id}
+                          </button>
+                        </td>
+                        <td>{c.title || c.description || '-'}</td>
+                        <td>
+                          <span
+                            className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
+                          >
+                            {c.statusLabel || formatStatus(c.status)}
+                          </span>
+                        </td>
+                        <td>{c.assignee ?? '-'}</td>
+                        <td>{c.eta ?? '-'}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {controls.map((c) => (
-                        <tr key={c.test_id || c.id}>
-                          <td className="drm-mono">
-                            <button
-                              type="button"
-                              className="vgcpid-link"
-                              onClick={() => openTestDetails(c)}
-                            >
-                              {c.vgcpid || c.id}
-                            </button>
-                          </td>
-                          <td>{c.title || c.description || '-'}</td>
-                          <td>
-                            <span
-                              className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
-                            >
-                              {c.statusLabel || formatStatus(c.status)}
-                            </span>
-                          </td>
-                          <td>{c.assignee ?? '-'}</td>
-                          <td>{c.eta ?? '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </section>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
 
-          <div className="drm-divider" />
+        <div className="drm-divider" />
 
-          <section className="drm-section-tabs">
-            <div className="drm-tabs">
-              <button
-                type="button"
-                className={`drm-tab ${activeTab === 'Comments' ? 'drm-tab--active' : ''}`}
-                onClick={() => setActiveTab('Comments')}
-              >
-                <span>Comments</span>
-                {localComments.length > 0 ? (
-                  <span className="drm-tab-count">{localComments.length}</span>
-                ) : null}
-              </button>
-              <button
-                type="button"
-                className={`drm-tab ${activeTab === 'History' ? 'drm-tab--active' : ''}`}
-                onClick={() => setActiveTab('History')}
-              >
-                History
-              </button>
-            </div>
+        <section className="drm-section-tabs">
+          <div className="drm-tabs">
+            <button
+              type="button"
+              className={`drm-tab ${activeTab === 'Comments' ? 'drm-tab--active' : ''}`}
+              onClick={() => setActiveTab('Comments')}
+            >
+              <span>Comments</span>
+              {localComments.length > 0 ? (
+                <span className="drm-tab-count">{localComments.length}</span>
+              ) : null}
+            </button>
+            <button
+              type="button"
+              className={`drm-tab ${activeTab === 'History' ? 'drm-tab--active' : ''}`}
+              onClick={() => setActiveTab('History')}
+            >
+              History
+            </button>
+          </div>
 
-            <div className="drm-tab-content">
-              {activeTab === 'Comments' ? (
-                <>
-                  <div className="drm-addcomment drm-addcomment--top">
-                    <input
-                      className="drm-comment-input"
-                      placeholder="Write a comment…"
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      disabled={commentSaving || commentsLoading || !currentUser}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === 'Enter' &&
-                          currentUser &&
-                          !commentSaving &&
-                          !commentsLoading &&
-                          commentText.trim()
-                        ) {
-                          e.preventDefault();
-                          handleAddComment();
-                        }
-                      }}
-                    />
-                    <button
-                      className="drm-send"
-                      type="button"
-                      onClick={handleAddComment}
-                      aria-label="Send"
-                      disabled={
-                        !currentUser || commentSaving || commentsLoading || !commentText.trim()
+          <div className="drm-tab-content">
+            {activeTab === 'Comments' ? (
+              <>
+                <div className="drm-addcomment drm-addcomment--top">
+                  <input
+                    className="drm-comment-input"
+                    placeholder="Write a comment…"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    disabled={commentSaving || commentsLoading || !currentUser}
+                    onKeyDown={(e) => {
+                      if (
+                        e.key === 'Enter' &&
+                        currentUser &&
+                        !commentSaving &&
+                        !commentsLoading &&
+                        commentText.trim()
+                      ) {
+                        e.preventDefault();
+                        handleAddComment();
                       }
-                    >
-                      {commentSaving ? '...' : '➤'}
-                    </button>
-                  </div>
+                    }}
+                  />
+                  <button
+                    className="drm-send"
+                    type="button"
+                    onClick={handleAddComment}
+                    aria-label="Send"
+                    disabled={
+                      !currentUser || commentSaving || commentsLoading || !commentText.trim()
+                    }
+                  >
+                    {commentSaving ? '...' : '➤'}
+                  </button>
+                </div>
 
-                  <div className="drm-comments">
-                    {commentsLoading ? (
-                      <div className="drm-empty">Loading comments...</div>
-                    ) : commentsError ? (
-                      <div className="drm-empty">Error: {commentsError}</div>
-                    ) : localComments.length === 0 ? (
-                      <div className="drm-empty">No comments found.</div>
-                    ) : (
-                      localComments.map((c) => (
-                        <div className="drm-comment" key={c.id}>
-                          <div className="drm-comment-left">
-                            <div className="drm-avatar" aria-hidden="true">
-                              {String(c.author || '?')
-                                .trim()
-                                .slice(0, 1)
-                                .toUpperCase()}
-                            </div>
-                          </div>
-
-                          <div className="drm-comment-main">
-                            <div className="drm-comment-top">
-                              <div className="drm-comment-author">{c.author ?? '-'}</div>
-                              <div className="drm-comment-meta">
-                                <div className="drm-comment-date">{c.date ?? ''}</div>
-                                {currentUser?.['user_id'] != null &&
-                                String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                                  <button
-                                    className="drm-comment-action drm-comment-action--delete"
-                                    type="button"
-                                    onClick={() => handleDeleteComment(c)}
-                                    disabled={commentDeletingId != null}
-                                    aria-label="Delete comment"
-                                    title="Delete comment"
-                                  >
-                                    {commentDeletingId === String(c.id) ? (
-                                      '...'
-                                    ) : (
-                                      <Icon
-                                        name="trash"
-                                        category="actions"
-                                        size="sm"
-                                        color="#545454"
-                                      />
-                                    )}
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-                            <div className="drm-comment-text">{c.text ?? ''}</div>
+                <div className="drm-comments">
+                  {commentsLoading ? (
+                    <div className="drm-empty">Loading comments...</div>
+                  ) : commentsError ? (
+                    <div className="drm-empty">Error: {commentsError}</div>
+                  ) : localComments.length === 0 ? (
+                    <div className="drm-empty">No comments found.</div>
+                  ) : (
+                    localComments.map((c) => (
+                      <div className="drm-comment" key={c.id}>
+                        <div className="drm-comment-left">
+                          <div className="drm-avatar" aria-hidden="true">
+                            {String(c.author || '?')
+                              .trim()
+                              .slice(0, 1)
+                              .toUpperCase()}
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </>
-              ) : null}
 
-              {activeTab === 'History' ? (
-                <AuditHistoryView
-                  logs={historyLogs}
-                  loading={historyLoading}
-                  error={historyError}
-                  overlayTitle={`Request History: ${requestTitle}`}
-                  showContent={
-                    status === 'DAT_IN_PROGRESS' ||
-                    status === 'OET_IN_PROGRESS' ||
-                    status === 'COMPLETED'
-                  }
-                  statusMessage="History is available when the request is in progress or completed."
-                  contextRequestId={requestTitle}
-                  contextTestIdToVgcpid={contextTestIdToVgcpid}
-                />
-              ) : null}
-            </div>
-          </section>
-
-          <div className="drm-divider" />
-
-          <section className="drm-section-footer">
-            <div className="drm-footer">
-              <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
-                Close
-              </button>
-
-              <div className="drm-footer-right">
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
-                    {statusUpper === 'ARCHIVED' ? (
-                      <ActionButton
-                        className="drm-btn drm-btn--outline"
-                        type="button"
-                        onClick={openUnarchive}
-                        disabled={archiving || deleting || requestId == null}
-                        title={requestId == null ? 'No request selected' : 'Unarchive this request'}
-                      >
-                        Unarchive Request
-                      </ActionButton>
-                    ) : (
-                      <ActionButton
-                        className="drm-btn drm-btn--outline"
-                        type="button"
-                        onClick={() => setIsArchiveConfirmOpen(true)}
-                        disabled={archiving || deleting || requestId == null || isCompleted}
-                        title={
-                          requestId == null
-                            ? 'No request selected'
-                            : isCompleted
-                              ? 'Cannot archive a completed request'
-                              : 'Archive this request'
-                        }
-                      >
-                        Archive Request
-                      </ActionButton>
-                    )}
-                  </RestrictedAction>
+                        <div className="drm-comment-main">
+                          <div className="drm-comment-top">
+                            <div className="drm-comment-author">{c.author ?? '-'}</div>
+                            <div className="drm-comment-meta">
+                              <div className="drm-comment-date">{c.date ?? ''}</div>
+                              {currentUser?.['user_id'] != null &&
+                              String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
+                                <button
+                                  className="drm-comment-action drm-comment-action--delete"
+                                  type="button"
+                                  onClick={() => handleDeleteComment(c)}
+                                  disabled={commentDeletingId != null}
+                                  aria-label="Delete comment"
+                                  title="Delete comment"
+                                >
+                                  {commentDeletingId === String(c.id) ? (
+                                    '...'
+                                  ) : (
+                                    <Icon
+                                      name="trash"
+                                      category="actions"
+                                      size="sm"
+                                      color="#545454"
+                                    />
+                                  )}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="drm-comment-text">{c.text ?? ''}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
+              </>
+            ) : null}
 
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
+            {activeTab === 'History' ? (
+              <AuditHistoryView
+                logs={historyLogs}
+                loading={historyLoading}
+                error={historyError}
+                overlayTitle={`Request History: ${requestTitle}`}
+                showContent={
+                  status === 'DAT_IN_PROGRESS' ||
+                  status === 'OET_IN_PROGRESS' ||
+                  status === 'COMPLETED'
+                }
+                statusMessage="History is available when the request is in progress or completed."
+                contextRequestId={requestTitle}
+                contextTestIdToVgcpid={contextTestIdToVgcpid}
+              />
+            ) : null}
+          </div>
+        </section>
+
+        <div className="drm-divider" />
+
+        <section className="drm-section-footer">
+          <div className="drm-footer">
+            <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
+              Close
+            </button>
+
+            <div className="drm-footer-right">
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
+                  {statusUpper === 'ARCHIVED' ? (
                     <ActionButton
                       className="drm-btn drm-btn--outline"
+                      variant="cancel"
                       type="button"
-                      onClick={() => setIsDeleteConfirmOpen(true)}
-                      disabled={deleting || archiving || requestId == null || isCompleted}
+                      onClick={openUnarchive}
+                      disabled={archiving || deleting || requestId == null}
+                      title={requestId == null ? 'No request selected' : 'Unarchive this request'}
+                    >
+                      Unarchive Request
+                    </ActionButton>
+                  ) : (
+                    <ActionButton
+                      className="drm-btn drm-btn--outline"
+                      variant="cancel"
+                      type="button"
+                      onClick={() => setIsArchiveConfirmOpen(true)}
+                      disabled={archiving || deleting || requestId == null || isCompleted}
                       title={
                         requestId == null
                           ? 'No request selected'
                           : isCompleted
-                            ? 'Cannot delete a completed request'
-                            : 'Permanently delete this request'
+                            ? 'Cannot archive a completed request'
+                            : 'Archive this request'
                       }
                     >
-                      Delete Request
+                      Archive Request
                     </ActionButton>
-                  </RestrictedAction>
-                </div>
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
+                  )}
+                </RestrictedAction>
+              </div>
+
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
+                  <ActionButton
+                    className="drm-btn drm-btn--outline"
+                    variant="cancel"
+                    type="button"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    disabled={deleting || archiving || requestId == null || isCompleted}
+                    title={
+                      requestId == null
+                        ? 'No request selected'
+                        : isCompleted
+                          ? 'Cannot delete a completed request'
+                          : 'Permanently delete this request'
                     }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                    <button
-                      className="drm-btn drm-btn--primary"
-                      type="button"
-                      onClick={openEdit}
-                      disabled={!requestId}
-                      title={requestId ? 'Edit this request' : 'No request selected'}
-                    >
-                      Edit Request
-                    </button>
-                  </RestrictedAction>
-                </div>
+                  >
+                    Delete Request
+                  </ActionButton>
+                </RestrictedAction>
+              </div>
+              <div
+                onClick={(e) => {
+                  const blockedWrapper = e.target.closest('.restricted-action--blocked');
+                  if (blockedWrapper) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPermissionDeniedToast();
+                  }
+                }}
+              >
+                <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                  <button
+                    className="drm-btn drm-btn--primary"
+                    type="button"
+                    onClick={openEdit}
+                    disabled={!requestId}
+                    title={requestId ? 'Edit this request' : 'No request selected'}
+                  >
+                    Edit Request
+                  </button>
+                </RestrictedAction>
               </div>
             </div>
+          </div>
 
-            {deleteError ? <div className="drm-delete-error">Error: {deleteError}</div> : null}
-          </section>
-        </div>
+          {deleteError ? <div className="drm-delete-error">Error: {deleteError}</div> : null}
+        </section>
+      </Modal>
 
-        <EditRequestModal
-          isOpen={isEditOpen}
-          onClose={closeEdit}
-          requestId={requestId}
-          onUpdated={async () => {
-            await refreshInline();
-          }}
-        />
-        <DetailsTestModal
-          isOpen={!!activeTest}
-          onClose={closeTestDetails}
-          test={activeTest}
-          onArchived={async () => {
-            await refreshInline();
-            closeTestDetails();
-          }}
-          onDeleted={async () => {
-            await refreshInline();
-            closeTestDetails();
-          }}
-          onUpdated={async () => {
-            await refreshInline();
-          }}
-        />
-      </div>
+      <EditRequestModal
+        isOpen={isEditOpen}
+        onClose={closeEdit}
+        requestId={requestId}
+        onUpdated={async () => {
+          await refreshInline();
+        }}
+      />
+      <DetailsTestModal
+        isOpen={!!activeTest}
+        onClose={closeTestDetails}
+        test={activeTest}
+        onArchived={async () => {
+          await refreshInline();
+          closeTestDetails();
+        }}
+        onDeleted={async () => {
+          await refreshInline();
+          closeTestDetails();
+        }}
+        onUpdated={async () => {
+          await refreshInline();
+        }}
+      />
 
       <ConfirmActionModal
         isOpen={isArchiveConfirmOpen}
