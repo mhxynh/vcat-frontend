@@ -17,7 +17,7 @@ import DetailsRequestModal from './DetailsRequestModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import RestrictedAction from './RestrictedAction';
+import PermissionAction from './PermissionAction';
 import { ACTIONS } from '../auth';
 import {
   ActionButton,
@@ -95,13 +95,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     if (deleting) return;
     setIsDeleteConfirmOpen(false);
   }, [deleting]);
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -466,29 +459,18 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             actionsClassName="dcm-footer-right"
             actions={
               <>
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
-                    <ActionButton
-                      className="dcm-btn dcm-btn--outline"
-                      variant="cancel"
-                      type="button"
-                      onClick={openDeleteConfirm}
-                      disabled={deleting || !id}
-                      title={!id ? 'No control selected' : 'Delete this control'}
-                    >
-                      Delete Control
-                    </ActionButton>
-                  </RestrictedAction>
-                </div>
+                <PermissionAction action={ACTIONS.DELETE_CONTROL_HARD}>
+                  <ActionButton
+                    className="dcm-btn dcm-btn--outline"
+                    variant="cancel"
+                    type="button"
+                    onClick={openDeleteConfirm}
+                    disabled={deleting || !id}
+                    title={!id ? 'No control selected' : 'Delete this control'}
+                  >
+                    Delete Control
+                  </ActionButton>
+                </PermissionAction>
 
                 <ActionButton
                   className="dcm-btn dcm-btn--primary"

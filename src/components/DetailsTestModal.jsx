@@ -44,7 +44,7 @@ import {
 } from '../api/CommentsAPI';
 import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
-import RestrictedAction from './RestrictedAction';
+import PermissionAction from './PermissionAction';
 import { ACTIONS, useRole } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
 import { createRefreshHandlers } from '../utils/modalRefresh';
@@ -1653,63 +1653,41 @@ export default function DetailsTestModal({
             actions={
               <>
                 {/* Archive / Unarchive */}
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
-                    {statusUpper === 'ARCHIVED' ? (
-                      <ActionButton
-                        className="dtm-btn dtm-btn--secondary"
-                        variant="cancel"
-                        type="button"
-                        onClick={openUnarchiveConfirm}
-                        disabled={isBusy}
-                      >
-                        Unarchive Control Test
-                      </ActionButton>
-                    ) : (
-                      <ActionButton
-                        className="dtm-btn dtm-btn--secondary"
-                        variant="cancel"
-                        type="button"
-                        onClick={openArchiveConfirm}
-                        disabled={isBusy}
-                      >
-                        Archive Control Test
-                      </ActionButton>
-                    )}
-                  </RestrictedAction>
-                </div>
-
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                <PermissionAction action={ACTIONS.ARCHIVE_CONTROL_TEST}>
+                  {statusUpper === 'ARCHIVED' ? (
                     <ActionButton
                       className="dtm-btn dtm-btn--secondary"
                       variant="cancel"
                       type="button"
-                      onClick={openDeleteConfirm}
+                      onClick={openUnarchiveConfirm}
                       disabled={isBusy}
                     >
-                      Delete Control Test
+                      Unarchive Control Test
                     </ActionButton>
-                  </RestrictedAction>
-                </div>
+                  ) : (
+                    <ActionButton
+                      className="dtm-btn dtm-btn--secondary"
+                      variant="cancel"
+                      type="button"
+                      onClick={openArchiveConfirm}
+                      disabled={isBusy}
+                    >
+                      Archive Control Test
+                    </ActionButton>
+                  )}
+                </PermissionAction>
+
+                <PermissionAction action={ACTIONS.DELETE_CONTROL_TEST}>
+                  <ActionButton
+                    className="dtm-btn dtm-btn--secondary"
+                    variant="cancel"
+                    type="button"
+                    onClick={openDeleteConfirm}
+                    disabled={isBusy}
+                  >
+                    Delete Control Test
+                  </ActionButton>
+                </PermissionAction>
 
                 <ActionButton
                   className="dtm-btn dtm-btn--primary"

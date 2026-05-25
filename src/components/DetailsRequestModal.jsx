@@ -18,8 +18,8 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
-import { showSuccessToast, showErrorToast } from '../utils/toast';
-import RestrictedAction from './RestrictedAction';
+import { getUserFriendlyErrorMessage, showSuccessToast, showErrorToast } from '../utils/toast';
+import PermissionAction from './PermissionAction';
 import { ACTIONS } from '../auth';
 import {
   ActionButton,
@@ -348,13 +348,6 @@ export default function DetailsRequestModal({
 
   const requestId = localRequest?.requestId ?? request?.requestId;
 
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
-
   async function handleAddComment() {
     const text = commentText.trim();
     if (!text || requestId == null || commentSaving) return;
@@ -499,7 +492,10 @@ export default function DetailsRequestModal({
       setIsArchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
-      const errorMessage = e?.message || 'Failed to archive request and associated tests';
+      const errorMessage = getUserFriendlyErrorMessage(
+        e?.message,
+        'Failed to archive request and associated tests'
+      );
       setDeleteError(errorMessage);
 
       showErrorToast({
@@ -547,7 +543,10 @@ export default function DetailsRequestModal({
       setIsUnarchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
-      const errorMessage = e?.message || 'Failed to unarchive request and associated tests';
+      const errorMessage = getUserFriendlyErrorMessage(
+        e?.message,
+        'Failed to unarchive request and associated tests'
+      );
       setDeleteError(errorMessage);
 
       showErrorToast({
@@ -578,7 +577,7 @@ export default function DetailsRequestModal({
       setIsDeleteConfirmOpen(false);
       onClose?.();
     } catch (e) {
-      const errorMessage = e?.message || 'Failed to delete request';
+      const errorMessage = getUserFriendlyErrorMessage(e?.message, 'Failed to delete request');
       setDeleteError(errorMessage);
 
       showErrorToast({
@@ -856,100 +855,67 @@ export default function DetailsRequestModal({
             actionsClassName="drm-footer-right"
             actions={
               <>
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
-                    {statusUpper === 'ARCHIVED' ? (
-                      <ActionButton
-                        className="drm-btn drm-btn--outline"
-                        variant="cancel"
-                        type="button"
-                        onClick={openUnarchive}
-                        disabled={archiving || deleting || requestId == null}
-                        title={requestId == null ? 'No request selected' : 'Unarchive this request'}
-                      >
-                        Unarchive Request
-                      </ActionButton>
-                    ) : (
-                      <ActionButton
-                        className="drm-btn drm-btn--outline"
-                        variant="cancel"
-                        type="button"
-                        onClick={() => setIsArchiveConfirmOpen(true)}
-                        disabled={archiving || deleting || requestId == null || isCompleted}
-                        title={
-                          requestId == null
-                            ? 'No request selected'
-                            : isCompleted
-                              ? 'Cannot archive a completed request'
-                              : 'Archive this request'
-                        }
-                      >
-                        Archive Request
-                      </ActionButton>
-                    )}
-                  </RestrictedAction>
-                </div>
-
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
+                <PermissionAction action={ACTIONS.ARCHIVE_REQUEST}>
+                  {statusUpper === 'ARCHIVED' ? (
                     <ActionButton
                       className="drm-btn drm-btn--outline"
                       variant="cancel"
                       type="button"
-                      onClick={() => setIsDeleteConfirmOpen(true)}
-                      disabled={deleting || archiving || requestId == null || isCompleted}
+                      onClick={openUnarchive}
+                      disabled={archiving || deleting || requestId == null}
+                      title={requestId == null ? 'No request selected' : 'Unarchive this request'}
+                    >
+                      Unarchive Request
+                    </ActionButton>
+                  ) : (
+                    <ActionButton
+                      className="drm-btn drm-btn--outline"
+                      variant="cancel"
+                      type="button"
+                      onClick={() => setIsArchiveConfirmOpen(true)}
+                      disabled={archiving || deleting || requestId == null || isCompleted}
                       title={
                         requestId == null
                           ? 'No request selected'
                           : isCompleted
-                            ? 'Cannot delete a completed request'
-                            : 'Permanently delete this request'
+                            ? 'Cannot archive a completed request'
+                            : 'Archive this request'
                       }
                     >
-                      Delete Request
+                      Archive Request
                     </ActionButton>
-                  </RestrictedAction>
-                </div>
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
+                  )}
+                </PermissionAction>
+
+                <PermissionAction action={ACTIONS.REMOVE_REQUEST}>
+                  <ActionButton
+                    className="drm-btn drm-btn--outline"
+                    variant="cancel"
+                    type="button"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    disabled={deleting || archiving || requestId == null || isCompleted}
+                    title={
+                      requestId == null
+                        ? 'No request selected'
+                        : isCompleted
+                          ? 'Cannot delete a completed request'
+                          : 'Permanently delete this request'
                     }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                    <button
-                      className="drm-btn drm-btn--primary"
-                      type="button"
-                      onClick={openEdit}
-                      disabled={!requestId}
-                      title={requestId ? 'Edit this request' : 'No request selected'}
-                    >
-                      Edit Request
-                    </button>
-                  </RestrictedAction>
-                </div>
+                  >
+                    Delete Request
+                  </ActionButton>
+                </PermissionAction>
+                <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
+                  <button
+                    className="drm-btn drm-btn--primary"
+                    type="button"
+                    onClick={openEdit}
+                    disabled={!requestId}
+                    title={requestId ? 'Edit this request' : 'No request selected'}
+                  >
+                    Edit Request
+                  </button>
+                </PermissionAction>
               </>
             }
           >
