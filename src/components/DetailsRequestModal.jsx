@@ -27,6 +27,7 @@ import {
   ErrorState,
   IconButton,
   LoadingState,
+  MetadataItem,
   Modal,
   ModalCloseButton,
   Panel,
@@ -665,25 +666,34 @@ export default function DetailsRequestModal({
             <div className="drm-description">{description}</div>
 
             <Panel className="drm-details-card">
-              <div className="drm-detail-item">
-                <div className="drm-detail-label">Requested By</div>
-                <div className="drm-detail-value">{requestedBy}</div>
-              </div>
-
-              <div className="drm-detail-item">
-                <div className="drm-detail-label">Priority Level</div>
-                <div className="drm-detail-value">{formatPriority(priority)}</div>
-              </div>
-
-              <div className="drm-detail-item">
-                <div className="drm-detail-label">Request Date</div>
-                <div className="drm-detail-value">{requestDate}</div>
-              </div>
-
-              <div className="drm-detail-item">
-                <div className="drm-detail-label">Due Date</div>
-                <div className="drm-detail-value drm-date-warn">{dueDate}</div>
-              </div>
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value"
+                label="Requested By"
+                value={requestedBy}
+              />
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value"
+                label="Priority Level"
+                value={formatPriority(priority)}
+              />
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value"
+                label="Request Date"
+                value={requestDate}
+              />
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value drm-date-warn"
+                label="Due Date"
+                value={dueDate}
+              />
             </Panel>
           </div>
         </Modal.Section>

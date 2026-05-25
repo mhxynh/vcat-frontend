@@ -25,6 +25,7 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  MetadataItem,
   Modal,
   ModalCloseButton,
   Panel,
@@ -309,30 +310,41 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
         <Modal.Section className="dcm-section-details">
           <Panel className="dcm-details-card" tone="subtle">
-            <div className="dcm-detail-item">
-              <div className="dcm-detail-label">Owner</div>
-              <div className="dcm-detail-value">{owner}</div>
-            </div>
-
-            <div className="dcm-detail-item">
-              <div className="dcm-detail-label">SME</div>
-              <div className="dcm-detail-value">{sme}</div>
-            </div>
-
-            <div className="dcm-detail-item">
-              <div className="dcm-detail-label">Date Created</div>
-              <div className="dcm-detail-value">{dateCreated}</div>
-            </div>
-
-            <div className="dcm-detail-item">
-              <div className="dcm-detail-label">Last Tested</div>
-              <div className="dcm-detail-value">{lastTested}</div>
-            </div>
-
-            <div className="dcm-detail-item dcm-detail-item--full">
-              <div className="dcm-detail-label">Escalation</div>
-              <div className="dcm-detail-value">{escalationRequired}</div>
-            </div>
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Owner"
+              value={owner}
+            />
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="SME"
+              value={sme}
+            />
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Date Created"
+              value={dateCreated}
+            />
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Last Tested"
+              value={lastTested}
+            />
+            <MetadataItem
+              className="dcm-detail-item dcm-detail-item--full"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Escalation"
+              value={escalationRequired}
+            />
           </Panel>
         </Modal.Section>
 

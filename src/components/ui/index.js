@@ -10,3 +10,4 @@ export { default as Tabs } from './Tabs';
 export { default as SearchInput } from './SearchInput';
 export { EmptyState, ErrorState, LoadingState } from './FeedbackState';
 export { FormField, FormGrid, FormInput, FormSelect, FormTextarea } from './Form';
+export { MetadataGrid, MetadataItem } from './Metadata';

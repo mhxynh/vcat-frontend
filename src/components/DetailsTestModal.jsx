@@ -12,6 +12,8 @@ import {
   ErrorState,
   IconButton,
   LoadingState,
+  MetadataGrid,
+  MetadataItem,
   Modal,
   ModalCloseButton,
   Tabs,
@@ -1419,20 +1421,40 @@ export default function DetailsTestModal({
         <Modal.Section className="dtm-body">
           {activeTab === 'Details' ? (
             <>
-              <div className="dtm-details-grid">
-                <DetailItem label="DATE UPDATED" value={updatedAt} />
-                <DetailItem
-                  label="DUE DATE"
-                  value={
-                    <span className="dtm-date-with-icon">
-                      <span>{dueDate}</span>
-                      {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
-                    </span>
-                  }
+              <MetadataGrid className="dtm-details-grid">
+                <MetadataItem
+                  className="dtm-detail"
+                  labelClassName="dtm-detail-label"
+                  valueClassName="dtm-detail-value"
+                  label="DATE UPDATED"
+                  value={updatedAt}
                 />
-                <DetailItem label="CURRENT STEP" value={currentStepLabel} />
-                <DetailItem label="ETA" value={etaDate} />
-              </div>
+                <MetadataItem
+                  className="dtm-detail"
+                  labelClassName="dtm-detail-label"
+                  valueClassName="dtm-detail-value"
+                  label="DUE DATE"
+                >
+                  <span className="dtm-date-with-icon">
+                    <span>{dueDate}</span>
+                    {overdue && <Icon name="exclamation" category="deco" color="#c20029" />}
+                  </span>
+                </MetadataItem>
+                <MetadataItem
+                  className="dtm-detail"
+                  labelClassName="dtm-detail-label"
+                  valueClassName="dtm-detail-value"
+                  label="CURRENT STEP"
+                  value={currentStepLabel}
+                />
+                <MetadataItem
+                  className="dtm-detail"
+                  labelClassName="dtm-detail-label"
+                  valueClassName="dtm-detail-value"
+                  label="ETA"
+                  value={etaDate}
+                />
+              </MetadataGrid>
 
               <Modal.Divider className="dtm-divider dtm-divider--soft" />
 
@@ -1902,15 +1924,6 @@ export default function DetailsTestModal({
         isLoading={isBusy}
       />
     </>
-  );
-}
-
-function DetailItem({ label, value }) {
-  return (
-    <div className="dtm-detail">
-      <div className="dtm-detail-label">{label}</div>
-      <div className="dtm-detail-value">{value ?? '-'}</div>
-    </div>
   );
 }
 
