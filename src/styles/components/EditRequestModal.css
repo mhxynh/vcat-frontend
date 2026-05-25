@@ -264,19 +264,24 @@
 }
 
 .erm-add-btn {
-  background: transparent;
-  border: none;
-  font-size: 22px;
-  color: #9b1c22;
+  appearance: none;
+  min-height: 34px;
+  border: 1px solid var(--modal-action-red) !important;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 20px;
   cursor: pointer;
-  padding: 2px 8px;
-  line-height: 1;
-  font-weight: 600;
-  transition: color 0.15s;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
 }
 
 .erm-add-btn:hover {
-  color: #c0392b;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+  text-decoration: none;
 }
 
 .erm-test-list {
@@ -406,20 +411,29 @@
 }
 
 .erm-create-control-link {
-  border: 0;
-  background: transparent;
-  color: #9b1c22;
+  appearance: none;
+  min-height: 38px;
+  border: 1px solid var(--modal-action-red) !important;
+  border-radius: 8px;
+  padding: 8px 16px;
   font-size: 14px;
-  font-weight: 600;
+  line-height: 20px;
   cursor: pointer;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
   transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     color 0.2s ease,
     opacity 0.2s ease;
 }
 
 .erm-create-control-link:hover {
-  color: #7a161b;
-  text-decoration: underline;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+  text-decoration: none;
 }
 
 .erm-create-control-link--disabled {
