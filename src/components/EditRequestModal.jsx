@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import '../styles/components/EditRequestModal.css';
+import '../styles/components/EditModal.css';
 import { fetchRequestById, updateRequest } from '../api/RequestsAPI';
 import { fetchTestsByRequestId, fetchTests, updateTest } from '../api/TestsAPI';
 import CreateTestModal from './CreateTestModal';
@@ -236,14 +237,14 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
   return (
     <div
-      className="erm-overlay"
+      className="erm-overlay edit-modal-overlay"
       role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
     >
       <div
-        className="erm-modal"
+        className="erm-modal edit-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-request-title"

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { updateControl, retireControl } from '../api/ControlsAPI';
 import { useRole, ACTIONS } from '../auth';
 import '../styles/components/EditControlModal.css';
+import '../styles/components/EditModal.css';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { ActionButton } from './ui';
 
@@ -117,14 +118,14 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
 
   return (
     <div
-      className="ecm-overlay"
+      className="ecm-overlay edit-modal-overlay"
       role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
     >
       <div
-        className="ecm-modal"
+        className="ecm-modal edit-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-control-title"

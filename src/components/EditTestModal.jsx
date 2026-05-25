@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTestById, updateTest } from '../api/TestsAPI';
 import '../styles/components/EditTestModal.css';
-import '../styles/components/EditControlModal.css';
+import '../styles/components/EditModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
@@ -260,14 +260,14 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
   return (
     <div
-      className="ctm-overlay"
+      className="ctm-overlay edit-modal-overlay"
       role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
     >
       <div
-        className="ctm-modal"
+        className="ctm-modal edit-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-test-title"
@@ -437,7 +437,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
           <ActionButton
             type="button"
             variant="cancel"
-            className="ecm-btn ecm-btn--outline"
+            className="ctm-btn ctm-btn--ghost"
             onClick={onClose}
             disabled={submitting}
           >
@@ -446,7 +446,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
 
           <ActionButton
             type="button"
-            className="btn btn--red"
+            className="ctm-btn ctm-btn--primary"
             onClick={handleSave}
             disabled={submitting || loading}
           >
