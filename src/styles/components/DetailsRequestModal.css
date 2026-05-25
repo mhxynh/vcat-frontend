@@ -76,7 +76,7 @@
 .drm-status-label {
   font-size: 12px;
   color: #666;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .drm-statusbar-right {
@@ -88,7 +88,7 @@
 }
 
 .drm-progress {
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .drm-progress-label {
@@ -98,6 +98,7 @@
 /* Pills (reuse style vibe of your base badges) */
 .drm-pill {
   font-size: 12px;
+  font-weight: 400;
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
@@ -201,7 +202,7 @@
 .drm-detail-value {
   font-size: 12px;
   color: #111;
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .drm-date-warn {
