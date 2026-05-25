@@ -1104,58 +1104,6 @@ export default function DetailsTestModal({
       .replace(/\s+/g, '-');
   }
 
-  function normalizeAttachments(test) {
-    const raw = test?.evidenceLinks ?? test?.evidence_links ?? [];
-    if (!Array.isArray(raw)) return [];
-
-    return raw
-      .map((item) => {
-        if (item == null) return null;
-
-        const url =
-          typeof item === 'string' ? item.trim() : String(item?.url ?? item?.href ?? '').trim();
-        if (!url) return null;
-
-        const parsed = safeParseUrl(url);
-        const title =
-          typeof item === 'object' && item?.title
-            ? String(item.title).trim()
-            : formatAttachmentTitle(parsed, url);
-        const source = parsed?.hostname ? parsed.hostname : 'External link';
-
-        return {
-          id: url,
-          url,
-          title,
-          meta: source,
-        };
-      })
-      .filter(Boolean);
-  }
-
-  function safeParseUrl(url) {
-    try {
-      return new URL(url);
-    } catch {
-      return null;
-    }
-  }
-
-  function formatAttachmentTitle(parsed, fallbackUrl) {
-    if (!parsed) return fallbackUrl;
-
-    const pathParts = String(parsed.pathname || '')
-      .split('/')
-      .filter(Boolean);
-    const fileName = pathParts[pathParts.length - 1] || parsed.hostname || fallbackUrl;
-
-    try {
-      return decodeURIComponent(fileName);
-    } catch {
-      return fileName;
-    }
-  }
-
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
   const isTrackInProgress = isInProgress(statusUpper);
   const isLockedStatus = statusUpper === 'COMPLETED';
@@ -1896,6 +1844,58 @@ function firstNonBlank(...values) {
     if (text) return text;
   }
   return '';
+}
+
+function normalizeAttachments(test) {
+  const raw = test?.evidenceLinks ?? test?.evidence_links ?? [];
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((item) => {
+      if (item == null) return null;
+
+      const url =
+        typeof item === 'string' ? item.trim() : String(item?.url ?? item?.href ?? '').trim();
+      if (!url) return null;
+
+      const parsed = safeParseUrl(url);
+      const title =
+        typeof item === 'object' && item?.title
+          ? String(item.title).trim()
+          : formatAttachmentTitle(parsed, url);
+      const source = parsed?.hostname ? parsed.hostname : 'External link';
+
+      return {
+        id: url,
+        url,
+        title,
+        meta: source,
+      };
+    })
+    .filter(Boolean);
+}
+
+function safeParseUrl(url) {
+  try {
+    return new URL(url);
+  } catch {
+    return null;
+  }
+}
+
+function formatAttachmentTitle(parsed, fallbackUrl) {
+  if (!parsed) return fallbackUrl;
+
+  const pathParts = String(parsed.pathname || '')
+    .split('/')
+    .filter(Boolean);
+  const fileName = pathParts[pathParts.length - 1] || parsed.hostname || fallbackUrl;
+
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
 }
 
 function getUserDisplayName(user) {

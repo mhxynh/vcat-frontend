@@ -774,6 +774,25 @@
   margin-bottom: 12px;
 }
 
+.dtm-comment-input {
+  flex: 1;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 12px 12px;
+  outline: none;
+}
+
+.dtm-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: #b21d1d;
+  color: white;
+  cursor: pointer;
+  font-weight: 900;
+}
+
 .dtm-comments {
   display: flex;
   flex-direction: column;

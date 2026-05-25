@@ -93,16 +93,20 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
         const bucket = prev[requestId];
         if (!bucket || !Array.isArray(bucket.items)) continue;
 
+        let bucketChanged = false;
         const items = bucket.items.map((item) => {
           const itemTestId = item.testId ?? item.test_id ?? item.id ?? null;
           if (itemTestId === updatedTestId) {
-            changed = true;
+            bucketChanged = true;
             return { ...item, ...updatedCard };
           }
           return item;
         });
 
-        next[requestId] = { ...bucket, items };
+        if (bucketChanged) {
+          changed = true;
+          next[requestId] = { ...bucket, items };
+        }
       }
 
       return changed ? next : prev;
@@ -288,13 +292,15 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
     });
   }, [requests, testsByRequestId]);
 
+  const selectedRequestId = selectedRequest?.requestId;
+
   useEffect(() => {
-    if (!selectedRequest || !isRequestDetailsOpen) return;
-    const enriched = enrichedRequests.find((r) => r.requestId === selectedRequest.requestId);
+    if (!selectedRequestId || !isRequestDetailsOpen) return;
+    const enriched = enrichedRequests.find((r) => r.requestId === selectedRequestId);
     if (enriched) {
       setSelectedRequest(enriched);
     }
-  }, [enrichedRequests, isRequestDetailsOpen, selectedRequest?.requestId]);
+  }, [enrichedRequests, isRequestDetailsOpen, selectedRequestId]);
 
   const filteredRequests = useMemo(() => {
     const priorityFilter = filters?.priority ?? 'all';
