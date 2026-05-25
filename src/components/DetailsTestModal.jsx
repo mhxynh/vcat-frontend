@@ -5,7 +5,7 @@ import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { ActionButton, Badge } from './ui';
+import { ActionButton, Badge, ModalCloseButton } from './ui';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -1162,9 +1162,7 @@ export default function DetailsTestModal({
         <div className="dtm-modal" onMouseDown={stop}>
           <section className="dtm-header">
             <div className="dtm-title">Control Test Details: {String(vgcpid)}</div>
-            <button className="dtm-close" type="button" onClick={onClose} aria-label="Close">
-              ×
-            </button>
+            <ModalCloseButton className="dtm-close" onClick={onClose} />
           </section>
 
           <div className="dtm-divider" />

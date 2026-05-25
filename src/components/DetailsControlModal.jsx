@@ -19,7 +19,7 @@ import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton, Badge } from './ui';
+import { ActionButton, Badge, ModalCloseButton } from './ui';
 
 function formatDisplayDate(value) {
   if (!value || value === '-') return '-';
@@ -283,9 +283,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
             <div className="dcm-header">
               <div className="dcm-title">{id}</div>
 
-              <button className="dcm-close" type="button" onClick={onClose} aria-label="Close">
-                ×
-              </button>
+              <ModalCloseButton className="dcm-close" onClick={onClose} />
             </div>
 
             <div className="dcm-status-row">

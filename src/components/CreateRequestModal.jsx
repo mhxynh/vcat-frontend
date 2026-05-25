@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/CreateRequestModal.css';
 import { createRequest } from '../api/RequestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 function todayIso() {
   const d = new Date();
@@ -100,9 +100,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
       <div className="crm-modal" role="dialog" aria-modal="true" aria-label="Create New Request">
         <div className="crm-header">
           <h2 className="crm-title">Create New Request</h2>
-          <button className="crm-close" type="button" onClick={onClose} aria-label="Close">
-            ×
-          </button>
+          <ModalCloseButton className="crm-close" onClick={onClose} />
         </div>
 
         <form className="crm-body" onSubmit={handleSubmit}>

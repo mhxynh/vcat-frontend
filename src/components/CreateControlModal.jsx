@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createControl } from '../api/ControlsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [vgcpid, setVgcpid] = useState('');
@@ -109,9 +109,7 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
             Create New Control
           </h2>
 
-          <button type="button" className="modal-x" aria-label="Close" onClick={onClose}>
-            ×
-          </button>
+          <ModalCloseButton className="modal-x" onClick={onClose} />
         </div>
 
         <form className="modal-body" onSubmit={handleCreate}>

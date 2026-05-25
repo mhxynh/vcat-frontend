@@ -7,7 +7,7 @@ import { createTest } from '../api/TestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 function flagsFromTestType(v) {
   if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
@@ -244,15 +244,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
       >
         <div className="ctm-header">
           <h2 className="ctm-title">Create Control Test</h2>
-          <button
-            className="ctm-close"
-            type="button"
-            onClick={handleClose}
-            aria-label="Close"
-            disabled={submitting}
-          >
-            ×
-          </button>
+          <ModalCloseButton className="ctm-close" onClick={handleClose} disabled={submitting} />
         </div>
 
         <div className="ctm-body">

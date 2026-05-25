@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/AssignRequestModal.css';
 import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
@@ -78,9 +78,7 @@ export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssig
       <div className="arm-modal" onMouseDown={stop}>
         <header className="arm-header">
           <h3>Bulk Assign Tests</h3>
-          <button className="arm-close" onClick={onClose} aria-label="Close">
-            ×
-          </button>
+          <ModalCloseButton className="arm-close" onClick={onClose} />
         </header>
 
         <div className="arm-divider" />

@@ -21,7 +21,7 @@ import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -623,9 +623,7 @@ export default function DetailsRequestModal({
           <section className="drm-section-header">
             <div className="drm-header">
               <div className="drm-title">Request Details: {requestTitle}</div>
-              <button className="drm-close" type="button" onClick={onClose} aria-label="Close">
-                ×
-              </button>
+              <ModalCloseButton className="drm-close" onClick={onClose} />
             </div>
           </section>
 

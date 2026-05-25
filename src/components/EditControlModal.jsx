@@ -4,7 +4,7 @@ import { useRole, ACTIONS } from '../auth';
 import '../styles/components/EditControlModal.css';
 import '../styles/components/EditModal.css';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 export default function EditControlModal({ isOpen, onClose, control, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
@@ -136,9 +136,7 @@ export default function EditControlModal({ isOpen, onClose, control, onUpdated }
             Edit Control: {originalVgcpid}
           </h2>
 
-          <button type="button" className="ecm-close" aria-label="Close" onClick={onClose}>
-            ×
-          </button>
+          <ModalCloseButton className="ecm-close" onClick={onClose} />
         </div>
 
         <div className="ecm-body">

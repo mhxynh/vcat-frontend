@@ -3,6 +3,7 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 import { fetchUsers } from '../api/UsersAPI';
 import '../styles/components/AuditHistoryView.css';
+import { ModalCloseButton } from './ui';
 
 const DATE_FORMAT = {
   month: 'short',
@@ -340,14 +341,10 @@ export default function AuditHistoryView({
           <div className="ahv-overlay-box">
             <div className="ahv-overlay-header">
               <h3 className="ahv-overlay-title">{overlayTitle}</h3>
-              <button
-                type="button"
+              <ModalCloseButton
                 className="ahv-overlay-close"
                 onClick={() => setShowExpanded(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
+              />
             </div>
             <div className="ahv-overlay-body">{historyContent}</div>
           </div>

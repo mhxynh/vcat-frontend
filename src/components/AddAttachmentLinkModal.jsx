@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/components/AddAttachmentLinkModal.css';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoading }) {
   const [url, setUrl] = useState('');
@@ -61,15 +61,7 @@ export default function AddAttachmentLinkModal({ isOpen, onClose, onAdd, isLoadi
           <h2 className="aalm-title" id="add-attachment-link-title">
             Add Attachment Link
           </h2>
-          <button
-            className="aalm-close"
-            type="button"
-            onClick={handleCancel}
-            disabled={isLoading}
-            aria-label="Close"
-          >
-            ×
-          </button>
+          <ModalCloseButton className="aalm-close" onClick={handleCancel} disabled={isLoading} />
         </div>
 
         <div className="aalm-body">

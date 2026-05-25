@@ -10,7 +10,7 @@ import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 
 const MODAL_BODY_MIN_HEIGHT = 428;
 
@@ -278,9 +278,7 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
             Edit Control Test: {selectedVgcpid || '-'}
           </h2>
 
-          <button type="button" className="ctm-close" aria-label="Close" onClick={onClose}>
-            x
-          </button>
+          <ModalCloseButton className="ctm-close" onClick={onClose} />
         </div>
 
         <div

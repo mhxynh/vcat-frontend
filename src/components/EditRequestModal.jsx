@@ -9,7 +9,7 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
-import { ActionButton } from './ui';
+import { ActionButton, ModalCloseButton } from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
@@ -254,15 +254,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
           <h2 className="erm-title" id="edit-request-title">
             Edit Request
           </h2>
-          <button
-            type="button"
-            className="erm-close"
-            onClick={onClose}
-            aria-label="Close"
-            disabled={saving}
-          >
-            ×
-          </button>
+          <ModalCloseButton className="erm-close" onClick={onClose} disabled={saving} />
         </div>
 
         <div className="erm-body">
