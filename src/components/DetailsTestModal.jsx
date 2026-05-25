@@ -5,7 +5,7 @@ import AuditHistoryView from './AuditHistoryView';
 import EditTestModal from './EditTestModal';
 import AddAttachmentLinkModal from './AddAttachmentLinkModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { ActionButton, Badge, Modal, ModalCloseButton } from './ui';
+import { ActionButton, Badge, Modal, ModalCloseButton, Tabs } from './ui';
 import { objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import {
@@ -1367,42 +1367,44 @@ export default function DetailsTestModal({
 
         <div className="dtm-divider" />
 
-        <section className="dtm-tabs">
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'Details' ? 'dtm-tab--active' : ''}`}
+        <Tabs className="dtm-tabs">
+          <Tabs.Tab
+            className="dtm-tab"
+            activeClassName="dtm-tab--active"
+            active={activeTab === 'Details'}
             onClick={() => setActiveTab('Details')}
           >
             Details
-          </button>
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'Attachments' ? 'dtm-tab--active' : ''}`}
+          </Tabs.Tab>
+          <Tabs.Tab
+            className="dtm-tab"
+            activeClassName="dtm-tab--active"
+            countClassName="dtm-tab-count"
+            active={activeTab === 'Attachments'}
+            count={attachments.length}
             onClick={() => setActiveTab('Attachments')}
           >
-            <span>Attachments</span>
-            {attachments.length > 0 ? (
-              <span className="dtm-tab-count">{attachments.length}</span>
-            ) : null}
-          </button>
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'Comments' ? 'dtm-tab--active' : ''}`}
+            Attachments
+          </Tabs.Tab>
+          <Tabs.Tab
+            className="dtm-tab"
+            activeClassName="dtm-tab--active"
+            countClassName="dtm-tab-count"
+            active={activeTab === 'Comments'}
+            count={localComments.length}
             onClick={() => setActiveTab('Comments')}
           >
-            <span>Comments</span>
-            {localComments.length > 0 ? (
-              <span className="dtm-tab-count">{localComments.length}</span>
-            ) : null}
-          </button>
-          <button
-            type="button"
-            className={`dtm-tab ${activeTab === 'History' ? 'dtm-tab--active' : ''}`}
+            Comments
+          </Tabs.Tab>
+          <Tabs.Tab
+            className="dtm-tab"
+            activeClassName="dtm-tab--active"
+            active={activeTab === 'History'}
             onClick={() => setActiveTab('History')}
           >
             History
-          </button>
-        </section>
+          </Tabs.Tab>
+        </Tabs>
 
         <section className="dtm-body">
           {activeTab === 'Details' ? (

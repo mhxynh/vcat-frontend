@@ -21,7 +21,7 @@ import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import RestrictedAction from './RestrictedAction';
 import { ACTIONS } from '../auth';
-import { ActionButton, Modal, ModalCloseButton } from './ui';
+import { ActionButton, Modal, ModalCloseButton, Tabs } from './ui';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -737,25 +737,26 @@ export default function DetailsRequestModal({
         <div className="drm-divider" />
 
         <section className="drm-section-tabs">
-          <div className="drm-tabs">
-            <button
-              type="button"
-              className={`drm-tab ${activeTab === 'Comments' ? 'drm-tab--active' : ''}`}
+          <Tabs className="drm-tabs">
+            <Tabs.Tab
+              className="drm-tab"
+              activeClassName="drm-tab--active"
+              countClassName="drm-tab-count"
+              active={activeTab === 'Comments'}
+              count={localComments.length}
               onClick={() => setActiveTab('Comments')}
             >
-              <span>Comments</span>
-              {localComments.length > 0 ? (
-                <span className="drm-tab-count">{localComments.length}</span>
-              ) : null}
-            </button>
-            <button
-              type="button"
-              className={`drm-tab ${activeTab === 'History' ? 'drm-tab--active' : ''}`}
+              Comments
+            </Tabs.Tab>
+            <Tabs.Tab
+              className="drm-tab"
+              activeClassName="drm-tab--active"
+              active={activeTab === 'History'}
               onClick={() => setActiveTab('History')}
             >
               History
-            </button>
-          </div>
+            </Tabs.Tab>
+          </Tabs>
 
           <div className="drm-tab-content">
             {activeTab === 'Comments' ? (
