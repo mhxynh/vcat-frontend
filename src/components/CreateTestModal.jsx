@@ -263,7 +263,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
         )}
 
         <FormGrid className="ctm-grid">
-          <FormField label="VGCPID" required error={fieldErrors.selectedVgcpid}>
+          <FormField label="VGCPID" htmlFor="vgcpid" required error={fieldErrors.selectedVgcpid}>
             <FormSelect
               id="vgcpid"
               className="ctm-select"
@@ -283,7 +283,11 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             </FormSelect>
           </FormField>
 
-          <FormField label="Link to Request" error={fieldErrors.selectedRequestId}>
+          <FormField
+            label="Link to Request"
+            htmlFor="requestId"
+            error={fieldErrors.selectedRequestId}
+          >
             <FormSelect
               id="requestId"
               className="ctm-select"
@@ -303,7 +307,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             </FormSelect>
           </FormField>
 
-          <FormField label="Tester">
+          <FormField label="Tester" htmlFor="tester">
             <FormSelect
               id="tester"
               className="ctm-select"
@@ -320,7 +324,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             </FormSelect>
           </FormField>
 
-          <FormField label="Test Type" required error={fieldErrors.testType}>
+          <FormField label="Test Type" htmlFor="testType" required error={fieldErrors.testType}>
             <FormSelect
               id="testType"
               className="ctm-select"
@@ -338,7 +342,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             </FormSelect>
           </FormField>
 
-          <FormField label="Due Date" required error={fieldErrors.dueDate}>
+          <FormField label="Due Date" htmlFor="dueDate" required error={fieldErrors.dueDate}>
             <FormInput
               id="dueDate"
               className="ctm-input"
@@ -352,7 +356,7 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             />
           </FormField>
 
-          <FormField label="ETA Date">
+          <FormField label="ETA Date" htmlFor="etaDate">
             <FormInput
               id="etaDate"
               className="ctm-input"
@@ -363,7 +367,13 @@ export default function CreateTestModal({ isOpen, onClose, onCreated, defaultReq
             />
           </FormField>
 
-          <FormField label="Description" required error={fieldErrors.description} full>
+          <FormField
+            label="Description"
+            htmlFor="description"
+            required
+            error={fieldErrors.description}
+            full
+          >
             <FormTextarea
               id="description"
               className="ctm-textarea"

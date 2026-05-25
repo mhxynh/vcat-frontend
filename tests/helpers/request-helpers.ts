@@ -13,7 +13,7 @@ export async function createRequest(
 ): Promise<Locator> {
   await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
-  await page.getByRole("button", { name: "Requests" }).click();
+  await page.getByRole("tab", { name: "Requests" }).click();
   await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Request" }).click();
   await page.getByRole("combobox").selectOption(priority);

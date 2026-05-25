@@ -12,6 +12,7 @@ export function FormGrid({ children, className = '' }) {
 export function FormField({
   children,
   label,
+  htmlFor,
   required = false,
   error,
   full = false,
@@ -23,7 +24,7 @@ export function FormField({
   return (
     <div className={cx('app-form-field', full && 'app-form-field--full', className)}>
       {label ? (
-        <label className={cx('app-form-label', labelClassName)}>
+        <label htmlFor={htmlFor} className={cx('app-form-label', labelClassName)}>
           {label}
           {required ? (
             <span className={cx('app-form-required', requiredClassName)} aria-hidden="true">

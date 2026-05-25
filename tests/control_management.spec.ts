@@ -5,12 +5,15 @@ test("T1 - View Controls Catalog", async ({ page }) => {
   await loginAsManager(page);
   await page.getByRole("link", { name: "Catalog" }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Active", exact: true }).click();
+  await page.getByRole("tab", { name: "Active", exact: true }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Retired" }).click();
+  await page.getByRole("tab", { name: "Retired" }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "All" }).click();
-  await page.locator("text=VGCP").first().click();
+  await page.getByRole("tab", { name: "All" }).click();
+  await page
+    .locator(".controls-accordion .acc-item button.acc-header")
+    .first()
+    .click();
 });
 
 test("T3 - Create a New Control", async ({ page }) => {
