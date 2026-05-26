@@ -995,15 +995,15 @@ export default function DetailsRequestModal({
           onClose={closeTestDetails}
           test={activeTest}
           onArchived={async () => {
-            await refreshLocalRequest();
+            await refreshInline();
             closeTestDetails();
           }}
           onDeleted={async () => {
-            await refreshLocalRequest();
+            await refreshInline();
             closeTestDetails();
           }}
           onUpdated={async () => {
-            await refreshLocalRequest();
+            await refreshInline();
           }}
         />
       </div>

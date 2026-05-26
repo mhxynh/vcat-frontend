@@ -1,4 +1,4 @@
-import { authFetch, API_BASE } from './apiClient';
+import { authFetch, API_BASE, getFriendlyHttpErrorMessage } from './apiClient';
 
 export async function exportTable(table, fallbackFilename) {
   const url = new URL(`${API_BASE}/export`);
@@ -12,7 +12,7 @@ export async function exportTable(table, fallbackFilename) {
   const data = await resp.json().catch(() => ({}));
 
   if (!resp.ok) {
-    const msg = data?.error || data?.message || `Failed to generate export (HTTP ${resp.status})`;
+    const msg = data?.error || data?.message || getFriendlyHttpErrorMessage(resp.status);
     throw new Error(msg);
   }
 
