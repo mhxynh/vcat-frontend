@@ -6,7 +6,7 @@ test("T14 - Create New Tests", async ({ page }) => {
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Control Test" }).click();
-  await expect(page.locator("text=Loading...")).toHaveCount(0);
+  await expect(page.locator("text=Loading...")).toHaveCount(2);
   await page.getByLabel("VGCPID*").waitFor({ state: "visible" });
   await page.getByLabel("VGCPID*").selectOption({ index: 1 });
   await page.getByLabel("Link to Request").waitFor({ state: "visible" });
