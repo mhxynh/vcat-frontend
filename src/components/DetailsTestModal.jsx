@@ -1233,7 +1233,7 @@ export default function DetailsTestModal({
                 </div>
               </div>
             ) : (
-              <div className="dtm-step-card">
+              <div className="dtm-step-card dtm-step-card--interactive">
                 <div className="dtm-step-left">
                   <div
                     className={`dtm-step-icon ${statusUpper === 'IN_REVIEW' ? 'dtm-step-icon--review' : isTrackInProgress ? 'dtm-step-icon--progress' : 'dtm-step-icon--default'}`}
