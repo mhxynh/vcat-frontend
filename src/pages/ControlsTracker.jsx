@@ -10,7 +10,7 @@ import CreateRequestModal from '../components/CreateRequestModal';
 import AssignTestModal from '../components/AssignTestModal';
 import ExportButton from '../components/ExportButton';
 import RefreshButton from '../components/RefreshButton';
-import RestrictedAction from '../components/RestrictedAction';
+import PermissionAction from '../components/PermissionAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
 import { exportTable } from '../api/ExportAPI';
@@ -66,22 +66,6 @@ export default function ControlsTracker() {
   const [refreshingTab, setRefreshingTab] = useState(null);
 
   const [newRequestToOpen, setNewRequestToOpen] = useState(null);
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
-
-  function handleRestrictedOverlayClick(e) {
-    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-    if (blockedWrapper) {
-      e.preventDefault();
-      e.stopPropagation();
-      showPermissionDeniedToast();
-    }
-  }
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -296,7 +280,7 @@ export default function ControlsTracker() {
                     </button>
                     <span>{selectedTestRows.length} selected</span>
                   </div>
-                  <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+                  <PermissionAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
                     <ActionButton
                       className="btn btn--new"
                       type="button"
@@ -305,22 +289,20 @@ export default function ControlsTracker() {
                     >
                       Bulk Assign
                     </ActionButton>
-                  </RestrictedAction>
+                  </PermissionAction>
                 </div>
               ) : null}
 
-              <div onClick={handleRestrictedOverlayClick}>
-                <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                  <ActionButton
-                    className="btn btn--new"
-                    type="button"
-                    onClick={() => setIsCreateTestOpen(true)}
-                    isPageLoading={activeTabLoading}
-                  >
-                    + Add Control Test
-                  </ActionButton>
-                </RestrictedAction>
-              </div>
+              <PermissionAction action={ACTIONS.CREATE_TEST}>
+                <ActionButton
+                  className="btn btn--new"
+                  type="button"
+                  onClick={() => setIsCreateTestOpen(true)}
+                  isPageLoading={activeTabLoading}
+                >
+                  + Add Control Test
+                </ActionButton>
+              </PermissionAction>
 
               <ToolbarFilterDropdown
                 filterPanelId="tracker-controls-filter-panel"
@@ -344,18 +326,16 @@ export default function ControlsTracker() {
           searchAriaLabel="Search requests"
           right={
             <>
-              <div onClick={handleRestrictedOverlayClick}>
-                <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
-                  <ActionButton
-                    className="btn btn--new"
-                    type="button"
-                    onClick={() => setIsCreateRequestOpen(true)}
-                    isPageLoading={activeTabLoading}
-                  >
-                    + Add Request
-                  </ActionButton>
-                </RestrictedAction>
-              </div>
+              <PermissionAction action={ACTIONS.CREATE_REQUEST}>
+                <ActionButton
+                  className="btn btn--new"
+                  type="button"
+                  onClick={() => setIsCreateRequestOpen(true)}
+                  isPageLoading={activeTabLoading}
+                >
+                  + Add Request
+                </ActionButton>
+              </PermissionAction>
 
               <ToolbarFilterDropdown
                 filterPanelId="tracker-requests-filter-panel"
@@ -412,7 +392,10 @@ export default function ControlsTracker() {
 
             setControlsRefreshKey((k) => k + 1);
           } catch (e) {
-            alert('Failed to assign tests: ' + (e?.message || e));
+            showErrorToast({
+              title: 'Bulk Assign Failed',
+              message: e?.message || 'Failed to assign the selected tests.',
+            });
             setControlsRefreshKey((k) => k + 1);
           }
         }}

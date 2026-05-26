@@ -7,6 +7,7 @@ import { createTest } from '../api/TestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+import { flagsFromTestType } from '../utils/testType';
 import {
   ActionButton,
   ErrorState,
@@ -17,13 +18,6 @@ import {
   FormTextarea,
   Modal,
 } from './ui';
-
-function flagsFromTestType(v) {
-  if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
-  if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
-  if (v === 'DAT & OET') return { requiresDat: true, requiresOet: true };
-  return { requiresDat: false, requiresOet: false };
-}
 
 function isNetworkFetchError(error) {
   if (!(error instanceof Error)) {

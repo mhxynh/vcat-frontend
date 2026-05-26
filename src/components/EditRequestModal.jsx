@@ -5,9 +5,9 @@ import { fetchTestsByRequestId, fetchTests, updateTest } from '../api/TestsAPI';
 import CreateTestModal from './CreateTestModal';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
+import PermissionAction from './PermissionAction';
 import {
   ActionButton,
   EmptyState,
@@ -465,7 +465,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                       : 'Unlinked'}
                                   </div>
                                 </div>
-                                <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                                <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
                                   <ActionButton
                                     type="button"
                                     className="erm-add-btn"
@@ -474,7 +474,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                   >
                                     +
                                   </ActionButton>
-                                </RestrictedAction>
+                                </PermissionAction>
                               </div>
                             );
                           })
@@ -520,7 +520,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                               </span>
                             </div>
                           </div>
-                          <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
+                          <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
                             <IconButton
                               className="erm-x"
                               onClick={() => handleRemoveTest(test)}
@@ -530,14 +530,14 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                             >
                               ×
                             </IconButton>
-                          </RestrictedAction>
+                          </PermissionAction>
                         </div>
                       );
                     })
                   )}
 
                   <div className="erm-create-control-row">
-                    <RestrictedAction action={ACTIONS.CREATE_TEST}>
+                    <PermissionAction action={ACTIONS.CREATE_TEST}>
                       <ActionButton
                         type="button"
                         className={`erm-create-control-link ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
@@ -549,7 +549,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       >
                         + Create New Control for this Request
                       </ActionButton>
-                    </RestrictedAction>
+                    </PermissionAction>
                   </div>
                 </div>
               </Panel>

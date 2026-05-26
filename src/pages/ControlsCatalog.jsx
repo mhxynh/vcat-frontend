@@ -6,7 +6,7 @@ import ImportButton from '../components/ImportButton';
 import ExportButton from '../components/ExportButton';
 import RefreshButton from '../components/RefreshButton';
 import ImportControlsModal from '../components/ImportControlsModal';
-import RestrictedAction from '../components/RestrictedAction';
+import PermissionAction from '../components/PermissionAction';
 import { ACTIONS } from '../auth';
 import {
   exportCatalog,
@@ -76,22 +76,6 @@ export default function Controls() {
     setIsDetailsModalOpen(false);
     setSelectedControl(null);
   };
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
-
-  function handleRestrictedOverlayClick(e) {
-    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-    if (blockedWrapper) {
-      e.preventDefault();
-      e.stopPropagation();
-      showPermissionDeniedToast();
-    }
-  }
 
   async function loadControls({ setFirstOpen = false } = {}) {
     setLoading(true);
@@ -258,23 +242,14 @@ export default function Controls() {
           </div>
         }
         actions={
-          <div
-            onClick={(e) => {
-              const blockedWrapper = e.target.closest('.restricted-action--blocked');
-              if (blockedWrapper) {
-                e.preventDefault();
-                e.stopPropagation();
-                showPermissionDeniedToast();
-              }
-            }}
-          >
-            <RestrictedAction action={ACTIONS.IMPORT_CONTROLS}>
+          <div>
+            <PermissionAction action={ACTIONS.IMPORT_CONTROLS}>
               <ImportButton
                 isLoading={isImporting}
                 isPageLoading={loading}
                 onClick={() => setIsImportModalOpen(true)}
               />
-            </RestrictedAction>
+            </PermissionAction>
             <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
             <RefreshButton
               isLoading={isRefreshing}
@@ -303,18 +278,16 @@ export default function Controls() {
           searchAriaLabel="Search controls"
           right={
             <>
-              <div onClick={handleRestrictedOverlayClick}>
-                <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-                  <ActionButton
-                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
-                    type="button"
-                    onClick={() => setIsCreateModalOpen(true)}
-                    isPageLoading={loading}
-                  >
-                    <span className="controls-toolbar__add-label">+ Add Control</span>
-                  </ActionButton>
-                </RestrictedAction>
-              </div>
+              <PermissionAction action={ACTIONS.CREATE_CONTROL}>
+                <ActionButton
+                  className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  isPageLoading={loading}
+                >
+                  <span className="controls-toolbar__add-label">+ Add Control</span>
+                </ActionButton>
+              </PermissionAction>
 
               <ToolbarFilterDropdown
                 filterPanelId="controls-catalog-filter-panel"

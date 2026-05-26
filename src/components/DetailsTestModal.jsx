@@ -22,7 +22,7 @@ import {
   Tabs,
 } from './ui';
 import { objectToCamelCase } from '../utils/transformer';
-import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { showSuccessToast, showErrorToast, showPermissionDeniedToast } from '../utils/toast';
 import {
   archiveTest,
   hardDeleteTest,
@@ -48,6 +48,7 @@ import PermissionAction from './PermissionAction';
 import { ACTIONS, useRole } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+import { testTypeFromFlags } from '../utils/testType';
 
 export default function DetailsTestModal({
   isOpen,
@@ -424,13 +425,6 @@ export default function DetailsTestModal({
 
   const description = t?.description ?? 'No description.';
 
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
-
   function handleAddEvidenceLink() {
     openAddAttachmentModal();
   }
@@ -755,7 +749,10 @@ export default function DetailsTestModal({
         await refreshInline();
       });
     } catch (e) {
-      alert(e?.message || 'Failed to start work');
+      showErrorToast({
+        title: 'Failed to Start Work',
+        message: e?.message || 'An error occurred while starting the control test.',
+      });
     }
   }
 
@@ -884,7 +881,10 @@ export default function DetailsTestModal({
         });
       }
     } catch (e) {
-      alert(e?.message || 'Update failed');
+      showErrorToast({
+        title: 'Control Test Update Failed',
+        message: e?.message || 'An error occurred while updating the control test.',
+      });
     }
   }
 
@@ -952,7 +952,10 @@ export default function DetailsTestModal({
         });
       }
     } catch (e) {
-      alert(e?.message || 'Failed to revert');
+      showErrorToast({
+        title: 'Failed to Revert Test',
+        message: e?.message || 'An error occurred while reverting the control test.',
+      });
     }
   }
 
@@ -973,7 +976,10 @@ export default function DetailsTestModal({
         await refreshInline();
       });
     } catch (e) {
-      alert(e?.message || 'Failed to reject');
+      showErrorToast({
+        title: 'Failed to Reject Test',
+        message: e?.message || 'An error occurred while rejecting the control test.',
+      });
     }
   }
 
@@ -1955,15 +1961,6 @@ function initials(name) {
   const a = parts[0]?.[0] || '?';
   const b = parts[1]?.[0] || '';
   return (a + b).toUpperCase();
-}
-
-function testTypeFromFlags(t) {
-  const dat = !!t?.requiresDat;
-  const oet = !!t?.requiresOet;
-  if (dat && oet) return 'DAT & OET';
-  if (dat) return 'DAT Only';
-  if (oet) return 'OET Only';
-  return '-';
 }
 
 function humanStep(s) {

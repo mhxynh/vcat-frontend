@@ -9,9 +9,8 @@ import {
 import DetailsRequestModal from '../../components/DetailsRequestModal';
 import AssignRequestModal from '../../components/AssignRequestModal';
 import DetailsTestModal from '../../components/DetailsTestModal';
-import RestrictedAction from '../../components/RestrictedAction';
+import PermissionAction from '../../components/PermissionAction';
 import { ACTIONS } from '../../auth';
-import { showErrorToast } from '../../utils/toast';
 import { formatRequestDisplayId } from '../../utils/requestDisplayId';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
@@ -38,13 +37,6 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
   useEffect(() => {
     onLoadingChange?.(loading);
   }, [loading, onLoadingChange]);
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -428,22 +420,11 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                         Details
                       </button>
 
-                      <div
-                        onClick={(e) => {
-                          const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                          if (blockedWrapper) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            showPermissionDeniedToast();
-                          }
-                        }}
-                      >
-                        <RestrictedAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
-                          <button className="btn-outline" onClick={() => openAssignModal(req)}>
-                            Assign
-                          </button>
-                        </RestrictedAction>
-                      </div>
+                      <PermissionAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
+                        <button className="btn-outline" onClick={() => openAssignModal(req)}>
+                          Assign
+                        </button>
+                      </PermissionAction>
 
                       <button className="btn-chev" onClick={() => toggleExpand(req)}>
                         {isOpen ? '▴' : '▾'}

@@ -1,6 +1,6 @@
 import React from 'react';
 import RestrictedAction from './RestrictedAction';
-import { showErrorToast } from '../utils/toast';
+import { showPermissionDeniedToast } from '../utils/toast';
 
 export default function PermissionAction({ action, children }) {
   function handleClick(e) {
@@ -9,10 +9,7 @@ export default function PermissionAction({ action, children }) {
 
     e.preventDefault();
     e.stopPropagation();
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
+    showPermissionDeniedToast();
   }
 
   return (

@@ -9,6 +9,7 @@ import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+import { flagsFromTestType, testTypeFromFlags } from '../utils/testType';
 import {
   ActionButton,
   FormField,
@@ -21,24 +22,12 @@ import {
 
 const MODAL_BODY_MIN_HEIGHT = 428;
 
-function flagsFromTestType(v) {
-  if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
-  if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
-  if (v === 'DAT & OET') return { requiresDat: true, requiresOet: true };
-  return { requiresDat: false, requiresOet: false };
-}
-
 function normalizeTest(test) {
   return objectToCamelCase(test ?? null);
 }
 
 function buildInitialState(test) {
-  let testType = '';
-  if (test) {
-    if (test.requiresDat && test.requiresOet) testType = 'DAT & OET';
-    else if (test.requiresDat) testType = 'DAT Only';
-    else if (test.requiresOet) testType = 'OET Only';
-  }
+  const testType = test ? testTypeFromFlags(test) : '';
 
   return {
     selectedControlId: test?.controlId != null ? String(test.controlId) : '',

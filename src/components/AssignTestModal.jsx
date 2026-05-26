@@ -3,6 +3,7 @@ import '../styles/components/AssignRequestModal.css';
 import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
 import { ActionButton, ModalCloseButton } from './ui';
+import { showErrorToast } from '../utils/toast';
 
 export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
@@ -56,7 +57,10 @@ export default function AssignTestModal({ isOpen, onClose, testIds = [], onAssig
 
   function handleAssign() {
     if (!selectedUser) {
-      alert('Please select a tester to assign');
+      showErrorToast({
+        title: 'Tester Required',
+        message: 'Please select a tester before assigning the selected tests.',
+      });
       return;
     }
 

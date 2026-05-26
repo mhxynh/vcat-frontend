@@ -62,6 +62,13 @@ export function showErrorToast({ title, message }) {
   });
 }
 
+export function showPermissionDeniedToast() {
+  showErrorToast({
+    title: 'Permission Denied',
+    message: 'Only managers have permission for this action. Contact a manager for access.',
+  });
+}
+
 export function showWarningToast({ title, message }) {
   toast(<AppToast type="warning" title={title} message={message} />, {
     ...commonOptions,

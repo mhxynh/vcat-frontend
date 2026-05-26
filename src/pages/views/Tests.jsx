@@ -5,6 +5,7 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
 import { Badge } from '../../components/ui';
 import { isOverdue, parseLocalDate } from '../../utils/date.js';
+import { testTypeFromFlags } from '../../utils/testType';
 import { ACTIONS, useCan } from '../../auth';
 
 function formatDate(value) {
@@ -25,15 +26,6 @@ function statusToBadgeType(status) {
   return String(status || 'NOT_STARTED')
     .toLowerCase()
     .replaceAll('_', '-');
-}
-
-function testTypeFromFlags(t) {
-  const dat = !!t?.requires_dat;
-  const oet = !!t?.requires_oet;
-  if (dat && oet) return 'DAT & OET';
-  if (dat) return 'DAT';
-  if (oet) return 'OET';
-  return '-';
 }
 
 function formatStepLabel(step) {
@@ -79,7 +71,7 @@ function buildTestSearchHaystack(t) {
     t?.control_id,
     vgcpidCell,
     testerCell,
-    testTypeFromFlags(t),
+    testTypeFromFlags(t, { short: true }),
     statusToLabel(t?.status),
     statusToBadgeType(t?.status),
     stepFromTracks(t),
@@ -317,7 +309,7 @@ export default function Tests({
                 const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '-';
                 const testerCell = getTesterName(t) || getTesterId(t) || '-';
 
-                const testType = testTypeFromFlags(t);
+                const testType = testTypeFromFlags(t, { short: true });
                 const statusLabel = statusToLabel(t?.status);
                 const statusType = statusToBadgeType(t?.status);
                 const step = stepFromTracks(t);
