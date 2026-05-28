@@ -12,7 +12,8 @@
 .dtm-modal {
   width: min(980px, 96vw);
   max-height: 92vh;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
@@ -282,6 +283,8 @@
   gap: 16px;
   padding: 12px 22px;
   border-bottom: 1px solid #eee;
+  position: relative;
+  overflow: hidden;
 }
 
 .dtm-tab {
@@ -295,6 +298,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  position: relative;
 }
 
 .dtm-tab--active {
@@ -864,4 +868,265 @@
   color: #333;
   font-size: 12px;
   margin-top: 4px;
+}
+
+/* Request-modal aligned hover, button, tab, input, and send styles */
+.dtm-tab::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px;
+  background: transparent;
+  transition:
+    background-color 140ms ease,
+    transform 140ms ease;
+  transform: scaleX(0.65);
+}
+
+.dtm-tab--active {
+  color: #8b0f17;
+  border-bottom-color: transparent;
+}
+
+.dtm-tab:hover:not(.dtm-tab--active),
+.dtm-tab:focus-visible:not(.dtm-tab--active) {
+  background: #fef5f5;
+  color: #8b0f17;
+  transform: translateY(-1px);
+}
+
+.dtm-tab:hover::after,
+.dtm-tab:focus-visible::after,
+.dtm-tab--active::after {
+  background: #8b0f17;
+  transform: scaleX(1);
+}
+
+.dtm-tab:hover .dtm-tab-count,
+.dtm-tab:focus-visible .dtm-tab-count,
+.dtm-tab--active .dtm-tab-count {
+  background: #fdecec;
+  color: #8b0f17;
+}
+
+.dtm-tab:focus-visible,
+.dtm-btn:focus-visible,
+.dtm-close:focus-visible,
+.dtm-send:focus-visible {
+  outline: none;
+}
+
+.dtm-btn {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 800;
+  background: #f4f4f4;
+  line-height: normal;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease,
+    filter 140ms ease;
+}
+
+.dtm-btn:hover:not(:disabled),
+.dtm-btn:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
+  filter: none;
+}
+
+.dtm-btn:disabled,
+.dtm-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.35);
+  box-shadow: none;
+  transform: none;
+}
+
+.dtm-btn--revert,
+.dtm-btn--ghost {
+  background: #fff;
+  border-color: #e6e6e6;
+  color: #545454;
+}
+
+.dtm-btn--revert:hover:not(:disabled),
+.dtm-btn--revert:focus-visible:not(:disabled),
+.dtm-btn--ghost:hover:not(:disabled),
+.dtm-btn--ghost:focus-visible:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d7dce4;
+  color: #111827;
+}
+
+.dtm-btn--secondary {
+  background: #fff;
+  border-color: #f0c9cc;
+  color: #8b0f17;
+}
+
+.dtm-btn--secondary:hover:not(:disabled),
+.dtm-btn--secondary:focus-visible:not(:disabled) {
+  background: #fef5f5;
+  border-color: #e7a6ad;
+  color: #7f1018;
+}
+
+.dtm-btn--primary {
+  border: 0;
+  background: #8b0f17;
+  color: #fff;
+}
+
+.dtm-btn--primary:hover:not(:disabled),
+.dtm-btn--primary:focus-visible:not(:disabled) {
+  background: #7f1018;
+  box-shadow: 0 8px 18px rgba(139, 15, 23, 0.24);
+}
+
+.dtm-btn:active:not(:disabled),
+.dtm-close:active,
+.dtm-tab:active,
+.dtm-send:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.dtm-addcomment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.dtm-addcomment:focus-within {
+  background: #fafafa;
+}
+
+.dtm-comment-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 12px 12px;
+  outline: none;
+  font-weight: 400;
+  font-size: 12px;
+  color: #232323;
+  background: #fff;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+.dtm-comment-input:hover:not(:disabled) {
+  border-color: #d7dce4;
+  background: #fff;
+}
+
+.dtm-comment-input:focus {
+  border-color: #e7a6ad;
+  box-shadow: 0 0 0 3px rgba(178, 29, 29, 0.12);
+}
+
+.dtm-comment-input:disabled {
+  background: #f6f6f6;
+  cursor: not-allowed;
+}
+
+.dtm-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: #b21d1d;
+  color: white;
+  cursor: pointer;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease,
+    opacity 140ms ease;
+}
+
+.dtm-send:hover:not(:disabled),
+.dtm-send:focus-visible:not(:disabled) {
+  background: #8b0f17;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(178, 29, 29, 0.24);
+}
+
+.dtm-send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Keep the current-step hover effect, but align timing/shadow with request modal hover */
+.dtm-step-card {
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease;
+}
+
+.dtm-step-card--interactive:hover,
+.dtm-step-card--completed:hover,
+.dtm-step-card--blocked:hover {
+  border-color: #d7dce4;
+  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
+  transform: translateY(-1px);
+}
+
+.dtm-step-icon,
+.dtm-complete-icon {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+.dtm-step-card--interactive:hover .dtm-step-icon,
+.dtm-step-card--completed:hover .dtm-complete-icon,
+.dtm-step-card--blocked:hover .dtm-complete-icon {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+}
+
+.dtm-next {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.dtm-step-card--interactive:hover .dtm-next {
+  background: #fef5f5;
+  border-color: #f0c9cc;
+  color: #8b0f17;
 }
