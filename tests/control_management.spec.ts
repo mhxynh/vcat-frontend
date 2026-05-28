@@ -21,7 +21,7 @@ test("T3 - Create a New Control", async ({ page }) => {
   await page.getByRole("link", { name: "Catalog" }).click();
   await page.locator("text=Loading Controls...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Control" }).click();
-  const randomVgcp = `VGCP-${Math.floor(10000 + Math.random() * 90000)}`;
+  const randomVgcp = `VGCP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   await page.getByRole("textbox", { name: "e.g. VGCP-" }).click();
   await page.getByRole("textbox", { name: "e.g. VGCP-" }).fill(randomVgcp);
   await page.getByRole("textbox", { name: "Enter detailed control" }).click();
