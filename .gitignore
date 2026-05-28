@@ -30,3 +30,7 @@ aws-configuration.json
 # IDE & OS Files
 .DS_Store
 .vscode/
+
+# Playwright
+/test-results
+/playwright-report/
