@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './FeedbackState.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export function LoadingState({ children = 'Loading...', className = '', ...props }) {
   return (

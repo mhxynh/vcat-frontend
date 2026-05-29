@@ -6,26 +6,13 @@ import Icon from '../../components/common/Icon';
 import { Badge } from '../../components/ui';
 import { isOverdue, parseLocalDate } from '../../utils/date.js';
 import { testTypeFromFlags } from '../../utils/testType';
+import { formatStatusLabel, statusToBadgeTone } from '../../utils/displayLabels';
 import { ACTIONS, useCan } from '../../auth';
 
 function formatDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
   return d.toLocaleDateString();
-}
-
-function statusToLabel(status) {
-  return String(status || 'NOT_STARTED')
-    .replaceAll('_', ' ')
-    .toLowerCase()
-    .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
-    .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
-}
-
-function statusToBadgeType(status) {
-  return String(status || 'NOT_STARTED')
-    .toLowerCase()
-    .replaceAll('_', '-');
 }
 
 function formatStepLabel(step) {
@@ -72,8 +59,8 @@ function buildTestSearchHaystack(t) {
     vgcpidCell,
     testerCell,
     testTypeFromFlags(t, { short: true }),
-    statusToLabel(t?.status),
-    statusToBadgeType(t?.status),
+    formatStatusLabel(t?.status),
+    statusToBadgeTone(t?.status),
     stepFromTracks(t),
     formatDate(t?.updated_at),
     formatDate(t?.due_date),
@@ -310,8 +297,8 @@ export default function Tests({
                 const testerCell = getTesterName(t) || getTesterId(t) || '-';
 
                 const testType = testTypeFromFlags(t, { short: true });
-                const statusLabel = statusToLabel(t?.status);
-                const statusType = statusToBadgeType(t?.status);
+                const statusLabel = formatStatusLabel(t?.status);
+                const statusType = statusToBadgeTone(t?.status);
                 const step = stepFromTracks(t);
 
                 const lastUpdated = formatDate(t?.updated_at);

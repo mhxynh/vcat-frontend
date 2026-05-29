@@ -22,6 +22,7 @@ import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFi
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
 import { ActionButton, Badge, SegmentedControl } from '../components/ui';
+import { formatDisplayDate } from '../utils/date';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -30,19 +31,6 @@ function formatLastUpdated(date) {
     second: '2-digit',
     hour12: true,
   }).format(date);
-}
-
-function formatDisplayDate(value) {
-  if (!value || value === '-') return '-';
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  }).format(parsed);
 }
 
 export default function Controls() {

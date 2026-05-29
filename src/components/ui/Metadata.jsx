@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './Metadata.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export function MetadataGrid({ children, className = '', ...props }) {
   return (

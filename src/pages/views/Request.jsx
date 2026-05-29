@@ -12,6 +12,11 @@ import DetailsTestModal from '../../components/DetailsTestModal';
 import PermissionAction from '../../components/PermissionAction';
 import { ACTIONS } from '../../auth';
 import { formatRequestDisplayId } from '../../utils/requestDisplayId';
+import {
+  formatPriorityLabel,
+  priorityToBadgeTone,
+  statusToBadgeTone,
+} from '../../utils/displayLabels';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 import Icon from '../../components/common/Icon';
@@ -373,8 +378,8 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                   <div className="request-row">
                     <div className="req-left">
                       <div style={{ fontWeight: 800 }}>{formatRequestDisplayId(req)}</div>
-                      <Badge tone={String(req.priority || 'medium').toLowerCase()}>
-                        {req.priority}
+                      <Badge tone={priorityToBadgeTone(req.priority)}>
+                        {formatPriorityLabel(req.priority)}
                       </Badge>
                     </div>
 
@@ -455,7 +460,7 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                                   {c.id}
                                 </span>
                               </div>
-                              <Badge tone={statusTone(c.statusLabel || c.status)}>
+                              <Badge tone={statusToBadgeTone(c.statusLabel || c.status)}>
                                 {c.statusLabel || c.status}
                               </Badge>
                             </div>
@@ -582,12 +587,6 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
       />
     </div>
   );
-}
-
-function statusTone(status) {
-  return String(status || 'not-started')
-    .toLowerCase()
-    .replace(/[\s_]+/g, '-');
 }
 
 function Meta({ label, icon, iconColor = '#6C6C6C', value, valueClassName = '', size = 'sm' }) {

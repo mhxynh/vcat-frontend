@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './DataTable.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 function DataTable({ children, className = '', ...props }) {
   return (

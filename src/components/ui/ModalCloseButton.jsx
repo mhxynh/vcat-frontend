@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './ModalCloseButton.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export default function ModalCloseButton({
   className = '',

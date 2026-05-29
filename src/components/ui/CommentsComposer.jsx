@@ -1,10 +1,7 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import ActionButton from './ActionButton';
 import './CommentsComposer.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export default function CommentsComposer({
   value,

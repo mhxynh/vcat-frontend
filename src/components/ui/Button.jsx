@@ -1,4 +1,5 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 
 const variantClassByLegacyClass = {
   'btn--white': 'success',
@@ -7,10 +8,6 @@ const variantClassByLegacyClass = {
   'btn--import': 'warning',
   'btn--new': 'primary',
 };
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 function legacyVariantFromClassName(className = '') {
   const classList = className.split(/\s+/);

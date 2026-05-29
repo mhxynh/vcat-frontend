@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './ModalBusyOverlay.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export default function ModalBusyOverlay({
   visible,

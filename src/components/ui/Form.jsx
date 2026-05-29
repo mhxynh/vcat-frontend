@@ -1,9 +1,6 @@
 import React, { forwardRef } from 'react';
+import { cx } from '../../utils/classNames';
 import './Form.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export function FormGrid({ children, className = '' }) {
   return <div className={cx('app-form-grid', className)}>{children}</div>;

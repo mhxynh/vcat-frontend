@@ -437,48 +437,6 @@
   cursor: not-allowed;
 }
 
-.erm-test-meta .status-pill {
-  font-size: 11px;
-  font-weight: 400;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-}
-
-.erm-test-meta .status-pill.completed {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.erm-test-meta .status-pill.dat-in-progress,
-.erm-test-meta .status-pill.oet-in-progress,
-.erm-test-meta .status-pill.in-progress {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.erm-test-meta .status-pill.in-review {
-  background: #ffedd5;
-  color: #9a3412;
-}
-
-.erm-test-meta .status-pill.not-started {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.erm-test-meta .status-pill.blocked,
-.erm-test-meta .status-pill.failed,
-.erm-test-meta .status-pill.rejected {
-  background: #fdecec;
-  color: #8b0f17;
-}
-
-.erm-test-meta .status-pill.pending {
-  background: #fff4dd;
-  color: #8a5a00;
-}
-
 .erm-status-pill {
   margin-left: 12px;
 }

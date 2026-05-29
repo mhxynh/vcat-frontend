@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './Tabs.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 export default function Tabs({ children, className = '', ...props }) {
   return (

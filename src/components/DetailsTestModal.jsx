@@ -49,6 +49,7 @@ import { ACTIONS, useRole } from '../auth';
 import { isOverdue, parseLocalDate } from '../utils/date.js';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 import { testTypeFromFlags } from '../utils/testType';
+import { formatStatusLabel, statusToBadgeTone } from '../utils/displayLabels';
 
 export default function DetailsTestModal({
   isOpen,
@@ -1095,21 +1096,6 @@ export default function DetailsTestModal({
     }
   }
 
-  function statusToLabel(statusValue) {
-    return String(statusValue || 'NOT_STARTED')
-      .replaceAll('_', ' ')
-      .toLowerCase()
-      .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
-      .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
-  }
-
-  function statusToBadgeType(statusValue) {
-    return String(statusValue || 'NOT_STARTED')
-      .toLowerCase()
-      .replaceAll('_', '-')
-      .replace(/\s+/g, '-');
-  }
-
   const statusUpper = String(t?.status || 'NOT_STARTED').toUpperCase();
   const isTrackInProgress = isInProgress(statusUpper);
   const isLockedStatus = statusUpper === 'COMPLETED';
@@ -1138,7 +1124,7 @@ export default function DetailsTestModal({
         <Modal.Section className="dtm-status">
           <div className="dtm-status-top">
             <div className="dtm-status-left">
-              <Badge tone={statusToBadgeType(status)}>{statusToLabel(status)}</Badge>
+              <Badge tone={statusToBadgeTone(status)}>{formatStatusLabel(status)}</Badge>
               <span className="dtm-dot">•</span>
               <span className="dtm-subtle">{typeLabel}</span>
             </div>

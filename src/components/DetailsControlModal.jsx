@@ -17,6 +17,8 @@ import DetailsRequestModal from './DetailsRequestModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { formatDisplayDate } from '../utils/date';
+import { statusToBadgeTone } from '../utils/displayLabels';
 import PermissionAction from './PermissionAction';
 import { ACTIONS } from '../auth';
 import {
@@ -31,19 +33,6 @@ import {
   ModalCloseButton,
   Panel,
 } from './ui';
-
-function formatDisplayDate(value) {
-  if (!value || value === '-') return '-';
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  }).format(parsed);
-}
 
 /** Request history: format once from raw API date; avoid reparsing localized `date` strings. */
 function formatRequestHistoryTableDate(row) {
@@ -393,13 +382,7 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
                         <DataTable.Cell>{formatRequestHistoryTableDate(r)}</DataTable.Cell>
                         <DataTable.Cell>{r.requester ?? '-'}</DataTable.Cell>
                         <DataTable.Cell>
-                          <span
-                            className={`dcm-request-status-badge ${requestStatusBadgeClass(
-                              r.status
-                            )}`}
-                          >
-                            {r.status ?? '-'}
-                          </span>
+                          <Badge tone={statusToBadgeTone(r.status)}>{r.status ?? '-'}</Badge>
                         </DataTable.Cell>
                         <DataTable.Cell>{r.description ?? '-'}</DataTable.Cell>
                       </DataTable.Row>
@@ -524,13 +507,4 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       />
     </>
   );
-}
-
-function requestStatusBadgeClass(status) {
-  const s = (status || '').toLowerCase();
-  if (s.includes('complete')) return 'dcm-request-status-badge--good';
-  if (s.includes('pending') || s.includes('progress') || s.includes('review'))
-    return 'dcm-request-status-badge--warn';
-  if (s.includes('block')) return 'dcm-request-status-badge--bad';
-  return 'dcm-request-status-badge--neutral';
 }

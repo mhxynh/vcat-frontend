@@ -31,13 +31,15 @@
 }
 
 .badge.badge--dat-in-progress,
-.badge.badge--oet-in-progress {
+.badge.badge--oet-in-progress,
+.badge.badge--in-progress {
   background: var(--badge-info-bg);
   color: var(--badge-info-text);
   border-color: var(--badge-info-border);
 }
 
-.badge.badge--in-review {
+.badge.badge--in-review,
+.badge.badge--pending {
   background: var(--badge-warning-bg);
   color: var(--badge-warning-text);
   border-color: var(--badge-warning-border);

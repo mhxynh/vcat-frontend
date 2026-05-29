@@ -8,8 +8,10 @@ import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import PermissionAction from './PermissionAction';
+import { formatStatusLabel, statusToBadgeTone } from '../utils/displayLabels';
 import {
   ActionButton,
+  Badge,
   EmptyState,
   IconButton,
   LoadingState,
@@ -500,10 +502,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                     </EmptyState>
                   ) : (
                     filteredTests.map((test) => {
-                      const statusClass = String(test.status || 'NOT_STARTED')
-                        .toLowerCase()
-                        .replaceAll('_', '-')
-                        .replace(/\s+/g, '-');
                       return (
                         <div key={test.id || test.testId} className="erm-test-item">
                           <div className="erm-test-main">
@@ -515,9 +513,12 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                 test.testerName ||
                                 test.assignedTesterName ||
                                 'Unassigned'}
-                              <span className={`status-pill erm-status-pill ${statusClass}`}>
-                                {formatStatus(test.status) || 'Not Started'}
-                              </span>
+                              <Badge
+                                className="erm-status-pill"
+                                tone={statusToBadgeTone(test.status)}
+                              >
+                                {formatStatusLabel(test.status)}
+                              </Badge>
                             </div>
                           </div>
                           <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
@@ -599,14 +600,4 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
       />
     </>
   );
-}
-
-function formatStatus(s) {
-  const v = String(s || '')
-    .replaceAll('_', ' ')
-    .toLowerCase()
-    .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
-    .replace(/\b(Dat|Oet|Oat)\b/g, (m) => m.toUpperCase());
-
-  return v || '-';
 }

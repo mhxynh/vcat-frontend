@@ -95,64 +95,6 @@
   color: #666;
 }
 
-/* Pills (reuse style vibe of your base badges) */
-.drm-pill {
-  font-size: 12px;
-  font-weight: 400;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.drm-pill--good {
-  background: #e6f7ea;
-  color: #0f6a2b;
-  border-color: #ccefd6;
-}
-
-.drm-pill--info {
-  background: #e8f1ff;
-  color: #1b4db3;
-  border-color: #cfe0ff;
-}
-
-.drm-pill--bad {
-  background: #fdecec;
-  color: #8b0f17;
-  border-color: #f7caca;
-}
-
-.drm-pill--neutral {
-  background: #f2f2f2;
-  color: #444;
-  border-color: #e5e5e5;
-}
-
-.drm-pill--low {
-  background: #e6f7ea;
-  color: var(--priority-low);
-  border: 1px solid #ccefd6;
-}
-
-.drm-pill--medium {
-  background: #fff4dd;
-  color: var(--priority-medium);
-  border: 1px solid #ffe2a8;
-}
-
-.drm-pill--high {
-  background: #fdecec;
-  color: var(--priority-high);
-  border: 1px solid #f7caca;
-}
-
-.drm-pill--critical {
-  background: #f3e8ff;
-  color: var(--priority-critical);
-  border: 1px solid #e0ccff;
-}
-
 /* Content */
 .drm-section-title {
   font-size: 13px;

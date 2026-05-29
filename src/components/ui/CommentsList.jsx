@@ -1,10 +1,7 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import IconButton from './IconButton';
 import './CommentsList.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 function getInitial(author) {
   return (

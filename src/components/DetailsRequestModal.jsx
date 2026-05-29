@@ -23,6 +23,7 @@ import PermissionAction from './PermissionAction';
 import { ACTIONS } from '../auth';
 import {
   ActionButton,
+  Badge,
   CommentsComposer,
   CommentsList,
   DataTable,
@@ -35,6 +36,12 @@ import {
   Panel,
   Tabs,
 } from './ui';
+import {
+  formatPriorityLabel,
+  formatStatusLabel,
+  priorityToBadgeTone,
+  statusToBadgeTone,
+} from '../utils/displayLabels';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -644,13 +651,11 @@ export default function DetailsRequestModal({
 
         <Modal.Section className="drm-section-statusbar">
           <div className="drm-statusbar">
-            <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
-              {formatPriority(priority)}
-            </span>
+            <Badge tone={priorityToBadgeTone(priority)}>{formatPriorityLabel(priority)}</Badge>
 
             <div className="drm-statusbar-mid">
               <span className="drm-status-label">Status:</span>
-              <span className={`drm-pill ${statusBadgeClass(status)}`}>{formatStatus(status)}</span>
+              <Badge tone={statusToBadgeTone(status)}>{formatStatusLabel(status)}</Badge>
             </div>
 
             <div className="drm-statusbar-right">
@@ -683,7 +688,7 @@ export default function DetailsRequestModal({
                 labelClassName="drm-detail-label"
                 valueClassName="drm-detail-value"
                 label="Priority Level"
-                value={formatPriority(priority)}
+                value={formatPriorityLabel(priority)}
               />
               <MetadataItem
                 className="drm-detail-item"
@@ -743,11 +748,9 @@ export default function DetailsRequestModal({
                         </DataTable.Cell>
                         <DataTable.Cell>{c.title || c.description || '-'}</DataTable.Cell>
                         <DataTable.Cell>
-                          <span
-                            className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
-                          >
-                            {c.statusLabel || formatStatus(c.status)}
-                          </span>
+                          <Badge tone={statusToBadgeTone(c.statusLabel || c.status)}>
+                            {c.statusLabel || formatStatusLabel(c.status)}
+                          </Badge>
                         </DataTable.Cell>
                         <DataTable.Cell>{c.assignee ?? '-'}</DataTable.Cell>
                         <DataTable.Cell>{c.eta ?? '-'}</DataTable.Cell>
@@ -1017,48 +1020,4 @@ export default function DetailsRequestModal({
       />
     </>
   );
-}
-
-/* helpers */
-function formatStatus(s) {
-  const v = String(s || '')
-    .replaceAll('_', ' ')
-    .toLowerCase();
-  return v ? v.charAt(0).toUpperCase() + v.slice(1) : '-';
-}
-
-function formatPriority(p) {
-  const v = String(p || '').toUpperCase();
-  if (v === 'CRITICAL') return 'Critical Priority';
-  if (v === 'HIGH') return 'High Priority';
-  if (v === 'MEDIUM') return 'Medium Priority';
-  if (v === 'LOW') return 'Low Priority';
-  return 'Medium Priority';
-}
-
-function statusBadgeClass(status) {
-  const v = String(status || '').toUpperCase();
-  if (v === 'COMPLETED') return 'drm-pill--good';
-  if (v === 'DAT_IN_PROGRESS') return 'drm-pill--info';
-  if (v === 'OET_IN_PROGRESS') return 'drm-pill--info';
-  if (v === 'BLOCKED') return 'drm-pill--bad';
-  if (v === 'ARCHIVED') return 'drm-pill--neutral';
-  return 'drm-pill--neutral';
-}
-
-function priorityBadgeClass(priority) {
-  const v = String(priority || '').toUpperCase();
-  if (v === 'LOW') return 'drm-pill--low';
-  if (v === 'MEDIUM') return 'drm-pill--medium';
-  if (v === 'HIGH') return 'drm-pill--high';
-  if (v === 'CRITICAL') return 'drm-pill--critical';
-  return 'drm-pill--medium';
-}
-
-function testStatusBadgeClass(status) {
-  const low = String(status || '').toLowerCase();
-  if (low.includes('complete')) return 'drm-pill--good';
-  if (low.includes('progress') || low.includes('review')) return 'drm-pill--info';
-  if (low.includes('block')) return 'drm-pill--bad';
-  return 'drm-pill--neutral';
 }

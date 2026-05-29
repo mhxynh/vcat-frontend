@@ -4,6 +4,7 @@ import { Hub } from 'aws-amplify/utils';
 import { fetchUsers } from '../api/UsersAPI';
 import '../styles/components/AuditHistoryView.css';
 import { ModalCloseButton } from './ui';
+import { formatPriorityLabel as formatDisplayPriorityLabel } from '../utils/displayLabels';
 
 const DATE_FORMAT = {
   month: 'short',
@@ -476,21 +477,16 @@ function formatTestRowStatusLabel(value) {
   return formatScreamingSnakeLabel(value);
 }
 
-function formatPriorityLabel(value) {
+function formatAuditPriorityLabel(value) {
   if (value === null || value === undefined || value === '') return '—';
-  const raw = String(value).toUpperCase();
-  if (raw === 'CRITICAL') return 'Critical Priority';
-  if (raw === 'HIGH') return 'High Priority';
-  if (raw === 'MEDIUM') return 'Medium Priority';
-  if (raw === 'LOW') return 'Low Priority';
-  return formatScreamingSnakeLabel(value);
+  return formatDisplayPriorityLabel(value);
 }
 
 function formatAuditValue(field, value) {
   if (value === null || value === undefined) return '—';
   if (field === 'status') return formatTestRowStatusLabel(value);
   if (field === 'dat_step' || field === 'oet_step') return formatScreamingSnakeLabel(value);
-  if (field === 'priority') return formatPriorityLabel(value);
+  if (field === 'priority') return formatAuditPriorityLabel(value);
   if (DATE_FIELDS.includes(field)) {
     const d = new Date(value);
     return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(undefined, DATE_FORMAT);

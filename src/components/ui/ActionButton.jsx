@@ -1,8 +1,5 @@
 import React from 'react';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
+import { cx } from '../../utils/classNames';
 
 export default function ActionButton({
   as: Component = 'button',

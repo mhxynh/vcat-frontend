@@ -1,9 +1,6 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import './SearchInput.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 function SearchIcon({ className = '' }) {
   return (

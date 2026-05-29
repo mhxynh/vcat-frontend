@@ -23,3 +23,16 @@ export function isOverdue(value) {
 
   return due < today;
 }
+
+export function formatDisplayDate(value) {
+  if (!value || value === '-') return '-';
+
+  const parsed = parseLocalDate(value);
+  if (!parsed) return value;
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}

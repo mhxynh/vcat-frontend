@@ -1,10 +1,7 @@
 import React from 'react';
+import { cx } from '../../utils/classNames';
 import ModalCloseButton from './ModalCloseButton';
 import './Modal.css';
-
-function cx(...parts) {
-  return parts.filter(Boolean).join(' ');
-}
 
 function Modal({
   children,
