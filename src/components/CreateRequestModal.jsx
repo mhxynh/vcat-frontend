@@ -21,9 +21,10 @@ function todayIso() {
 }
 
 const DUMMY_CURRENT_USER_ID = 1;
+const DEFAULT_PRIORITY = 'LOW';
 
 export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
-  const [priority, setPriority] = useState('');
+  const [priority, setPriority] = useState(DEFAULT_PRIORITY);
   const [requestedBy, setRequestedBy] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [description, setDescription] = useState('');
@@ -38,7 +39,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
     if (!isOpen) return;
 
     setFieldErrors({});
-    setPriority('');
+    setPriority(DEFAULT_PRIORITY);
     setRequestedBy('');
     setRequestDate(todayIso());
     setDueDate('');
@@ -134,7 +135,6 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
               disabled={submitting}
               aria-invalid={fieldErrors.priority ? 'true' : 'false'}
             >
-              <option value="" disabled></option>
               <option value="CRITICAL">Critical</option>
               <option value="HIGH">High</option>
               <option value="MEDIUM">Medium</option>
