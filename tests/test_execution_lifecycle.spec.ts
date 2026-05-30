@@ -2,7 +2,10 @@ import { test, expect } from "@playwright/test";
 import { loginAsManager, loginAsTester } from "./helpers/auth-helpers";
 import { todayISO } from "./helpers/test-utils";
 
-async function createNotStartedTestForCurrentTester(page) {
+async function createNotStartedTestForCurrentTester(
+  page,
+  description = "Lifecycle smoke test",
+) {
   await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
@@ -25,9 +28,7 @@ async function createNotStartedTestForCurrentTester(page) {
 
   await page.getByLabel("Test Type").selectOption({ index: 1 });
   await page.getByLabel("Due Date").fill(todayISO());
-  await page
-    .getByRole("textbox", { name: "Description" })
-    .fill("Lifecycle smoke test");
+  await page.getByRole("textbox", { name: "Description" }).fill(description);
   await page.getByRole("button", { name: "Create Control Test" }).click();
   await page
     .getByRole("dialog", { name: "Create Control Test" })
@@ -36,6 +37,30 @@ async function createNotStartedTestForCurrentTester(page) {
   await page
     .getByRole("textbox", { name: "Email Address" })
     .waitFor({ state: "visible" });
+}
+
+async function openFirstVisibleControlTest(page) {
+  await page
+    .locator("table.table--tests tbody tr")
+    .first()
+    .waitFor({ state: "visible" });
+  await page
+    .locator("table.table--tests tbody tr")
+    .first()
+    .locator("button.vgcpid-link")
+    .click();
+}
+
+async function filterControlsByStatusAndDescription(page, status, description) {
+  await page.getByRole("link", { name: "Tracker" }).click();
+  await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
+  await page
+    .getByRole("textbox", { name: "Search controls" })
+    .fill(description);
+  await page.getByRole("button", { name: "Filter" }).click();
+  await page.getByLabel("Status").selectOption(status);
+  await page.getByRole("button", { name: "Apply" }).click();
+  await openFirstVisibleControlTest(page);
 }
 
 test("T14 - Create New Tests", async ({ page }) => {
@@ -107,24 +132,19 @@ test("T19 - Advance Test Workflow to Next Step", async ({ page }) => {
 });
 
 test("T34 - Approve In-Review Test", async ({ page }) => {
+  const description = `Lifecycle review approval ${Date.now()}`;
+
+  await createNotStartedTestForCurrentTester(page, description);
   await loginAsManager(page);
-  await page.getByRole("link", { name: "Tracker" }).click();
-  await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Filter" }).click();
-  await page.getByLabel("Status").selectOption("IN_REVIEW");
-  await page.getByRole("button", { name: "Apply" }).click();
-  await page.waitForTimeout(2000);
-  if ((await page.locator("table.table--tests tbody tr").count()) === 0) {
-    test.skip(
-      true,
-      "No seeded in-review control test is available to approve.",
-    );
-  }
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .locator("button.vgcpid-link")
-    .click();
+  await filterControlsByStatusAndDescription(page, "NOT_STARTED", description);
+  await page.getByRole("button", { name: "Start Work" }).click();
+  await page.getByRole("button", { name: "Next Step" }).click();
+  await page.getByRole("button", { name: "Next Step" }).click();
+  await page.getByRole("button", { name: "Next Step" }).click();
+  await page.getByRole("button", { name: "Next Step" }).click();
+  await page.getByRole("button", { name: "Submit for Approval" }).click();
+  await page.getByRole("button", { name: "Submit", exact: true }).click();
+  await page.locator("text=In Review").first().waitFor({ state: "visible" });
   await page.getByRole("button", { name: "Approve Control" }).click();
   await page.getByRole("button", { name: "Approve", exact: true }).click();
 });
