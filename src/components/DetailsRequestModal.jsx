@@ -53,6 +53,38 @@ import { fetchUserAttributes } from 'aws-amplify/auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
 
+function normalizeStatusValue(value) {
+  return String(value || '')
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_');
+}
+
+function deriveRequestStatus(status, controls) {
+  const explicitStatus = normalizeStatusValue(status || 'NOT_STARTED');
+
+  if (explicitStatus === 'ARCHIVED') return 'ARCHIVED';
+
+  const controlStatuses = (Array.isArray(controls) ? controls : [])
+    .map((control) => normalizeStatusValue(control?.status ?? control?.statusLabel))
+    .filter(Boolean);
+
+  if (controlStatuses.length === 0) return explicitStatus || 'NOT_STARTED';
+  if (controlStatuses.every((controlStatus) => controlStatus === 'COMPLETED')) return 'COMPLETED';
+  if (controlStatuses.some((controlStatus) => controlStatus === 'BLOCKED')) return 'BLOCKED';
+  if (controlStatuses.some((controlStatus) => controlStatus === 'IN_REVIEW')) return 'IN_REVIEW';
+  if (controlStatuses.some((controlStatus) => controlStatus === 'OET_IN_PROGRESS')) {
+    return 'OET_IN_PROGRESS';
+  }
+  if (controlStatuses.some((controlStatus) => controlStatus === 'DAT_IN_PROGRESS')) {
+    return 'DAT_IN_PROGRESS';
+  }
+  if (controlStatuses.some((controlStatus) => controlStatus.includes('IN_PROGRESS'))) {
+    return 'IN_PROGRESS';
+  }
+
+  return explicitStatus || 'NOT_STARTED';
+}
+
 export default function DetailsRequestModal({
   isOpen,
   onClose,
@@ -268,11 +300,19 @@ export default function DetailsRequestModal({
     return map;
   }, [controls]);
 
+  const requestDisplayStatus = useMemo(
+    () => deriveRequestStatus(localStatus ?? localRequest?.status ?? request?.status, controls),
+    [controls, localRequest?.status, localStatus, request?.status]
+  );
+
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !request?.requestId) return;
 
-    const status = String(localStatus ?? request?.status ?? '').toUpperCase();
-    if (status !== 'DAT_IN_PROGRESS' && status !== 'OET_IN_PROGRESS' && status !== 'COMPLETED') {
+    if (
+      requestDisplayStatus !== 'DAT_IN_PROGRESS' &&
+      requestDisplayStatus !== 'OET_IN_PROGRESS' &&
+      requestDisplayStatus !== 'COMPLETED'
+    ) {
       setHistoryLogs([]);
       return;
     }
@@ -329,15 +369,16 @@ export default function DetailsRequestModal({
     isOpen,
     activeTab,
     request?.requestId,
-    request?.status,
-    localStatus,
+    requestDisplayStatus,
     controls,
     contextTestIdToVgcpid,
   ]);
 
   const progress = useMemo(() => {
     const total = controls.length;
-    const completed = controls.filter((c) => String(c.status).toUpperCase() === 'COMPLETED').length;
+    const completed = controls.filter(
+      (c) => normalizeStatusValue(c.status ?? c.statusLabel) === 'COMPLETED'
+    ).length;
     return { completed, total };
   }, [controls]);
 
@@ -346,10 +387,14 @@ export default function DetailsRequestModal({
   const requestTitle = formatRequestDisplayId(localRequest ?? request, {
     fallback: 'Request Details',
   });
-  const backendStatus = localRequest?.status ?? 'Not Started';
-  const status = localStatus ?? backendStatus;
-  const statusUpper = String(status || '').toUpperCase();
-  const isCompleted = String(status || '').toUpperCase() === 'COMPLETED';
+  const status =
+    requestDisplayStatus === 'ARCHIVED'
+      ? 'ARCHIVED'
+      : progress.total > 0 && progress.completed === progress.total
+        ? 'COMPLETED'
+        : requestDisplayStatus;
+  const statusUpper = normalizeStatusValue(status);
+  const isCompleted = statusUpper === 'COMPLETED';
 
   const priority = localRequest?.priority ?? 'MEDIUM';
   const description = localRequest?.description ?? 'No description.';
