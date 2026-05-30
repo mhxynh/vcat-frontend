@@ -14,7 +14,7 @@ export default function ConfirmActionModal({
   confirmButtonClassName = 'dcm-confirm-btn dcm-confirm-btn--delete',
   cancelButtonClassName = 'dcm-confirm-btn dcm-confirm-btn--cancel',
   confirmDisabled = false,
-  cancelDisabled = false,
+  cancelDisabled = confirmDisabled,
   closeOnOverlay = true,
 }) {
   useEffect(() => {

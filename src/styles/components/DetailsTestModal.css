@@ -763,15 +763,13 @@
     background-color 140ms ease,
     border-color 140ms ease,
     color 140ms ease,
-    box-shadow 140ms ease,
-    transform 140ms ease,
     filter 140ms ease;
 }
 
 .dtm-btn:hover:not(:disabled),
 .dtm-btn:focus-visible:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
+  transform: none;
+  box-shadow: none;
   filter: none;
 }
 
@@ -822,7 +820,7 @@
 .dtm-btn--primary:hover:not(:disabled),
 .dtm-btn--primary:focus-visible:not(:disabled) {
   background: #7f1018;
-  box-shadow: 0 8px 18px rgba(139, 15, 23, 0.24);
+  box-shadow: none;
 }
 
 .dtm-btn:active:not(:disabled),
@@ -911,12 +909,9 @@
   transform: none;
 }
 
-/* Keep the current-step hover effect, but align timing/shadow with request modal hover */
 .dtm-step-card {
   transition:
     border-color 140ms ease,
-    box-shadow 140ms ease,
-    transform 140ms ease,
     background-color 140ms ease;
 }
 
@@ -924,8 +919,8 @@
 .dtm-step-card--completed:hover,
 .dtm-step-card--blocked:hover {
   border-color: #d7dce4;
-  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
 }
 
 .dtm-step-icon,
@@ -939,8 +934,8 @@
 .dtm-step-card--interactive:hover .dtm-step-icon,
 .dtm-step-card--completed:hover .dtm-complete-icon,
 .dtm-step-card--blocked:hover .dtm-complete-icon {
-  transform: scale(1.04);
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+  transform: none;
+  box-shadow: none;
 }
 
 .dtm-next {

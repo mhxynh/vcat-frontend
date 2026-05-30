@@ -40,6 +40,8 @@
   border-color: var(--modal-action-red) !important;
   color: var(--modal-action-red) !important;
   filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .modal-action-primary,
@@ -88,6 +90,8 @@
   border-color: var(--modal-action-red-hover) !important;
   color: #ffffff !important;
   filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .dtm-btn.modal-action-cancel,

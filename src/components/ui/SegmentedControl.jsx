@@ -9,9 +9,10 @@ export default function SegmentedControl({
   buttonClassName = '',
   activeButtonClassName = '',
   ariaLabel,
+  role = 'group',
 }) {
   return (
-    <div className={cx('segmented-control', className)} role="tablist" aria-label={ariaLabel}>
+    <div className={cx('segmented-control', className)} role={role} aria-label={ariaLabel}>
       {options.map((option) => {
         const itemValue = typeof option === 'string' ? option : option.value;
         const label = typeof option === 'string' ? option : option.label;
@@ -21,8 +22,7 @@ export default function SegmentedControl({
           <button
             key={itemValue}
             type="button"
-            role="tab"
-            aria-selected={isActive}
+            aria-pressed={isActive}
             className={cx(
               'segmented-control__button',
               buttonClassName,

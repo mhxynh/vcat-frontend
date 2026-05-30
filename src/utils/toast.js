@@ -45,7 +45,7 @@ export function getUserFriendlyErrorMessage(
     return 'We could not reach the server. Check your connection and try again.';
   }
 
-  return text;
+  return fallback;
 }
 
 export function showSuccessToast({ title, message }) {
