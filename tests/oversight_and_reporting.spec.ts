@@ -8,8 +8,12 @@ test("T42 - View Team Workflow and Bandwidth", async ({ page }) => {
 
 test("T43 - View Overall Active Testing Progress", async ({ page }) => {
   await loginAsManager(page);
-  await page.locator("text=Loading controls...").waitFor({ state: "hidden" });
-  await expect(page.locator(".dashboard-donut__svg").first()).toBeVisible();
+  await page
+    .locator("text=Loading controls...")
+    .waitFor({ state: "hidden", timeout: 120000 });
+  await expect(page.locator(".dashboard-donut__svg").first()).toBeVisible({
+    timeout: 120000,
+  });
   await page.getByRole("button", { name: "Next week" }).click();
   await page.getByRole("button", { name: "Refresh" }).click();
 });

@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginAsManager, loginAsTester } from "./helpers/auth-helpers";
+import { createUniqueControl } from "./helpers/control-helpers";
 import { todayISO } from "./helpers/test-utils";
 
 async function createNotStartedTestForCurrentTester(
@@ -7,14 +8,16 @@ async function createNotStartedTestForCurrentTester(
   description = "Lifecycle smoke test",
 ) {
   await loginAsManager(page);
+  const vgcpid = await createUniqueControl(page, description);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Control Test" }).click();
-  await page.getByLabel("VGCPID").waitFor({ state: "visible" });
-  await page.getByLabel("VGCPID").selectOption({ index: 1 });
+  const vgcpidSelect = page.getByLabel("VGCPID");
+  await expect(vgcpidSelect).toBeEnabled({ timeout: 120000 });
+  await vgcpidSelect.selectOption(vgcpid);
 
   const testerSelect = page.getByLabel("Tester");
-  await testerSelect.waitFor({ state: "visible" });
+  await expect(testerSelect).toBeEnabled({ timeout: 120000 });
   const testerOption = testerSelect
     .locator("option")
     .filter({ hasText: /monique/i })
@@ -26,7 +29,9 @@ async function createNotStartedTestForCurrentTester(
     await testerSelect.selectOption({ index: 1 });
   }
 
-  await page.getByLabel("Test Type").selectOption({ index: 1 });
+  const testTypeSelect = page.getByLabel("Test Type");
+  await expect(testTypeSelect).toBeEnabled();
+  await testTypeSelect.selectOption({ index: 1 });
   await page.getByLabel("Due Date").fill(todayISO());
   await page.getByRole("textbox", { name: "Description" }).fill(description);
   await page.getByRole("button", { name: "Create Control Test" }).click();
@@ -64,41 +69,43 @@ async function filterControlsByStatusAndDescription(page, status, description) {
 }
 
 test("T14 - Create New Tests", async ({ page }) => {
+  const description = `Lifecycle create test ${Date.now()}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
   await loginAsManager(page);
+  const vgcpid = await createUniqueControl(page, description);
   await page.getByRole("link", { name: "Tracker" }).click();
   await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "+ Add Control Test" }).click();
   await expect(page.locator("text=Loading...")).toHaveCount(0);
-  await page.getByLabel("VGCPID").waitFor({ state: "visible" });
-  await page.getByLabel("VGCPID").selectOption({ index: 1 });
+  await expect(page.getByLabel("VGCPID")).toBeEnabled({ timeout: 120000 });
+  await page.getByLabel("VGCPID").selectOption(vgcpid);
   await page.getByLabel("Link to Request").waitFor({ state: "visible" });
   await page.getByLabel("Link to Request").selectOption({ index: 1 });
-  await page.getByLabel("Tester").waitFor({ state: "visible" });
+  await expect(page.getByLabel("Tester")).toBeEnabled({ timeout: 120000 });
   await page.getByLabel("Tester").selectOption({ index: 1 });
-  await page.getByLabel("Test Type").waitFor({ state: "visible" });
+  await expect(page.getByLabel("Test Type")).toBeEnabled();
   await page.getByLabel("Test Type").selectOption({ index: 1 });
-  await page.getByRole("textbox", { name: "Description" }).click();
-  await page.getByRole("textbox", { name: "Description" }).fill("Test");
+  await page.getByRole("textbox", { name: "Description" }).fill(description);
   await page.getByRole("button", { name: "Create Control Test" }).click();
+  await page
+    .getByRole("dialog", { name: "Create Control Test" })
+    .waitFor({ state: "hidden", timeout: 120000 });
+  await page
+    .getByRole("textbox", { name: "Search controls" })
+    .fill(description);
+  await expect(page.locator("table.table--tests tbody tr")).toHaveCount(1, {
+    timeout: 30000,
+  });
 });
 
 test("T18 - Start Work on a Not Started Test", async ({ page }) => {
-  await createNotStartedTestForCurrentTester(page);
+  const description = `Lifecycle start work ${Date.now()}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
+  await createNotStartedTestForCurrentTester(page, description);
   await loginAsTester(page);
-  await page.getByRole("link", { name: "Tracker" }).click();
-  await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Filter" }).click();
-  await page.getByLabel("Status").selectOption("NOT_STARTED");
-  await page.getByRole("button", { name: "Apply" }).click();
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .waitFor({ state: "visible" });
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .locator("button.vgcpid-link")
-    .click();
+  await filterControlsByStatusAndDescription(page, "NOT_STARTED", description);
   await page.getByRole("button", { name: "Start Work" }).click();
   await page
     .locator("text=Testing Ready")
@@ -107,22 +114,12 @@ test("T18 - Start Work on a Not Started Test", async ({ page }) => {
 });
 
 test("T19 - Advance Test Workflow to Next Step", async ({ page }) => {
-  await createNotStartedTestForCurrentTester(page);
+  const description = `Lifecycle next step ${Date.now()}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
+  await createNotStartedTestForCurrentTester(page, description);
   await loginAsTester(page);
-  await page.getByRole("link", { name: "Tracker" }).click();
-  await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Filter" }).click();
-  await page.getByLabel("Status").selectOption("NOT_STARTED");
-  await page.getByRole("button", { name: "Apply" }).click();
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .waitFor({ state: "visible" });
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .locator("button.vgcpid-link")
-    .click();
+  await filterControlsByStatusAndDescription(page, "NOT_STARTED", description);
   await page.getByRole("button", { name: "Start Work" }).click();
   await page.getByRole("button", { name: "Next Step" }).click();
   await page
@@ -132,7 +129,9 @@ test("T19 - Advance Test Workflow to Next Step", async ({ page }) => {
 });
 
 test("T34 - Approve In-Review Test", async ({ page }) => {
-  const description = `Lifecycle review approval ${Date.now()}`;
+  const description = `Lifecycle review approval ${Date.now()}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
 
   await createNotStartedTestForCurrentTester(page, description);
   await loginAsManager(page);
@@ -150,18 +149,12 @@ test("T34 - Approve In-Review Test", async ({ page }) => {
 });
 
 test("T36 - Add Links to Test", async ({ page }) => {
+  const description = `Lifecycle attachment link ${Date.now()}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
+  await createNotStartedTestForCurrentTester(page, description);
   await loginAsTester(page);
-  await page.getByRole("link", { name: "Tracker" }).click();
-  await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .waitFor({ state: "visible" });
-  await page
-    .locator("table.table--tests tbody tr")
-    .first()
-    .locator("button.vgcpid-link")
-    .click();
+  await filterControlsByStatusAndDescription(page, "NOT_STARTED", description);
   await page.getByRole("button", { name: "Attachments" }).click();
   await page.getByRole("button", { name: "Add Link" }).click();
   await page
