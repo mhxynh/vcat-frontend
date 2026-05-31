@@ -76,14 +76,22 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
         isActive,
       });
 
-      if (onCreated) await onCreated();
-
       showSuccessToast({
         title: 'Control Created',
         message: `${trimmedId} has been created successfully.`,
       });
 
       onClose();
+
+      if (onCreated) {
+        Promise.resolve(onCreated()).catch(() => {
+          showErrorToast({
+            title: 'Refresh Failed',
+            message:
+              'The control was created, but the list could not refresh. Please try refreshing.',
+          });
+        });
+      }
     } catch (e) {
       const errorMessage = e?.message || 'Failed to create control';
       showErrorToast({

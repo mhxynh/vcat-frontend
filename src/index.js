@@ -17,8 +17,7 @@ Amplify.configure({
 });
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const app = <App />;
+const shouldDisableStrictMode = process.env.REACT_APP_DISABLE_STRICT_MODE === 'true';
+
+root.render(shouldDisableStrictMode ? app : <React.StrictMode>{app}</React.StrictMode>);
