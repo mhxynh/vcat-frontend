@@ -14,7 +14,22 @@ This repository contains the user interface and client-side logic for the Vangua
 
 ## How to Run a Full Test (BE & FE)
 
-To test a PR that affects data flow, you must have both layers running:
+To test a PR that affects data flow with Docker, clone the frontend and backend repositories as siblings and run compose from the backend repository:
+
+```text
+vcats/
+  vcat-backend/
+  vcat-frontend/
+```
+
+```bash
+cd ../vcat-backend
+docker compose up --build
+```
+
+The frontend will be available at [http://localhost:3000](http://localhost:3000), and the backend API will be available at [http://localhost:3001](http://localhost:3001).
+
+You can still run the repositories manually in separate terminals:
 
 1. **Terminal 1 (Backend):** `sam local start-api` (keep this running)
 2. **Terminal 2 (Frontend):** `npm start`
