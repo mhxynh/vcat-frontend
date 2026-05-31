@@ -13,10 +13,10 @@ export async function createRequest(
 ): Promise<Locator> {
   await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
-  const requestsTab = page.getByRole("tab", { name: "Requests" });
+  const requestsTab = page.getByRole("button", { name: "Requests" });
   await requestsTab.waitFor({ state: "visible" });
   await requestsTab.click();
-  await expect(requestsTab).toHaveAttribute("aria-selected", "true");
+  await expect(requestsTab).toHaveAttribute("aria-pressed", "true");
   await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
   await expect(
     page.getByRole("button", { name: "+ Add Request" }),

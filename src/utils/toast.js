@@ -12,6 +12,28 @@ const commonOptions = {
   icon: false,
 };
 
+function looksLikeTechnicalError(message) {
+  const normalized = String(message || '').toLowerCase();
+
+  return [
+    'constraint',
+    'exception',
+    'stack trace',
+    'traceback',
+    'sql',
+    'database',
+    'syntax error',
+    'foreign key',
+    'duplicate key',
+    'violates',
+    'relation ',
+    'column ',
+    'table ',
+    'undefined is not',
+    'cannot read properties',
+  ].some((pattern) => normalized.includes(pattern));
+}
+
 export function getUserFriendlyErrorMessage(
   message,
   fallback = 'Something went wrong. Please try again.'
@@ -45,7 +67,7 @@ export function getUserFriendlyErrorMessage(
     return 'We could not reach the server. Check your connection and try again.';
   }
 
-  return fallback;
+  return looksLikeTechnicalError(text) ? fallback : text;
 }
 
 export function showSuccessToast({ title, message }) {

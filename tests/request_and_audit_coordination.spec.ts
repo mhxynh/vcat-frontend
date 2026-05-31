@@ -1,18 +1,53 @@
 import { expect, test } from "@playwright/test";
+import { createUniqueControl } from "./helpers/control-helpers";
 import { createRequest } from "./helpers/request-helpers";
+import { todayISO } from "./helpers/test-utils";
+
+async function createUnlinkedControlTest(
+  page,
+  vgcpid: string,
+  description: string,
+) {
+  await page.getByRole("link", { name: "Tracker" }).click();
+  await page.locator("text=Loading tests...").waitFor({ state: "hidden" });
+  await page.getByRole("button", { name: "+ Add Control Test" }).click();
+
+  const vgcpidSelect = page.getByLabel("VGCPID");
+  await expect(vgcpidSelect).toBeEnabled({ timeout: 120000 });
+  await vgcpidSelect.selectOption(vgcpid);
+
+  const testerSelect = page.getByLabel("Tester");
+  await expect(testerSelect).toBeEnabled({ timeout: 120000 });
+  await testerSelect.selectOption({ index: 1 });
+
+  const testTypeSelect = page.getByLabel("Test Type");
+  await expect(testTypeSelect).toBeEnabled();
+  await testTypeSelect.selectOption({ index: 1 });
+
+  await page.getByLabel("Due Date").fill(todayISO());
+  await page.getByRole("textbox", { name: "Description" }).fill(description);
+  await page.getByRole("button", { name: "Create Control Test" }).click();
+  await page
+    .getByRole("dialog", { name: "Create Control Test" })
+    .waitFor({ state: "hidden", timeout: 120000 });
+}
 
 test("T24 - Create a Request", async ({ page }) => {
   await createRequest(page);
 });
 
-test("T28 - Add Existing Control Test to Request", async ({
-  page,
-}, testInfo) => {
+test("T28 - Add Existing Control Test to Request", async ({ page }) => {
   const requesterName = `T28 Requester ${Date.now()}-${Math.floor(
     Math.random() * 1000,
   )}`;
   await createRequest(page, { name: requesterName });
-  await page.getByRole("tab", { name: "Requests" }).click();
+  const testDescription = `T28 control test ${Date.now()}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
+  const vgcpid = await createUniqueControl(page, testDescription);
+  await createUnlinkedControlTest(page, vgcpid, testDescription);
+  await page.getByRole("link", { name: "Tracker" }).click();
+  await page.getByRole("button", { name: "Requests" }).click();
   await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
   await page
     .getByRole("textbox", { name: "Search requests" })
@@ -38,16 +73,11 @@ test("T28 - Add Existing Control Test to Request", async ({
     .waitFor({ state: "hidden" });
   await editRequestDialog
     .getByRole("textbox", { name: "Search Controls to add..." })
-    .fill("VGCP");
-  const projectResultOffset =
-    {
-      chromium: 0,
-      firefox: 1,
-      webkit: 2,
-    }[testInfo.project.name] ?? 0;
-  const firstResult = page
+    .fill(vgcpid);
+  const firstResult = editRequestDialog
     .locator(".erm-search-dropdown .erm-search-result-item")
-    .nth(projectResultOffset);
+    .filter({ hasText: vgcpid })
+    .first();
   await firstResult.waitFor({ state: "visible" });
   const firstAddBtn = firstResult.locator("button.erm-add-btn");
   await firstAddBtn.scrollIntoViewIfNeeded();
