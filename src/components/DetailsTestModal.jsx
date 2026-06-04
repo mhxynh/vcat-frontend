@@ -1993,6 +1993,10 @@ function computeStepLabels(test) {
     return { currentStepLabel: 'Blocked', nextStepLabel: '-' };
   }
 
+  if (statusUpper === 'IN_REVIEW') {
+    return { currentStepLabel: '', nextStepLabel: '-' };
+  }
+
   const requiresDat = !!test?.requiresDat;
   const requiresOet = !!test?.requiresOet;
 
