@@ -1,7 +1,6 @@
 import React from 'react';
 import { cx } from '../../utils/classNames';
 import ActionButton from './ActionButton';
-import './CommentsComposer.css';
 
 export default function CommentsComposer({
   value,

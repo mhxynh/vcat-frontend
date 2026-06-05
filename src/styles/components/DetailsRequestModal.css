@@ -230,12 +230,20 @@
 .drm-comments {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .drm-comment {
   display: flex;
+  align-items: center;
   gap: 10px;
+  padding: 5px 0 1px;
+  border-top: 1px solid #ededed;
+}
+
+.drm-comment:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .drm-avatar {
@@ -257,22 +265,30 @@
 .drm-comment-main {
   flex: 1;
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
 }
 
 .drm-comment-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  display: contents;
 }
 
 .drm-comment-meta {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .drm-comment-author {
+  grid-column: 1;
+  grid-row: 1;
   font-size: 12px;
   font-weight: 800;
   color: #111;
@@ -284,11 +300,16 @@
 }
 
 .drm-comment-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   color: #6b7280;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 0;
   border-radius: 6px;
 }
 
@@ -297,10 +318,13 @@
 }
 
 .drm-comment-text {
+  grid-column: 1;
+  grid-row: 2;
   font-weight: 400;
   color: #333;
   font-size: 12px;
   margin-top: 4px;
+  line-height: 1.35;
 }
 
 /* Add comment */
@@ -316,6 +340,7 @@
 
 .drm-comment-input {
   flex: 1;
+  min-width: 0;
   border: 1px solid #e7e7e7;
   border-radius: 10px;
   padding: 12px 12px;
@@ -325,6 +350,7 @@
 }
 
 .drm-send {
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -336,6 +362,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.drm-addcomment .comments-composer-icon {
+  display: inline-flex;
+  transform: translateY(1px);
 }
 
 /* Footer */
