@@ -326,6 +326,10 @@
   padding: 18px 22px;
 }
 
+.dtm-body--comments {
+  padding-bottom: 8px;
+}
+
 .dtm-btn--compact {
   display: inline-flex;
   align-items: center;
@@ -646,7 +650,7 @@
 
 .dtm-comment {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   padding: 5px 0 1px;
   border-top: 1px solid #ededed;
@@ -719,11 +723,18 @@
 .dtm-comment-text {
   grid-column: 1;
   grid-row: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-weight: 400;
   color: #333;
   font-size: 12px;
   margin-top: 4px;
   line-height: 1.35;
+}
+
+.dtm-body--comments + .dtm-divider + .dtm-footer {
+  padding-top: 10px;
 }
 
 /* Request-modal aligned hover, button, tab, input, and send styles */

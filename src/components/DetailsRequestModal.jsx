@@ -810,7 +810,9 @@ export default function DetailsRequestModal({
 
         <Modal.Divider className="drm-divider" />
 
-        <Modal.Section className="drm-section-tabs">
+        <Modal.Section
+          className={`drm-section-tabs${activeTab === 'Comments' ? ' drm-section-tabs--comments' : ''}`}
+        >
           <Tabs className="drm-tabs">
             <Tabs.Tab
               className="drm-tab"

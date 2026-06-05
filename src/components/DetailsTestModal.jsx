@@ -1363,7 +1363,9 @@ export default function DetailsTestModal({
           </Tabs.Tab>
         </Tabs>
 
-        <Modal.Section className="dtm-body">
+        <Modal.Section
+          className={`dtm-body${activeTab === 'Comments' ? ' dtm-body--comments' : ''}`}
+        >
           {activeTab === 'Details' ? (
             <>
               <MetadataGrid className="dtm-details-grid">

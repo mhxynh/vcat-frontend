@@ -32,6 +32,10 @@
   padding: 14px 18px;
 }
 
+.drm-section-tabs--comments {
+  padding-bottom: 8px;
+}
+
 .drm-divider {
   height: 1px;
   background: #ededed;
@@ -235,7 +239,7 @@
 
 .drm-comment {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   padding: 5px 0 1px;
   border-top: 1px solid #ededed;
@@ -320,11 +324,18 @@
 .drm-comment-text {
   grid-column: 1;
   grid-row: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-weight: 400;
   color: #333;
   font-size: 12px;
   margin-top: 4px;
   line-height: 1.35;
+}
+
+.drm-section-tabs--comments + .drm-divider + .drm-section-footer {
+  padding-top: 10px;
 }
 
 /* Add comment */
