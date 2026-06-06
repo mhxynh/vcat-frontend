@@ -1,0 +1,25 @@
+.app-tabs {
+  display: flex;
+  align-items: center;
+}
+
+.app-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.app-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.app-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

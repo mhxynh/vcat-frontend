@@ -3,36 +3,16 @@ import { fetchAllTests } from '../../api/TestsAPI';
 import '../../styles/pages/views/Tests.css';
 import DetailsTestModal from '../../components/DetailsTestModal';
 import Icon from '../../components/common/Icon';
+import { Badge } from '../../components/ui';
 import { isOverdue, parseLocalDate } from '../../utils/date.js';
+import { testTypeFromFlags } from '../../utils/testType';
+import { formatStatusLabel, statusToBadgeTone } from '../../utils/displayLabels';
 import { ACTIONS, useCan } from '../../auth';
 
 function formatDate(value) {
   const d = parseLocalDate(value);
   if (!d) return '-';
   return d.toLocaleDateString();
-}
-
-function statusToLabel(status) {
-  return String(status || 'NOT_STARTED')
-    .replaceAll('_', ' ')
-    .toLowerCase()
-    .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
-    .replace(/\b(Dat|Oet)\b/g, (m) => m.toUpperCase());
-}
-
-function statusToBadgeType(status) {
-  return String(status || 'NOT_STARTED')
-    .toLowerCase()
-    .replaceAll('_', '-');
-}
-
-function testTypeFromFlags(t) {
-  const dat = !!t?.requires_dat;
-  const oet = !!t?.requires_oet;
-  if (dat && oet) return 'DAT & OET';
-  if (dat) return 'DAT';
-  if (oet) return 'OET';
-  return '-';
 }
 
 function formatStepLabel(step) {
@@ -77,10 +57,13 @@ function buildTestSearchHaystack(t) {
     t?.request_id,
     t?.control_id,
     vgcpidCell,
+    t?.description,
+    t?.control_description,
+    t?.controlDescription,
     testerCell,
-    testTypeFromFlags(t),
-    statusToLabel(t?.status),
-    statusToBadgeType(t?.status),
+    testTypeFromFlags(t, { short: true }),
+    formatStatusLabel(t?.status),
+    statusToBadgeTone(t?.status),
     stepFromTracks(t),
     formatDate(t?.updated_at),
     formatDate(t?.due_date),
@@ -316,9 +299,9 @@ export default function Tests({
                 const vgcpidCell = t?.vgcpid ?? t?.control_vgcpid ?? t?.control_id ?? '-';
                 const testerCell = getTesterName(t) || getTesterId(t) || '-';
 
-                const testType = testTypeFromFlags(t);
-                const statusLabel = statusToLabel(t?.status);
-                const statusType = statusToBadgeType(t?.status);
+                const testType = testTypeFromFlags(t, { short: true });
+                const statusLabel = formatStatusLabel(t?.status);
+                const statusType = statusToBadgeTone(t?.status);
                 const step = stepFromTracks(t);
 
                 const lastUpdated = formatDate(t?.updated_at);
@@ -356,7 +339,7 @@ export default function Tests({
                     <td className="table__cell">{testType}</td>
 
                     <td className="table__cell">
-                      <span className={`badge badge--${statusType}`}>{statusLabel}</span>
+                      <Badge tone={statusType}>{statusLabel}</Badge>
                     </td>
 
                     <td className="table__cell">{step}</td>

@@ -2,10 +2,11 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import InfoTooltipIcon from '../components/InfoTooltipIcon';
 import CreateControlModal from '../components/CreateControlModal';
+import ImportButton from '../components/ImportButton';
 import ExportButton from '../components/ExportButton';
 import RefreshButton from '../components/RefreshButton';
 import ImportControlsModal from '../components/ImportControlsModal';
-import RestrictedAction from '../components/RestrictedAction';
+import PermissionAction from '../components/PermissionAction';
 import { ACTIONS } from '../auth';
 import {
   exportCatalog,
@@ -20,6 +21,8 @@ import { triggerBrowserDownload } from '../utils/download';
 import ControlsFilterPopover, { DEFAULT_FILTERS } from '../components/ControlsFilterPopover';
 import TrackerTopToolbar from '../components/TrackerTopToolbar';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
+import { ActionButton, Badge, SegmentedControl } from '../components/ui';
+import { formatDisplayDate } from '../utils/date';
 
 function formatLastUpdated(date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -28,19 +31,6 @@ function formatLastUpdated(date) {
     second: '2-digit',
     hour12: true,
   }).format(date);
-}
-
-function formatDisplayDate(value) {
-  if (!value || value === '-') return '-';
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  }).format(parsed);
 }
 
 export default function Controls() {
@@ -58,6 +48,7 @@ export default function Controls() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
+  const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -73,22 +64,6 @@ export default function Controls() {
     setIsDetailsModalOpen(false);
     setSelectedControl(null);
   };
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
-
-  function handleRestrictedOverlayClick(e) {
-    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-    if (blockedWrapper) {
-      e.preventDefault();
-      e.stopPropagation();
-      showPermissionDeniedToast();
-    }
-  }
 
   async function loadControls({ setFirstOpen = false } = {}) {
     setLoading(true);
@@ -152,8 +127,14 @@ export default function Controls() {
   }
 
   async function handleImportControlsCsv(file) {
-    await uploadControlsCsvForImport(file);
-    await refreshControls();
+    setIsImporting(true);
+
+    try {
+      await uploadControlsCsvForImport(file);
+      await refreshControls();
+    } finally {
+      setIsImporting(false);
+    }
   }
 
   useEffect(() => {
@@ -249,26 +230,14 @@ export default function Controls() {
           </div>
         }
         actions={
-          <div
-            onClick={(e) => {
-              const blockedWrapper = e.target.closest('.restricted-action--blocked');
-              if (blockedWrapper) {
-                e.preventDefault();
-                e.stopPropagation();
-                showPermissionDeniedToast();
-              }
-            }}
-          >
-            <RestrictedAction action={ACTIONS.IMPORT_CONTROLS}>
-              <button
-                className="btn btn--import"
-                type="button"
+          <div>
+            <PermissionAction action={ACTIONS.IMPORT_CONTROLS}>
+              <ImportButton
+                isLoading={isImporting}
+                isPageLoading={loading}
                 onClick={() => setIsImportModalOpen(true)}
-              >
-                <Icon name="upload" category="actions" size="sm" color="#ffffff" />
-                Import
-              </button>
-            </RestrictedAction>
+              />
+            </PermissionAction>
             <ExportButton isLoading={isExporting} isPageLoading={loading} onClick={handleExport} />
             <RefreshButton
               isLoading={isRefreshing}
@@ -280,29 +249,15 @@ export default function Controls() {
       />
 
       <div className="controls-filters">
-        <div className="pill-group">
-          <button
-            type="button"
-            className={`pill ${filter === 'All' ? 'pill--active' : ''}`}
-            onClick={() => setFilter('All')}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            className={`pill ${filter === 'Active' ? 'pill--active' : ''}`}
-            onClick={() => setFilter('Active')}
-          >
-            Active
-          </button>
-          <button
-            type="button"
-            className={`pill ${filter === 'Retired' ? 'pill--active' : ''}`}
-            onClick={() => setFilter('Retired')}
-          >
-            Retired
-          </button>
-        </div>
+        <SegmentedControl
+          options={['All', 'Active', 'Retired']}
+          value={filter}
+          onChange={setFilter}
+          className="pill-group"
+          buttonClassName="pill"
+          activeButtonClassName="pill--active"
+          ariaLabel="Filter controls by status"
+        />
 
         <TrackerTopToolbar
           searchValue={search}
@@ -311,17 +266,16 @@ export default function Controls() {
           searchAriaLabel="Search controls"
           right={
             <>
-              <div onClick={handleRestrictedOverlayClick}>
-                <RestrictedAction action={ACTIONS.CREATE_CONTROL}>
-                  <button
-                    className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
-                    type="button"
-                    onClick={() => setIsCreateModalOpen(true)}
-                  >
-                    <span className="controls-toolbar__add-label">+ Add Control</span>
-                  </button>
-                </RestrictedAction>
-              </div>
+              <PermissionAction action={ACTIONS.CREATE_CONTROL}>
+                <ActionButton
+                  className="btn btn--new controls-toolbar__action controls-toolbar__action--add"
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  isPageLoading={loading}
+                >
+                  <span className="controls-toolbar__add-label">+ Add Control</span>
+                </ActionButton>
+              </PermissionAction>
 
               <ToolbarFilterDropdown
                 filterPanelId="controls-catalog-filter-panel"
@@ -363,19 +317,15 @@ export default function Controls() {
                       </div>
 
                       <div className="acc-header__right">
-                        <span
-                          className={`badge ${
-                            control.status === 'Active' ? 'badge--active' : 'badge--retired'
-                          }`}
-                        >
+                        <Badge tone={control.status === 'Active' ? 'active' : 'retired'}>
                           {control.status}
-                        </span>
+                        </Badge>
 
-                        <span className="badge badge--neutral">
+                        <Badge tone="neutral">
                           {control.testing && control.testing !== 'Not Tested Yet'
                             ? `Last Tested ${formatDisplayDate(control.testing)}`
                             : (control.testing ?? 'Not Tested Yet')}
-                        </span>
+                        </Badge>
 
                         <span className={`chev ${isOpen ? 'chev--open' : ''}`}>
                           {isOpen ? '▴' : '▾'}

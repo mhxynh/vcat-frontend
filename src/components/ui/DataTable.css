@@ -1,0 +1,9 @@
+.data-table-wrap {
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}

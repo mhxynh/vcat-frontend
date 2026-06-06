@@ -1,0 +1,27 @@
+.app-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #545454;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  box-shadow: none;
+  filter: none;
+}
+
+.app-icon-button:hover:not(:disabled):not([aria-disabled='true']) {
+  background: #fef2f2;
+  color: #8b0f17;
+}
+
+.app-icon-button:disabled,
+.app-icon-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

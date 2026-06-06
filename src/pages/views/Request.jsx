@@ -9,13 +9,18 @@ import {
 import DetailsRequestModal from '../../components/DetailsRequestModal';
 import AssignRequestModal from '../../components/AssignRequestModal';
 import DetailsTestModal from '../../components/DetailsTestModal';
-import RestrictedAction from '../../components/RestrictedAction';
+import PermissionAction from '../../components/PermissionAction';
 import { ACTIONS } from '../../auth';
-import { showErrorToast } from '../../utils/toast';
 import { formatRequestDisplayId } from '../../utils/requestDisplayId';
+import {
+  formatPriorityLabel,
+  priorityToBadgeTone,
+  statusToBadgeTone,
+} from '../../utils/displayLabels';
 import '../../styles/components/DetailsRequestModal.css';
 import '../../styles/components/AssignRequestModal.css';
 import Icon from '../../components/common/Icon';
+import { Badge } from '../../components/ui';
 
 export default function Requests({ refreshKey = 0, searchValue = '', filters, onLoadingChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
@@ -37,13 +42,6 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
   useEffect(() => {
     onLoadingChange?.(loading);
   }, [loading, onLoadingChange]);
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
 
   function openRequestDetails(req) {
     setSelectedRequest(req);
@@ -93,16 +91,20 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
         const bucket = prev[requestId];
         if (!bucket || !Array.isArray(bucket.items)) continue;
 
+        let bucketChanged = false;
         const items = bucket.items.map((item) => {
           const itemTestId = item.testId ?? item.test_id ?? item.id ?? null;
           if (itemTestId === updatedTestId) {
-            changed = true;
+            bucketChanged = true;
             return { ...item, ...updatedCard };
           }
           return item;
         });
 
-        next[requestId] = { ...bucket, items };
+        if (bucketChanged) {
+          changed = true;
+          next[requestId] = { ...bucket, items };
+        }
       }
 
       return changed ? next : prev;
@@ -289,13 +291,15 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
     });
   }, [requests, testsByRequestId]);
 
+  const selectedRequestId = selectedRequest?.requestId;
+
   useEffect(() => {
-    if (!selectedRequest || !isRequestDetailsOpen) return;
-    const enriched = enrichedRequests.find((r) => r.requestId === selectedRequest.requestId);
+    if (!selectedRequestId || !isRequestDetailsOpen) return;
+    const enriched = enrichedRequests.find((r) => r.requestId === selectedRequestId);
     if (enriched) {
       setSelectedRequest(enriched);
     }
-  }, [enrichedRequests, isRequestDetailsOpen, selectedRequest?.requestId]);
+  }, [enrichedRequests, isRequestDetailsOpen, selectedRequestId]);
 
   const filteredRequests = useMemo(() => {
     const priorityFilter = filters?.priority ?? 'all';
@@ -374,9 +378,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                   <div className="request-row">
                     <div className="req-left">
                       <div style={{ fontWeight: 800 }}>{formatRequestDisplayId(req)}</div>
-                      <div className={`badge badge-${String(req.priority || '').toLowerCase()}`}>
-                        {req.priority}
-                      </div>
+                      <Badge tone={priorityToBadgeTone(req.priority)}>
+                        {formatPriorityLabel(req.priority)}
+                      </Badge>
                     </div>
 
                     <div className="req-meta-grid">
@@ -422,22 +426,11 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                         Details
                       </button>
 
-                      <div
-                        onClick={(e) => {
-                          const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                          if (blockedWrapper) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            showPermissionDeniedToast();
-                          }
-                        }}
-                      >
-                        <RestrictedAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
-                          <button className="btn-outline" onClick={() => openAssignModal(req)}>
-                            Assign
-                          </button>
-                        </RestrictedAction>
-                      </div>
+                      <PermissionAction action={ACTIONS.ASSIGN_TESTER_TO_REQUEST}>
+                        <button className="btn-outline" onClick={() => openAssignModal(req)}>
+                          Assign
+                        </button>
+                      </PermissionAction>
 
                       <button className="btn-chev" onClick={() => toggleExpand(req)}>
                         {isOpen ? '▴' : '▾'}
@@ -467,13 +460,9 @@ export default function Requests({ refreshKey = 0, searchValue = '', filters, on
                                   {c.id}
                                 </span>
                               </div>
-                              <span
-                                className={`status-pill ${String(c.statusLabel || c.status || '')
-                                  .toLowerCase()
-                                  .replace(/\s+/g, '-')}`}
-                              >
+                              <Badge tone={statusToBadgeTone(c.statusLabel || c.status)}>
                                 {c.statusLabel || c.status}
-                              </span>
+                              </Badge>
                             </div>
 
                             <div className="control-title">{c.title}</div>

@@ -1,51 +1,7 @@
 /* Request page css */
-.header-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px;
-}
-
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
 .actions {
   display: flex;
   gap: 10px;
-}
-
-.btn {
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-weight: inherit;
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.tab {
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #6b7280;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: inherit;
-  cursor: pointer;
-}
-
-.tab.active {
-  background: #991b1b;
-  border-color: #991b1b;
-  color: #fff;
 }
 
 .toolbar {
@@ -82,24 +38,6 @@
   font-size: 13px;
 }
 
-.toolbar-right {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.btn.btn--add {
-  background: #991b1b;
-  color: #fff;
-  border: 1px solid #991b1b;
-}
-
-.btn--filter {
-  background: #fff;
-  color: #111827;
-  border: 1px solid #e5e7eb;
-}
-
 .requests-list {
   display: grid;
   gap: 12px;
@@ -123,40 +61,6 @@
 .req-left {
   display: grid;
   gap: 6px;
-}
-
-.badge {
-  display: inline-flex;
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #fee2e2;
-  font-size: 12px;
-  font-weight: inherit;
-}
-
-.badge-low {
-  background: #e6f7ea;
-  color: var(--priority-low);
-  border-color: #ccefd6;
-}
-
-.badge-medium {
-  background: #fff4dd;
-  color: var(--priority-medium);
-  border-color: #ffe2a8;
-}
-
-.badge-high {
-  background: #fdecec;
-  color: var(--priority-high);
-  border-color: #f7caca;
-}
-
-.badge-critical {
-  background: #f3e8ff;
-  color: var(--priority-critical);
-  border-color: #e0ccff;
 }
 
 .req-meta-grid {
@@ -362,44 +266,6 @@
   height: 12px;
   border-radius: 9999px;
   display: inline-block;
-}
-
-.status-pill {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-}
-
-.status-pill.completed {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-pill.dat-in-progress {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.status-pill.oet-in-progress {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.status-pill.in-review {
-  background: #f0fdfa;
-  color: #00786f;
-}
-
-.status-pill.not-started {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 18px;
 }
 
 @media (max-width: 900px) {

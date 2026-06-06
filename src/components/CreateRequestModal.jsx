@@ -2,6 +2,15 @@ import React, { useEffect, useState } from 'react';
 import '../styles/components/CreateRequestModal.css';
 import { createRequest } from '../api/RequestsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import {
+  ActionButton,
+  FormField,
+  FormGrid,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  Modal,
+} from './ui';
 
 function todayIso() {
   const d = new Date();
@@ -12,9 +21,10 @@ function todayIso() {
 }
 
 const DUMMY_CURRENT_USER_ID = 1;
+const DEFAULT_PRIORITY = 'LOW';
 
 export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
-  const [priority, setPriority] = useState('');
+  const [priority, setPriority] = useState(DEFAULT_PRIORITY);
   const [requestedBy, setRequestedBy] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [description, setDescription] = useState('');
@@ -29,7 +39,7 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
     if (!isOpen) return;
 
     setFieldErrors({});
-    setPriority('');
+    setPriority(DEFAULT_PRIORITY);
     setRequestedBy('');
     setRequestDate(todayIso());
     setDueDate('');
@@ -91,159 +101,112 @@ export default function CreateRequestModal({ isOpen, onClose, onCreated }) {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="crm-overlay"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
-      role="presentation"
+    <Modal
+      className="crm-modal"
+      overlayClassName="crm-overlay"
+      labelledBy="create-request-title"
+      onClose={onClose}
     >
-      <div className="crm-modal" role="dialog" aria-modal="true" aria-label="Create New Request">
-        <div className="crm-header">
-          <h2 className="crm-title">Create New Request</h2>
-          <button className="crm-close" type="button" onClick={onClose} aria-label="Close">
-            ×
-          </button>
-        </div>
+      <Modal.Header
+        className="crm-header"
+        titleClassName="crm-title"
+        closeClassName="crm-close"
+        title="Create New Request"
+        titleId="create-request-title"
+        onClose={onClose}
+      />
 
-        <form className="crm-body" onSubmit={handleSubmit}>
-          <div className="crm-grid">
-            <div className="crm-field">
-              <label className="crm-label">
-                Request ID
-                <span className="crm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="crm-input"
-                value={`REQ-${currentYear}-(Auto-generated)`}
-                title="This ID will be generated automatically upon creation"
-                disabled
-              />
-            </div>
+      <Modal.Body as="form" className="crm-body" onSubmit={handleSubmit}>
+        <FormGrid className="crm-grid">
+          <FormField label="Request ID" required>
+            <FormInput
+              className="crm-input"
+              value={`REQ-${currentYear}-(Auto-generated)`}
+              title="This ID will be generated automatically upon creation"
+              disabled
+            />
+          </FormField>
 
-            <div className="crm-field">
-              <label className="crm-label">
-                Priority
-                <span className="crm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <select
-                className="crm-select"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                disabled={submitting}
-                aria-invalid={fieldErrors.priority ? 'true' : 'false'}
-              >
-                <option value="" disabled></option>
-                <option value="CRITICAL">Critical</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
-              {fieldErrors.priority ? (
-                <div className="field-error">{fieldErrors.priority}</div>
-              ) : null}
-            </div>
+          <FormField label="Priority" required error={fieldErrors.priority}>
+            <FormSelect
+              className="crm-select"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              disabled={submitting}
+              aria-invalid={fieldErrors.priority ? 'true' : 'false'}
+            >
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </FormSelect>
+          </FormField>
 
-            <div className="crm-field crm-field--full">
-              <label className="crm-label">
-                Requested By
-                <span className="crm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="crm-input"
-                value={requestedBy}
-                onChange={(e) => setRequestedBy(e.target.value)}
-                disabled={submitting}
-                placeholder="Name"
-                aria-invalid={fieldErrors.requestedBy ? 'true' : 'false'}
-              />
-              {fieldErrors.requestedBy ? (
-                <div className="field-error">{fieldErrors.requestedBy}</div>
-              ) : null}
-            </div>
+          <FormField label="Requested By" required error={fieldErrors.requestedBy} full>
+            <FormInput
+              className="crm-input"
+              value={requestedBy}
+              onChange={(e) => setRequestedBy(e.target.value)}
+              disabled={submitting}
+              placeholder="Name"
+              aria-invalid={fieldErrors.requestedBy ? 'true' : 'false'}
+            />
+          </FormField>
 
-            <div className="crm-field">
-              <label className="crm-label">
-                Request Date
-                <span className="crm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="crm-input"
-                type="date"
-                value={requestDate}
-                title="Matches the database created_at timestamp"
-                disabled
-              />
-            </div>
+          <FormField label="Request Date" required>
+            <FormInput
+              className="crm-input"
+              type="date"
+              value={requestDate}
+              title="Matches the database created_at timestamp"
+              disabled
+            />
+          </FormField>
 
-            <div className="crm-field">
-              <label className="crm-label">
-                Due Date
-                <span className="crm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="crm-input"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                disabled={submitting}
-                aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
-              />
-              {fieldErrors.dueDate ? (
-                <div className="field-error">{fieldErrors.dueDate}</div>
-              ) : null}
-            </div>
+          <FormField label="Due Date" required error={fieldErrors.dueDate}>
+            <FormInput
+              className="crm-input"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              disabled={submitting}
+              aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
+            />
+          </FormField>
 
-            <div className="crm-field crm-field--full">
-              <label className="crm-label">
-                Description
-                <span className="crm-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <textarea
-                className="crm-textarea"
-                placeholder="Describe the purpose of this request..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={submitting}
-                aria-invalid={fieldErrors.description ? 'true' : 'false'}
-              />
-              {fieldErrors.description ? (
-                <div className="field-error">{fieldErrors.description}</div>
-              ) : null}
-            </div>
-          </div>
-        </form>
+          <FormField label="Description" required error={fieldErrors.description} full>
+            <FormTextarea
+              className="crm-textarea"
+              placeholder="Describe the purpose of this request..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={submitting}
+              aria-invalid={fieldErrors.description ? 'true' : 'false'}
+            />
+          </FormField>
+        </FormGrid>
+      </Modal.Body>
 
-        <div className="crm-footer">
-          <button
-            className="crm-btn crm-btn--ghost"
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            Cancel
-          </button>
+      <Modal.Footer className="crm-footer">
+        <ActionButton
+          className="crm-btn crm-btn--ghost"
+          variant="cancel"
+          type="button"
+          onClick={onClose}
+          disabled={submitting}
+        >
+          Cancel
+        </ActionButton>
 
-          <button
-            className="crm-btn crm-btn--primary"
-            type="submit"
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? 'Creating...' : 'Create Request'}
-          </button>
-        </div>
-      </div>
-    </div>
+        <ActionButton
+          className="crm-btn crm-btn--primary"
+          type="submit"
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting ? 'Creating...' : 'Create Request'}
+        </ActionButton>
+      </Modal.Footer>
+    </Modal>
   );
 }

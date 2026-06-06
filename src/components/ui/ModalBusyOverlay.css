@@ -1,0 +1,42 @@
+.modal-busy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(1px);
+}
+
+.modal-busy-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.modal-busy-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(0, 0, 0, 0.55);
+  animation: modal-busy-spin 0.9s linear infinite;
+}
+
+.modal-busy-text {
+  color: #333333;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@keyframes modal-busy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

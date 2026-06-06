@@ -1,11 +1,11 @@
-import { Page, Locator } from "@playwright/test";
+import { expect, Page, Locator } from "@playwright/test";
 import { todayISO } from "./test-utils";
 import { loginAsManager } from "./auth-helpers";
 
 export async function createRequest(
   page: Page,
   {
-    name = "Test Requester",
+    name = `Test Requester ${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     priority = "LOW",
     purpose = "Test",
     date = todayISO(),
@@ -13,22 +13,36 @@ export async function createRequest(
 ): Promise<Locator> {
   await loginAsManager(page);
   await page.getByRole("link", { name: "Tracker" }).click();
-  await page.getByRole("button", { name: "Requests" }).click();
+  const requestsTab = page.getByRole("button", { name: "Requests" });
+  await requestsTab.waitFor({ state: "visible" });
+  await requestsTab.click();
+  await expect(requestsTab).toHaveAttribute("aria-pressed", "true");
   await page.locator("text=Loading requests...").waitFor({ state: "hidden" });
+  await expect(
+    page.getByRole("button", { name: "+ Add Request" }),
+  ).toBeEnabled();
   await page.getByRole("button", { name: "+ Add Request" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create New Request" }),
+  ).toBeVisible();
   await page.getByRole("combobox").selectOption(priority);
-  await page.getByRole("textbox", { name: "Name" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill(name);
+  await page.getByPlaceholder("Name").fill(name);
   await page.getByRole("textbox").nth(4).fill(date);
   await page
-    .getByRole("textbox", { name: "Describe the purpose of this" })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Describe the purpose of this" })
+    .getByPlaceholder("Describe the purpose of this request...")
     .fill(purpose);
   await page.getByRole("button", { name: "Create Request" }).click();
+  await page
+    .getByRole("heading", { name: "Create New Request" })
+    .waitFor({ state: "hidden" });
+  await page
+    .locator("text=Loading requests...")
+    .waitFor({ state: "hidden", timeout: 120000 });
 
-  const firstRequestCard = page.locator(".requests-list .request-card").first();
-  await firstRequestCard.waitFor({ state: "visible" });
-  return firstRequestCard;
+  const createdRequestCard = page
+    .locator(".requests-list .request-card")
+    .filter({ hasText: name })
+    .first();
+  await expect(createdRequestCard).toBeVisible({ timeout: 30000 });
+  return createdRequestCard;
 }

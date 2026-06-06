@@ -10,7 +10,7 @@ import CreateRequestModal from '../components/CreateRequestModal';
 import AssignTestModal from '../components/AssignTestModal';
 import ExportButton from '../components/ExportButton';
 import RefreshButton from '../components/RefreshButton';
-import RestrictedAction from '../components/RestrictedAction';
+import PermissionAction from '../components/PermissionAction';
 import { ACTIONS } from '../auth';
 import { updateTest } from '../api/TestsAPI';
 import { exportTable } from '../api/ExportAPI';
@@ -24,6 +24,7 @@ import TrackerRequestsFilterPopover, {
   DEFAULT_FILTERS as DEFAULT_REQUESTS_FILTERS,
 } from '../components/TrackerRequestsFilterPopover';
 import ToolbarFilterDropdown from '../components/ToolbarFilterDropdown';
+import { ActionButton, SegmentedControl } from '../components/ui';
 import '../styles/pages/views/Tests.css';
 
 function formatLastUpdated(date) {
@@ -63,22 +64,6 @@ export default function ControlsTracker() {
   const [kanbanLoading, setKanbanLoading] = useState(true);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [refreshingTab, setRefreshingTab] = useState(null);
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
-
-  function handleRestrictedOverlayClick(e) {
-    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-    if (blockedWrapper) {
-      e.preventDefault();
-      e.stopPropagation();
-      showPermissionDeniedToast();
-    }
-  }
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -259,18 +244,15 @@ export default function ControlsTracker() {
       />
 
       <div className="sub-page-tabs">
-        <div className="tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => handleTabClick(tab)}
-              className={`sub-tab ${activeTab === tab ? 'sub-tab--active' : ''}`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={tabs}
+          value={activeTab}
+          onChange={handleTabClick}
+          className="pill-group tabs"
+          buttonClassName="pill"
+          activeButtonClassName="pill--active"
+          ariaLabel="Select tracker view"
+        />
       </div>
 
       {activeTab === 'Controls' ? (
@@ -294,29 +276,29 @@ export default function ControlsTracker() {
                     </button>
                     <span>{selectedTestRows.length} selected</span>
                   </div>
-                  <RestrictedAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
-                    <button
+                  <PermissionAction action={ACTIONS.BULK_ASSIGN_TESTERS}>
+                    <ActionButton
                       className="btn btn--new"
                       type="button"
                       onClick={() => setIsAssignOpen(true)}
+                      isPageLoading={activeTabLoading}
                     >
                       Bulk Assign
-                    </button>
-                  </RestrictedAction>
+                    </ActionButton>
+                  </PermissionAction>
                 </div>
               ) : null}
 
-              <div onClick={handleRestrictedOverlayClick}>
-                <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                  <button
-                    className="btn btn--new"
-                    type="button"
-                    onClick={() => setIsCreateTestOpen(true)}
-                  >
-                    + Add Control Test
-                  </button>
-                </RestrictedAction>
-              </div>
+              <PermissionAction action={ACTIONS.CREATE_TEST}>
+                <ActionButton
+                  className="btn btn--new"
+                  type="button"
+                  onClick={() => setIsCreateTestOpen(true)}
+                  isPageLoading={activeTabLoading}
+                >
+                  + Add Control Test
+                </ActionButton>
+              </PermissionAction>
 
               <ToolbarFilterDropdown
                 filterPanelId="tracker-controls-filter-panel"
@@ -340,17 +322,16 @@ export default function ControlsTracker() {
           searchAriaLabel="Search requests"
           right={
             <>
-              <div onClick={handleRestrictedOverlayClick}>
-                <RestrictedAction action={ACTIONS.CREATE_REQUEST}>
-                  <button
-                    className="btn btn--new"
-                    type="button"
-                    onClick={() => setIsCreateRequestOpen(true)}
-                  >
-                    + Add Request
-                  </button>
-                </RestrictedAction>
-              </div>
+              <PermissionAction action={ACTIONS.CREATE_REQUEST}>
+                <ActionButton
+                  className="btn btn--new"
+                  type="button"
+                  onClick={() => setIsCreateRequestOpen(true)}
+                  isPageLoading={activeTabLoading}
+                >
+                  + Add Request
+                </ActionButton>
+              </PermissionAction>
 
               <ToolbarFilterDropdown
                 filterPanelId="tracker-requests-filter-panel"
@@ -407,7 +388,10 @@ export default function ControlsTracker() {
 
             setControlsRefreshKey((k) => k + 1);
           } catch (e) {
-            alert('Failed to assign tests: ' + (e?.message || e));
+            showErrorToast({
+              title: 'Bulk Assign Failed',
+              message: e?.message || 'Failed to assign the selected tests.',
+            });
             setControlsRefreshKey((k) => k + 1);
           }
         }}

@@ -85,7 +85,7 @@
   height: 16px;
 }
 
-.controls-search-input-wrap .search-input {
+.controls-search-input-wrap .app-search-input__control.search-input {
   width: 100%;
   padding: 0;
   border: 0;

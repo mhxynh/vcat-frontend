@@ -143,7 +143,9 @@
 
 .erm-search:disabled,
 .erm-search-input-wrap--disabled,
-.erm-search-input-wrap--disabled .erm-search-icon {
+.erm-search-input-wrap--disabled .erm-search-icon,
+.erm-search-input-wrap.app-search-input--disabled,
+.erm-search-input-wrap.app-search-input--disabled .erm-search-icon {
   cursor: not-allowed;
 }
 
@@ -206,7 +208,7 @@
   flex: 1;
 }
 
-.erm-search-input-wrap .erm-search {
+.erm-search-input-wrap .app-search-input__control.erm-search {
   padding-left: 34px;
 }
 
@@ -262,19 +264,24 @@
 }
 
 .erm-add-btn {
-  background: transparent;
-  border: none;
-  font-size: 22px;
-  color: #9b1c22;
+  appearance: none;
+  min-height: 34px;
+  border: 1px solid var(--modal-action-red) !important;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 20px;
   cursor: pointer;
-  padding: 2px 8px;
-  line-height: 1;
-  font-weight: 600;
-  transition: color 0.15s;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
 }
 
 .erm-add-btn:hover {
-  color: #c0392b;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+  text-decoration: none;
 }
 
 .erm-test-list {
@@ -308,16 +315,9 @@
 }
 
 .erm-x {
-  background: transparent;
-  border: none;
   font-size: 20px;
   color: #999;
-  cursor: pointer;
   padding: 4px 8px;
-}
-
-.erm-x:hover {
-  color: #d32f2f;
 }
 
 .erm-error-msg {
@@ -376,9 +376,6 @@
 }
 
 .erm-section--associated-controls {
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
   padding: 16px;
 }
 
@@ -404,20 +401,29 @@
 }
 
 .erm-create-control-link {
-  border: 0;
-  background: transparent;
-  color: #9b1c22;
+  appearance: none;
+  min-height: 38px;
+  border: 1px solid var(--modal-action-red) !important;
+  border-radius: 8px;
+  padding: 8px 16px;
   font-size: 14px;
-  font-weight: 600;
+  line-height: 20px;
   cursor: pointer;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
   transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     color 0.2s ease,
     opacity 0.2s ease;
 }
 
 .erm-create-control-link:hover {
-  color: #7a161b;
-  text-decoration: underline;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+  text-decoration: none;
 }
 
 .erm-create-control-link--disabled {
@@ -429,48 +435,6 @@
 .erm-create-control-link:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.erm-test-meta .status-pill {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-}
-
-.erm-test-meta .status-pill.completed {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.erm-test-meta .status-pill.dat-in-progress,
-.erm-test-meta .status-pill.oet-in-progress,
-.erm-test-meta .status-pill.in-progress {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.erm-test-meta .status-pill.in-review {
-  background: #ffedd5;
-  color: #9a3412;
-}
-
-.erm-test-meta .status-pill.not-started {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.erm-test-meta .status-pill.blocked,
-.erm-test-meta .status-pill.failed,
-.erm-test-meta .status-pill.rejected {
-  background: #fdecec;
-  color: #8b0f17;
-}
-
-.erm-test-meta .status-pill.pending {
-  background: #fff4dd;
-  color: #8a5a00;
 }
 
 .erm-status-pill {

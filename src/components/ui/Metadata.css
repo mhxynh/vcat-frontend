@@ -1,0 +1,17 @@
+.metadata-grid {
+  display: grid;
+}
+
+.metadata-item {
+  min-width: 0;
+}
+
+.metadata-label {
+  color: #777777;
+  text-transform: uppercase;
+}
+
+.metadata-value {
+  color: #1a1a1a;
+  font-weight: 400;
+}

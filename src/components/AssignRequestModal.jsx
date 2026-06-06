@@ -4,6 +4,7 @@ import GroupIcon from '../assets/images/assign request icons/group.svg';
 import { fetchUsers } from '../api/UsersAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
+import { ActionButton, ModalCloseButton } from './ui';
 
 export default function AssignRequestModal({ isOpen, onClose, request, onAssign }) {
   const [selectedUser, setSelectedUser] = useState('');
@@ -104,9 +105,7 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
       <div className="arm-modal" onMouseDown={stop}>
         <header className="arm-header">
           <h3>Assign Request: {requestTitle}</h3>
-          <button className="arm-close" onClick={onClose} aria-label="Close">
-            ×
-          </button>
+          <ModalCloseButton className="arm-close" onClick={onClose} />
         </header>
 
         <div className="arm-divider" />
@@ -157,16 +156,21 @@ export default function AssignRequestModal({ isOpen, onClose, request, onAssign 
         <div className="arm-divider" />
 
         <footer className="arm-footer">
-          <button className="arm-btn arm-btn-ghost" onClick={onClose} disabled={assigning}>
+          <ActionButton
+            className="arm-btn arm-btn-ghost"
+            variant="cancel"
+            onClick={onClose}
+            disabled={assigning}
+          >
             Cancel
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             className="arm-btn arm-btn-primary"
             onClick={handleAssign}
             disabled={assigning || loadingUsers}
           >
             {assigning ? 'Assigning...' : 'Assign All Controls'}
-          </button>
+          </ActionButton>
         </footer>
       </div>
     </div>

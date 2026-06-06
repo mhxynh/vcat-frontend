@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { createControl } from '../api/ControlsAPI';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import {
+  ActionButton,
+  FormField,
+  FormGrid,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  Modal,
+} from './ui';
 
 export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   const [vgcpid, setVgcpid] = useState('');
@@ -89,168 +98,122 @@ export default function CreateControlModal({ isOpen, onClose, onCreated }) {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="modal-overlay"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Modal
+      className="modal"
+      overlayClassName="modal-overlay"
+      labelledBy="create-control-title"
+      onClose={onClose}
     >
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-control-title"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <h2 className="modal-title" id="create-control-title">
-            Create New Control
-          </h2>
+      <Modal.Header
+        className="modal-header"
+        titleClassName="modal-title"
+        closeClassName="modal-x"
+        title="Create New Control"
+        titleId="create-control-title"
+        onClose={onClose}
+      />
 
-          <button type="button" className="modal-x" aria-label="Close" onClick={onClose}>
-            ×
-          </button>
-        </div>
+      <Modal.Body as="form" className="modal-body" onSubmit={handleCreate}>
+        <FormGrid className="modal-grid">
+          <FormField label="Control ID" required error={fieldErrors.vgcpid}>
+            <FormInput
+              className="form-input"
+              placeholder="e.g. VGCP-123456"
+              value={vgcpid}
+              onChange={(e) => setVgcpid(e.target.value)}
+              aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
+            />
+          </FormField>
 
-        <form className="modal-body" onSubmit={handleCreate}>
-          <div className="modal-grid">
-            <div className="form-field">
-              <label className="form-label">
-                Control ID{' '}
-                <span className="form-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="form-input"
-                placeholder="e.g. VGCP-123456"
-                value={vgcpid}
-                onChange={(e) => setVgcpid(e.target.value)}
-                aria-invalid={fieldErrors.vgcpid ? 'true' : 'false'}
-              />
-              {fieldErrors.vgcpid ? <div className="field-error">{fieldErrors.vgcpid}</div> : null}
-            </div>
+          <FormField label="Initial Status" required>
+            <FormSelect
+              className="form-input"
+              value={initialStatus}
+              onChange={(e) => setInitialStatus(e.target.value)}
+            >
+              <option value="active">Active</option>
+            </FormSelect>
+          </FormField>
 
-            <div className="form-field">
-              <label className="form-label">
-                Initial Status{' '}
-                <span className="form-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <select
-                className="form-input"
-                value={initialStatus}
-                onChange={(e) => setInitialStatus(e.target.value)}
-              >
-                <option value="active">Active</option>
-              </select>
-            </div>
+          <FormField label="Description" required error={fieldErrors.description} full>
+            <FormTextarea
+              className="form-textarea"
+              placeholder="Enter detailed control description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              aria-invalid={fieldErrors.description ? 'true' : 'false'}
+            />
+          </FormField>
 
-            <div className="form-field form-field--full">
-              <label className="form-label">
-                Description{' '}
-                <span className="form-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <textarea
-                className="form-textarea"
-                placeholder="Enter detailed control description..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                aria-invalid={fieldErrors.description ? 'true' : 'false'}
-              />
-              {fieldErrors.description ? (
-                <div className="field-error">{fieldErrors.description}</div>
-              ) : null}
-            </div>
+          <FormField label="Control Owner" required error={fieldErrors.controlOwner}>
+            <FormInput
+              className="form-input"
+              placeholder="Last name, first name"
+              value={controlOwner}
+              onChange={(e) => setControlOwner(e.target.value)}
+              aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
+            />
+          </FormField>
 
-            <div className="form-field">
-              <label className="form-label">
-                Control Owner{' '}
-                <span className="form-req" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                className="form-input"
-                placeholder="Last name, first name"
-                value={controlOwner}
-                onChange={(e) => setControlOwner(e.target.value)}
-                aria-invalid={fieldErrors.controlOwner ? 'true' : 'false'}
-              />
-              {fieldErrors.controlOwner ? (
-                <div className="field-error">{fieldErrors.controlOwner}</div>
-              ) : null}
-            </div>
+          <FormField label="Control SME">
+            <FormInput
+              className="form-input"
+              placeholder="Last name, first name"
+              value={controlSme}
+              onChange={(e) => setControlSme(e.target.value)}
+            />
+          </FormField>
 
-            <div className="form-field">
-              <label className="form-label">Control SME</label>
-              <input
-                className="form-input"
-                placeholder="Last name, first name"
-                value={controlSme}
-                onChange={(e) => setControlSme(e.target.value)}
-              />
-            </div>
-
-            <div className="form-field form-field--full">
-              <label className="form-label">
-                Escalation Required?{' '}
-                <span className="form-req" aria-hidden="true">
-                  *
-                </span>
+          <FormField label="Escalation Required?" required error={fieldErrors.escalation} full>
+            <div
+              className={`radio-row ${fieldErrors.escalation ? 'invalid' : ''}`}
+              role="radiogroup"
+              aria-label="Escalation Required"
+            >
+              <label className="radio-item">
+                <input
+                  type="radio"
+                  name="escalation"
+                  checked={escalation === true}
+                  onChange={() => setEscalation(true)}
+                />
+                <span>Yes</span>
               </label>
 
-              <div
-                className={`radio-row ${fieldErrors.escalation ? 'invalid' : ''}`}
-                role="radiogroup"
-                aria-label="Escalation Required"
-              >
-                <label className="radio-item">
-                  <input
-                    type="radio"
-                    name="escalation"
-                    checked={escalation === true}
-                    onChange={() => setEscalation(true)}
-                  />
-                  <span>Yes</span>
-                </label>
-
-                <label className="radio-item">
-                  <input
-                    type="radio"
-                    name="escalation"
-                    checked={escalation === false}
-                    onChange={() => setEscalation(false)}
-                  />
-                  <span>No</span>
-                </label>
-              </div>
-              {fieldErrors.escalation ? (
-                <div className="field-error">{fieldErrors.escalation}</div>
-              ) : null}
+              <label className="radio-item">
+                <input
+                  type="radio"
+                  name="escalation"
+                  checked={escalation === false}
+                  onChange={() => setEscalation(false)}
+                />
+                <span>No</span>
+              </label>
             </div>
-          </div>
-        </form>
+          </FormField>
+        </FormGrid>
+      </Modal.Body>
 
-        <div className="modal-footer">
-          <button type="button" className="btn btn--white" onClick={onClose} disabled={submitting}>
-            Cancel
-          </button>
+      <Modal.Footer className="modal-footer">
+        <ActionButton
+          type="button"
+          variant="cancel"
+          className="btn btn--white"
+          onClick={onClose}
+          disabled={submitting}
+        >
+          Cancel
+        </ActionButton>
 
-          <button
-            type="button"
-            className="btn btn--red"
-            onClick={handleCreate}
-            disabled={submitting}
-          >
-            {submitting ? 'Creating...' : 'Create Control'}
-          </button>
-        </div>
-      </div>
-    </div>
+        <ActionButton
+          type="button"
+          className="btn btn--red"
+          onClick={handleCreate}
+          disabled={submitting}
+        >
+          {submitting ? 'Creating...' : 'Create Control'}
+        </ActionButton>
+      </Modal.Footer>
+    </Modal>
   );
 }

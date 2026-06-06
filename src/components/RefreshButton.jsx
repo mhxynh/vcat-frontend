@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from './common/Icon';
+import { Button } from './ui';
 
 export default function RefreshButton({
   isLoading = false,
@@ -10,19 +11,15 @@ export default function RefreshButton({
   const isDisabled = disabled || isLoading || isPageLoading;
 
   return (
-    <button
+    <Button
       className="btn btn--blue refresh-button"
-      type="button"
+      variant="info"
       onClick={onClick}
       disabled={isDisabled}
-      aria-busy={isLoading}
+      isLoading={isLoading}
     >
-      {isLoading ? (
-        <span className="refresh-button__spinner" aria-hidden="true" />
-      ) : (
-        <Icon name="refresh" category="actions" size="sm" color="#ffffff" />
-      )}
+      {!isLoading ? <Icon name="refresh" category="actions" size="sm" color="#ffffff" /> : null}
       {isLoading ? 'Refreshing...' : 'Refresh'}
-    </button>
+    </Button>
   );
 }

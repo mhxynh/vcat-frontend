@@ -17,21 +17,22 @@ import DetailsRequestModal from './DetailsRequestModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import Icon from './common/Icon';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import RestrictedAction from './RestrictedAction';
+import { formatDisplayDate } from '../utils/date';
+import { statusToBadgeTone } from '../utils/displayLabels';
+import PermissionAction from './PermissionAction';
 import { ACTIONS } from '../auth';
-
-function formatDisplayDate(value) {
-  if (!value || value === '-') return '-';
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  }).format(parsed);
-}
+import {
+  ActionButton,
+  Badge,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  MetadataItem,
+  Modal,
+  ModalCloseButton,
+  Panel,
+} from './ui';
 
 /** Request history: format once from raw API date; avoid reparsing localized `date` strings. */
 function formatRequestHistoryTableDate(row) {
@@ -83,13 +84,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     if (deleting) return;
     setIsDeleteConfirmOpen(false);
   }, [deleting]);
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -207,8 +201,6 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
     (Array.isArray(control?.historyLogs) && control.historyLogs) ||
     [];
 
-  const stop = (e) => e.stopPropagation();
-
   async function openRequestDetails(historyRow) {
     const requestId = getHistoryRowRequestId(historyRow);
     if (requestId == null) return;
@@ -276,207 +268,210 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   return (
     <>
-      <div className="dcm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
-        <div className="dcm-modal" onMouseDown={stop}>
-          <section className="dcm-section-header">
-            <div className="dcm-header">
-              <div className="dcm-title">{id}</div>
+      <Modal className="dcm-modal" overlayClassName="dcm-overlay" onClose={onClose}>
+        <Modal.Section className="dcm-section-header">
+          <div className="dcm-header">
+            <div className="dcm-title">{id}</div>
 
-              <button className="dcm-close" type="button" onClick={onClose} aria-label="Close">
-                ×
-              </button>
-            </div>
+            <ModalCloseButton className="dcm-close" onClick={onClose} />
+          </div>
 
-            <div className="dcm-status-row">
-              <span className={`badge ${status === 'Active' ? 'badge--active' : 'badge--retired'}`}>
-                {status}
-              </span>
-              <span className="badge badge--neutral">{testing}</span>
-            </div>
-          </section>
+          <div className="dcm-status-row">
+            <Badge tone={status === 'Active' ? 'active' : 'retired'}>{status}</Badge>
+            <Badge tone="neutral">{testing}</Badge>
+          </div>
+        </Modal.Section>
 
-          <div className="dcm-divider" />
+        <Modal.Divider className="dcm-divider" />
 
-          <section className="dcm-section-description">
-            <div className="dcm-section">
-              <div className="dcm-section-title">Description</div>
-              <div className="dcm-description">{description}</div>
-            </div>
-          </section>
+        <Modal.Section className="dcm-section-description">
+          <div className="dcm-section">
+            <Modal.SectionTitle className="dcm-section-title">Description</Modal.SectionTitle>
+            <div className="dcm-description">{description}</div>
+          </div>
+        </Modal.Section>
 
-          <section className="dcm-section-details">
-            <div className="dcm-details-card">
-              <div className="dcm-detail-item">
-                <div className="dcm-detail-label">Owner</div>
-                <div className="dcm-detail-value">{owner}</div>
-              </div>
+        <Modal.Section className="dcm-section-details">
+          <Panel className="dcm-details-card" tone="subtle">
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Owner"
+              value={owner}
+            />
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="SME"
+              value={sme}
+            />
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Date Created"
+              value={dateCreated}
+            />
+            <MetadataItem
+              className="dcm-detail-item"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Last Tested"
+              value={lastTested}
+            />
+            <MetadataItem
+              className="dcm-detail-item dcm-detail-item--full"
+              labelClassName="dcm-detail-label"
+              valueClassName="dcm-detail-value"
+              label="Escalation"
+              value={escalationRequired}
+            />
+          </Panel>
+        </Modal.Section>
 
-              <div className="dcm-detail-item">
-                <div className="dcm-detail-label">SME</div>
-                <div className="dcm-detail-value">{sme}</div>
-              </div>
+        <Modal.Divider className="dcm-divider" />
 
-              <div className="dcm-detail-item">
-                <div className="dcm-detail-label">Date Created</div>
-                <div className="dcm-detail-value">{dateCreated}</div>
-              </div>
+        <Modal.Section className="dcm-section-request-history">
+          <div className="dcm-section">
+            <Modal.SectionTitle
+              className="dcm-section-title dcm-section-title--withicon"
+              icon={<Icon name="documents" category="deco" className="dcm-icon--doc" />}
+            >
+              Request History
+            </Modal.SectionTitle>
 
-              <div className="dcm-detail-item">
-                <div className="dcm-detail-label">Last Tested</div>
-                <div className="dcm-detail-value">{lastTested}</div>
-              </div>
-
-              <div className="dcm-detail-item dcm-detail-item--full">
-                <div className="dcm-detail-label">Escalation</div>
-                <div className="dcm-detail-value">{escalationRequired}</div>
-              </div>
-            </div>
-          </section>
-
-          <div className="dcm-divider" />
-
-          <section className="dcm-section-request-history">
-            <div className="dcm-section">
-              <div className="dcm-section-title dcm-section-title--withicon">
-                <Icon name="documents" category="deco" className="dcm-icon--doc" />
-                Request History
-              </div>
-
-              <div className="dcm-request-table-wrap">
-                {requestHistoryError ? (
-                  <div className="dcm-empty">{requestHistoryError}</div>
-                ) : requestHistoryLoading ? (
-                  <div className="dcm-empty">Loading request history…</div>
-                ) : requestHistory.length === 0 ? (
-                  <div className="dcm-empty">No request history found.</div>
-                ) : (
-                  <table className="dcm-request-table">
-                    <thead>
-                      <tr>
-                        <th>Request ID</th>
-                        <th>Date</th>
-                        <th>Requester</th>
-                        <th>Status</th>
-                        <th>Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {requestHistory.map((r) => (
-                        <tr key={r.key ?? r.requestId}>
-                          <td className="dcm-request-id">
-                            {getHistoryRowRequestId(r) != null ? (
-                              <button
-                                type="button"
-                                className="dcm-link"
-                                onClick={() => openRequestDetails(r)}
-                                title="Open request details"
-                              >
-                                {r.requestId}
-                              </button>
-                            ) : (
-                              <span>{r.requestId}</span>
-                            )}
-                          </td>
-                          <td>{formatRequestHistoryTableDate(r)}</td>
-                          <td>{r.requester ?? '-'}</td>
-                          <td>
-                            <span
-                              className={`dcm-request-status-badge ${requestStatusBadgeClass(
-                                r.status
-                              )}`}
-                            >
-                              {r.status ?? '-'}
-                            </span>
-                          </td>
-                          <td>{r.description ?? '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-              {requestDetailsError ? (
-                <div className="dcm-empty" style={{ paddingLeft: 0, paddingRight: 0 }}>
-                  {requestDetailsError}
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <div className="dcm-divider" />
-
-          <section className="dcm-section-logs">
-            <div className="dcm-section">
-              <div className="dcm-section-title dcm-section-title--withicon">
-                <Icon name="history" category="deco" />
-                History & Logs
-              </div>
-
-              {logs.length === 0 ? (
-                <div className="dcm-empty">No logs found.</div>
+            <DataTable.Wrap className="dcm-request-table-wrap">
+              {requestHistoryError ? (
+                <ErrorState className="dcm-empty" prefix="">
+                  {requestHistoryError}
+                </ErrorState>
+              ) : requestHistoryLoading ? (
+                <LoadingState className="dcm-empty">Loading request history…</LoadingState>
+              ) : requestHistory.length === 0 ? (
+                <EmptyState className="dcm-empty">No request history found.</EmptyState>
               ) : (
-                <div className="dcm-logs">
-                  {logs.map((log, idx) => (
-                    <div className="dcm-log-item" key={`${log.title}-${idx}`}>
-                      <div className="dcm-log-dot" aria-hidden="true" />
-                      <div className="dcm-log-content">
-                        <div className="dcm-log-top">
-                          <div className="dcm-log-title">{log.title}</div>
-                          <div className="dcm-log-date">{formatDisplayDate(log.date ?? '')}</div>
-                        </div>
-                        {log.subtitle && <div className="dcm-log-subtitle">{log.subtitle}</div>}
-                        {log.actor && <div className="dcm-log-actor">by {log.actor}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <DataTable className="dcm-request-table">
+                  <DataTable.Head>
+                    <DataTable.Row>
+                      <DataTable.HeaderCell>Request ID</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Date</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Requester</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Status</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Description</DataTable.HeaderCell>
+                    </DataTable.Row>
+                  </DataTable.Head>
+                  <DataTable.Body>
+                    {requestHistory.map((r) => (
+                      <DataTable.Row key={r.key ?? r.requestId}>
+                        <DataTable.Cell className="dcm-request-id">
+                          {getHistoryRowRequestId(r) != null ? (
+                            <button
+                              type="button"
+                              className="dcm-link"
+                              onClick={() => openRequestDetails(r)}
+                              title="Open request details"
+                            >
+                              {r.requestId}
+                            </button>
+                          ) : (
+                            <span>{r.requestId}</span>
+                          )}
+                        </DataTable.Cell>
+                        <DataTable.Cell>{formatRequestHistoryTableDate(r)}</DataTable.Cell>
+                        <DataTable.Cell>{r.requester ?? '-'}</DataTable.Cell>
+                        <DataTable.Cell>
+                          <Badge tone={statusToBadgeTone(r.status)}>{r.status ?? '-'}</Badge>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{r.description ?? '-'}</DataTable.Cell>
+                      </DataTable.Row>
+                    ))}
+                  </DataTable.Body>
+                </DataTable>
               )}
-            </div>
-          </section>
+            </DataTable.Wrap>
+            {requestDetailsError ? (
+              <ErrorState
+                className="dcm-empty"
+                prefix=""
+                style={{ paddingLeft: 0, paddingRight: 0 }}
+              >
+                {requestDetailsError}
+              </ErrorState>
+            ) : null}
+          </div>
+        </Modal.Section>
 
-          <section className="dcm-section-footer">
-            <div className="dcm-footer">
-              <button className="dcm-btn dcm-btn--ghost" type="button" onClick={onClose}>
-                Close
-              </button>
+        <Modal.Divider className="dcm-divider" />
 
-              <div className="dcm-footer-right">
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.DELETE_CONTROL_HARD}>
-                    <button
-                      className="dcm-btn dcm-btn--outline"
-                      type="button"
-                      onClick={openDeleteConfirm}
-                      disabled={deleting || !id}
-                      title={!id ? 'No control selected' : 'Delete this control'}
-                    >
-                      Delete Control
-                    </button>
-                  </RestrictedAction>
-                </div>
+        <Modal.Section className="dcm-section-logs">
+          <div className="dcm-section">
+            <Modal.SectionTitle
+              className="dcm-section-title dcm-section-title--withicon"
+              icon={<Icon name="history" category="deco" />}
+            >
+              History & Logs
+            </Modal.SectionTitle>
 
-                <button
+            {logs.length === 0 ? (
+              <EmptyState className="dcm-empty">No logs found.</EmptyState>
+            ) : (
+              <div className="dcm-logs">
+                {logs.map((log, idx) => (
+                  <div className="dcm-log-item" key={`${log.title}-${idx}`}>
+                    <div className="dcm-log-dot" aria-hidden="true" />
+                    <div className="dcm-log-content">
+                      <div className="dcm-log-top">
+                        <div className="dcm-log-title">{log.title}</div>
+                        <div className="dcm-log-date">{formatDisplayDate(log.date ?? '')}</div>
+                      </div>
+                      {log.subtitle && <div className="dcm-log-subtitle">{log.subtitle}</div>}
+                      {log.actor && <div className="dcm-log-actor">by {log.actor}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Modal.Section>
+
+        <Modal.Section className="dcm-section-footer">
+          <Modal.ActionFooter
+            className="dcm-footer"
+            actionsClassName="dcm-footer-right"
+            actions={
+              <>
+                <PermissionAction action={ACTIONS.DELETE_CONTROL_HARD}>
+                  <ActionButton
+                    className="dcm-btn dcm-btn--outline"
+                    variant="cancel"
+                    type="button"
+                    onClick={openDeleteConfirm}
+                    disabled={deleting || !id}
+                    title={!id ? 'No control selected' : 'Delete this control'}
+                  >
+                    Delete Control
+                  </ActionButton>
+                </PermissionAction>
+
+                <ActionButton
                   className="dcm-btn dcm-btn--primary"
                   type="button"
                   onClick={openEdit}
                   disabled={!control?.id}
                 >
                   Edit Control
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+                </ActionButton>
+              </>
+            }
+          >
+            <button className="dcm-btn dcm-btn--ghost" type="button" onClick={onClose}>
+              Close
+            </button>
+          </Modal.ActionFooter>
+        </Modal.Section>
+      </Modal>
 
       <ConfirmActionModal
         isOpen={isDeleteConfirmOpen}
@@ -512,13 +507,4 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
       />
     </>
   );
-}
-
-function requestStatusBadgeClass(status) {
-  const s = (status || '').toLowerCase();
-  if (s.includes('complete')) return 'dcm-request-status-badge--good';
-  if (s.includes('pending') || s.includes('progress') || s.includes('review'))
-    return 'dcm-request-status-badge--warn';
-  if (s.includes('block')) return 'dcm-request-status-badge--bad';
-  return 'dcm-request-status-badge--neutral';
 }
