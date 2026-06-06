@@ -18,9 +18,30 @@ import {
 } from '../api/TestsAPI';
 import { fetchAuditLogsByRequestId } from '../api/AuditAPI';
 import AuditHistoryView, { getVgcpidFromMap } from './AuditHistoryView';
-import { showSuccessToast, showErrorToast } from '../utils/toast';
-import RestrictedAction from './RestrictedAction';
+import { getUserFriendlyErrorMessage, showSuccessToast, showErrorToast } from '../utils/toast';
+import PermissionAction from './PermissionAction';
 import { ACTIONS } from '../auth';
+import {
+  ActionButton,
+  Badge,
+  CommentsComposer,
+  CommentsList,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  MetadataItem,
+  Modal,
+  ModalCloseButton,
+  Panel,
+  Tabs,
+} from './ui';
+import {
+  formatPriorityLabel,
+  formatStatusLabel,
+  priorityToBadgeTone,
+  statusToBadgeTone,
+} from '../utils/displayLabels';
 import {
   fetchCommentsByRequestId,
   createRequestComment,
@@ -31,6 +52,38 @@ import { fetchUsers, fetchUserByEmail } from '../api/UsersAPI';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+
+function normalizeStatusValue(value) {
+  return String(value || '')
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_');
+}
+
+function deriveRequestStatus(status, controls) {
+  const explicitStatus = normalizeStatusValue(status || 'NOT_STARTED');
+
+  if (explicitStatus === 'ARCHIVED') return 'ARCHIVED';
+
+  const controlStatuses = (Array.isArray(controls) ? controls : [])
+    .map((control) => normalizeStatusValue(control?.status ?? control?.statusLabel))
+    .filter(Boolean);
+
+  if (controlStatuses.length === 0) return explicitStatus || 'NOT_STARTED';
+  if (controlStatuses.every((controlStatus) => controlStatus === 'COMPLETED')) return 'COMPLETED';
+  if (controlStatuses.some((controlStatus) => controlStatus === 'BLOCKED')) return 'BLOCKED';
+  if (controlStatuses.some((controlStatus) => controlStatus === 'IN_REVIEW')) return 'IN_REVIEW';
+  if (controlStatuses.some((controlStatus) => controlStatus === 'OET_IN_PROGRESS')) {
+    return 'OET_IN_PROGRESS';
+  }
+  if (controlStatuses.some((controlStatus) => controlStatus === 'DAT_IN_PROGRESS')) {
+    return 'DAT_IN_PROGRESS';
+  }
+  if (controlStatuses.some((controlStatus) => controlStatus.includes('IN_PROGRESS'))) {
+    return 'IN_PROGRESS';
+  }
+
+  return explicitStatus || 'NOT_STARTED';
+}
 
 export default function DetailsRequestModal({
   isOpen,
@@ -247,11 +300,19 @@ export default function DetailsRequestModal({
     return map;
   }, [controls]);
 
+  const requestDisplayStatus = useMemo(
+    () => deriveRequestStatus(localStatus ?? localRequest?.status ?? request?.status, controls),
+    [controls, localRequest?.status, localStatus, request?.status]
+  );
+
   useEffect(() => {
     if (!isOpen || activeTab !== 'History' || !request?.requestId) return;
 
-    const status = String(localStatus ?? request?.status ?? '').toUpperCase();
-    if (status !== 'DAT_IN_PROGRESS' && status !== 'OET_IN_PROGRESS' && status !== 'COMPLETED') {
+    if (
+      requestDisplayStatus !== 'DAT_IN_PROGRESS' &&
+      requestDisplayStatus !== 'OET_IN_PROGRESS' &&
+      requestDisplayStatus !== 'COMPLETED'
+    ) {
       setHistoryLogs([]);
       return;
     }
@@ -308,15 +369,16 @@ export default function DetailsRequestModal({
     isOpen,
     activeTab,
     request?.requestId,
-    request?.status,
-    localStatus,
+    requestDisplayStatus,
     controls,
     contextTestIdToVgcpid,
   ]);
 
   const progress = useMemo(() => {
     const total = controls.length;
-    const completed = controls.filter((c) => String(c.status).toUpperCase() === 'COMPLETED').length;
+    const completed = controls.filter(
+      (c) => normalizeStatusValue(c.status ?? c.statusLabel) === 'COMPLETED'
+    ).length;
     return { completed, total };
   }, [controls]);
 
@@ -325,10 +387,14 @@ export default function DetailsRequestModal({
   const requestTitle = formatRequestDisplayId(localRequest ?? request, {
     fallback: 'Request Details',
   });
-  const backendStatus = localRequest?.status ?? 'Not Started';
-  const status = localStatus ?? backendStatus;
-  const statusUpper = String(status || '').toUpperCase();
-  const isCompleted = String(status || '').toUpperCase() === 'COMPLETED';
+  const status =
+    requestDisplayStatus === 'ARCHIVED'
+      ? 'ARCHIVED'
+      : progress.total > 0 && progress.completed === progress.total
+        ? 'COMPLETED'
+        : requestDisplayStatus;
+  const statusUpper = normalizeStatusValue(status);
+  const isCompleted = statusUpper === 'COMPLETED';
 
   const priority = localRequest?.priority ?? 'MEDIUM';
   const description = localRequest?.description ?? 'No description.';
@@ -337,15 +403,6 @@ export default function DetailsRequestModal({
   const dueDate = localRequest?.dueDate ?? '-';
 
   const requestId = localRequest?.requestId ?? request?.requestId;
-
-  const stop = (e) => e.stopPropagation();
-
-  function showPermissionDeniedToast() {
-    showErrorToast({
-      title: 'Permission Denied',
-      message: 'Only managers have permission for this action. Contact a manager for access.',
-    });
-  }
 
   async function handleAddComment() {
     const text = commentText.trim();
@@ -491,7 +548,10 @@ export default function DetailsRequestModal({
       setIsArchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
-      const errorMessage = e?.message || 'Failed to archive request and associated tests';
+      const errorMessage = getUserFriendlyErrorMessage(
+        e?.message,
+        'Failed to archive request and associated tests'
+      );
       setDeleteError(errorMessage);
 
       showErrorToast({
@@ -539,7 +599,10 @@ export default function DetailsRequestModal({
       setIsUnarchiveConfirmOpen(false);
       onClose?.();
     } catch (e) {
-      const errorMessage = e?.message || 'Failed to unarchive request and associated tests';
+      const errorMessage = getUserFriendlyErrorMessage(
+        e?.message,
+        'Failed to unarchive request and associated tests'
+      );
       setDeleteError(errorMessage);
 
       showErrorToast({
@@ -570,7 +633,7 @@ export default function DetailsRequestModal({
       setIsDeleteConfirmOpen(false);
       onClose?.();
     } catch (e) {
-      const errorMessage = e?.message || 'Failed to delete request';
+      const errorMessage = getUserFriendlyErrorMessage(e?.message, 'Failed to delete request');
       setDeleteError(errorMessage);
 
       showErrorToast({
@@ -621,396 +684,328 @@ export default function DetailsRequestModal({
 
   return (
     <>
-      <div className="drm-overlay" onMouseDown={onClose} role="dialog" aria-modal="true">
-        <div className="drm-modal" onMouseDown={stop}>
-          <section className="drm-section-header">
-            <div className="drm-header">
-              <div className="drm-title">Request Details: {requestTitle}</div>
-              <button className="drm-close" type="button" onClick={onClose} aria-label="Close">
-                ×
-              </button>
+      <Modal className="drm-modal" overlayClassName="drm-overlay" onClose={onClose}>
+        <Modal.Section className="drm-section-header">
+          <div className="drm-header">
+            <div className="drm-title">Request Details: {requestTitle}</div>
+            <ModalCloseButton className="drm-close" onClick={onClose} />
+          </div>
+        </Modal.Section>
+
+        <Modal.Divider className="drm-divider" />
+
+        <Modal.Section className="drm-section-statusbar">
+          <div className="drm-statusbar">
+            <Badge tone={priorityToBadgeTone(priority)}>{formatPriorityLabel(priority)}</Badge>
+
+            <div className="drm-statusbar-mid">
+              <span className="drm-status-label">Status:</span>
+              <Badge tone={statusToBadgeTone(status)}>{formatStatusLabel(status)}</Badge>
             </div>
-          </section>
 
-          <div className="drm-divider" />
-
-          <section className="drm-section-statusbar">
-            <div className="drm-statusbar">
-              <span className={`drm-pill ${priorityBadgeClass(priority)}`}>
-                {formatPriority(priority)}
+            <div className="drm-statusbar-right">
+              <Icon name="graph" category="deco" />
+              <span className="drm-progress">
+                {progress.completed} / {progress.total}
               </span>
-
-              <div className="drm-statusbar-mid">
-                <span className="drm-status-label">Status:</span>
-                <span className={`drm-pill ${statusBadgeClass(status)}`}>
-                  {formatStatus(status)}
-                </span>
-              </div>
-
-              <div className="drm-statusbar-right">
-                <Icon name="graph" category="deco" />
-                <span className="drm-progress">
-                  {progress.completed} / {progress.total}
-                </span>
-                <span className="drm-progress-label">Controls Completed</span>
-              </div>
+              <span className="drm-progress-label">Controls Completed</span>
             </div>
-          </section>
+          </div>
+        </Modal.Section>
 
-          <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-          <section className="drm-section-description-details">
-            <div className="drm-section">
-              <div className="drm-section-title">Description</div>
-              <div className="drm-description">{description}</div>
+        <Modal.Section className="drm-section-description-details">
+          <div className="drm-section">
+            <Modal.SectionTitle className="drm-section-title">Description</Modal.SectionTitle>
+            <div className="drm-description">{description}</div>
 
-              <div className="drm-details-card">
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Requested By</div>
-                  <div className="drm-detail-value">{requestedBy}</div>
-                </div>
+            <Panel className="drm-details-card">
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value"
+                label="Requested By"
+                value={requestedBy}
+              />
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value"
+                label="Priority Level"
+                value={formatPriorityLabel(priority)}
+              />
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value"
+                label="Request Date"
+                value={requestDate}
+              />
+              <MetadataItem
+                className="drm-detail-item"
+                labelClassName="drm-detail-label"
+                valueClassName="drm-detail-value drm-date-warn"
+                label="Due Date"
+                value={dueDate}
+              />
+            </Panel>
+          </div>
+        </Modal.Section>
 
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Priority Level</div>
-                  <div className="drm-detail-value">{formatPriority(priority)}</div>
-                </div>
+        <Modal.Divider className="drm-divider" />
 
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Request Date</div>
-                  <div className="drm-detail-value">{requestDate}</div>
-                </div>
+        <Modal.Section className="drm-section-associated">
+          <div className="drm-section">
+            <Modal.SectionTitle
+              className="drm-section-title drm-section-title--withicon"
+              iconClassName="drm-icon"
+              icon={<Icon name="documents" category="deco" size="md" />}
+            >
+              Associated Controls ({controls.length})
+            </Modal.SectionTitle>
 
-                <div className="drm-detail-item">
-                  <div className="drm-detail-label">Due Date</div>
-                  <div className="drm-detail-value drm-date-warn">{dueDate}</div>
-                </div>
-              </div>
-            </div>
-          </section>
+            {controls.length === 0 ? (
+              <EmptyState className="drm-empty">No tests found for this request.</EmptyState>
+            ) : (
+              <DataTable.Wrap className="drm-table-wrap">
+                <DataTable className="drm-table">
+                  <DataTable.Head>
+                    <DataTable.Row>
+                      <DataTable.HeaderCell>ID</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Name</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Status</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>Assignee</DataTable.HeaderCell>
+                      <DataTable.HeaderCell>ETA</DataTable.HeaderCell>
+                    </DataTable.Row>
+                  </DataTable.Head>
+                  <DataTable.Body>
+                    {controls.map((c) => (
+                      <DataTable.Row key={c.test_id || c.id}>
+                        <DataTable.Cell className="drm-mono">
+                          <button
+                            type="button"
+                            className="vgcpid-link"
+                            onClick={() => openTestDetails(c)}
+                          >
+                            {c.vgcpid || c.id}
+                          </button>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{c.title || c.description || '-'}</DataTable.Cell>
+                        <DataTable.Cell>
+                          <Badge tone={statusToBadgeTone(c.statusLabel || c.status)}>
+                            {c.statusLabel || formatStatusLabel(c.status)}
+                          </Badge>
+                        </DataTable.Cell>
+                        <DataTable.Cell>{c.assignee ?? '-'}</DataTable.Cell>
+                        <DataTable.Cell>{c.eta ?? '-'}</DataTable.Cell>
+                      </DataTable.Row>
+                    ))}
+                  </DataTable.Body>
+                </DataTable>
+              </DataTable.Wrap>
+            )}
+          </div>
+        </Modal.Section>
 
-          <div className="drm-divider" />
+        <Modal.Divider className="drm-divider" />
 
-          <section className="drm-section-associated">
-            <div className="drm-section">
-              <div className="drm-section-title drm-section-title--withicon">
-                <span className="drm-icon" aria-hidden="true">
-                  <Icon name="documents" category="deco" size="md" />
-                </span>
-                Associated Controls ({controls.length})
-              </div>
+        <Modal.Section
+          className={`drm-section-tabs${activeTab === 'Comments' ? ' drm-section-tabs--comments' : ''}`}
+        >
+          <Tabs className="drm-tabs">
+            <Tabs.Tab
+              className="drm-tab"
+              activeClassName="drm-tab--active"
+              countClassName="drm-tab-count"
+              active={activeTab === 'Comments'}
+              count={localComments.length}
+              onClick={() => setActiveTab('Comments')}
+            >
+              Comments
+            </Tabs.Tab>
+            <Tabs.Tab
+              className="drm-tab"
+              activeClassName="drm-tab--active"
+              active={activeTab === 'History'}
+              onClick={() => setActiveTab('History')}
+            >
+              History
+            </Tabs.Tab>
+          </Tabs>
 
-              {controls.length === 0 ? (
-                <div className="drm-empty">No tests found for this request.</div>
-              ) : (
-                <div className="drm-table-wrap">
-                  <table className="drm-table">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Assignee</th>
-                        <th>ETA</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {controls.map((c) => (
-                        <tr key={c.test_id || c.id}>
-                          <td className="drm-mono">
-                            <button
-                              type="button"
-                              className="vgcpid-link"
-                              onClick={() => openTestDetails(c)}
-                            >
-                              {c.vgcpid || c.id}
-                            </button>
-                          </td>
-                          <td>{c.title || c.description || '-'}</td>
-                          <td>
-                            <span
-                              className={`drm-pill ${testStatusBadgeClass(c.statusLabel || c.status)}`}
-                            >
-                              {c.statusLabel || formatStatus(c.status)}
-                            </span>
-                          </td>
-                          <td>{c.assignee ?? '-'}</td>
-                          <td>{c.eta ?? '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <div className="drm-divider" />
-
-          <section className="drm-section-tabs">
-            <div className="drm-tabs">
-              <button
-                type="button"
-                className={`drm-tab ${activeTab === 'Comments' ? 'drm-tab--active' : ''}`}
-                onClick={() => setActiveTab('Comments')}
-              >
-                <span>Comments</span>
-                {localComments.length > 0 ? (
-                  <span className="drm-tab-count">{localComments.length}</span>
-                ) : null}
-              </button>
-              <button
-                type="button"
-                className={`drm-tab ${activeTab === 'History' ? 'drm-tab--active' : ''}`}
-                onClick={() => setActiveTab('History')}
-              >
-                History
-              </button>
-            </div>
-
-            <div className="drm-tab-content">
-              {activeTab === 'Comments' ? (
-                <>
-                  <div className="drm-addcomment drm-addcomment--top">
-                    <input
-                      className="drm-comment-input"
-                      placeholder="Write a comment…"
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      disabled={commentSaving || commentsLoading || !currentUser}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === 'Enter' &&
-                          currentUser &&
-                          !commentSaving &&
-                          !commentsLoading &&
-                          commentText.trim()
-                        ) {
-                          e.preventDefault();
-                          handleAddComment();
-                        }
-                      }}
-                    />
-                    <button
-                      className="drm-send"
-                      type="button"
-                      onClick={handleAddComment}
-                      aria-label="Send"
-                      disabled={
-                        !currentUser || commentSaving || commentsLoading || !commentText.trim()
-                      }
-                    >
-                      {commentSaving ? '...' : '➤'}
-                    </button>
-                  </div>
-
-                  <div className="drm-comments">
-                    {commentsLoading ? (
-                      <div className="drm-empty">Loading comments...</div>
-                    ) : commentsError ? (
-                      <div className="drm-empty">Error: {commentsError}</div>
-                    ) : localComments.length === 0 ? (
-                      <div className="drm-empty">No comments found.</div>
-                    ) : (
-                      localComments.map((c) => (
-                        <div className="drm-comment" key={c.id}>
-                          <div className="drm-comment-left">
-                            <div className="drm-avatar" aria-hidden="true">
-                              {String(c.author || '?')
-                                .trim()
-                                .slice(0, 1)
-                                .toUpperCase()}
-                            </div>
-                          </div>
-
-                          <div className="drm-comment-main">
-                            <div className="drm-comment-top">
-                              <div className="drm-comment-author">{c.author ?? '-'}</div>
-                              <div className="drm-comment-meta">
-                                <div className="drm-comment-date">{c.date ?? ''}</div>
-                                {currentUser?.['user_id'] != null &&
-                                String(currentUser['user_id']) === String(c.authorUserId ?? '') ? (
-                                  <button
-                                    className="drm-comment-action drm-comment-action--delete"
-                                    type="button"
-                                    onClick={() => handleDeleteComment(c)}
-                                    disabled={commentDeletingId != null}
-                                    aria-label="Delete comment"
-                                    title="Delete comment"
-                                  >
-                                    {commentDeletingId === String(c.id) ? (
-                                      '...'
-                                    ) : (
-                                      <Icon
-                                        name="trash"
-                                        category="actions"
-                                        size="sm"
-                                        color="#545454"
-                                      />
-                                    )}
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-                            <div className="drm-comment-text">{c.text ?? ''}</div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </>
-              ) : null}
-
-              {activeTab === 'History' ? (
-                <AuditHistoryView
-                  logs={historyLogs}
-                  loading={historyLoading}
-                  error={historyError}
-                  overlayTitle={`Request History: ${requestTitle}`}
-                  showContent={
-                    status === 'DAT_IN_PROGRESS' ||
-                    status === 'OET_IN_PROGRESS' ||
-                    status === 'COMPLETED'
+          <div className="drm-tab-content">
+            {activeTab === 'Comments' ? (
+              <>
+                <CommentsComposer
+                  className="drm-addcomment drm-addcomment--top"
+                  inputClassName="drm-comment-input"
+                  buttonClassName="drm-send"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onSubmit={handleAddComment}
+                  inputDisabled={commentSaving || commentsLoading || !currentUser}
+                  submitDisabled={
+                    !currentUser || commentSaving || commentsLoading || !commentText.trim()
                   }
-                  statusMessage="History is available when the request is in progress or completed."
-                  contextRequestId={requestTitle}
-                  contextTestIdToVgcpid={contextTestIdToVgcpid}
+                  isSubmitting={commentSaving}
                 />
-              ) : null}
-            </div>
-          </section>
 
-          <div className="drm-divider" />
-
-          <section className="drm-section-footer">
-            <div className="drm-footer">
-              <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
-                Close
-              </button>
-
-              <div className="drm-footer-right">
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.ARCHIVE_REQUEST}>
-                    {statusUpper === 'ARCHIVED' ? (
-                      <button
-                        className="drm-btn drm-btn--outline"
-                        type="button"
-                        onClick={openUnarchive}
-                        disabled={archiving || deleting || requestId == null}
-                        title={requestId == null ? 'No request selected' : 'Unarchive this request'}
-                      >
-                        Unarchive Request
-                      </button>
-                    ) : (
-                      <button
-                        className="drm-btn drm-btn--outline"
-                        type="button"
-                        onClick={() => setIsArchiveConfirmOpen(true)}
-                        disabled={archiving || deleting || requestId == null || isCompleted}
-                        title={
-                          requestId == null
-                            ? 'No request selected'
-                            : isCompleted
-                              ? 'Cannot archive a completed request'
-                              : 'Archive this request'
-                        }
-                      >
-                        Archive Request
-                      </button>
+                {commentsLoading ? (
+                  <LoadingState className="drm-empty">Loading comments...</LoadingState>
+                ) : commentsError ? (
+                  <ErrorState className="drm-empty">{commentsError}</ErrorState>
+                ) : localComments.length === 0 ? (
+                  <EmptyState className="drm-empty">No comments found.</EmptyState>
+                ) : (
+                  <CommentsList
+                    comments={localComments}
+                    currentUserId={currentUser?.['user_id']}
+                    deletingId={commentDeletingId}
+                    onDelete={handleDeleteComment}
+                    className="drm-comments"
+                    itemClassName="drm-comment"
+                    leftClassName="drm-comment-left"
+                    avatarClassName="drm-avatar"
+                    mainClassName="drm-comment-main"
+                    topClassName="drm-comment-top"
+                    authorClassName="drm-comment-author"
+                    metaClassName="drm-comment-meta"
+                    dateClassName="drm-comment-date"
+                    actionClassName="drm-comment-action drm-comment-action--delete"
+                    textClassName="drm-comment-text"
+                    renderDeleteIcon={() => (
+                      <Icon name="trash" category="actions" size="sm" color="#545454" />
                     )}
-                  </RestrictedAction>
-                </div>
+                  />
+                )}
+              </>
+            ) : null}
 
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
-                    }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.REMOVE_REQUEST}>
-                    <button
+            {activeTab === 'History' ? (
+              <AuditHistoryView
+                logs={historyLogs}
+                loading={historyLoading}
+                error={historyError}
+                overlayTitle={`Request History: ${requestTitle}`}
+                showContent={
+                  status === 'DAT_IN_PROGRESS' ||
+                  status === 'OET_IN_PROGRESS' ||
+                  status === 'COMPLETED'
+                }
+                statusMessage="History is available when the request is in progress or completed."
+                contextRequestId={requestTitle}
+                contextTestIdToVgcpid={contextTestIdToVgcpid}
+              />
+            ) : null}
+          </div>
+        </Modal.Section>
+
+        <Modal.Divider className="drm-divider" />
+
+        <Modal.Section className="drm-section-footer">
+          <Modal.ActionFooter
+            className="drm-footer"
+            actionsClassName="drm-footer-right"
+            actions={
+              <>
+                <PermissionAction action={ACTIONS.ARCHIVE_REQUEST}>
+                  {statusUpper === 'ARCHIVED' ? (
+                    <ActionButton
                       className="drm-btn drm-btn--outline"
+                      variant="cancel"
                       type="button"
-                      onClick={() => setIsDeleteConfirmOpen(true)}
-                      disabled={deleting || archiving || requestId == null || isCompleted}
+                      onClick={openUnarchive}
+                      disabled={archiving || deleting || requestId == null}
+                      title={requestId == null ? 'No request selected' : 'Unarchive this request'}
+                    >
+                      Unarchive Request
+                    </ActionButton>
+                  ) : (
+                    <ActionButton
+                      className="drm-btn drm-btn--outline"
+                      variant="cancel"
+                      type="button"
+                      onClick={() => setIsArchiveConfirmOpen(true)}
+                      disabled={archiving || deleting || requestId == null || isCompleted}
                       title={
                         requestId == null
                           ? 'No request selected'
                           : isCompleted
-                            ? 'Cannot delete a completed request'
-                            : 'Permanently delete this request'
+                            ? 'Cannot archive a completed request'
+                            : 'Archive this request'
                       }
                     >
-                      Delete Request
-                    </button>
-                  </RestrictedAction>
-                </div>
-                <div
-                  onClick={(e) => {
-                    const blockedWrapper = e.target.closest('.restricted-action--blocked');
-                    if (blockedWrapper) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showPermissionDeniedToast();
+                      Archive Request
+                    </ActionButton>
+                  )}
+                </PermissionAction>
+
+                <PermissionAction action={ACTIONS.REMOVE_REQUEST}>
+                  <ActionButton
+                    className="drm-btn drm-btn--outline"
+                    variant="cancel"
+                    type="button"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    disabled={deleting || archiving || requestId == null || isCompleted}
+                    title={
+                      requestId == null
+                        ? 'No request selected'
+                        : isCompleted
+                          ? 'Cannot delete a completed request'
+                          : 'Permanently delete this request'
                     }
-                  }}
-                >
-                  <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                    <button
-                      className="drm-btn drm-btn--primary"
-                      type="button"
-                      onClick={openEdit}
-                      disabled={!requestId}
-                      title={requestId ? 'Edit this request' : 'No request selected'}
-                    >
-                      Edit Request
-                    </button>
-                  </RestrictedAction>
-                </div>
-              </div>
-            </div>
+                  >
+                    Delete Request
+                  </ActionButton>
+                </PermissionAction>
+                <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
+                  <button
+                    className="drm-btn drm-btn--primary"
+                    type="button"
+                    onClick={openEdit}
+                    disabled={!requestId}
+                    title={requestId ? 'Edit this request' : 'No request selected'}
+                  >
+                    Edit Request
+                  </button>
+                </PermissionAction>
+              </>
+            }
+          >
+            <button className="drm-btn drm-btn--ghost" type="button" onClick={onClose}>
+              Close
+            </button>
+          </Modal.ActionFooter>
 
-            {deleteError ? <div className="drm-delete-error">Error: {deleteError}</div> : null}
-          </section>
-        </div>
+          {deleteError ? <ErrorState className="drm-delete-error">{deleteError}</ErrorState> : null}
+        </Modal.Section>
+      </Modal>
 
-        <EditRequestModal
-          isOpen={isEditOpen}
-          onClose={closeEdit}
-          requestId={requestId}
-          onUpdated={async () => {
-            await refreshInline();
-          }}
-        />
-        <DetailsTestModal
-          isOpen={!!activeTest}
-          onClose={closeTestDetails}
-          test={activeTest}
-          onArchived={async () => {
-            await refreshInline();
-            closeTestDetails();
-          }}
-          onDeleted={async () => {
-            await refreshInline();
-            closeTestDetails();
-          }}
-          onUpdated={async () => {
-            await refreshInline();
-          }}
-        />
-      </div>
+      <EditRequestModal
+        isOpen={isEditOpen}
+        onClose={closeEdit}
+        requestId={requestId}
+        onUpdated={async () => {
+          await refreshInline();
+        }}
+      />
+      <DetailsTestModal
+        isOpen={!!activeTest}
+        onClose={closeTestDetails}
+        test={activeTest}
+        onArchived={async () => {
+          await refreshInline();
+          closeTestDetails();
+        }}
+        onDeleted={async () => {
+          await refreshInline();
+          closeTestDetails();
+        }}
+        onUpdated={async () => {
+          await refreshInline();
+        }}
+      />
 
       <ConfirmActionModal
         isOpen={isArchiveConfirmOpen}
@@ -1072,48 +1067,4 @@ export default function DetailsRequestModal({
       />
     </>
   );
-}
-
-/* helpers */
-function formatStatus(s) {
-  const v = String(s || '')
-    .replaceAll('_', ' ')
-    .toLowerCase();
-  return v ? v.charAt(0).toUpperCase() + v.slice(1) : '-';
-}
-
-function formatPriority(p) {
-  const v = String(p || '').toUpperCase();
-  if (v === 'CRITICAL') return 'Critical Priority';
-  if (v === 'HIGH') return 'High Priority';
-  if (v === 'MEDIUM') return 'Medium Priority';
-  if (v === 'LOW') return 'Low Priority';
-  return 'Medium Priority';
-}
-
-function statusBadgeClass(status) {
-  const v = String(status || '').toUpperCase();
-  if (v === 'COMPLETED') return 'drm-pill--good';
-  if (v === 'DAT_IN_PROGRESS') return 'drm-pill--info';
-  if (v === 'OET_IN_PROGRESS') return 'drm-pill--info';
-  if (v === 'BLOCKED') return 'drm-pill--bad';
-  if (v === 'ARCHIVED') return 'drm-pill--neutral';
-  return 'drm-pill--neutral';
-}
-
-function priorityBadgeClass(priority) {
-  const v = String(priority || '').toUpperCase();
-  if (v === 'LOW') return 'drm-pill--low';
-  if (v === 'MEDIUM') return 'drm-pill--medium';
-  if (v === 'HIGH') return 'drm-pill--high';
-  if (v === 'CRITICAL') return 'drm-pill--critical';
-  return 'drm-pill--medium';
-}
-
-function testStatusBadgeClass(status) {
-  const low = String(status || '').toLowerCase();
-  if (low.includes('complete')) return 'drm-pill--good';
-  if (low.includes('progress') || low.includes('review')) return 'drm-pill--info';
-  if (low.includes('block')) return 'drm-pill--bad';
-  return 'drm-pill--neutral';
 }

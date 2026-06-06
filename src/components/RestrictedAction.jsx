@@ -1,6 +1,7 @@
 import React, { useId } from 'react';
 import { useRole } from '../auth';
 import '../styles/components/RestrictedAction.css';
+import { cx } from '../utils/classNames';
 
 /**
  * Enforces RBAC on a single interactive child (e.g. button).
@@ -33,9 +34,7 @@ export default function RestrictedAction({ action, children }) {
     ...(children.props.style || {}),
     pointerEvents: 'none',
   };
-  const childClassName = [children.props.className, 'restricted-action__control']
-    .filter(Boolean)
-    .join(' ');
+  const childClassName = cx(children.props.className, 'restricted-action__control');
   const describedBy = [children.props['aria-describedby'], reasonId].filter(Boolean).join(' ');
 
   function blockEvent(event) {

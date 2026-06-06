@@ -1,0 +1,17 @@
+.app-feedback-state {
+  color: #666666;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.app-feedback-state--error {
+  color: #8b0f17;
+}
+
+.app-feedback-state--loading {
+  color: #666666;
+}
+
+.app-feedback-state--empty {
+  color: #666666;
+}

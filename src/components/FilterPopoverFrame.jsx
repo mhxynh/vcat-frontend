@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ActionButton } from './ui';
 
 function countActiveFromDefaults(draft, defaults) {
   let n = 0;
@@ -61,14 +62,15 @@ export default function FilterPopoverFrame({
           : `${activeCount} filter${activeCount === 1 ? '' : 's'} selected.`}
       </div>
       <div className="cfp-actions">
-        <button
+        <ActionButton
           type="button"
+          variant="cancel"
           className="btn cfp-btn-clear"
           onClick={() => setDraft(defaultFilters)}
         >
           Clear
-        </button>
-        <button
+        </ActionButton>
+        <ActionButton
           type="button"
           className="btn btn--red"
           onClick={() => {
@@ -77,7 +79,7 @@ export default function FilterPopoverFrame({
           }}
         >
           Apply
-        </button>
+        </ActionButton>
       </div>
     </div>
   );

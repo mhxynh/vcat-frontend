@@ -5,9 +5,21 @@ import { fetchTestsByRequestId, fetchTests, updateTest } from '../api/TestsAPI';
 import CreateTestModal from './CreateTestModal';
 import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
-import RestrictedAction from './RestrictedAction';
 import { ACTIONS, useRole } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
+import PermissionAction from './PermissionAction';
+import { formatStatusLabel, statusToBadgeTone } from '../utils/displayLabels';
+import {
+  ActionButton,
+  Badge,
+  EmptyState,
+  IconButton,
+  LoadingState,
+  FormGrid,
+  Modal,
+  Panel,
+  SearchInput,
+} from './ui';
 export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated }) {
   const { isManager, restrictionMessage } = useRole();
   const [priority, setPriority] = useState('');
@@ -234,40 +246,28 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
   const searchDisabled = saving || !isManager;
 
   return (
-    <div
-      className="erm-overlay"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
-      }}
-    >
-      <div
+    <>
+      <Modal
         className="erm-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-request-title"
-        onMouseDown={(e) => e.stopPropagation()}
+        overlayClassName="erm-overlay"
+        labelledBy="edit-request-title"
+        onClose={onClose}
       >
-        <div className="erm-header">
-          <h2 className="erm-title" id="edit-request-title">
-            Edit Request
-          </h2>
-          <button
-            type="button"
-            className="erm-close"
-            onClick={onClose}
-            aria-label="Close"
-            disabled={saving}
-          >
-            ×
-          </button>
-        </div>
+        <Modal.Header
+          className="erm-header"
+          titleClassName="erm-title"
+          closeClassName="erm-close"
+          title="Edit Request"
+          titleId="edit-request-title"
+          onClose={onClose}
+          closeDisabled={saving}
+        />
 
-        <div className="erm-body">
+        <Modal.Body className="erm-body">
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+            <LoadingState style={{ padding: '40px', textAlign: 'center' }}>
               Loading request details...
-            </div>
+            </LoadingState>
           ) : (
             <>
               <div className="erm-summary-card">
@@ -282,7 +282,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                 </div>
               </div>
 
-              <div className="erm-grid">
+              <FormGrid className="erm-grid">
                 <div className="erm-field">
                   <label className="erm-label">
                     Request ID{' '}
@@ -401,11 +401,11 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                     <div className="field-error">{fieldErrors.description}</div>
                   )}
                 </div>
-              </div>
+              </FormGrid>
 
               <div className="erm-divider" />
 
-              <div className="erm-section erm-section--associated-controls">
+              <Panel className="erm-section erm-section--associated-controls" tone="muted">
                 <h3 className="erm-section-title">Associated Controls*</h3>
                 {!isManager ? (
                   <div className="erm-restriction-note">{updateRequestRestriction}</div>
@@ -413,34 +413,31 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
                 <div className="erm-search-row">
                   <div className="erm-search-wrapper" ref={searchWrapperRef}>
-                    <div
-                      className={`erm-search-input-wrap ${searchDisabled ? 'erm-search-input-wrap--disabled' : ''}`}
-                    >
-                      <span className="erm-search-icon" aria-hidden="true">
-                        🔍
-                      </span>
-                      <input
-                        className="erm-search"
-                        placeholder="Search Controls to add..."
-                        value={searchQuery || ''}
-                        onChange={(e) => {
-                          if (!isManager) return;
-                          setSearchQuery(e.target.value);
-                          setShowSearchResults(true);
-                        }}
-                        onFocus={() => {
-                          if (!isManager) return;
-                          setShowSearchResults(true);
-                        }}
-                        disabled={searchDisabled}
-                        title={!isManager ? updateRequestRestriction : undefined}
-                      />
-                    </div>
+                    <SearchInput
+                      className="erm-search-input-wrap"
+                      iconClassName="erm-search-icon"
+                      inputClassName="erm-search"
+                      placeholder="Search Controls to add..."
+                      value={searchQuery || ''}
+                      onChange={(nextValue) => {
+                        if (!isManager) return;
+                        setSearchQuery(nextValue);
+                        setShowSearchResults(true);
+                      }}
+                      onFocus={() => {
+                        if (!isManager) return;
+                        setShowSearchResults(true);
+                      }}
+                      disabled={searchDisabled}
+                      title={!isManager ? updateRequestRestriction : undefined}
+                    />
 
                     {isManager && showSearchResults && (
                       <div className="erm-search-dropdown">
                         {searchResults.length === 0 ? (
-                          <div className="erm-search-empty">No matching controls found.</div>
+                          <EmptyState className="erm-search-empty">
+                            No matching controls found.
+                          </EmptyState>
                         ) : (
                           searchResults.map((test) => {
                             const id = test.testId ?? test.id;
@@ -470,16 +467,16 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                       : 'Unlinked'}
                                   </div>
                                 </div>
-                                <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                                  <button
+                                <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
+                                  <ActionButton
                                     type="button"
                                     className="erm-add-btn"
                                     onClick={() => handleAddTest(test)}
                                     title="Link to this request"
                                   >
                                     +
-                                  </button>
-                                </RestrictedAction>
+                                  </ActionButton>
+                                </PermissionAction>
                               </div>
                             );
                           })
@@ -491,7 +488,7 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
 
                 <div className="erm-test-list">
                   {filteredTests.length === 0 ? (
-                    <div
+                    <EmptyState
                       style={{
                         padding: '20px',
                         textAlign: 'center',
@@ -502,13 +499,9 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                       }}
                     >
                       No tests match your search.
-                    </div>
+                    </EmptyState>
                   ) : (
                     filteredTests.map((test) => {
-                      const statusClass = String(test.status || 'NOT_STARTED')
-                        .toLowerCase()
-                        .replaceAll('_', '-')
-                        .replace(/\s+/g, '-');
                       return (
                         <div key={test.id || test.testId} className="erm-test-item">
                           <div className="erm-test-main">
@@ -520,30 +513,33 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                                 test.testerName ||
                                 test.assignedTesterName ||
                                 'Unassigned'}
-                              <span className={`status-pill erm-status-pill ${statusClass}`}>
-                                {formatStatus(test.status) || 'Not Started'}
-                              </span>
+                              <Badge
+                                className="erm-status-pill"
+                                tone={statusToBadgeTone(test.status)}
+                              >
+                                {formatStatusLabel(test.status)}
+                              </Badge>
                             </div>
                           </div>
-                          <RestrictedAction action={ACTIONS.UPDATE_REQUEST}>
-                            <button
-                              type="button"
+                          <PermissionAction action={ACTIONS.UPDATE_REQUEST}>
+                            <IconButton
                               className="erm-x"
                               onClick={() => handleRemoveTest(test)}
                               disabled={saving}
+                              label="Remove Control"
                               title="Remove Control"
                             >
                               ×
-                            </button>
-                          </RestrictedAction>
+                            </IconButton>
+                          </PermissionAction>
                         </div>
                       );
                     })
                   )}
 
                   <div className="erm-create-control-row">
-                    <RestrictedAction action={ACTIONS.CREATE_TEST}>
-                      <button
+                    <PermissionAction action={ACTIONS.CREATE_TEST}>
+                      <ActionButton
                         type="button"
                         className={`erm-create-control-link ${saving || !isManager ? 'erm-create-control-link--disabled' : ''}`}
                         onClick={() => {
@@ -553,34 +549,35 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
                         title="Create New Control for this Request"
                       >
                         + Create New Control for this Request
-                      </button>
-                    </RestrictedAction>
+                      </ActionButton>
+                    </PermissionAction>
                   </div>
                 </div>
-              </div>
+              </Panel>
             </>
           )}
-        </div>
+        </Modal.Body>
 
-        <div className="erm-footer">
-          <button
+        <Modal.Footer className="erm-footer">
+          <ActionButton
             type="button"
+            variant="cancel"
             className="erm-btn erm-btn--ghost"
             onClick={onClose}
             disabled={saving}
           >
             Cancel
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             type="button"
             className="erm-btn erm-btn--primary"
             onClick={handleSaveChanges}
             disabled={saving || loading}
           >
             {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
+          </ActionButton>
+        </Modal.Footer>
+      </Modal>
 
       <CreateTestModal
         isOpen={isCreateTestOpen}
@@ -601,16 +598,6 @@ export default function EditRequestModal({ isOpen, onClose, requestId, onUpdated
           if (onUpdated) await onUpdated(updated);
         }}
       />
-    </div>
+    </>
   );
-}
-
-function formatStatus(s) {
-  const v = String(s || '')
-    .replaceAll('_', ' ')
-    .toLowerCase()
-    .replace(/(^|\s)\S/g, (c) => c.toUpperCase())
-    .replace(/\b(Dat|Oet|Oat)\b/g, (m) => m.toUpperCase());
-
-  return v || '-';
 }

@@ -1,0 +1,70 @@
+.badge {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge.badge--active,
+.badge.badge--completed {
+  background: var(--badge-success-bg);
+  color: var(--badge-success-text);
+  border-color: var(--badge-success-border);
+}
+
+.badge.badge--retired,
+.badge.badge--blocked {
+  background: var(--badge-danger-bg);
+  color: var(--badge-danger-text);
+  border-color: var(--badge-danger-border);
+}
+
+.badge.badge--neutral,
+.badge.badge--not-started {
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border-color: var(--badge-neutral-border);
+}
+
+.badge.badge--dat-in-progress,
+.badge.badge--oet-in-progress,
+.badge.badge--in-progress {
+  background: var(--badge-info-bg);
+  color: var(--badge-info-text);
+  border-color: var(--badge-info-border);
+}
+
+.badge.badge--in-review,
+.badge.badge--pending {
+  background: var(--badge-warning-bg);
+  color: var(--badge-warning-text);
+  border-color: var(--badge-warning-border);
+}
+
+.badge.badge--low {
+  background: #e6f7ea;
+  color: var(--priority-low);
+  border-color: #ccefd6;
+}
+
+.badge.badge--medium {
+  background: #fff4dd;
+  color: var(--priority-medium);
+  border-color: #ffe2a8;
+}
+
+.badge.badge--high {
+  background: #fdecec;
+  color: var(--priority-high);
+  border-color: #f7caca;
+}
+
+.badge.badge--critical {
+  background: #f3e8ff;
+  color: var(--priority-critical);
+  border-color: #e0ccff;
+}

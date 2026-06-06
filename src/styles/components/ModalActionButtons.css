@@ -1,0 +1,111 @@
+/* Shared modal footer action colors. Individual modal files keep sizing/layout. */
+
+:root {
+  --modal-action-red: #8b0f17;
+  --modal-action-red-hover: #6d0b12;
+  --modal-action-red-soft: #fdecec;
+}
+
+.modal-action-cancel,
+.modal-footer .btn.btn--white,
+.crm-btn.crm-btn--ghost,
+.ctm-btn.ctm-btn--ghost,
+.ecm-btn.ecm-btn--outline,
+.erm-btn.erm-btn--ghost,
+.erm-btn.erm-btn--ghost.modal-action-cancel,
+.dtm-btn.dtm-btn--revert.modal-action-cancel,
+.dtm-btn.dtm-btn--secondary.modal-action-cancel,
+.dcm-btn.dcm-btn--outline.modal-action-cancel,
+.aalm-btn.aalm-btn--cancel,
+.arm-btn.arm-btn-ghost,
+.icm-btn-cancel,
+.dcm-confirm-btn.dcm-confirm-btn--cancel {
+  background: #ffffff !important;
+  border-color: var(--modal-action-red) !important;
+  color: var(--modal-action-red) !important;
+  font-weight: 400 !important;
+}
+
+.modal-action-cancel:hover:not(:disabled),
+.modal-footer .btn.btn--white:hover:not(:disabled),
+.crm-btn.crm-btn--ghost:hover:not(:disabled),
+.ctm-btn.ctm-btn--ghost:hover:not(:disabled),
+.ecm-btn.ecm-btn--outline:hover:not(:disabled),
+.erm-btn.erm-btn--ghost:hover:not(:disabled),
+.aalm-btn.aalm-btn--cancel:hover:not(:disabled),
+.arm-btn.arm-btn-ghost:hover:not(:disabled),
+.icm-btn-cancel:hover:not(:disabled),
+.dcm-confirm-btn.dcm-confirm-btn--cancel:hover:not(:disabled) {
+  background: var(--modal-action-red-soft) !important;
+  border-color: var(--modal-action-red) !important;
+  color: var(--modal-action-red) !important;
+  filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.modal-action-primary,
+.modal-footer .btn.btn--red,
+.ctm-footer .btn.btn--red,
+.crm-btn.crm-btn--primary,
+.ctm-btn.ctm-btn--primary,
+.ecm-btn.ecm-btn--primary,
+.erm-btn.erm-btn--primary,
+.erm-add-btn.modal-action-primary,
+.erm-create-control-link.modal-action-primary,
+.drm-btn.drm-btn--outline.modal-action-primary,
+.dtm-btn.dtm-btn--secondary.modal-action-primary,
+.dcm-btn.dcm-btn--outline.modal-action-primary,
+.dcm-btn.dcm-btn--primary.modal-action-primary,
+.aalm-btn.aalm-btn--primary,
+.arm-btn.arm-btn-primary,
+.icm-btn-import,
+.dtm-send.modal-action-primary,
+.dcm-confirm-btn.dcm-confirm-btn--delete {
+  background: var(--modal-action-red) !important;
+  border-color: var(--modal-action-red) !important;
+  color: #ffffff !important;
+  font-weight: 400 !important;
+}
+
+.modal-action-primary:hover:not(:disabled),
+.modal-footer .btn.btn--red:hover:not(:disabled),
+.ctm-footer .btn.btn--red:hover:not(:disabled),
+.crm-btn.crm-btn--primary:hover:not(:disabled),
+.ctm-btn.ctm-btn--primary:hover:not(:disabled),
+.ecm-btn.ecm-btn--primary:hover:not(:disabled),
+.erm-btn.erm-btn--primary:hover:not(:disabled),
+.erm-add-btn.modal-action-primary:hover:not(:disabled),
+.erm-create-control-link.modal-action-primary:hover:not(:disabled),
+.drm-btn.drm-btn--outline.modal-action-primary:hover:not(:disabled),
+.dtm-btn.dtm-btn--secondary.modal-action-primary:hover:not(:disabled),
+.dcm-btn.dcm-btn--outline.modal-action-primary:hover:not(:disabled),
+.dcm-btn.dcm-btn--primary.modal-action-primary:hover:not(:disabled),
+.aalm-btn.aalm-btn--primary:hover:not(:disabled),
+.arm-btn.arm-btn-primary:hover:not(:disabled),
+.icm-btn-import:hover:not(:disabled),
+.dtm-send.modal-action-primary:hover:not(:disabled),
+.dcm-confirm-btn.dcm-confirm-btn--delete:hover:not(:disabled) {
+  background: var(--modal-action-red-hover) !important;
+  border-color: var(--modal-action-red-hover) !important;
+  color: #ffffff !important;
+  filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.dtm-btn.modal-action-cancel,
+.dtm-btn.modal-action-primary {
+  padding: 5px 12px !important;
+  line-height: 24px;
+}
+
+.dtm-btn.modal-action-primary {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.dtm-send-icon {
+  display: inline-block;
+  transform: translateY(1.5px);
+}

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchTestById, updateTest } from '../api/TestsAPI';
 import '../styles/components/EditTestModal.css';
-import '../styles/components/EditControlModal.css';
 import { fetchControls } from '../api/ControlsAPI';
 import { fetchRequests } from '../api/RequestsAPI';
 import { fetchUsers } from '../api/UsersAPI';
@@ -10,27 +9,25 @@ import { formatISOToDate, objectToCamelCase } from '../utils/transformer';
 import { useRole, ACTIONS } from '../auth';
 import { formatRequestDisplayId } from '../utils/requestDisplayId';
 import { createRefreshHandlers } from '../utils/modalRefresh';
+import { flagsFromTestType, testTypeFromFlags } from '../utils/testType';
+import {
+  ActionButton,
+  FormField,
+  FormGrid,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  Modal,
+} from './ui';
 
 const MODAL_BODY_MIN_HEIGHT = 428;
-
-function flagsFromTestType(v) {
-  if (v === 'DAT Only') return { requiresDat: true, requiresOet: false };
-  if (v === 'OET Only') return { requiresDat: false, requiresOet: true };
-  if (v === 'DAT & OET') return { requiresDat: true, requiresOet: true };
-  return { requiresDat: false, requiresOet: false };
-}
 
 function normalizeTest(test) {
   return objectToCamelCase(test ?? null);
 }
 
 function buildInitialState(test) {
-  let testType = '';
-  if (test) {
-    if (test.requiresDat && test.requiresOet) testType = 'DAT & OET';
-    else if (test.requiresDat) testType = 'DAT Only';
-    else if (test.requiresOet) testType = 'OET Only';
-  }
+  const testType = test ? testTypeFromFlags(test) : '';
 
   return {
     selectedControlId: test?.controlId != null ? String(test.controlId) : '',
@@ -258,200 +255,159 @@ export default function EditTestModal({ isOpen, onClose, test, onUpdated }) {
   const testerSelectTitle = !isManager ? restrictionMessage(ACTIONS.ASSIGN_TESTER) : undefined;
 
   return (
-    <div
-      className="ctm-overlay"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
-      }}
+    <Modal
+      className="ctm-modal"
+      overlayClassName="ctm-overlay"
+      labelledBy="edit-test-title"
+      onClose={onClose}
     >
-      <div
-        className="ctm-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-test-title"
-        onMouseDown={(e) => e.stopPropagation()}
+      <Modal.Header
+        className="ctm-header"
+        titleClassName="ctm-title"
+        closeClassName="ctm-close"
+        title={`Edit Control Test: ${selectedVgcpid || '-'}`}
+        titleId="edit-test-title"
+        onClose={onClose}
+      />
+
+      <Modal.Body
+        className="ctm-body ctm-body--stable"
+        style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}
       >
-        <div className="ctm-header">
-          <h2 className="ctm-title" id="edit-test-title">
-            Edit Control Test: {selectedVgcpid || '-'}
-          </h2>
+        {loading ? (
+          <div className="ctm-loading" style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}>
+            Loading test details...
+          </div>
+        ) : (
+          <FormGrid className="ctm-grid">
+            <FormField label="VGCPID" required error={fieldErrors.selectedControlId}>
+              <FormSelect
+                className="ctm-select"
+                value={selectedControlId}
+                onChange={(e) => setSelectedControlId(e.target.value)}
+                disabled={!isManager}
+                title={controlSelectTitle}
+                aria-invalid={fieldErrors.selectedControlId ? 'true' : 'false'}
+              >
+                <option value="" disabled>
+                  Select VGCPID
+                </option>
+                {controlOptions.map((c) => (
+                  <option key={c.controlId} value={String(c.controlId)}>
+                    {c.vgcpid}
+                  </option>
+                ))}
+              </FormSelect>
+            </FormField>
 
-          <button type="button" className="ctm-close" aria-label="Close" onClick={onClose}>
-            x
-          </button>
-        </div>
+            <FormField label="Link to Request" error={fieldErrors.selectedRequestId}>
+              <FormSelect
+                className="ctm-select"
+                value={selectedRequestId}
+                onChange={(e) => setSelectedRequestId(e.target.value)}
+                disabled={!isManager}
+                title={requestSelectTitle}
+                aria-invalid={fieldErrors.selectedRequestId ? 'true' : 'false'}
+              >
+                <option value="" disabled>
+                  Select request
+                </option>
+                {requestOptions.map((r) => (
+                  <option
+                    key={r.requestId}
+                    value={String(r.requestId)}
+                  >{`${formatRequestDisplayId(r.requestId, r.createdAt)} - ${r.requestor ?? '-'} - ${r.dueDate ?? '-'}`}</option>
+                ))}
+              </FormSelect>
+            </FormField>
 
-        <div
-          className="ctm-body ctm-body--stable"
-          style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}
+            <FormField label="Tester">
+              <FormSelect
+                className="ctm-select"
+                value={selectedTesterId}
+                onChange={(e) => setSelectedTesterId(e.target.value)}
+                disabled={!isManager}
+                title={testerSelectTitle}
+              >
+                <option value="">Unassigned</option>
+                {testerOptions.map((u) => (
+                  <option key={u.userId} value={String(u.userId)}>
+                    {u.displayName}
+                  </option>
+                ))}
+              </FormSelect>
+            </FormField>
+
+            <FormField label="Test Type" required error={fieldErrors.testType}>
+              <FormSelect
+                className="ctm-select"
+                value={testType}
+                onChange={(e) => setTestType(e.target.value)}
+                aria-invalid={fieldErrors.testType ? 'true' : 'false'}
+              >
+                <option value="" disabled>
+                  Select test type
+                </option>
+                <option value="DAT Only">DAT Only</option>
+                <option value="OET Only">OET Only</option>
+                <option value="DAT & OET">DAT &amp; OET</option>
+              </FormSelect>
+            </FormField>
+
+            <FormField label="Due Date" required error={fieldErrors.dueDate}>
+              <FormInput
+                className="ctm-input"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                readOnly={!!selectedRequestId}
+                disabled={!!selectedRequestId}
+                title={selectedRequestId ? 'Due date is synced from the selected request.' : ''}
+                aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
+              />
+            </FormField>
+
+            <FormField label="ETA Date">
+              <FormInput
+                className="ctm-input"
+                type="date"
+                value={etaDate}
+                onChange={(e) => setEtaDate(e.target.value)}
+              />
+            </FormField>
+
+            <FormField label="Description" required error={fieldErrors.description} full>
+              <FormTextarea
+                className="ctm-textarea"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                aria-invalid={fieldErrors.description ? 'true' : 'false'}
+              />
+            </FormField>
+          </FormGrid>
+        )}
+      </Modal.Body>
+
+      <Modal.Footer className="ctm-footer">
+        <ActionButton
+          type="button"
+          variant="cancel"
+          className="ctm-btn ctm-btn--ghost"
+          onClick={onClose}
+          disabled={submitting}
         >
-          {loading ? (
-            <div className="ctm-loading" style={{ minHeight: `${MODAL_BODY_MIN_HEIGHT}px` }}>
-              Loading test details...
-            </div>
-          ) : (
-            <>
-              <div className="ctm-grid">
-                <div className="ctm-field">
-                  <label className="ctm-label">
-                    VGCPID <span className="ctm-req">*</span>{' '}
-                  </label>
-                  <select
-                    className="ctm-select"
-                    value={selectedControlId}
-                    onChange={(e) => setSelectedControlId(e.target.value)}
-                    disabled={!isManager}
-                    title={controlSelectTitle}
-                    aria-invalid={fieldErrors.selectedControlId ? 'true' : 'false'}
-                  >
-                    <option value="" disabled>
-                      Select VGCPID
-                    </option>
-                    {controlOptions.map((c) => (
-                      <option key={c.controlId} value={String(c.controlId)}>
-                        {c.vgcpid}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.selectedControlId ? (
-                    <div className="field-error">{fieldErrors.selectedControlId}</div>
-                  ) : null}
-                </div>
+          Cancel
+        </ActionButton>
 
-                <div className="ctm-field">
-                  <label className="ctm-label">Link to Request</label>
-                  <select
-                    className="ctm-select"
-                    value={selectedRequestId}
-                    onChange={(e) => setSelectedRequestId(e.target.value)}
-                    disabled={!isManager}
-                    title={requestSelectTitle}
-                    aria-invalid={fieldErrors.selectedRequestId ? 'true' : 'false'}
-                  >
-                    <option value="" disabled>
-                      Select request
-                    </option>
-                    {requestOptions.map((r) => (
-                      <option
-                        key={r.requestId}
-                        value={String(r.requestId)}
-                      >{`${formatRequestDisplayId(r.requestId, r.createdAt)} - ${r.requestor ?? '-'} - ${r.dueDate ?? '-'}`}</option>
-                    ))}
-                  </select>
-                  {fieldErrors.selectedRequestId ? (
-                    <div className="field-error">{fieldErrors.selectedRequestId}</div>
-                  ) : null}
-                </div>
-
-                <div className="ctm-field">
-                  <label className="ctm-label">Tester</label>
-                  <select
-                    className="ctm-select"
-                    value={selectedTesterId}
-                    onChange={(e) => setSelectedTesterId(e.target.value)}
-                    disabled={!isManager}
-                    title={testerSelectTitle}
-                  >
-                    <option value="">Unassigned</option>
-                    {testerOptions.map((u) => (
-                      <option key={u.userId} value={String(u.userId)}>
-                        {u.displayName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="ctm-field">
-                  <label className="ctm-label">
-                    Test Type <span className="ctm-req">*</span>
-                  </label>
-                  <select
-                    className="ctm-select"
-                    value={testType}
-                    onChange={(e) => setTestType(e.target.value)}
-                    aria-invalid={fieldErrors.testType ? 'true' : 'false'}
-                  >
-                    <option value="" disabled>
-                      Select test type
-                    </option>
-                    <option value="DAT Only">DAT Only</option>
-                    <option value="OET Only">OET Only</option>
-                    <option value="DAT & OET">DAT &amp; OET</option>
-                  </select>
-                  {fieldErrors.testType ? (
-                    <div className="field-error">{fieldErrors.testType}</div>
-                  ) : null}
-                </div>
-
-                <div className="ctm-field">
-                  <label className="ctm-label">
-                    Due Date <span className="ctm-req">*</span>
-                  </label>
-                  <input
-                    className="ctm-input"
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    readOnly={!!selectedRequestId}
-                    disabled={!!selectedRequestId}
-                    title={selectedRequestId ? 'Due date is synced from the selected request.' : ''}
-                    aria-invalid={fieldErrors.dueDate ? 'true' : 'false'}
-                  />
-                  {fieldErrors.dueDate ? (
-                    <div className="field-error">{fieldErrors.dueDate}</div>
-                  ) : null}
-                </div>
-
-                <div className="ctm-field">
-                  <label className="ctm-label">ETA Date</label>
-                  <input
-                    className="ctm-input"
-                    type="date"
-                    value={etaDate}
-                    onChange={(e) => setEtaDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="ctm-field ctm-field--full">
-                  <label className="ctm-label">
-                    Description <span className="ctm-req">*</span>{' '}
-                  </label>
-                  <textarea
-                    className="ctm-textarea"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    aria-invalid={fieldErrors.description ? 'true' : 'false'}
-                  />
-                  {fieldErrors.description ? (
-                    <div className="field-error">{fieldErrors.description}</div>
-                  ) : null}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="ctm-footer">
-          <button
-            type="button"
-            className="ecm-btn ecm-btn--outline"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            className="btn btn--red"
-            onClick={handleSave}
-            disabled={submitting || loading}
-          >
-            {submitting ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
-    </div>
+        <ActionButton
+          type="button"
+          className="ctm-btn ctm-btn--primary"
+          onClick={handleSave}
+          disabled={submitting || loading}
+        >
+          {submitting ? 'Saving...' : 'Save Changes'}
+        </ActionButton>
+      </Modal.Footer>
+    </Modal>
   );
 }
