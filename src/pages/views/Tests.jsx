@@ -21,19 +21,27 @@ function formatStepLabel(step) {
   return String(step).replaceAll('_', ' ').toUpperCase();
 }
 
-function stepFromTracks(t) {
-  const requiresDat = !!t?.requires_dat;
-  const requiresOet = !!t?.requires_oet;
+function getActiveTrackForTable(t) {
+  const statusUpper = String(t?.status || '').toUpperCase();
+  if (statusUpper === 'DAT_IN_PROGRESS') return 'DAT';
+  if (statusUpper === 'OET_IN_PROGRESS') return 'OET';
+  return null;
+}
 
-  if (requiresDat) {
+function stepFromTracks(t) {
+  const statusUpper = String(t?.status || '').toUpperCase();
+  if (statusUpper === 'COMPLETED') {
+    return 'COMPLETED';
+  }
+
+  const activeTrack = getActiveTrackForTable(t);
+  if (!activeTrack) return '-';
+
+  if (activeTrack === 'DAT') {
     return formatStepLabel(t?.dat_step);
   }
 
-  if (requiresOet) {
-    return formatStepLabel(t?.oet_step);
-  }
-
-  return '-';
+  return formatStepLabel(t?.oet_step);
 }
 
 function normalizeText(v) {
@@ -371,17 +379,34 @@ export default function Tests({
           setTests((prev) => prev.filter((x) => x.test_id !== testId));
         }}
         onEdit={(updatedTest) => {
-          if (!updatedTest?.test_id) return;
+          const updatedId = updatedTest?.test_id ?? updatedTest?.testId ?? null;
+          if (!updatedId) return;
 
           setTests((prev) =>
-            prev.map((x) => (x?.test_id === updatedTest.test_id ? { ...x, ...updatedTest } : x))
+            prev.map((x) =>
+              x && (x.test_id === updatedId || x.testId === updatedId)
+                ? { ...x, ...updatedTest }
+                : x
+            )
           );
 
           setSelectedTest((prev) =>
-            prev?.test_id === updatedTest.test_id ? { ...prev, ...updatedTest } : prev
+            prev && (prev.test_id === updatedId || prev.testId === updatedId)
+              ? { ...prev, ...updatedTest }
+              : prev
           );
         }}
         onUpdated={async (updatedTest) => {
+          const updatedId = updatedTest?.test_id ?? updatedTest?.testId ?? null;
+          if (updatedId) {
+            setTests((prev) =>
+              prev.map((x) =>
+                x && (x.test_id === updatedId || x.testId === updatedId)
+                  ? { ...x, ...updatedTest }
+                  : x
+              )
+            );
+          }
           await refreshTests();
           await onTestUpdated?.(updatedTest);
         }}
