@@ -326,6 +326,10 @@
   padding: 18px 22px;
 }
 
+.dtm-body--comments {
+  padding-bottom: 8px;
+}
+
 .dtm-btn--compact {
   display: inline-flex;
   align-items: center;
@@ -641,12 +645,20 @@
 .dtm-comments {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .dtm-comment {
   display: flex;
+  align-items: flex-start;
   gap: 10px;
+  padding: 5px 0 1px;
+  border-top: 1px solid #ededed;
+}
+
+.dtm-comment:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .dtm-comment-left {
@@ -656,22 +668,30 @@
 .dtm-comment-main {
   flex: 1;
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
 }
 
 .dtm-comment-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  display: contents;
 }
 
 .dtm-comment-meta {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .dtm-comment-author {
+  grid-column: 1;
+  grid-row: 1;
   font-size: 12px;
   font-weight: 800;
   color: #111;
@@ -683,11 +703,16 @@
 }
 
 .dtm-comment-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   color: #6b7280;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 0;
   border-radius: 6px;
 }
 
@@ -696,10 +721,20 @@
 }
 
 .dtm-comment-text {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-weight: 400;
   color: #333;
   font-size: 12px;
   margin-top: 4px;
+  line-height: 1.35;
+}
+
+.dtm-body--comments + .dtm-divider + .dtm-footer {
+  padding-top: 10px;
 }
 
 /* Request-modal aligned hover, button, tab, input, and send styles */
@@ -877,6 +912,7 @@
 }
 
 .dtm-send {
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -893,6 +929,11 @@
     box-shadow 140ms ease,
     transform 140ms ease,
     opacity 140ms ease;
+}
+
+.dtm-addcomment .comments-composer-icon {
+  display: inline-flex;
+  transform: translateY(1px);
 }
 
 .dtm-send:hover:not(:disabled),

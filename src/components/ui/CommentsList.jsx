@@ -1,7 +1,6 @@
 import React from 'react';
 import { cx } from '../../utils/classNames';
 import IconButton from './IconButton';
-import './CommentsList.css';
 
 function getInitial(author) {
   return (
