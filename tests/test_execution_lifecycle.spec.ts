@@ -22,7 +22,12 @@ async function createNotStartedTestForCurrentTester(
     .locator("option")
     .filter({ hasText: /monique/i })
     .first();
-  const testerValue = await testerOption.getAttribute("value");
+  const testerOptionCount = await testerSelect
+    .locator("option")
+    .filter({ hasText: /monique/i })
+    .count();
+  const testerValue =
+    testerOptionCount > 0 ? await testerOption.getAttribute("value") : null;
   if (testerValue) {
     await testerSelect.selectOption(testerValue);
   } else {

@@ -268,10 +268,17 @@ export default function DetailsControlModal({ isOpen, onClose, control, onDelete
 
   return (
     <>
-      <Modal className="dcm-modal" overlayClassName="dcm-overlay" onClose={onClose}>
+      <Modal
+        className="dcm-modal"
+        overlayClassName="dcm-overlay"
+        onClose={onClose}
+        labelledBy="details-control-title"
+      >
         <Modal.Section className="dcm-section-header">
           <div className="dcm-header">
-            <div className="dcm-title">{id}</div>
+            <div className="dcm-title" id="details-control-title">
+              {id}
+            </div>
 
             <ModalCloseButton className="dcm-close" onClick={onClose} />
           </div>

@@ -54,9 +54,12 @@ test("T28 - Add Existing Control Test to Request", async ({ page }) => {
     .fill(requesterName);
   const createdRequestCard = page
     .locator(".requests-list .request-card")
+    .filter({ hasText: requesterName })
     .first();
   await expect(createdRequestCard).toBeVisible({ timeout: 30000 });
-  const detailsButton = page.getByRole("button", { name: "Details" }).first();
+  const detailsButton = createdRequestCard.getByRole("button", {
+    name: "Details",
+  });
   await expect(detailsButton).toBeEnabled({ timeout: 30000 });
   await detailsButton.click();
   const requestDetailsDialog = page.getByRole("dialog").filter({
