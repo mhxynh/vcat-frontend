@@ -20,8 +20,8 @@ This repository contains the user interface, state management, and client-side c
 
 ### Known Open Issues & Workarounds
 
-- **Port Sharing Collisions:** If the backend emulation tool chain accidentally claims port 3000, or if a previous React development server remains hung in the background, executing `npm start` will throw an address-in-use error.
-  - _Workaround:_ When prompted by the React CLI stack to shift addresses, type **Y** to transparently re-route the frontend development environment to alternate port `3001`.
+- **Port Sharing Collisions:** If port 3000 is already in use (e.g., another React dev server is running), executing `npm start` will throw an address-in-use error.
+  - _Workaround:_ When prompted by the React CLI to use a different port, type **Y** and use the port shown in the prompt (it may be 3001, 3002, etc.).
 
 ---
 
@@ -31,12 +31,12 @@ Follow these steps to configure and boot the frontend user interface locally:
 
 1. **Clone the repo:** `git clone https://github.com/mhxynh/vcat-frontend.git`
 2. **Install dependencies:** `npm install`
-3. **Configure Environment**: The frontend uses a `.env` file to handle environment-specific settings (like the API URL). This file is **git-ignored** to prevent local configuration conflicts and credential leakages.
+3. **Configure Environment**: The frontend uses a `.env` file to handle environment-specific settings (like the API URL). This file is **git-ignored** to prevent local configuration conflicts and accidental credential leakage.
    - `cp .env.example .env`
-   - _Open .env and fill in your specific `REACT_APP_USER_POOL_ID` and `REACT_APP_APP_CLIENT_ID` values._
+   - _Update `REACT_APP_API_BASE_URL`, `REACT_APP_USER_POOL_ID`, and `REACT_APP_APP_CLIENT_ID` as needed. Never commit real `VCAT_\*` credentials.\_
 4. **Start the app**: `npm start`
    - Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-   - If the backend (SAM) is already running on port 3000, you will be asked to use another port. Type **Y** to run the frontend on `3001`.
+   - If port 3000 is already in use, React will prompt you to use another port. Type **Y** and open the URL it prints (often `3001`, `3002`, etc.).
 
 ## How to Run a Full Integration Test (BE & FE)
 
